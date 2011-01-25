@@ -1,0 +1,299 @@
+\newcommand{\NWtarget}[2]{#2}
+\newcommand{\NWlink}[2]{#2}
+\newcommand{\NWtxtMacroDefBy}{Fragment defined by}
+\newcommand{\NWtxtMacroRefIn}{Fragment referenced in}
+\newcommand{\NWtxtMacroNoRef}{Fragment never referenced}
+\newcommand{\NWtxtDefBy}{Defined by}
+\newcommand{\NWtxtRefIn}{Referenced in}
+\newcommand{\NWtxtNoRef}{Not referenced}
+\newcommand{\NWtxtFileDefBy}{File defined by}
+\newcommand{\NWtxtIdentsUsed}{Uses:}
+\newcommand{\NWtxtIdentsNotUsed}{Never used}
+\newcommand{\NWtxtIdentsDefed}{Defines:}
+\newcommand{\NWsep}{${\diamond}$}
+\newcommand{\NWnotglobal}{(not defined globally)}
+\newcommand{\NWuseHyperlinks}{}
+\documentclass{report}
+\usepackage[T1]{fontenc}
+\usepackage{bera}
+
+\usepackage[pdftex,usenames,dvipsnames]{color}
+\usepackage{listings}
+\definecolor{mycode}{rgb}{0.9,0.9,1}
+\lstset{language=c++,tabsize=1,basicstyle=\scriptsize,backgroundcolor=\color{mycode}}
+
+\usepackage{hyperref}
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\usepackage{verbatim}
+\begin{document}
+
+\begin{comment}
+\begin{flushleft} \small
+\begin{minipage}{\linewidth}\label{scrap1}\raggedright\small
+\NWtarget{nuweb?}{} \verb@"BasisHubbardLanczos.h"@\nobreak\ {\footnotesize {?}}$\equiv$
+\vspace{-1ex}
+\begin{lstlisting}%AAAA
+    
+  /*  
+  */  
+   \end{lstlisting}
+\end{minipage}
+\end{flushleft}
+\end{comment}
+
+\section{Basis a Hubbard Model to use with Lanczos}
+
+HEre is some boilerplate:
+
+\begin{flushleft} \small
+\begin{minipage}{\linewidth}\label{scrap2}\raggedright\small
+\NWtarget{nuweb?}{} \verb@"BasisHubbardLanczos.h"@\nobreak\ {\footnotesize {?}}$\equiv$
+\vspace{-1ex}
+\begin{lstlisting}%AAAA
+    
+  #ifndef BASISHUBBARDLANCZOS_H  
+  #define BASISHUBBARDLANCZOS_H  
+    
+    
+  namespace LanczosPlusPlus {  
+  	 theClassHere?  
+  } // namespace LanczosPlusPlus  
+  #endif  
+    
+   \end{lstlisting}
+\end{minipage}
+\end{flushleft}
+And the class is:
+\begin{flushleft} \small
+\begin{minipage}{\linewidth}\label{scrap3}\raggedright\small
+\NWtarget{nuweb?}{} $\langle\,${\it theClassHere}\nobreak\ {\footnotesize {?}}$\,\rangle\equiv$
+\begin{lstlisting}%BBBB
+    
+  class BasisHubbardLanczos {  
+  public:  
+  	 publicTypesAndEnums?  
+  	 constructor?  
+  	 publicFunctions?  
+    
+  private:  
+  	 privateFunctions?  
+  	 privateData?  
+  }; // class BasisHubbardLanczos  
+   staticDefinitions?  
+   \end{lstlisting}
+\end{minipage}\vspace{4ex}
+\end{flushleft}
+\begin{flushleft} \small
+\begin{minipage}{\linewidth}\label{scrap4}\raggedright\small
+\NWtarget{nuweb?}{} $\langle\,${\it privateData}\nobreak\ {\footnotesize {?}}$\,\rangle\equiv$
+\begin{lstlisting}%BBBB
+    
+  size_t size_;  
+  size_t npart_;  
+  std::vector<WordType> data_;  
+   \end{lstlisting}
+\end{minipage}\vspace{4ex}
+\end{flushleft}
+\begin{flushleft} \small
+\begin{minipage}{\linewidth}\label{scrap5}\raggedright\small
+\NWtarget{nuweb?}{} $\langle\,${\it publicTypesAndEnums}\nobreak\ {\footnotesize {?}}$\,\rangle\equiv$
+\begin{lstlisting}%BBBB
+    
+  typedef unsigned int long long WordType;  
+  static size_t nsite_;  
+  static psimag::Matrix<size_t> comb_;  
+  static std::vector<WordType> bitmask_;  \end{lstlisting}
+\end{minipage}\vspace{4ex}
+\end{flushleft}
+All right, now the constructor:
+\begin{flushleft} \small
+\begin{minipage}{\linewidth}\label{scrap6}\raggedright\small
+\NWtarget{nuweb?}{} $\langle\,${\it constructor}\nobreak\ {\footnotesize {?}}$\,\rangle\equiv$
+\begin{lstlisting}%BBBB
+    
+  BasisHubbardLanczos(size_t nsite, size_t npart) : npart_(npart)  
+  {  
+  	if (nsite_>0 && nsite!=nsite_)  
+  		throw std::runtime_error("BasisHubbardLanczos: All basis must have same number of sites\n");  
+  	nsite_ = nsite;  
+  	doCombinatorial();  
+  	doBitmask();  
+    
+  	/* compute size of basis */  
+  	size_t hilbert=1;  
+  	int n=nsite;  
+  	size_t m=1;  
+  	for (;m<=npart;n--,m++)  
+  		hilbert=hilbert*n/m;  
+    
+  	if (data_.size()!=hilbert) {  
+  		data_.clear();  
+  		data_.resize(hilbert);  
+  	}  
+    
+  	if (npart==0) {  
+  		data_[0]=0;  
+  		return;  
+  	}  
+  	  
+  	/* define basis states */  
+  	WordType ket = (1ul<<npart)-1;  
+  	for (size_t i=0;i<hilbert;i++) {  
+  		data_[i] = ket;  
+  		n=m=0;  
+  		for (;(ket&3)!=1;n++,ket>>=1) {  
+  			m += ket&1;  
+  		}  
+  		ket = ((ket+1)<<n) ^ ((1<<m)-1);  
+  	}  
+  	size_ = hilbert;  
+  }  \end{lstlisting}
+\end{minipage}\vspace{4ex}
+\end{flushleft}
+\begin{flushleft} \small
+\begin{minipage}{\linewidth}\label{scrap7}\raggedright\small
+\NWtarget{nuweb?}{} $\langle\,${\it publicFunctions}\nobreak\ {\footnotesize {?}}$\,\rangle\equiv$
+\begin{lstlisting}%BBBB
+    
+   size?  
+   operatorBracket?  
+   perfectIndex?  
+   bitmask?  
+   bitctn?  \end{lstlisting}
+\end{minipage}\vspace{4ex}
+\end{flushleft}
+\begin{flushleft} \small
+\begin{minipage}{\linewidth}\label{scrap8}\raggedright\small
+\NWtarget{nuweb?}{} $\langle\,${\it size}\nobreak\ {\footnotesize {?}}$\,\rangle\equiv$
+\begin{lstlisting}%BBBB
+    
+  size_t size() const { return size_; }  \end{lstlisting}
+\end{minipage}\vspace{4ex}
+\end{flushleft}
+\begin{flushleft} \small
+\begin{minipage}{\linewidth}\label{scrap9}\raggedright\small
+\NWtarget{nuweb?}{} $\langle\,${\it operatorBracket}\nobreak\ {\footnotesize {?}}$\,\rangle\equiv$
+\begin{lstlisting}%BBBB
+    
+  const WordType& operator[](size_t i) const  
+  {  
+  	return data_[i];  
+  }  \end{lstlisting}
+\end{minipage}\vspace{4ex}
+\end{flushleft}
+\begin{flushleft} \small
+\begin{minipage}{\linewidth}\label{scrap10}\raggedright\small
+\NWtarget{nuweb?}{} $\langle\,${\it perfectIndex}\nobreak\ {\footnotesize {?}}$\,\rangle\equiv$
+\begin{lstlisting}%BBBB
+    
+  size_t perfectIndex(WordType state) const  
+  {  
+  	size_t n=0;  
+  	for (size_t b=0,c=1;state>0;b++,state>>=1)  
+  		if (state&1) n += comb_(b,c++);  
+    
+  	return n;  
+  }  \end{lstlisting}
+\end{minipage}\vspace{4ex}
+\end{flushleft}
+\begin{flushleft} \small
+\begin{minipage}{\linewidth}\label{scrap11}\raggedright\small
+\NWtarget{nuweb?}{} $\langle\,${\it bitmask}\nobreak\ {\footnotesize {?}}$\,\rangle\equiv$
+\begin{lstlisting}%BBBB
+    
+  static const WordType& bitmask(size_t i)  
+  {  
+  	return bitmask_[i];  
+  }  \end{lstlisting}
+\end{minipage}\vspace{4ex}
+\end{flushleft}
+\begin{flushleft} \small
+\begin{minipage}{\linewidth}\label{scrap12}\raggedright\small
+\NWtarget{nuweb?}{} $\langle\,${\it bitctn}\nobreak\ {\footnotesize {?}}$\,\rangle\equiv$
+\begin{lstlisting}%BBBB
+    
+  static int bitcnt (WordType b)  
+  {  
+  #if (ULONG_MAX == 0xfffffffful)  
+  	b = (0x55555555 & b) + (0x55555555 & (b >> 1));  
+  	b = (0x33333333 & b) + (0x33333333 & (b >> 2));  
+  	b = (0x0f0f0f0f & b) + (0x0f0f0f0f & (b >> 4));  
+  	b = (0x00ff00ff & b) + (0x00ff00ff & (b >> 8));  
+  	b = (0x0000ffff & b) + (0x0000ffff & (b >> 16));  
+    
+  	return (int) b;  
+  #else  
+  	b = (0x5555555555555555 & b) + (0x5555555555555555 & (b >> 1));  
+  	b = (0x3333333333333333 & b) + (0x3333333333333333 & (b >> 2));  
+  	b = (0x0f0f0f0f0f0f0f0f & b) + (0x0f0f0f0f0f0f0f0f & (b >> 4));  
+  	b = (0x00ff00ff00ff00ff & b) + (0x00ff00ff00ff00ff & (b >> 8));  
+  	b = (0x0000ffff0000ffff & b) + (0x0000ffff0000ffff & (b >> 16));  
+  	b = (0x00000000ffffffff & b) + (0x00000000ffffffff & (b >> 32));  
+    
+  	return (int) b;  
+  #endif  
+  }  \end{lstlisting}
+\end{minipage}\vspace{4ex}
+\end{flushleft}
+\begin{flushleft} \small
+\begin{minipage}{\linewidth}\label{scrap13}\raggedright\small
+\NWtarget{nuweb?}{} $\langle\,${\it privateFunctions}\nobreak\ {\footnotesize {?}}$\,\rangle\equiv$
+\begin{lstlisting}%BBBB
+    
+   doCombinatorial?  
+   doBitMask?  
+   \end{lstlisting}
+\end{minipage}\vspace{4ex}
+\end{flushleft}
+\begin{flushleft} \small
+\begin{minipage}{\linewidth}\label{scrap14}\raggedright\small
+\NWtarget{nuweb?}{} $\langle\,${\it doCombinatorial}\nobreak\ {\footnotesize {?}}$\,\rangle\equiv$
+\begin{lstlisting}%BBBB
+    
+  void doCombinatorial()  
+  {  
+  	/* look-up table for binomial coefficients */  
+  	comb_.resize(nsite_,nsite_);  
+    
+  	for (size_t n=0;n<nsite_;n++)  
+  		for (size_t i=0;i<nsite_;i++)  
+  			comb_(n,i)=0;  
+    
+  	for (size_t n=0;n<nsite_;n++) {  
+  		size_t m = 0;  
+  		int j = n;  
+  		size_t i = 1;  
+  		size_t cnm  = 1;  
+  		for (;m<=n/2;m++,cnm=cnm*j/i,i++,j--)  
+  			comb_(n,m) = comb_(n,n-m) = cnm;  
+  	}  
+  }  \end{lstlisting}
+\end{minipage}\vspace{4ex}
+\end{flushleft}
+\begin{flushleft} \small
+\begin{minipage}{\linewidth}\label{scrap15}\raggedright\small
+\NWtarget{nuweb?}{} $\langle\,${\it doBitMask}\nobreak\ {\footnotesize {?}}$\,\rangle\equiv$
+\begin{lstlisting}%BBBB
+    
+  void doBitmask()  
+  {  
+  	bitmask_.resize(nsite_);  
+  	bitmask_[0]=1ul;  
+  	for (size_t i=1;i<nsite_;i++)  
+  		bitmask_[i] = bitmask_[i-1]<<1;  
+  }  \end{lstlisting}
+\end{minipage}\vspace{4ex}
+\end{flushleft}
+\begin{flushleft} \small
+\begin{minipage}{\linewidth}\label{scrap16}\raggedright\small
+\NWtarget{nuweb?}{} $\langle\,${\it staticDefinitions}\nobreak\ {\footnotesize {?}}$\,\rangle\equiv$
+\begin{lstlisting}%BBBB
+    
+  size_t BasisHubbardLanczos::nsite_=0;  
+  psimag::Matrix<size_t> BasisHubbardLanczos::comb_;  
+  std::vector<typename BasisHubbardLanczos::WordType> BasisHubbardLanczos::bitmask_;  \end{lstlisting}
+\end{minipage}\vspace{4ex}
+\end{flushleft}
+\end{document}
+

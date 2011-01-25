@@ -1,0 +1,57 @@
+ 
+NOTE: THIS IS WORK IN PROGRESS
+	
+Licensing
+The full software license for LanczosPlusPlus++ version 1.0.0 
+can be found in
+file LICENSE. 
+LanczosPlusPlus is a free and open source implementation of the 
+Lanczos algorithm for models of strongly correlated electrons. 
+You are welcome to use it and publish data 
+obtained with Lanczos++. If you do, please cite this
+work .
+
+How To Cite This Work
+
+@article{re:alvarez09,
+author="G. Alvarez",
+title="The density matrix renormalization group for strongly correlated electron
+systems: A generic implementation",
+journal="Computer Physics Communications",
+volume="180",
+pages="1572",
+year="2009"}
+
+And also:
+
+@article{
+re:webDmrgPlusPlus,
+Author = {G. Alvarez},
+Title = {DMRG++ Website},
+Publisher = {\url{http://www.ornl.gov/~gz1/dmrgPlusPlus}} }
+
+Building and Running Lanczos++
+TBW.
+
+Required Software
+
+* (required) GNU C++
+* (required) The LAPACK library.
+This library is available for most platforms.
+The configure.pl script will ask for the LDFLAGS variable 
+to pass to the compiler/linker. If the linux platform was
+chosen the default/suggested LDFLAGS will include -llapack.
+If the osx platform was chosen the default/suggested LDFLAGS will
+include  -framework Accelerate.
+For other platforms the appropriate linker flags must be given.
+More information on LAPACK is here: http://netlib.org/lapack/
+* (required) PsimagLite. This is here \url{https://github.com/g1257/PsimagLite/}.
+You can do \verb=git clone https://github.com/g1257/PsimagLite.git= in a separate directory
+outside of the DMRG++ distribution. \verb=configure.pl= will ask you where you put it.
+* (semi-optional) GNU Scientific Library (see doc/manual.pdf)
+* (optional) make or gmake (only needed to use the Makefile)
+* (optional) perl (only needed to run the configure.pl script)
+
+Quick Start
+TBW.
+

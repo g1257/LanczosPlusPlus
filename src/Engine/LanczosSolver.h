@@ -86,8 +86,9 @@ DISCLOSED WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
 #include "Matrix.h"
 #include "ProgressIndicator.h"
 #include "TridiagonalMatrix.h"
+#include "Vector.h"
 
-namespace Dmrg {
+namespace PsimagLite {
 
 	//! MatrixType must have the following interface:
 	//! 	RealType type to indicate the matrix type
@@ -95,14 +96,15 @@ namespace Dmrg {
 	//! 	matrixVectorProduct(std::vector<RealType>& x,const std::vector<RealType>& const y) 
 	//!    	   member function that implements the operation x += Hy
 
-	template<typename RealType,typename MatrixType,typename VectorType,typename ProgramGlobalsType>
+	template<typename RealType,typename MatrixType,typename VectorType,
+		typename RandomType,typename ProgramGlobalsType>
 	class LanczosSolver {
 		
 	public:
 		typedef MatrixType LanczosMatrixType;
-		typedef PsimagLite::TridiagonalMatrix<RealType> TridiagonalMatrixType;
+		typedef TridiagonalMatrix<RealType> TridiagonalMatrixType;
 		typedef typename VectorType::value_type VectorElementType;
-		typedef typename psimag::Matrix<VectorElementType> DenseMatrixType;
+		typedef Matrix<VectorElementType> DenseMatrixType;
 		enum {WITH_INFO=1,DEBUG=2,ALLOWS_ZERO=4};
 		
 		LanczosSolver(MatrixType const &mat, size_t& max_nstep,RealType eps,
@@ -125,9 +127,9 @@ namespace Dmrg {
 			std::vector<RealType> y(n);
 
 			for (size_t i=0;i<n;i++) {
-				utils::myRandomT(tmp);
+				tmp = RandomType::random()-0.5;
 				y[i]=tmp;
-				atmp += utils::myProductT(y[i],y[i]);
+				atmp += std::real(y[i]*std::conj(y[i]));
 			}
 			if (mode_ & DEBUG) {
 				computeGroundStateTest(gsEnergy,z,y);
@@ -157,7 +159,7 @@ namespace Dmrg {
 			RealType atmp=0.0;
 			for (size_t i=0;i<n;i++) {
 				y[i]=initialVector[i];
-				atmp += utils::myProductT(y[i],y[i]);
+				atmp += std::real(y[i]*std::conj(y[i]));
 			}
 			atmp = 1.0 / sqrt (atmp);
 			for (size_t i = 0; i < mat_.rank(); i++) y[i] *= atmp;
@@ -226,7 +228,7 @@ namespace Dmrg {
 			RealType atmp = 0;
 			for (size_t i = 0; i < mat_.rank(); i++) {
 				z[i] = x[i] = 0;
-				atmp += utils::myProductT (y[i] ,y[i]);
+				atmp += std::real (y[i]*std::conj(y[i]));
  			}
 
 			for (size_t i = 0; i < y.size(); i++) y[i] /= sqrt(atmp);
@@ -247,11 +249,11 @@ namespace Dmrg {
 				mat_.matrixVectorProduct (x, y); // x+= Hy
 			
 				atmp = 0.0;
-				for (size_t i = 0; i < mat_.rank(); i++) atmp += utils::myProductT (y[i] ,x[i]);
+				for (size_t i = 0; i < mat_.rank(); i++) atmp += std::real(y[i]*std::conj(x[i]));
 				RealType btmp = 0.0;
 				for (size_t i = 0; i < mat_.rank(); i++) {
 					x[i] -= atmp * y[i];
-					btmp += utils::myProductT (x[i] ,x[i]);
+					btmp += std::real (x[i] *std::conj(x[i]));
 				}
 
 				ab.a(j) = atmp;
@@ -282,7 +284,7 @@ namespace Dmrg {
 					y[i] = x[i] / ab.b(j) ;
 					x[i] = -ab.b(j)  * tmp;
 				}
-				if (eps_>=ProgramGlobals::LanczosTolerance) return;
+				if (eps_>=ProgramGlobalsType::LanczosTolerance) return;
 			}
 			
 			/*std::cerr<<"Trying lanczosVectors with max_nstep="<<max_nstep<<"\n";
@@ -309,7 +311,7 @@ namespace Dmrg {
 
 		void info(RealType energyTmp,const VectorType& x,std::ostream& os)
 		{
-			RealType norma=std::norm(x);
+			RealType norma= PsimagLite::norm(x);
 			size_t& iter = steps_;
 			
 			if (norma<1e-5 || norma>100) throw std::runtime_error("Norm\n");
@@ -327,7 +329,7 @@ namespace Dmrg {
 			int i, k, l, m;
 			RealType c, dd, f, g, h, p, r, *d, *e, *v = 0, *vki;
 			int long intCounter=0;
-			int long maxCounter=ProgramGlobals::MaxLanczosSteps;
+			int long maxCounter=ProgramGlobalsType::MaxLanczosSteps;
   
 			if (gs.size()>0) {
 				v  = new RealType[n*n];
@@ -449,7 +451,7 @@ namespace Dmrg {
 			std::cerr<<"----------------\n";
 
 			std::vector<RealType> eigs(a.n_row());
-			utils::diag(a,eigs,'V');
+			diag(a,eigs,'V');
 			for (size_t i=0;i<a.n_row();i++) std::cerr<<a(i,0)<<" ";
 			std::cerr<<"\n";
 			std::cerr<<"--------------------------------\n";
@@ -474,7 +476,7 @@ namespace Dmrg {
 			mat_.matrixVectorProduct (x, y); // x+= Hy
 
 			for (size_t i = 0; i < x.size(); i++)
-				if (utils::myProductT (x[i] ,x[i])!=0) return false;
+				if (std::real(x[i]*std::conj(x[i]))!=0) return false;
 
 			for (size_t j=0; j < lanczosVectors.n_col(); j++) {
 				for (size_t i = 0; i < mat_.rank(); i++) {

@@ -4,7 +4,7 @@
 
 #ifndef BASISHUBBARDLANCZOS_H
 #define BASISHUBBARDLANCZOS_H
-
+#include "Matrix.h"
 
 namespace LanczosPlusPlus {
 	
@@ -13,7 +13,7 @@ namespace LanczosPlusPlus {
 		
 		typedef unsigned int long long WordType;
 		static size_t nsite_;
-		static psimag::Matrix<size_t> comb_;
+		static PsimagLite::Matrix<size_t> comb_;
 		static std::vector<WordType> bitmask_; 
 		
 		BasisHubbardLanczos(size_t nsite, size_t npart) : npart_(npart)
@@ -136,7 +136,7 @@ namespace LanczosPlusPlus {
 	}; // class BasisHubbardLanczos
 
 	size_t BasisHubbardLanczos::nsite_=0;
-	psimag::Matrix<size_t> BasisHubbardLanczos::comb_;
+	PsimagLite::Matrix<size_t> BasisHubbardLanczos::comb_;
 	std::vector<typename BasisHubbardLanczos::WordType> BasisHubbardLanczos::bitmask_; 
 	
 } // namespace LanczosPlusPlus

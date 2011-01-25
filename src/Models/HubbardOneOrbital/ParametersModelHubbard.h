@@ -81,7 +81,7 @@ DISCLOSED WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
  */
 #ifndef PARAMETERSMODELHUBBARD_H
 #define PARAMETERSMODELHUBBARD_H
-
+#include "Vector.h"
 
 namespace LanczosPlusPlus {
 	//! Hubbard Model Parameters
@@ -134,8 +134,8 @@ namespace LanczosPlusPlus {
 	std::ostream& operator<<(std::ostream &os,const ParametersModelHubbard<FieldType>& parameters)
 	{
 		//os<<"parameters.density="<<parameters.density<<"\n";
-		utils::vectorPrint(parameters.hubbardU,"hubbardU",os);
-		utils::vectorPrint(parameters.potentialV,"potentialV",os);
+		PsimagLite::vectorPrint(parameters.hubbardU,"hubbardU",os);
+		PsimagLite::vectorPrint(parameters.potentialV,"potentialV",os);
 		return os;
 	}
 } // namespace LanczosPlusPlus

@@ -75,19 +75,19 @@ DISCLOSED WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
 #include "CrsMatrix.h"
 #include "BasisHubbardLanczos.h"
 
-namespace Dmrg {
+namespace LanczosPlusPlus {
 	
 	template<typename RealType_,typename ParametersType,
 		typename GeometryType>
 	class HubbardLanczos {
 		
-		typedef psimag::Matrix<RealType_> MatrixType; 
+		typedef PsimagLite::Matrix<RealType_> MatrixType;
 	public:
 		
 		typedef BasisHubbardLanczos BasisType;
 		typedef typename BasisType::WordType WordType;
 		typedef RealType_ RealType;
-		typedef CrsMatrix<RealType> SparseMatrixType;
+		typedef PsimagLite::CrsMatrix<RealType> SparseMatrixType;
 		typedef std::vector<RealType> VectorType;
 		enum {SPIN_UP,SPIN_DOWN};
 		enum {DESTRUCTOR,CONSTRUCTOR};
@@ -358,6 +358,6 @@ namespace Dmrg {
 		BasisType basis2_;
 		
 	}; // class HubbardLanczos 
-} // namespace
+} // namespace LanczosPlusPlus
 #endif
 

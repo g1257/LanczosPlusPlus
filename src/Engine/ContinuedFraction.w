@@ -43,6 +43,8 @@ In this case, one runs the DMRG without truncation (select m large enough).
 #include "ProgressIndicator.h"
 #include "BLAS.h"
 #include "LanczosSolver.h"
+#include "Random48.h"
+#include "ProgramGlobals.h"
 @}
 
 This class is templated on 7 templates, which are:
@@ -57,7 +59,7 @@ the functionality of a vector.
 
 @o ContinuedFraction.h -t 
 @{
-namespace Dmrg {
+namespace LanczosPlusPlus {
 	template<
     	typename ModelType_,
 	 	typename ConcurrencyType_>
@@ -87,9 +89,9 @@ typedef typename ModelType::VectorType VectorType;
 typedef typename ModelType::SparseMatrixType SparseMatrixType;
 typedef typename VectorType::value_type FieldType;
 typedef typename ModelType::BasisType BasisType;
-
-typedef LanczosSolver<RealType,SparseMatrixType,VectorType> LanczosSolverType;
-typedef psimag::Matrix<FieldType> MatrixType;
+typedef PsimagLite::Random48<RealType> RandomType;
+typedef PsimagLite::LanczosSolver<RealType,SparseMatrixType,VectorType,RandomType,ProgramGlobals> LanczosSolverType;
+typedef PsimagLite::Matrix<FieldType> MatrixType;
 typedef typename LanczosSolverType::TridiagonalMatrixType TridiagonalMatrixType;
 
 static const size_t parallelRank_ = 0; // ContF needs to support concurrency FIXME
@@ -100,7 +102,7 @@ Now let us look at the private data of this class:
 @d privatedata 
 @{
 const ModelType& model_;
-ProgressIndicator progress_;
+PsimagLite::ProgressIndicator progress_;
 SparseMatrixType hamiltonian_;
 RealType gsEnergy_;
 VectorType gsVector_; @}
@@ -235,7 +237,7 @@ ComplexType continuedFraction(ComplexType z,const TridiagonalMatrixType& ab) con
 	static std::vector<RealType> eigs(T.n_row());
 	if (firstcall) {
 		ab.buildDenseMatrix(T);
-		utils::diag(T,eigs,'V');
+		diag(T,eigs,'V');
 		firstcall = false;
 	}
 	ComplexType sum(0.0);

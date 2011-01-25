@@ -3,7 +3,7 @@
 Copyright (c) 2009, UT-Battelle, LLC
 All rights reserved
 
-[Lanczos++, Version 1.0.0]
+[LanczosPlusPlus, Version 1.0.0]
 [by G.A., Oak Ridge National Laboratory]
 
 UT Battelle Open Source Software License 11242008
@@ -89,9 +89,12 @@ namespace LanczosPlusPlus {
 		static size_t const MaxLanczosSteps = 1000000; // max number of internal Lanczos steps
 		static size_t const LanczosSteps = 200; // max number of external Lanczos steps
 		static double const LanczosTolerance; // tolerance of the Lanczos Algorithm
+		enum {INFINITE=0,EXPAND_ENVIRON=1,EXPAND_SYSTEM=2};
+		enum {SYSTEM_SYSTEM,SYSTEM_ENVIRON,ENVIRON_SYSTEM,ENVIRON_ENVIRON};
+		enum {FERMION,BOSON};
 	}; // ProgramGlobals
 	
 	double const ProgramGlobals::LanczosTolerance = 1e-12;
-}; // namespace Dmrg
+}; // namespace LanczosPlusPlus
 /*@}*/
 #endif

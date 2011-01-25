@@ -107,7 +107,7 @@ namespace Dmrg {
 			bool connected(size_t i1,size_t i2) const
 			{
 				if (i1==i2) return false;
-				return utils::neighbors(i1,i2);
+				return neighbors(i1,i2);
 			}
 
 			// assumes i1 and i2 are connected
@@ -132,6 +132,12 @@ namespace Dmrg {
 			{
 				return "chain";
 			}
+
+			bool neighbors(size_t i1,size_t i2) const
+	        {
+	                return (i1-i2==1 || i2-i1==1);
+	        }
+
 
 		private:
 

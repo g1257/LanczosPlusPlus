@@ -80,12 +80,13 @@ DISCLOSED WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
  */
 #ifndef GEOMETRY_DIR_H
 #define GEOMETRY_DIR_H
+#include "Matrix.h"
 
 namespace Dmrg {
 	
 	template<typename RealType,typename GeometryFactoryType>
 	class GeometryDirection {
-			typedef psimag::Matrix<RealType> MatrixType;
+			typedef PsimagLite::Matrix<RealType> MatrixType;
 			enum {NUMBERS,MATRICES};
 
 		public:

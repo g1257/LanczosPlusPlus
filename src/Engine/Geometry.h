@@ -82,10 +82,9 @@ DISCLOSED WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
 #define GEOMETRY_H
 
 #include "GeometryTerm.h"
-
 namespace Dmrg {
 	
-	template<typename RealType>
+	template<typename RealType,typename ProgramGlobalsType>
 	class Geometry {
 		public:
 			typedef GeometryTerm<RealType> GeometryTermType;
@@ -114,10 +113,10 @@ namespace Dmrg {
 			size_t connectionKind(size_t smax,size_t ind,size_t jnd) const
 			{
 				size_t middle = smax + 1;
-				if (ind<middle && jnd>=middle) return ProgramGlobals::SYSTEM_ENVIRON;
-				if (jnd<middle && ind>=middle) return ProgramGlobals::ENVIRON_SYSTEM;
-				if (ind<middle) return ProgramGlobals::SYSTEM_SYSTEM;
-				return ProgramGlobals::ENVIRON_ENVIRON;
+				if (ind<middle && jnd>=middle) return ProgramGlobalsType::SYSTEM_ENVIRON;
+				if (jnd<middle && ind>=middle) return ProgramGlobalsType::ENVIRON_SYSTEM;
+				if (ind<middle) return ProgramGlobalsType::SYSTEM_SYSTEM;
+				return ProgramGlobalsType::ENVIRON_ENVIRON;
 			}
 			
 			RealType operator()
@@ -165,8 +164,8 @@ namespace Dmrg {
 				E.push_back(linSize_-1);
 			}
 			
-			template<typename RealType_>
-			friend std::ostream& operator<<(std::ostream& os,const Geometry<RealType_>& g);
+			template<typename RealType_,typename ProgramGlobalsType_>
+			friend std::ostream& operator<<(std::ostream& os,const Geometry<RealType_,ProgramGlobalsType_>& g);
 
 		private:
 			size_t linSize_;
@@ -174,8 +173,8 @@ namespace Dmrg {
 			
 	}; // class Geometry
 
-	template<typename RealType>
-	std::ostream& operator<<(std::ostream& os,const Geometry<RealType>& g) 
+	template<typename RealType,typename ProgramGlobalsType>
+	std::ostream& operator<<(std::ostream& os,const Geometry<RealType,ProgramGlobalsType>& g)
 	{
 		os<<"#GeometrySize="<<g.linSize_<<"\n";
 		os<<"#GeometryTerms="<<g.terms_.size()<<"\n";

@@ -113,9 +113,9 @@ namespace Dmrg {
 				size_t c2 = i2/leg_;
 				size_t r1 = i1%leg_;
 				size_t r2 = i2%leg_;
-				if (c1==c2) return utils::neighbors(r1,r2);
-				if (r1==r2) return utils::neighbors(c1,c2);
-				return (utils::neighbors(r1,r2) && utils::neighbors(c1,c2));
+				if (c1==c2) return neighbors(r1,r2);
+				if (r1==r2) return neighbors(c1,c2);
+				return (neighbors(r1,r2) && neighbors(c1,c2));
 			}
 
 			// assumes i1 and i2 are connected
@@ -168,6 +168,10 @@ namespace Dmrg {
 			}
 
 		private:
+			bool neighbors(size_t i1,size_t i2) const
+			{
+				return (i1-i2==1 || i2-i1==1);
+			}
 
 			LadderType ladder_; // owner
 			size_t linSize_;

@@ -147,14 +147,16 @@ print FOUT<<EOF;
 #include "$parametersName.h"
 #include "Geometry.h"
 #include "IoSimple.h"
+#include "ProgramGlobals.h"
 
-using namespace Dmrg;
+using namespace LanczosPlusPlus;
+
 typedef double RealType;
 typedef std::complex<RealType> ComplexType;
-typedef $concurrencyName<RealType> ConcurrencyType;
-typedef Geometry<RealType> GeometryType;
+typedef PsimagLite::$concurrencyName<RealType> ConcurrencyType;
+typedef Dmrg::Geometry<RealType,ProgramGlobals> GeometryType;
 typedef $parametersName<RealType> ParametersModelType;
-typedef IoSimple::In IoInputType;
+typedef PsimagLite::IoSimple::In IoInputType;
 typedef $modelName<RealType,ParametersModelType,GeometryType> ModelType;
 typedef ContinuedFraction<ModelType,ConcurrencyType> ContinuedFractionType;
 typedef ContinuedFractionType::TridiagonalMatrixType TridiagonalMatrixType;

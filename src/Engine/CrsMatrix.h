@@ -3,7 +3,7 @@
 Copyright (c) 2009, UT-Battelle, LLC
 All rights reserved
 
-[PartialPsimag, Version 1.0.0]
+[PsimagLite, Version 1.0.0]
 [by G.A., Oak Ridge National Laboratory]
 
 UT Battelle Open Source Software License 11242008
@@ -71,7 +71,7 @@ DISCLOSED WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
 
 */
 // END LICENSE BLOCK
-/** \ingroup PartialPsimag */
+/** \ingroup PsimagLite */
 /*@{*/
 
 /*! \file CrsMatrix.h
@@ -83,10 +83,12 @@ DISCLOSED WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
 #ifndef CRSMATRIX_HEADER_H
 #define CRSMATRIX_HEADER_H
 
-#include "Matrix.h" // in psimag
+#include "Matrix.h"
+#include "BLAS.h"
 #include <complex>
+#include <algorithm>
 
-namespace PartialPsimag {
+namespace PsimagLite {
 
 	//! A Sparse Matrix in Compressed Row Storage (CRS) format.
 	/** 
@@ -155,7 +157,7 @@ namespace PartialPsimag {
 			for (int i=0;i<values_.size();i++) values_[i]=real(a.getValue(i));
 		}
 
-		CrsMatrix(const psimag::Matrix<T>& a)
+		CrsMatrix(const PsimagLite::Matrix<T>& a)
 		{
 			//int i,j;
 			//int n=a.n_row();
@@ -168,7 +170,7 @@ namespace PartialPsimag {
 			for (size_t i = 0; i < a.n_row(); i++) {
 				setRow(i,counter);
 				for (size_t j=0;j<a.n_col();j++) {
-					if (psimag::norm(a(i,j))<=eps) continue;
+					if (norm(a(i,j))<=eps) continue;
 					pushValue(a(i,j));
 					pushCol(j);
 					counter++;
@@ -297,13 +299,13 @@ namespace PartialPsimag {
 
 		T getValue(int i) const { return values_[i]; }
 
-		bool operator==(const CrsMatrix<T>& B) const
-		{
-			if (!utils::vectorEqual(values_,B.values_)) return false;
-			if (!utils::vectorEqual(colind_,B.colind_)) return false;
-			if (!utils::vectorEqual(rowptr_,B.rowptr_)) return false;
-			return true;
-		}
+//		bool operator==(const CrsMatrix<T>& B) const
+//		{
+//			if (!utils::vectorEqual(values_,B.values_)) return false;
+//			if (!utils::vectorEqual(colind_,B.colind_)) return false;
+//			if (!utils::vectorEqual(rowptr_,B.rowptr_)) return false;
+//			return true;
+//		}
 
 		void set(const std::vector<int> &rowptr,const std::vector<int>& colind,const std::vector<T>& values)
 		{
@@ -691,13 +693,13 @@ namespace PartialPsimag {
 
 	//! Sets A = B^\dagger * S * B
 	template<class T>
-	inline psimag::Matrix<T> transformFullFast(CrsMatrix<T> const &S,psimag::Matrix<T> const &fmB)
+	inline Matrix<T> transformFullFast(CrsMatrix<T> const &S,Matrix<T> const &fmB)
 	{
 		int nBig = S.rank();
 		int nSmall = fmB.n_col();
 		double alpha=1.0;
 		double beta=0.0;
-		psimag::Matrix<T> fmS,fmTmp(nBig,nSmall);
+		Matrix<T> fmS,fmTmp(nBig,nSmall);
 		
 		crsMatrixToFullMatrix(fmS,S);
 
@@ -778,7 +780,7 @@ namespace PartialPsimag {
 	{
 		for (size_t i=0;i<A.rank();i++) {
 			for (int k=A.getRowPtr(i);k<A.getRowPtr(i+1);k++) {
-				if (psimag::norm(A.getValue(k)-std::conj(A(A.getCol(k),i)))>1e-6) return false;
+				if (norm(A.getValue(k)-std::conj(A(A.getCol(k),i)))>1e-6) return false;
 			}
 		}
 		return true;
@@ -851,17 +853,17 @@ namespace PartialPsimag {
 	}	
 
 	template<typename T>
-	psimag::Matrix<T> multiplyTc(const CrsMatrix<T>& a,const CrsMatrix<T>& b)
+	Matrix<T> multiplyTc(const CrsMatrix<T>& a,const CrsMatrix<T>& b)
 	{
 		
 		CrsMatrix<T> bb,c;
 		transposeConjugate(bb,b);
 		multiply(c,a,bb);
-		psimag::Matrix<T> cc;
+		Matrix<T> cc;
 		crsMatrixToFullMatrix(cc,c);
 		return cc;
 	}
 		
-} // namespace PartialPsimag
+} // namespace PsimagLite
 /*@}*/	
 #endif

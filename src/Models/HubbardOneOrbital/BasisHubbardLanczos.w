@@ -30,7 +30,7 @@ HEre is some boilerplate:
 @{
 #ifndef BASISHUBBARDLANCZOS_H
 #define BASISHUBBARDLANCZOS_H
-
+#include "Matrix.h"
 
 namespace LanczosPlusPlus {
 	@<theClassHere@>
@@ -66,7 +66,7 @@ std::vector<WordType> data_;
 @{
 typedef unsigned int long long WordType;
 static size_t nsite_;
-static psimag::Matrix<size_t> comb_;
+static PsimagLite::Matrix<size_t> comb_;
 static std::vector<WordType> bitmask_; @}
 
 All right, now the constructor:
@@ -182,7 +182,7 @@ static int bitcnt (WordType b)
 void doCombinatorial()
 {
 	/* look-up table for binomial coefficients */
-	comb_.resize(nsite_,nsite_);
+	comb_.reset(nsite_,nsite_);
 
 	for (size_t n=0;n<nsite_;n++)
 		for (size_t i=0;i<nsite_;i++)
@@ -211,7 +211,7 @@ void doBitmask()
 @d staticDefinitions
 @{
 size_t BasisHubbardLanczos::nsite_=0;
-psimag::Matrix<size_t> BasisHubbardLanczos::comb_;
+PsimagLite::Matrix<size_t> BasisHubbardLanczos::comb_;
 std::vector<typename BasisHubbardLanczos::WordType> BasisHubbardLanczos::bitmask_; @}
 	
 \end{document}

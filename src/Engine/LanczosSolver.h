@@ -276,7 +276,7 @@ namespace PsimagLite {
   			}
 			if (j < max_nstep) {
 				max_nstep = j + 1;
-				lanczosVectors.resize(mat_.rank(),max_nstep);
+				lanczosVectors.reset(mat_.rank(),max_nstep);
 				ab.resize(max_nstep);
 				for (size_t i = 0; i < mat_.rank(); i++) {
 					lanczosVectors(i,j) = y[i];

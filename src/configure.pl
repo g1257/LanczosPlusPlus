@@ -39,15 +39,30 @@ $gslLibs =" " if ($hasGsl=~/n/i);
 
 #welcome();
 
-#askQuestions();
-my $model="hubbard";
-my $modelLocation="Models/HubbardOneOrbital";
+my $model="";
+my $modelLocation="";
+askQuestions();
 
 createMakefile();
 
 createDriver();
 
 #createObserverDriver();
+
+sub askQuestions()
+{
+	print "Enter model\n";
+	print "Available: HubbardOneOrbital FeBasedSc\n";
+	print "Default: HubbardOneOrbital (press ENTER): ";
+	$_=<STDIN>;
+	chomp;
+	s/ //g;
+	if ($_ eq "") {
+		$_="HubbardOneOrbital";
+	}
+	$model = $_;
+	$modelLocation = "Models/$model";
+}
 
 sub createMakefile
 {
@@ -134,7 +149,6 @@ sub createDriver
 	my $concurrencyName = "ConcurrencySerial"; #getConcurrencyName();
 	my $parametersName = "ParametersModelHubbard"; #getParametersName();
 	my $pthreadsName = "NoPthreads.h"; #getPthreadsName();
-	my $modelName = "HubbardLanczos"; #getModelName();
 	my $operatorsName = getOperatorsName();
 	
 print FOUT<<EOF;
@@ -143,7 +157,7 @@ print FOUT<<EOF;
  * Lanczos++ ($brand) by G.A.*/
 #include "$concurrencyName.h"
 #include "ContinuedFraction.h"
-#include "$modelName.h"
+#include "$model.h"
 #include "$parametersName.h"
 #include "Geometry.h"
 #include "IoSimple.h"
@@ -157,7 +171,7 @@ typedef PsimagLite::$concurrencyName<RealType> ConcurrencyType;
 typedef Dmrg::Geometry<RealType,ProgramGlobals> GeometryType;
 typedef $parametersName<RealType> ParametersModelType;
 typedef PsimagLite::IoSimple::In IoInputType;
-typedef $modelName<RealType,ParametersModelType,GeometryType> ModelType;
+typedef $model<RealType,ParametersModelType,GeometryType> ModelType;
 typedef ContinuedFraction<ModelType,ConcurrencyType> ContinuedFractionType;
 typedef ContinuedFractionType::TridiagonalMatrixType TridiagonalMatrixType;
 

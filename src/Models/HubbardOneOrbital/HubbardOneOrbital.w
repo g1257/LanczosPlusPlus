@@ -13,12 +13,12 @@
 \usepackage{verbatim}
 \begin{document}
 
-%\title{The HubbardLanczos Class}
+%\title{The HubbardOneOrbital Class}
 %\author{G.A.}
 %\maketitle
 
 \begin{comment}
-@o HubbardLanczos.h -t
+@o HubbardOneOrbital.h -t
 @{
 /*
 @i license.txt
@@ -30,18 +30,18 @@
 
 HEre is some boilerplate:
 
-@o HubbardLanczos.h -t
+@o HubbardOneOrbital.h -t
 @{
 #ifndef HUBBARDLANCZOS_H
 #define HUBBARDLANCZOS_H
 
-#include "Utils.h"
 #include "CrsMatrix.h"
 #include "BasisHubbardLanczos.h"
+#include "BitManip.h"
 
-namespace Dmrg {
+namespace LanczosPlusPlus {
 	@<theClassHere@>
-} // namespace
+} // namespace LanczosPlusPlus
 #endif
 
 @}
@@ -51,7 +51,7 @@ And the class is:
 @{
 template<typename RealType_,typename ParametersType,
 	typename GeometryType>
-class HubbardLanczos {
+class HubbardOneOrbital {
 	@<privateTypesAndEnums@>
 public:
 	@<publicTypesAndEnums@>
@@ -60,11 +60,11 @@ public:
 private:
 	@<privateFunctions@>
 	@<privateData@>
-}; // class HubbardLanczos @}
+}; // class HubbardOneOrbital @}
 
 @d privateTypesAndEnums
 @{
-typedef psimag::Matrix<RealType_> MatrixType; @}
+typedef PsimagLite::Matrix<RealType_> MatrixType; @}
 
 @d privateData
 @{
@@ -79,7 +79,7 @@ BasisType basis2_;
 typedef BasisHubbardLanczos BasisType;
 typedef typename BasisType::WordType WordType;
 typedef RealType_ RealType;
-typedef CrsMatrix<RealType> SparseMatrixType;
+typedef PsimagLite::CrsMatrix<RealType> SparseMatrixType;
 typedef std::vector<RealType> VectorType;
 enum {SPIN_UP,SPIN_DOWN};
 enum {DESTRUCTOR,CONSTRUCTOR};
@@ -87,7 +87,7 @@ enum {DESTRUCTOR,CONSTRUCTOR};
 
 @d constructor
 @{
-HubbardLanczos(size_t nup,size_t ndown,const ParametersType& mp,GeometryType& geometry)
+HubbardOneOrbital(size_t nup,size_t ndown,const ParametersType& mp,GeometryType& geometry)
 	: mp_(mp),geometry_(geometry),
 	  basis1_(geometry.numberOfSites(),nup),basis2_(geometry.numberOfSites(),ndown)
 {
@@ -338,12 +338,12 @@ int doSign(WordType a, WordType b,size_t i,size_t j,size_t sector) const
 		std::cerr<<"FATAL: At doSign\n";
 		std::cerr<<"INFO: i="<<i<<" j="<<j<<std::endl;
 		std::cerr<<"AT: "<<__FILE__<<" : "<<__LINE__<<std::endl;
-		throw std::runtime_error("HubbardLanczos::doSign(...)\n");
+		throw std::runtime_error("HubbardOneOrbital::doSign(...)\n");
 	}
 
 	WordType mask = a ^  b;
 	mask &= ((1 << (i+1)) - 1) ^ ((1 << j) - 1);
-	int s=(BasisType::bitcnt (mask) & 1) ? -1 : 1; // Parity of single occupied between i and j
+	int s=(PsimagLite::BitManip::count(mask) & 1) ? -1 : 1; // Parity of single occupied between i and j
 
 	if (sector==SPIN_DOWN) { // Is there a down at j?
 		if (BasisType::bitmask(j) & b) s = -s;
@@ -364,7 +364,7 @@ int doSign(WordType a, WordType b,size_t i,size_t sector) const
 	if (i<nsite-1) {
 		WordType mask = a ^ b;
 		mask &= ((1 << (i+1)) - 1) ^ ((1 << nsite) - 1);
-		int s=(BasisType::bitcnt (mask) & 1) ? -1 : 1; // Parity of single occupied between i and nsite-1
+		int s=(PsimagLite::BitManip::count(mask) & 1) ? -1 : 1; // Parity of single occupied between i and nsite-1
 		//cout<<"sign1: "<<s<<"a="<<a<<" b="<<b<<"sector="<<sector<<endl;
 		if (sector==SPIN_UP) { // Is there an up at i?
 			if (BasisType::bitmask(i) & a) s = -s;

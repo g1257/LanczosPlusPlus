@@ -147,7 +147,7 @@ sub createDriver
 	open(FOUT,">$driverName.cpp") or die "Cannot open file $driverName.cpp for writing: $!\n";
 	my $license=getLicense();
 	my $concurrencyName = "ConcurrencySerial"; #getConcurrencyName();
-	my $parametersName = "ParametersModelHubbard"; #getParametersName();
+	my $parametersName = getParametersName();
 	my $pthreadsName = "NoPthreads.h"; #getPthreadsName();
 	my $operatorsName = getOperatorsName();
 	

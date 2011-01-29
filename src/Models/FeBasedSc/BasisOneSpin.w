@@ -31,6 +31,7 @@ HEre is some boilerplate:
 #ifndef BASIS_ONE_SPIN_H
 #define BASIS_ONE_SPIN_H
 #include "Matrix.h"
+#include "BitManip.h"
 
 namespace LanczosPlusPlus {
 	@<theClassHere@>
@@ -65,6 +66,8 @@ std::vector<WordType> data_;
 @d publicTypesAndEnums
 @{
 typedef unsigned int long long WordType;
+enum {DESTRUCTOR,CONSTRUCTOR};
+static size_t const ORBITALS  = 2;
 static size_t nsite_;
 static PsimagLite::Matrix<size_t> comb_;
 static std::vector<WordType> bitmask_; @}
@@ -87,15 +90,16 @@ BasisOneSpin(size_t nsite, size_t npart)
 		return;
 	}
 	size_ = 0;
-	for (size_t na=0;na<=npart) {
-			nb = npart - na;
-			size_ += comb_(n,na) * comb_(n,nb);
+	for (size_t na=0;na<=npart;na++) {
+			size_t nb = npart - na;
+			size_ += comb_(nsite_,na) * comb_(nsite_,nb);
 	}
 	data_.resize(size_);
 
 	// compute basis:
-	for (size_t na=0;na<=npart) {
-		nb = npart - na;
+	for (size_t na=0;na<=npart;na++) {
+		size_t nb = npart - na;
+		std::vector<WordType> basisA, basisB;
 		fillPartialBasis(basisA,na);
 		fillPartialBasis(basisB,nb);
 		collateBasis(basisA,basisB);
@@ -108,8 +112,11 @@ BasisOneSpin(size_t nsite, size_t npart)
 @<size@>
 @<operatorBracket@>
 @<perfectIndex@>
-@<perfectIndexPartial@>
+@<getN@>
+@<getN2@>
+@<getBraIndex@>
 @<bitmask@>
+@<doSign@>
 @}
 
 @d size
@@ -129,7 +136,7 @@ const WordType& operator[](size_t i) const
 @{
 size_t perfectIndex(WordType ket) const
 {
-	WordType ketA,ketB;
+	WordType ketA=0,ketB=0;
 	uncollateKet(ketA,ketB,ket);
 	// p(ket) = \sum_{na'=0}^{na'<na} S_na' * S_nb'
 	//			+ p_A(ket_A)*S_nb + p_B(ket_B)
@@ -139,15 +146,130 @@ size_t perfectIndex(WordType ket) const
 	// or nb  = npart -na
 	size_t s = 0;
 	for (size_t nap=0;nap<na;nap++) {
-		nbp = npart - nap;
+		size_t nbp = npart_ - nap;
 		s += comb_(nsite_,nap) * comb_(nsite_,nbp);
 	}
-	size_t nb = npart - na;
-	s += perfectIndexPartial(ketA)*comb_(nsite,nb);
+	size_t nb = npart_ - na;
+	s += perfectIndexPartial(ketA)*comb_(nsite_,nb);
 	s += perfectIndexPartial(ketB);
 	return s;
 }
 
+@}
+
+@d getN
+@{
+size_t getN(size_t i,size_t orb) const
+{
+	WordType ketA=0,ketB=0;
+	uncollateKet(ketA,ketB,data_[i]);
+	if (orb==0) return PsimagLite::BitManip::count(ketA);
+	return PsimagLite::BitManip::count(ketB);
+}
+@}
+
+@d getN2
+@{
+size_t getN(size_t i) const
+{
+	size_t c = 0;
+	for (size_t orb=0;orb<ORBITALS;orb++)
+		c += getN(i,orb);
+	return c;
+}
+@}
+
+@d getBraIndex
+@{
+size_t getBraIndex(size_t i,size_t what,size_t orb) const
+{
+	WordType ketA=0,ketB=0;
+	uncollateKet(ketA,ketB,data_[i]);
+	WordType braA = ketA;
+	WordType braB = ketB;
+	if (orb==0) {
+		if (!getBra(braA,ketA,what,i)) throw std::runtime_error("getBraIndex::orb==0 problem\n");
+	} else {
+		if (!getBra(braB,ketB,what,i)) throw std::runtime_error("getBraIndex::orb!=0 problem\n");
+	}
+	WordType bra = getCollatedKet(braA,braB);
+	return perfectIndex(bra);
+}
+@}
+
+@d doSign
+@{
+int doSign(size_t i,size_t site,size_t orb) const
+{
+	WordType ketA=0,ketB=0;
+	uncollateKet(ketA,ketB,data_[i]);
+	if (orb==0) {
+		return doSign(ketA,site);
+	}
+
+	size_t c = PsimagLite::BitManip::count(ketA);
+	int ret = 1;
+	if (c&1) ret = -1;
+	return ret * doSign(ketB,site);
+}
+@}
+
+
+@d bitmask
+@{
+static const WordType& bitmask(size_t i)
+{
+	return bitmask_[i];
+}
+@}
+
+
+@d privateFunctions
+@{
+@<fillPartialBasis@>
+@<collateBasis@>
+@<doCombinatorial@>
+@<doBitMask@>
+@<perfectIndexPartial@>
+@<getCollatedKet@>
+@<uncollateKet@>
+@<getBra@>
+@<doSign2@>
+@} 
+
+@d getBra
+@{
+bool getBra(WordType& bra, const WordType& ket,size_t what,size_t i) const
+{
+
+	WordType si=(ket & bitmask_[i]);
+	if (what==DESTRUCTOR) {
+		if (si>0) {
+			bra = (ket ^ bitmask_[i]);
+		} else {
+			return false; // cannot destroy, there's nothing
+		}
+	} else {
+		if (si==0) {
+			bra = (ket ^ bitmask_[i]);
+		} else {
+			return false; // cannot contruct, there's already one
+		}
+	}
+	return true;
+}
+@}
+
+@d doSign2
+@{
+int doSign(WordType a, size_t i) const
+{
+	if (i==nsite_-1) return 1;
+
+	a &= ((1 << (i+1)) - 1) ^ ((1 << nsite_) - 1);
+	int s=(PsimagLite::BitManip::count(a) & 1) ? -1 : 1; // Parity of single occupied between i and nsite-1
+	return s;
+}
 @}
 
 @d perfectIndexPartial
@@ -159,23 +281,8 @@ size_t perfectIndexPartial(WordType state) const
 		if (state&1) n += comb_(b,c++);
 
 	return n;
-} @}
-
-@d bitmask
-@{
-static const WordType& bitmask(size_t i)
-{
-	return bitmask_[i];
-} @}
-
-
-@d privateFunctions
-@{
-@<fillPartialBasis@>
-@<collateBasis@>
-@<doCombinatorial@>
-@<doBitMask@>
-@} 
+}
+@}
 
 @d fillPartialBasis
 @{
@@ -212,8 +319,9 @@ void fillPartialBasis(std::vector<WordType>& partialBasis,size_t npart)
 
 @d collateBasis
 @{
-void collateBasis()
+void collateBasis(const std::vector<WordType>& basisA, const std::vector<WordType>& basisB)
 {
+	size_t counter = 0;
 	for (size_t i=0;i<basisA.size();i++) {
 		for (size_t j=0;j<basisB.size();j++) {
 			WordType ket = getCollatedKet(basisA[i],basisB[j]);
@@ -249,6 +357,7 @@ WordType getCollatedKet(WordType ketA,WordType ketB) const
 @{
 void uncollateKet(WordType& ketA,WordType& ketB,WordType ket) const
 {
+	size_t counter = 0;
 	while(ket) {
 		size_t bitA = (ket & 1);
 		size_t bitB = (ket & 2);

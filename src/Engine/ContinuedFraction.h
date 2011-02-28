@@ -1,5 +1,21 @@
 
 /*
+// BEGIN LICENSE BLOCK
+Copyright (c) 2009 , UT-Battelle, LLC
+All rights reserved
+
+[Lanczos++, Version 1.0.0]
+
+*********************************************************
+THE SOFTWARE IS SUPPLIED BY THE COPYRIGHT HOLDERS AND
+CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+PARTICULAR PURPOSE ARE DISCLAIMED. 
+
+Please see full open source license included in file LICENSE.
+*********************************************************
+
 */
 
 #ifndef CONTINUED_FRACTION_H 
@@ -94,8 +110,12 @@ namespace LanczosPlusPlus {
 			model_.setupHamiltonian(hamiltonian_);
 			MatrixType fm;
 			crsMatrixToFullMatrix(fm,hamiltonian_);
-			std::cerr<<fm;
-			if (!isHermitian(fm)) throw std::runtime_error("Hamiltonian non Hermitian\n");
+
+			bool verbose = true;
+			if (!isHermitian(fm,verbose)) {
+				//std::cerr<<fm;
+				throw std::runtime_error("Hamiltonian non Hermitian\n");
+			}
 			//std::cerr<<hamiltonian_;
 			std::cerr<<"Done setting up Hamiltonian\n";
 

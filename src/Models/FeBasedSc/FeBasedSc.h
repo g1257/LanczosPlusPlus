@@ -43,6 +43,7 @@ namespace LanczosPlusPlus {
 		enum {DESTRUCTOR=BasisType::DESTRUCTOR,CONSTRUCTOR=BasisType::CONSTRUCTOR};
 		static size_t const ORBITALS  = BasisType::ORBITALS;
 		static size_t const DEGREES_OF_FREEDOM = 2*ORBITALS;
+		static int const FERMION_SIGN = BasisType::FERMION_SIGN;
 		
 		
 		FeBasedSc(size_t nup,size_t ndown,const ParametersType& mp,GeometryType& geometry)
@@ -108,6 +109,7 @@ namespace LanczosPlusPlus {
 			size_t nCounter=0;
 			matrix.setRow(0,0);
 			for (size_t ispace=0;ispace<hilbert;ispace++) {
+				matrix.setRow(ispace,nCounter);
 				WordType ket1 = basis(ispace,SPIN_UP);
 				WordType ket2 = basis(ispace,SPIN_DOWN);
 				// Save diagonal
@@ -156,7 +158,6 @@ namespace LanczosPlusPlus {
 						}
 					}
 				}
-				matrix.setRow(ispace,nCounter);
 			}
 			matrix.setRow(hilbert,nCounter);
 		}
@@ -224,7 +225,13 @@ namespace LanczosPlusPlus {
 				throw std::runtime_error("FeBasedSc::doSign(...)\n");
 			}
 
-			throw std::runtime_error("Unimplemented doSign\n");
+			size_t sum = 0;
+			for (size_t site=i;site<j;site++)
+				for (size_t spin=0;spin<2;spin++)
+					for (size_t orb=0;orb<ORBITALS;orb++)
+						sum += basis_.getN(site,spin,orb);
+			return (sum & 1) ? FERMION_SIGN : 1;
+
 		}
 		
 		

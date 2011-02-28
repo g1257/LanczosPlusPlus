@@ -53,6 +53,7 @@ private:
 	@<privateFunctions@>
 	@<privateData@>
 }; // class BasisOneSpin
+@<companions@>
 @<staticDefinitions@>
 @}
 
@@ -68,6 +69,7 @@ std::vector<WordType> data_;
 typedef unsigned int long long WordType;
 enum {DESTRUCTOR,CONSTRUCTOR};
 static size_t const ORBITALS  = 2;
+static int const FERMION_SIGN  = -1;
 static size_t nsite_;
 static PsimagLite::Matrix<size_t> comb_;
 static std::vector<WordType> bitmask_; @}
@@ -97,12 +99,13 @@ BasisOneSpin(size_t nsite, size_t npart)
 	data_.resize(size_);
 
 	// compute basis:
+	size_t counter = 0;
 	for (size_t na=0;na<=npart;na++) {
 		size_t nb = npart - na;
 		std::vector<WordType> basisA, basisB;
 		fillPartialBasis(basisA,na);
 		fillPartialBasis(basisB,nb);
-		collateBasis(basisA,basisB);
+		collateBasis(counter,basisA,basisB);
 	}
 }
 @}
@@ -152,6 +155,8 @@ size_t perfectIndex(WordType ket) const
 	size_t nb = npart_ - na;
 	s += perfectIndexPartial(ketA)*comb_(nsite_,nb);
 	s += perfectIndexPartial(ketB);
+	if (s>=data_.size())
+		throw std::runtime_error("BasisOneSpin::PerfectIndex>=data_.size()\n");
 	return s;
 }
 
@@ -209,7 +214,7 @@ int doSign(size_t i,size_t site,size_t orb) const
 
 	size_t c = PsimagLite::BitManip::count(ketA);
 	int ret = 1;
-	if (c&1) ret = -1;
+	if (c&1) ret = FERMION_SIGN;
 	return ret * doSign(ketB,site);
 }
 @}
@@ -267,7 +272,8 @@ int doSign(WordType a, size_t i) const
 	if (i==nsite_-1) return 1;
 
 	a &= ((1 << (i+1)) - 1) ^ ((1 << nsite_) - 1);
-	int s=(PsimagLite::BitManip::count(a) & 1) ? -1 : 1; // Parity of single occupied between i and nsite-1
+	// Parity of single occupied between i and nsite-1
+	int s=(PsimagLite::BitManip::count(a) & 1) ? FERMION_SIGN : 1;
 	return s;
 }
 @}
@@ -319,9 +325,11 @@ void fillPartialBasis(std::vector<WordType>& partialBasis,size_t npart)
 
 @d collateBasis
 @{
-void collateBasis(const std::vector<WordType>& basisA, const std::vector<WordType>& basisB)
+void collateBasis(
+		size_t& counter,
+		const std::vector<WordType>& basisA,
+		const std::vector<WordType>& basisB)
 {
-	size_t counter = 0;
 	for (size_t i=0;i<basisA.size();i++) {
 		for (size_t j=0;j<basisB.size();j++) {
 			WordType ket = getCollatedKet(basisA[i],basisB[j]);
@@ -358,6 +366,7 @@ WordType getCollatedKet(WordType ketA,WordType ketB) const
 void uncollateKet(WordType& ketA,WordType& ketB,WordType ket) const
 {
 	size_t counter = 0;
+	ketA = ketB = 0;
 	while(ket) {
 		size_t bitA = (ket & 1);
 		size_t bitB = (ket & 2);
@@ -375,13 +384,13 @@ void uncollateKet(WordType& ketA,WordType& ketB,WordType ket) const
 void doCombinatorial()
 {
 	/* look-up table for binomial coefficients */
-	comb_.reset(nsite_,nsite_);
+	comb_.reset(nsite_+1,nsite_+1);
 
-	for (size_t n=0;n<nsite_;n++)
-		for (size_t i=0;i<nsite_;i++)
+	for (size_t n=0;n<comb_.n_row();n++)
+		for (size_t i=0;i<comb_.n_col();i++)
 			comb_(n,i)=0;
 
-	for (size_t n=0;n<nsite_;n++) {
+	for (size_t n=0;n<comb_.n_row();n++) {
 		size_t m = 0;
 		int j = n;
 		size_t i = 1;
@@ -396,10 +405,25 @@ void doCombinatorial()
 @{
 void doBitmask()
 {
-	bitmask_.resize(nsite_);
+	bitmask_.resize(nsite_*4+1);
 	bitmask_[0]=1ul;
-	for (size_t i=1;i<nsite_;i++)
+	for (size_t i=1;i<bitmask_.size();i++)
 		bitmask_[i] = bitmask_[i-1]<<1;
+}
+@}
+
+@d companions
+@{
+@<operatorPrint@>
+@}
+
+@d operatorPrint
+@{
+std::ostream& operator<<(std::ostream& os,const BasisOneSpin& b)
+{
+	for (size_t i=0;i<b.size();i++)
+		os<<i<<" "<<b[i]<<"\n";
+	return os;
 }
 @}
 

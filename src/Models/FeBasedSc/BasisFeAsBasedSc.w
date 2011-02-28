@@ -65,6 +65,7 @@ typedef BasisOneSpin BasisType;
 typedef BasisType::WordType WordType;
 enum {SPIN_UP,SPIN_DOWN};
 static size_t const ORBITALS  = BasisType::ORBITALS;
+static int const FERMION_SIGN = BasisType::FERMION_SIGN;
 enum {DESTRUCTOR=BasisType::DESTRUCTOR,CONSTRUCTOR=BasisType::CONSTRUCTOR};
 @}
 
@@ -74,6 +75,10 @@ All right, now the constructor:
 BasisFeAsBasedSc(size_t nsite, size_t nup,size_t ndown)
 		: basis1_(nsite,nup),basis2_(nsite,ndown)
 {
+	std::cout<<"Basis1\n";
+	std::cout<<basis1_;
+	std::cout<<"Basis2\n";
+	std::cout<<basis2_;
 }
 @}
 
@@ -162,7 +167,7 @@ int doSign(size_t i,size_t site,size_t sector) const
 	}
 	size_t c = basis1_.getN(x);
 	int ret = 1;
-	if (c&1) ret = -1;
+	if (c&1) ret = FERMION_SIGN;
 	return ret * basis2_.doSign(y,site,orb);
 }
 @}

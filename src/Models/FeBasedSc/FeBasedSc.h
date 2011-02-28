@@ -141,7 +141,9 @@ namespace LanczosPlusPlus {
 									WordType bra1= ket1 ^(BasisType::bitmask(ii)|BasisType::bitmask(jj));
 									size_t temp = basis.perfectIndex(bra1,ket2);
 									matrix.setCol(nCounter,temp);
-									cTemp=h*doSign(ket1,ket2,i,orb,j,orb2,SPIN_DOWN); // check SIGN FIXME
+									int extraSign = (s1i==0) ? FERMION_SIGN : 1;
+									cTemp=h*extraSign*basis_.doSign(
+										ket1,ket2,i,orb,j,orb2,SPIN_UP); // check SIGN FIXME
 
 									matrix.setValues(nCounter,cTemp);
 									nCounter++;
@@ -150,7 +152,9 @@ namespace LanczosPlusPlus {
 									WordType bra2= ket2 ^(BasisType::bitmask(ii)|BasisType::bitmask(jj));
 									size_t temp = basis.perfectIndex(ket1,bra2);
 									matrix.setCol(nCounter,temp);
-									cTemp=h*doSign(ket1,ket2,i,orb,j,orb2,SPIN_UP); // Check SIGN FIXME
+									int extraSign = (s2i==0) ? FERMION_SIGN : 1;
+									cTemp=h*extraSign*basis_.doSign(
+										ket1,ket2,i,orb,j,orb2,SPIN_DOWN); // Check SIGN FIXME
 									matrix.setValues(nCounter,cTemp);
 									nCounter++;
 								}
@@ -213,25 +217,6 @@ namespace LanczosPlusPlus {
 
 			nzero++;
 			return nzero;
-		}
-		
-
-		int doSign(WordType ket1,WordType ket2,size_t i,size_t orb1,size_t j,size_t orb2,size_t spin) const
-		{
-			if (i > j) {
-				std::cerr<<"FATAL: At doSign\n";
-				std::cerr<<"INFO: i="<<i<<" j="<<j<<std::endl;
-				std::cerr<<"AT: "<<__FILE__<<" : "<<__LINE__<<std::endl;
-				throw std::runtime_error("FeBasedSc::doSign(...)\n");
-			}
-
-			size_t sum = 0;
-			for (size_t site=i;site<j;site++)
-				for (size_t spin=0;spin<2;spin++)
-					for (size_t orb=0;orb<ORBITALS;orb++)
-						sum += basis_.getN(site,spin,orb);
-			return (sum & 1) ? FERMION_SIGN : 1;
-
 		}
 		
 		

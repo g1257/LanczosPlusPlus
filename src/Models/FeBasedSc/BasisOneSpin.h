@@ -158,6 +158,50 @@ namespace LanczosPlusPlus {
 			return ret * doSign(ketB,site);
 		}
 		
+
+		int doSign(
+				WordType ket,
+				size_t i,
+				size_t orb1,
+				size_t j,
+				size_t orb2) const
+		{
+			if (i > j) {
+				std::cerr<<"FATAL: At doSign\n";
+				std::cerr<<"INFO: i="<<i<<" j="<<j<<std::endl;
+				std::cerr<<"AT: "<<__FILE__<<" : "<<__LINE__<<std::endl;
+				throw std::runtime_error("FeBasedSc::doSign(...)\n");
+			}
+			size_t x0 = (i+1)*ORBITALS; // i+1 cannot be the last site, 'cause i<j
+			size_t x1 = j*ORBITALS;
+
+			size_t sum = getNbyKet(ket,x0,x1);
+
+			// at site i we need to be carefull
+			x0 = i*ORBITALS+orb1;
+			x1 = (i+1)*ORBITALS;
+			sum += getNbyKet(ket,x0,x1);
+
+			// same at site j
+			x0 = j*ORBITALS;
+			x1 = j*ORBITALS+orb2;
+			sum += getNbyKet(ket,x0,x1);
+
+			return (sum & 1) ? FERMION_SIGN : 1;
+		}
+		
+
+		size_t getNbyKet(size_t ket) const
+		{
+			size_t sum = 0;
+			WordType ketCopy = ket;
+			while(ketCopy) {
+				if (ketCopy & 1) sum++;
+				ketCopy <<= 1;
+			}
+			return sum;
+		}
+		
 		
 
 	private:
@@ -311,6 +355,18 @@ namespace LanczosPlusPlus {
 			// Parity of single occupied between i and nsite-1
 			int s=(PsimagLite::BitManip::count(a) & 1) ? FERMION_SIGN : 1;
 			return s;
+		}
+		
+
+		size_t getNbyKet(size_t ket,size_t from,size_t upto) const
+		{
+			size_t sum = 0;
+			size_t counter = from;
+			while(counter<upto) {
+				if (ket & bitmask_[counter]) sum++;
+				counter++;
+			}
+			return sum;
 		}
 		
 		

@@ -110,6 +110,30 @@ namespace LanczosPlusPlus {
 			return ret * basis2_.doSign(y,site,orb);
 		}
 		
+
+		int doSign(
+				WordType ket1,
+				WordType ket2,
+				size_t i,
+				size_t orb1,
+				size_t j,
+				size_t orb2,
+				size_t spin) const
+		{
+			if (i > j) {
+				std::cerr<<"FATAL: At doSign\n";
+				std::cerr<<"INFO: i="<<i<<" j="<<j<<std::endl;
+				std::cerr<<"AT: "<<__FILE__<<" : "<<__LINE__<<std::endl;
+				throw std::runtime_error("FeBasedSc::doSign(...)\n");
+			}
+			if (spin==SPIN_UP) {
+				return basis1_.doSign(ket1,i,orb1,j,orb2);
+			}
+			size_t c = basis1_.getNbyKet(ket1);
+			int ret = (c&1) ? FERMION_SIGN : 1;
+			return ret * basis2_.doSign(ket2,i,orb1,j,orb2);
+		}
+		
 		
 
 	private:

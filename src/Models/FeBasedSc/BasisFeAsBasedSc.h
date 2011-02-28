@@ -38,10 +38,10 @@ namespace LanczosPlusPlus {
 		BasisFeAsBasedSc(size_t nsite, size_t nup,size_t ndown)
 				: basis1_(nsite,nup),basis2_(nsite,ndown)
 		{
-			std::cout<<"Basis1\n";
-			std::cout<<basis1_;
-			std::cout<<"Basis2\n";
-			std::cout<<basis2_;
+//			std::cout<<"Basis1\n";
+//			std::cout<<basis1_;
+//			std::cout<<"Basis2\n";
+//			std::cout<<basis2_;
 		}
 		
 		

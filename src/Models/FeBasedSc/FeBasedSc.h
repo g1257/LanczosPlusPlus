@@ -23,6 +23,7 @@ Please see full open source license included in file LICENSE.
 
 #include "CrsMatrix.h"
 #include "BasisFeAsBasedSc.h"
+#include <cassert>
 
 namespace LanczosPlusPlus {
 	
@@ -93,7 +94,9 @@ namespace LanczosPlusPlus {
 		}
 		
 
-		void setupHamiltonian(SparseMatrixType &matrix,const BasisType &basis) const
+		void setupHamiltonian(
+				SparseMatrixType &matrix,
+				const BasisType &basis) const
 		{
 			// Calculate diagonal elements AND count non-zero matrix elements
 			size_t hilbert=basis.size();
@@ -119,57 +122,141 @@ namespace LanczosPlusPlus {
 				nCounter++;
 				for (size_t i=0;i<nsite;i++) {
 					for (size_t orb=0;orb<ORBITALS;orb++) {
-						size_t ii = i*ORBITALS+orb;
-						WordType s1i=(ket1 & BasisType::bitmask(ii));
-						if (s1i>0) s1i=1;
-						WordType s2i=(ket2 & BasisType::bitmask(ii));
-						if (s2i>0) s2i=1;
-
-						// Hopping term 
-						for (size_t j=0;j<nsite;j++) {
-							if (j<i) continue;
-							for (size_t orb2=0;orb2<ORBITALS;orb2++) {
-								size_t jj = j*ORBITALS+orb2;
-								RealType h = hoppings(i,orb,j,orb2);
-								if (h==0) continue;
-								WordType s1j= (ket1 & BasisType::bitmask(jj));
-								if (s1j>0) s1j=1;
-								WordType s2j= (ket2 & BasisType::bitmask(jj));
-								if (s2j>0) s2j=1;
-
-								if (s1i+s1j==1) {
-									WordType bra1= ket1 ^(BasisType::bitmask(ii)|BasisType::bitmask(jj));
-									size_t temp = basis.perfectIndex(bra1,ket2);
-									matrix.setCol(nCounter,temp);
-									int extraSign = (s1i==1) ? FERMION_SIGN : 1;
-									cTemp=h*extraSign*basis_.doSign(
-										ket1,ket2,i,orb,j,orb2,SPIN_UP);
-
-									matrix.setValues(nCounter,cTemp);
-									nCounter++;
-								}
-								if (s2i+s2j==1) {
-									WordType bra2= ket2 ^(BasisType::bitmask(ii)|BasisType::bitmask(jj));
-									size_t temp = basis.perfectIndex(ket1,bra2);
-									matrix.setCol(nCounter,temp);
-									int extraSign = (s2i==1) ? FERMION_SIGN : 1;
-									cTemp=h*extraSign*basis_.doSign(
-										ket1,ket2,i,orb,j,orb2,SPIN_DOWN);
-									matrix.setValues(nCounter,cTemp);
-									nCounter++;
-								}
-							}
+						setHoppingTerm(matrix,nCounter,ket1,ket2,
+								i,orb,basis);
+						if (orb==0) {
+							setU2OffDiagonalTerm(matrix,nCounter,ket1,ket2,
+								i,orb,basis);
 						}
+						setU3Term(matrix,nCounter,ket1,ket2,
+								i,orb,1-orb,basis);
 					}
 				}
 			}
 			matrix.setRow(hilbert,nCounter);
 		}
-		
 
-		size_t countNonZero(std::vector<RealType>& diag,const BasisType &basis) const
+		void setHoppingTerm(
+				SparseMatrixType &matrix,
+				size_t& nCounter,
+				const WordType& ket1,
+				const WordType& ket2,
+				size_t i,
+				size_t orb,
+				const BasisType &basis) const
 		{
-			isHubbardUimplemented();
+			size_t ii = i*ORBITALS+orb;
+			WordType s1i=(ket1 & BasisType::bitmask(ii));
+			if (s1i>0) s1i=1;
+			WordType s2i=(ket2 & BasisType::bitmask(ii));
+			if (s2i>0) s2i=1;
+
+			size_t nsite = geometry_.numberOfSites();
+
+			// Hopping term
+			for (size_t j=0;j<nsite;j++) {
+				if (j<i) continue;
+				for (size_t orb2=0;orb2<ORBITALS;orb2++) {
+					size_t jj = j*ORBITALS+orb2;
+					RealType h = hoppings(i,orb,j,orb2);
+					if (h==0) continue;
+					WordType s1j= (ket1 & BasisType::bitmask(jj));
+					if (s1j>0) s1j=1;
+					WordType s2j= (ket2 & BasisType::bitmask(jj));
+					if (s2j>0) s2j=1;
+
+					if (s1i+s1j==1) {
+						WordType bra1= ket1 ^(BasisType::bitmask(ii)|BasisType::bitmask(jj));
+						size_t temp = basis.perfectIndex(bra1,ket2);
+						matrix.setCol(nCounter,temp);
+						int extraSign = (s1i==1) ? FERMION_SIGN : 1;
+						RealType cTemp = h*extraSign*basis_.doSign(
+							ket1,ket2,i,orb,j,orb2,SPIN_UP);
+
+						matrix.setValues(nCounter,cTemp);
+						nCounter++;
+					}
+					if (s2i+s2j==1) {
+						WordType bra2= ket2 ^(BasisType::bitmask(ii)|BasisType::bitmask(jj));
+						size_t temp = basis.perfectIndex(ket1,bra2);
+						matrix.setCol(nCounter,temp);
+						int extraSign = (s2i==1) ? FERMION_SIGN : 1;
+						RealType cTemp = h*extraSign*basis_.doSign(
+							ket1,ket2,i,orb,j,orb2,SPIN_DOWN);
+						matrix.setValues(nCounter,cTemp);
+						nCounter++;
+					}
+				}
+			}
+		}
+		
+		void setU2OffDiagonalTerm(
+				SparseMatrixType &matrix,
+				size_t& nCounter,
+				const WordType& ket1,
+				const WordType& ket2,
+				size_t i,
+				size_t orb,
+				const BasisType &basis) const
+		{
+			setU2SplusSminus(matrix,nCounter,ket1,ket2,i,orb,1-orb,basis);
+			setU2SplusSminus(matrix,nCounter,ket1,ket2,i,1-orb,orb,basis);
+		}
+
+		// N.B.: orb1!=orb2 here
+		void setU2SplusSminus(
+						SparseMatrixType &matrix,
+						size_t& nCounter,
+						const WordType& ket1,
+						const WordType& ket2,
+						size_t i,
+						size_t orb1,
+						size_t orb2,
+						const BasisType &basis) const
+		{
+			assert(orb1!=orb2);
+			if (u2SplusSminusNonZero(ket1,ket2,i,orb1,orb2,basis)==0) return;
+
+			size_t ii = i*ORBITALS + orb1;
+			size_t jj = i*ORBITALS + orb2;
+			WordType bra1 = ket1 ^ (BasisType::bitmask(ii)|BasisType::bitmask(jj));
+			WordType bra2 = ket2 ^ (BasisType::bitmask(ii)|BasisType::bitmask(jj));
+			size_t temp = basis.perfectIndex(bra1,bra2);
+			matrix.setCol(nCounter,temp);
+
+			matrix.setValues(nCounter,mp_.hubbardU[2]*0.5);
+			nCounter++;
+		}
+
+		// N.B.: orb1!=orb2 here
+		void setU3Term(
+				SparseMatrixType &matrix,
+				size_t& nCounter,
+				const WordType& ket1,
+				const WordType& ket2,
+				size_t i,
+				size_t orb1,
+				size_t orb2,
+				const BasisType &basis) const
+		{
+			assert(orb1!=orb2);
+			if (u3TermNonZero(ket1,ket2,i,orb1,orb2,basis)==0) return;
+
+			size_t ii = i*ORBITALS + orb1;
+			size_t jj = i*ORBITALS + orb2;
+			WordType bra1 = ket1 ^ (BasisType::bitmask(ii)|BasisType::bitmask(jj));
+			WordType bra2 = ket2 ^ (BasisType::bitmask(ii)|BasisType::bitmask(jj));
+			size_t temp = basis.perfectIndex(bra1,bra2);
+			matrix.setCol(nCounter,temp);
+
+			matrix.setValues(nCounter,mp_.hubbardU[3]);
+			nCounter++;
+		}
+
+		size_t countNonZero(
+				std::vector<RealType>& diag,
+				const BasisType &basis) const
+		{
 			size_t hilbert=basis.size();
 			size_t nsite = geometry_.numberOfSites();
 
@@ -181,10 +268,6 @@ namespace LanczosPlusPlus {
 				RealType s=0;
 				for (size_t i=0;i<nsite;i++) {
 					for (size_t orb=0;orb<ORBITALS;orb++) {
-						WordType s1i= (ket1 & BasisType::bitmask(i*ORBITALS+orb));
-						WordType s2i= (ket2 & BasisType::bitmask(i*ORBITALS+orb));
-						if (s1i>0) s1i=1;
-						if (s2i>0) s2i=1;
 
 						// Hubbard term U0
 						s += mp_.hubbardU[0] * basis.isThereAnElectronAt(ket1,ket2,
@@ -197,24 +280,23 @@ namespace LanczosPlusPlus {
 									nix(ket1,ket2,i,1-orb,basis);
 						}
 
+						// Diagonal U2 term
+						if (orb==0) {
+							s+= mp_.hubbardU[2]*
+								u2Diagonal(ket1,ket2,i,orb,basis)*
+								u2Diagonal(ket1,ket2,i,1-orb,basis);
+						}
+
 						// Potential term
 						s += mp_.potentialV[i]*(basis.getN(ispace,SPIN_UP,orb) *
 								basis.getN(ispace,SPIN_DOWN,orb));
 						
-						// Hopping term (only count how many non-zero)
-						for (size_t j=0;j<nsite;j++) {
-							if (j<i) continue;
-							for (size_t orb2=0;orb2<ORBITALS;orb2++) {
-								RealType tmp = hoppings(i,orb,j,orb2);
-								if (tmp==0) continue;
-								WordType s1j= (ket1 & BasisType::bitmask(j*ORBITALS+orb2));
-								WordType s2j= (ket2 & BasisType::bitmask(j*ORBITALS+orb2));
-								if (s1j>0) s1j=1;
-								if (s2j>0) s2j=1;
-								if (s1i+s1j==1) nzero++;
-								if (s2i+s2j==1) nzero++;
-							}
+						nzero += hoppingNonZero(ket1,ket2,i,orb,nsite);
+						if (orb==0) {
+							nzero += U2termNonZero(ket1,ket2,i,orb,basis);
 						}
+						nzero += u3TermNonZero(ket1,ket2,i,orb,1-orb,basis);
+
 					}
 				}
 				// cout<<"diag of ("<<ispace1<<","<<ispace2<<"): "<<s<<endl;
@@ -226,6 +308,85 @@ namespace LanczosPlusPlus {
 			return nzero;
 		}
 		
+		size_t hoppingNonZero(
+				const WordType& ket1,
+				const WordType& ket2,
+				size_t i,
+				size_t orb,
+				size_t nsite) const
+		{
+			// Hopping term (only count how many non-zero)
+			WordType s1i= (ket1 & BasisType::bitmask(i*ORBITALS+orb));
+			WordType s2i= (ket2 & BasisType::bitmask(i*ORBITALS+orb));
+			if (s1i>0) s1i=1;
+			if (s2i>0) s2i=1;
+
+			size_t nzero = 0;
+			for (size_t j=0;j<nsite;j++) {
+				if (j<i) continue;
+				for (size_t orb2=0;orb2<ORBITALS;orb2++) {
+					RealType tmp = hoppings(i,orb,j,orb2);
+					if (tmp==0) continue;
+					WordType s1j= (ket1 & BasisType::bitmask(j*ORBITALS+orb2));
+					WordType s2j= (ket2 & BasisType::bitmask(j*ORBITALS+orb2));
+					if (s1j>0) s1j=1;
+					if (s2j>0) s2j=1;
+					if (s1i+s1j==1) nzero++;
+					if (s2i+s2j==1) nzero++;
+				}
+			}
+			return nzero;
+		}
+
+		size_t U2termNonZero(
+						const WordType& ket1,
+						const WordType& ket2,
+						size_t i,
+						size_t orb,
+						const BasisType &basis) const
+		{
+			size_t nzero = u2SplusSminusNonZero(ket1,ket2,i,orb,1-orb,basis);
+			nzero += u2SplusSminusNonZero(ket1,ket2,i,1-orb,orb,basis);
+			return nzero;
+		}
+
+		size_t u2SplusSminusNonZero(
+						const WordType& ket1,
+						const WordType& ket2,
+						size_t i,
+						size_t orb1,
+						size_t orb2,
+						const BasisType &basis) const
+		{
+			if (basis.isThereAnElectronAt(ket1,ket2,
+					i,SPIN_UP,orb2)==0) return 0;
+			if (basis.isThereAnElectronAt(ket1,ket2,
+					i,SPIN_UP,orb1)==1) return 0;
+			if (basis.isThereAnElectronAt(ket1,ket2,
+					i,SPIN_DOWN,orb1)==0) return 0;
+			if (basis.isThereAnElectronAt(ket1,ket2,
+					i,SPIN_DOWN,orb2)==1) return 0;
+			return 1;
+		}
+
+		size_t u3TermNonZero(
+				const WordType& ket1,
+				const WordType& ket2,
+				size_t i,
+				size_t orb1,
+				size_t orb2,
+				const BasisType &basis) const
+		{
+			if (basis.isThereAnElectronAt(ket1,ket2,
+					i,SPIN_UP,orb2)==0) return 0;
+			if (basis.isThereAnElectronAt(ket1,ket2,
+					i,SPIN_UP,orb1)==1) return 0;
+			if (basis.isThereAnElectronAt(ket1,ket2,
+					i,SPIN_DOWN,orb1)==1) return 0;
+			if (basis.isThereAnElectronAt(ket1,ket2,
+					i,SPIN_DOWN,orb2)==0) return 0;
+			return 1;
+		}
 
 		size_t nix(
 				const WordType& ket1,
@@ -240,18 +401,37 @@ namespace LanczosPlusPlus {
 			return sum;
 		}
 		
+//		RealType heisenbergTerm
+//			(size_t i,size_t orb1,size_t j,size_t orb2) const
+//		{
+//			RealType sum = heisenbergTermSplusSminus(i,orb1,j,orb2);
+//			sum += heisenbergTermSplusSminus(j,orb2,i,orb1);
+//			sum *= 0.5;
+//			sum += heisenbergTermSzSz(i,orb1,j,orb2);
+//			return sum;
+//		}
+//
+//		RealType heisenbergTermSplusSminus
+//			(size_t i,size_t orb1,size_t j,size_t orb2) const
+//		{
+//			// Apply c_{j,orb2, up}
+//			if (basis.isThereAnElectronAt(ket1,ket2,j,SPIN_UP,orb2)==0)
+//				return 0;
+//
+//
+//		}
 
-		void isHubbardUimplemented() const
+		RealType u2Diagonal(
+				const WordType& ket1,
+				const WordType& ket2,
+				size_t i,
+				size_t orb,
+				const BasisType &basis) const
 		{
-			for (size_t i=2;i<mp_.hubbardU.size();i++) {
-				if (mp_.hubbardU[i]!=0) throw std::runtime_error
-					("UNIMPLEMENTED: Only the terms U0 and U1 of Eq.(6) paper29.pdf is"
-					" implemented, sorry.\nThe terms U2 and U3 will be "
-					"done soon.\nPlease put all Us to zero except (possibly) U0 and U1.\n");
-			}
+			RealType sz = basis.isThereAnElectronAt(ket1,ket2,i,SPIN_UP,orb);
+			sz -= basis.isThereAnElectronAt(ket1,ket2,i,SPIN_DOWN,orb);
+			return 0.5*sz;
 		}
-		
-		
 		
 		const ParametersType& mp_;
 		const GeometryType& geometry_;

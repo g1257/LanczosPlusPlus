@@ -111,7 +111,7 @@ namespace LanczosPlusPlus {
 			MatrixType fm;
 			crsMatrixToFullMatrix(fm,hamiltonian_);
 			bool verbose = true;
-			printNonZero(fm,std::cerr);
+			//printNonZero(fm,std::cerr);
 			if (!isHermitian(fm,verbose)) {
 				//std::cerr<<fm;
 				throw std::runtime_error("Hamiltonian non Hermitian\n");

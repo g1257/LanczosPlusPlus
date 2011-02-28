@@ -102,7 +102,6 @@ lanczos: \$(HEADERSH)
 clean:
 	rm -f core* \$(EXENAME) *.o *.ii *.tt
 
-$litProgTargets
 ######## End of Makefile ########
 
 EOF
@@ -155,6 +154,9 @@ print FOUT<<EOF;
 /* DO NOT EDIT!!! Changes will be lost. Modify configure.pl instead
  * This driver program was written by configure.pl
  * Lanczos++ ($brand) by G.A.*/
+#include <unistd.h>
+#include <cstdlib>
+#include <getopt.h>
 #include "$concurrencyName.h"
 #include "ContinuedFraction.h"
 #include "$model.h"
@@ -202,11 +204,47 @@ ComplexType greenFunction(RealType omega,RealType Eg,
 
 int main(int argc,char *argv[])
 {
+	int opt = 0;
+	bool gf = false;
+	std::string file = "";
+	size_t i = 0;
+	size_t j = 0;
+	size_t times = 0;
+	double delta = 0;
+	while ((opt = getopt(argc, argv, "gf:i:j:t:d:")) != -1) {
+		switch (opt) {
+		case 'g':
+			gf = true;
+			break;
+		case 'i':
+			i = atoi(optarg);
+			break;
+		case 'j':
+			j = atoi(optarg);
+			break;
+		case 't':
+			times = atof(optarg);
+			break;
+		case 'd':
+			delta = atof(optarg);
+			break;
+		case 'f':
+			file = optarg;
+			break;
+		default: /* '?' */
+			std::cerr<<"Usage: "<<argv[0]<<" [-g] -f filename\\n";
+			return 1;
+		}
+	}
+	if (file == "") {
+		std::cerr<<"Usage: "<<argv[0]<<" [-g] -f filename\\n";
+		return 1;
+	}
 	//! setup distributed parallelization
 	ConcurrencyType concurrency(argc,argv);
 
 	//Setup the Geometry
-	IoInputType io(argv[1]);
+	IoInputType io(file);
 	GeometryType geometry(io);
 
 	// read model parameters
@@ -223,22 +261,21 @@ int main(int argc,char *argv[])
 	size_t ndown=size_t(geometry.numberOfSites()*qns[1]);
 	//! Setup the Model
 	ModelType model(nup,ndown,mp,geometry);
-	size_t i = atoi(argv[2]);
-	size_t j = atoi(argv[3]);
 
 	ContinuedFractionType cf(model);
 
 	//! get the g.s.:
 	RealType Eg = cf.gsEnergy();
 	std::cout<<"Energy="<<Eg<<"\\n";
-
+	
+	if (delta==0) return 0;
 	std::cout<<"gf(i="<<i<<",j="<<j<<")\\n";
 	RealType normaPlus=0,normaMinus=0;
 	TridiagonalMatrixType abPlus,abMinus;
 	cf.getGreenFunction(abPlus,normaPlus,i,j,ContinuedFractionType::PLUS);
 	if (i!=j) cf.getGreenFunction(abMinus,normaMinus,i,j,ContinuedFractionType::MINUS);
-	for (int i=0;i<atoi(argv[4]);i++) {
-		RealType omega = atof(argv[5])*i;
+	for (size_t i=0;i<times;i++) {
+		RealType omega = delta*i;
 		std::cout<<omega<<" "<<std::imag(greenFunction(omega,Eg,abPlus,normaPlus,
 				abMinus,normaMinus,cf))<<"\\n";
 	}

@@ -92,6 +92,7 @@ BasisFeAsBasedSc(size_t nsite, size_t nup,size_t ndown)
 @<getBraIndex@>
 @<doSign@>
 @<doSign1@>
+@<isThereAnElectronAt@>
 @}
 
 @d bitmask
@@ -196,6 +197,21 @@ int doSign(
 	//size_t c = basis1_.getNbyKet(ket1);
 	//int ret = (c&1) ? FERMION_SIGN : 1;
 	return basis2_.doSign(ket2,i,orb1,j,orb2);
+}
+@}
+
+@d isThereAnElectronAt
+@{
+size_t isThereAnElectronAt(
+		size_t ket1,
+		size_t ket2,
+		size_t site,
+		size_t spin,
+		size_t orb) const
+{
+	if (spin==SPIN_UP)
+		return basis1_.isThereAnElectronAt(ket1,site,orb);
+	return basis2_.isThereAnElectronAt(ket2,site,orb);
 }
 @}
 

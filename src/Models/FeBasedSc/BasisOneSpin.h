@@ -207,6 +207,13 @@ namespace LanczosPlusPlus {
 			return sum;
 		}
 		
+
+		size_t isThereAnElectronAt(size_t ket,size_t site,size_t orb) const
+		{
+			size_t x = site*ORBITALS + orb;
+			return (ket & bitmask_[x]) ? 1 : 0;
+		}
+		
 		
 
 	private:

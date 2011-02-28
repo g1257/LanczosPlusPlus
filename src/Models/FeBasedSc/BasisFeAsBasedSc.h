@@ -134,6 +134,19 @@ namespace LanczosPlusPlus {
 			return basis2_.doSign(ket2,i,orb1,j,orb2);
 		}
 		
+
+		size_t isThereAnElectronAt(
+				size_t ket1,
+				size_t ket2,
+				size_t site,
+				size_t spin,
+				size_t orb) const
+		{
+			if (spin==SPIN_UP)
+				return basis1_.isThereAnElectronAt(ket1,site,orb);
+			return basis2_.isThereAnElectronAt(ket2,site,orb);
+		}
+		
 		
 
 	private:

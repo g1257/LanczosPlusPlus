@@ -124,6 +124,7 @@ BasisOneSpin(size_t nsite, size_t npart)
 @<doSign@>
 @<doSign1@>
 @<getNbyKet2@>
+@<isThereAnElectronAt@>
 @}
 
 @d size
@@ -235,6 +236,14 @@ static const WordType& bitmask(size_t i)
 }
 @}
 
+@d isThereAnElectronAt
+@{
+size_t isThereAnElectronAt(size_t ket,size_t site,size_t orb) const
+{
+	size_t x = site*ORBITALS + orb;
+	return (ket & bitmask_[x]) ? 1 : 0;
+}
+@}
 
 @d privateFunctions
 @{

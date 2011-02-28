@@ -145,6 +145,8 @@ void getOperator(SparseMatrixType& matrix,size_t what,size_t i,size_t flavor) co
 @<hoppings@>
 @<setupHamiltonianP@>
 @<countNonZero@>
+@<nix@>
+@<isHubbardUimplemented@>
 @}
 
 This functions computes $|bra\rangle=c_i|ket\rangle$, where $c_i$ is a creation or destruction
@@ -240,6 +242,7 @@ RealType hoppings(size_t i,size_t orb1,size_t j,size_t orb2) const
 @{
 size_t countNonZero(std::vector<RealType>& diag,const BasisType &basis) const
 {
+	isHubbardUimplemented();
 	size_t hilbert=basis.size();
 	size_t nsite = geometry_.numberOfSites();
 
@@ -255,12 +258,18 @@ size_t countNonZero(std::vector<RealType>& diag,const BasisType &basis) const
 				WordType s2i= (ket2 & BasisType::bitmask(i*ORBITALS+orb));
 				if (s1i>0) s1i=1;
 				if (s2i>0) s2i=1;
-				for (size_t orb2=0;orb2<ORBITALS;orb2++) {
-					// Hubbard term
-					s += mp_.hubbardU[i] * basis.getN(ispace,SPIN_UP,orb) *
-							basis.getN(ispace,SPIN_DOWN,orb2);
-				}
+
+				// Hubbard term U0
+				s += mp_.hubbardU[0] * basis.isThereAnElectronAt(ket1,ket2,
+						i,SPIN_UP,orb) * basis.isThereAnElectronAt(ket1,ket2,
+						i,SPIN_DOWN,orb);
 				
+				// Hubbard term U1
+				if (orb==0) {
+					s += mp_.hubbardU[1] * nix(ket1,ket2,i,orb,basis) *
+							nix(ket1,ket2,i,1-orb,basis);
+				}
+
 				// Potential term
 				s += mp_.potentialV[i]*(basis.getN(ispace,SPIN_UP,orb) *
 						basis.getN(ispace,SPIN_DOWN,orb));
@@ -290,6 +299,35 @@ size_t countNonZero(std::vector<RealType>& diag,const BasisType &basis) const
 	return nzero;
 }
 @}
-			
+
+@d nix
+@{
+size_t nix(
+		const WordType& ket1,
+		const WordType& ket2,
+		size_t i,
+		size_t orb,
+		const BasisType &basis) const
+{
+	size_t sum = 0;
+	for (size_t spin=0;spin<2;spin++)
+		sum += basis.isThereAnElectronAt(ket1,ket2,i,spin,orb);
+	return sum;
+}
+@}
+
+@d isHubbardUimplemented
+@{
+void isHubbardUimplemented() const
+{
+	for (size_t i=2;i<mp_.hubbardU.size();i++) {
+		if (mp_.hubbardU[i]!=0) throw std::runtime_error
+			("UNIMPLEMENTED: Only the terms U0 and U1 of Eq.(6) paper29.pdf is"
+			" implemented, sorry.\nThe terms U2 and U3 will be "
+			"done soon.\nPlease put all Us to zero except (possibly) U0 and U1.\n");
+	}
+}
+@}
+
 \end{document}
 

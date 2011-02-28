@@ -168,6 +168,7 @@ The private functions are as follows:
 @<computeGroundState@>
 @<computeInitVector@>
 @<triDiagonalize@>
+@<fullDiag@>
 @}
 
 
@@ -178,14 +179,16 @@ void computeGroundState()
 	model_.setupHamiltonian(hamiltonian_);
 	MatrixType fm;
 	crsMatrixToFullMatrix(fm,hamiltonian_);
-
 	bool verbose = true;
+	printNonZero(fm,std::cerr);
 	if (!isHermitian(fm,verbose)) {
 		//std::cerr<<fm;
 		throw std::runtime_error("Hamiltonian non Hermitian\n");
 	}
 	//std::cerr<<hamiltonian_;
 	std::cerr<<"Done setting up Hamiltonian\n";
+
+	//fullDiag(fm);
 
 	RealType eps= 0.01*ProgramGlobals::LanczosTolerance;
 	size_t iter= ProgramGlobals::LanczosSteps;
@@ -195,6 +198,17 @@ void computeGroundState()
 	gsVector_.resize(hamiltonian_.rank());
 	lanczosSolver.computeGroundState(gsEnergy_,gsVector_);
 } @}
+
+@d fullDiag
+@{
+void fullDiag(MatrixType& fm) const
+{
+	std::vector<RealType> e(fm.n_row());
+	diag(fm,e,'N');
+	for (size_t i=0;i<e.size();i++)
+		std::cout<<e[i]<<"\n";
+}
+@}
 
 @d computeInitVector
 @{

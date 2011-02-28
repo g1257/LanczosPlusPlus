@@ -47,6 +47,8 @@ namespace LanczosPlusPlus {
 
 			/* compute size of basis */
 			if (npart==0) {
+				data_.resize(1);
+				size_ =1;
 				data_[0]=0;
 				return;
 			}
@@ -81,6 +83,10 @@ namespace LanczosPlusPlus {
 
 		size_t perfectIndex(WordType ket) const
 		{
+		//	for (size_t i=0;i<data_.size();i++)
+		//		if (data_[i]==ket) return i;
+		//	throw std::runtime_error("perfectindex\n");
+
 			WordType ketA=0,ketB=0;
 			uncollateKet(ketA,ketB,ket);
 			// p(ket) = \sum_{na'=0}^{na'<na} S_na' * S_nb'
@@ -153,8 +159,7 @@ namespace LanczosPlusPlus {
 			}
 
 			size_t c = PsimagLite::BitManip::count(ketA);
-			int ret = 1;
-			if (c&1) ret = FERMION_SIGN;
+			int ret = (c&1) ? FERMION_SIGN : 1;
 			return ret * doSign(ketB,site);
 		}
 		

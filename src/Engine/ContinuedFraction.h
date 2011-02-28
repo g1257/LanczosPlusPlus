@@ -110,14 +110,16 @@ namespace LanczosPlusPlus {
 			model_.setupHamiltonian(hamiltonian_);
 			MatrixType fm;
 			crsMatrixToFullMatrix(fm,hamiltonian_);
-
 			bool verbose = true;
+			printNonZero(fm,std::cerr);
 			if (!isHermitian(fm,verbose)) {
 				//std::cerr<<fm;
 				throw std::runtime_error("Hamiltonian non Hermitian\n");
 			}
 			//std::cerr<<hamiltonian_;
 			std::cerr<<"Done setting up Hamiltonian\n";
+
+			//fullDiag(fm);
 
 			RealType eps= 0.01*ProgramGlobals::LanczosTolerance;
 			size_t iter= ProgramGlobals::LanczosSteps;
@@ -157,6 +159,15 @@ namespace LanczosPlusPlus {
 
 			lanczosSolver.tridiagonalDecomposition(initVector,ab,V);
 
+		}
+		
+
+		void fullDiag(MatrixType& fm) const
+		{
+			std::vector<RealType> e(fm.n_row());
+			diag(fm,e,'N');
+			for (size_t i=0;i<e.size();i++)
+				std::cout<<e[i]<<"\n";
 		}
 		
 		

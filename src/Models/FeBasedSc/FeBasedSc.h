@@ -141,9 +141,9 @@ namespace LanczosPlusPlus {
 									WordType bra1= ket1 ^(BasisType::bitmask(ii)|BasisType::bitmask(jj));
 									size_t temp = basis.perfectIndex(bra1,ket2);
 									matrix.setCol(nCounter,temp);
-									int extraSign = (s1i==0) ? FERMION_SIGN : 1;
+									int extraSign = (s1i==1) ? FERMION_SIGN : 1;
 									cTemp=h*extraSign*basis_.doSign(
-										ket1,ket2,i,orb,j,orb2,SPIN_UP); // check SIGN FIXME
+										ket1,ket2,i,orb,j,orb2,SPIN_UP);
 
 									matrix.setValues(nCounter,cTemp);
 									nCounter++;
@@ -152,9 +152,9 @@ namespace LanczosPlusPlus {
 									WordType bra2= ket2 ^(BasisType::bitmask(ii)|BasisType::bitmask(jj));
 									size_t temp = basis.perfectIndex(ket1,bra2);
 									matrix.setCol(nCounter,temp);
-									int extraSign = (s2i==0) ? FERMION_SIGN : 1;
+									int extraSign = (s2i==1) ? FERMION_SIGN : 1;
 									cTemp=h*extraSign*basis_.doSign(
-										ket1,ket2,i,orb,j,orb2,SPIN_DOWN); // Check SIGN FIXME
+										ket1,ket2,i,orb,j,orb2,SPIN_DOWN);
 									matrix.setValues(nCounter,cTemp);
 									nCounter++;
 								}

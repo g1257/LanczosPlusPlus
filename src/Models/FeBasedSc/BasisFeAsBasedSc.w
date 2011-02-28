@@ -193,9 +193,9 @@ int doSign(
 	if (spin==SPIN_UP) {
 		return basis1_.doSign(ket1,i,orb1,j,orb2);
 	}
-	size_t c = basis1_.getNbyKet(ket1);
-	int ret = (c&1) ? FERMION_SIGN : 1;
-	return ret * basis2_.doSign(ket2,i,orb1,j,orb2);
+	//size_t c = basis1_.getNbyKet(ket1);
+	//int ret = (c&1) ? FERMION_SIGN : 1;
+	return basis2_.doSign(ket2,i,orb1,j,orb2);
 }
 @}
 

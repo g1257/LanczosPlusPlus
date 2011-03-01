@@ -23,7 +23,7 @@ Please see full open source license included in file LICENSE.
 
 #include "CrsMatrix.h"
 #include "BasisFeAsBasedSc.h"
-#include <cassert>
+#include "SparseRow.h"
 
 namespace LanczosPlusPlus {
 	
@@ -32,13 +32,13 @@ namespace LanczosPlusPlus {
 	class FeBasedSc {
 		
 		typedef PsimagLite::Matrix<RealType_> MatrixType;
-		
 	public:
 		
 		typedef BasisFeAsBasedSc BasisType;
 		typedef typename BasisType::WordType WordType;
 		typedef RealType_ RealType;
 		typedef PsimagLite::CrsMatrix<RealType> SparseMatrixType;
+		typedef PsimagLite::SparseRow<SparseMatrixType> SparseRowType;
 		typedef std::vector<RealType> VectorType;
 		enum {SPIN_UP=BasisType::SPIN_UP,SPIN_DOWN=BasisType::SPIN_DOWN};
 		enum {DESTRUCTOR=BasisType::DESTRUCTOR,CONSTRUCTOR=BasisType::CONSTRUCTOR};
@@ -53,17 +53,13 @@ namespace LanczosPlusPlus {
 		{
 		}
 		
+		size_t size() const { return basis_.size(); }
 		
-
-			size_t size() const { return basis_.size(); }
-		
-
 		void setupHamiltonian(SparseMatrixType &matrix) const
 		{
 			setupHamiltonian(matrix,basis_);
 		}
 		
-
 		void getOperator(SparseMatrixType& matrix,size_t what,size_t i,size_t flavor) const
 		{
 			size_t hilbert = basis_.size();
@@ -101,44 +97,41 @@ namespace LanczosPlusPlus {
 			// Calculate diagonal elements AND count non-zero matrix elements
 			size_t hilbert=basis.size();
 			std::vector<RealType> diag(hilbert);
-			size_t nzero = countNonZero(diag,basis);
+			calcDiagonalElements(diag,basis);
 			
 			size_t nsite = geometry_.numberOfSites();
 			
 			// Setup CRS matrix
-			matrix.resize(hilbert,nzero);
-			
+			matrix.resize(hilbert);
+
 			// Calculate off-diagonal elements AND store matrix
 			size_t nCounter=0;
-			matrix.setRow(0,0);
 			for (size_t ispace=0;ispace<hilbert;ispace++) {
+				SparseRowType sparseRow;
 				matrix.setRow(ispace,nCounter);
 				WordType ket1 = basis(ispace,SPIN_UP);
 				WordType ket2 = basis(ispace,SPIN_DOWN);
 				// Save diagonal
-				matrix.setCol(nCounter,ispace);
-				RealType cTemp=diag[ispace];
-				matrix.setValues(nCounter,cTemp);
-				nCounter++;
+				sparseRow.add(ispace,diag[ispace]);
 				for (size_t i=0;i<nsite;i++) {
 					for (size_t orb=0;orb<ORBITALS;orb++) {
-						setHoppingTerm(matrix,nCounter,ket1,ket2,
+						setHoppingTerm(sparseRow,ket1,ket2,
 								i,orb,basis);
 						if (orb==0) {
-							setU2OffDiagonalTerm(matrix,nCounter,ket1,ket2,
+							setU2OffDiagonalTerm(sparseRow,ket1,ket2,
 								i,orb,basis);
 						}
-						setU3Term(matrix,nCounter,ket1,ket2,
+						setU3Term(sparseRow,ket1,ket2,
 								i,orb,1-orb,basis);
 					}
 				}
+				nCounter += sparseRow.finalize(matrix);
 			}
 			matrix.setRow(hilbert,nCounter);
 		}
 
 		void setHoppingTerm(
-				SparseMatrixType &matrix,
-				size_t& nCounter,
+				SparseRowType &sparseRow,
 				const WordType& ket1,
 				const WordType& ket2,
 				size_t i,
@@ -168,51 +161,45 @@ namespace LanczosPlusPlus {
 					if (s1i+s1j==1) {
 						WordType bra1= ket1 ^(BasisType::bitmask(ii)|BasisType::bitmask(jj));
 						size_t temp = basis.perfectIndex(bra1,ket2);
-						matrix.setCol(nCounter,temp);
 						int extraSign = (s1i==1) ? FERMION_SIGN : 1;
 						RealType cTemp = h*extraSign*basis_.doSign(
 							ket1,ket2,i,orb,j,orb2,SPIN_UP);
+						sparseRow.add(temp,cTemp);
 
-						matrix.setValues(nCounter,cTemp);
-						nCounter++;
 					}
 					if (s2i+s2j==1) {
 						WordType bra2= ket2 ^(BasisType::bitmask(ii)|BasisType::bitmask(jj));
 						size_t temp = basis.perfectIndex(ket1,bra2);
-						matrix.setCol(nCounter,temp);
 						int extraSign = (s2i==1) ? FERMION_SIGN : 1;
 						RealType cTemp = h*extraSign*basis_.doSign(
 							ket1,ket2,i,orb,j,orb2,SPIN_DOWN);
-						matrix.setValues(nCounter,cTemp);
-						nCounter++;
+						sparseRow.add(temp,cTemp);
 					}
 				}
 			}
 		}
 		
 		void setU2OffDiagonalTerm(
-				SparseMatrixType &matrix,
-				size_t& nCounter,
+				SparseRowType &sparseRow,
 				const WordType& ket1,
 				const WordType& ket2,
 				size_t i,
 				size_t orb,
 				const BasisType &basis) const
 		{
-			setU2SplusSminus(matrix,nCounter,ket1,ket2,i,orb,1-orb,basis);
-			setU2SplusSminus(matrix,nCounter,ket1,ket2,i,1-orb,orb,basis);
+			setU2SplusSminus(sparseRow,ket1,ket2,i,orb,1-orb,basis);
+			setU2SplusSminus(sparseRow,ket1,ket2,i,1-orb,orb,basis);
 		}
 
 		// N.B.: orb1!=orb2 here
 		void setU2SplusSminus(
-						SparseMatrixType &matrix,
-						size_t& nCounter,
-						const WordType& ket1,
-						const WordType& ket2,
-						size_t i,
-						size_t orb1,
-						size_t orb2,
-						const BasisType &basis) const
+				SparseRowType &sparseRow,
+				const WordType& ket1,
+				const WordType& ket2,
+				size_t i,
+				size_t orb1,
+				size_t orb2,
+				const BasisType &basis) const
 		{
 			assert(orb1!=orb2);
 			if (u2SplusSminusNonZero(ket1,ket2,i,orb1,orb2,basis)==0) return;
@@ -222,16 +209,12 @@ namespace LanczosPlusPlus {
 			WordType bra1 = ket1 ^ (BasisType::bitmask(ii)|BasisType::bitmask(jj));
 			WordType bra2 = ket2 ^ (BasisType::bitmask(ii)|BasisType::bitmask(jj));
 			size_t temp = basis.perfectIndex(bra1,bra2);
-			matrix.setCol(nCounter,temp);
-
-			matrix.setValues(nCounter,mp_.hubbardU[2]*0.5);
-			nCounter++;
+			sparseRow.add(temp,mp_.hubbardU[2]*0.5);
 		}
 
 		// N.B.: orb1!=orb2 here
 		void setU3Term(
-				SparseMatrixType &matrix,
-				size_t& nCounter,
+				SparseRowType &sparseRow,
 				const WordType& ket1,
 				const WordType& ket2,
 				size_t i,
@@ -247,21 +230,17 @@ namespace LanczosPlusPlus {
 			WordType bra1 = ket1 ^ (BasisType::bitmask(ii)|BasisType::bitmask(jj));
 			WordType bra2 = ket2 ^ (BasisType::bitmask(ii)|BasisType::bitmask(jj));
 			size_t temp = basis.perfectIndex(bra1,bra2);
-			matrix.setCol(nCounter,temp);
-
-			matrix.setValues(nCounter,mp_.hubbardU[3]);
-			nCounter++;
+			sparseRow.add(temp,mp_.hubbardU[3]);
 		}
 
-		size_t countNonZero(
+		void calcDiagonalElements(
 				std::vector<RealType>& diag,
 				const BasisType &basis) const
 		{
 			size_t hilbert=basis.size();
 			size_t nsite = geometry_.numberOfSites();
 
-			// Calculate diagonal elements AND count non-zero matrix elements
-			size_t nzero = 0;
+			// Calculate diagonal elements
 			for (size_t ispace=0;ispace<hilbert;ispace++) {
 				WordType ket1 = basis(ispace,SPIN_UP);
 				WordType ket2 = basis(ispace,SPIN_DOWN);
@@ -290,22 +269,10 @@ namespace LanczosPlusPlus {
 						// Potential term
 						s += mp_.potentialV[i]*(basis.getN(ispace,SPIN_UP,orb) *
 								basis.getN(ispace,SPIN_DOWN,orb));
-						
-						nzero += hoppingNonZero(ket1,ket2,i,orb,nsite);
-						if (orb==0) {
-							nzero += U2termNonZero(ket1,ket2,i,orb,basis);
-						}
-						nzero += u3TermNonZero(ket1,ket2,i,orb,1-orb,basis);
-
 					}
 				}
-				// cout<<"diag of ("<<ispace1<<","<<ispace2<<"): "<<s<<endl;
 				diag[ispace]=s;
-				nzero++;
 			}
-
-			nzero++;
-			return nzero;
 		}
 		
 		size_t hoppingNonZero(

@@ -209,7 +209,7 @@ namespace LanczosPlusPlus {
 			WordType bra1 = ket1 ^ (BasisType::bitmask(ii)|BasisType::bitmask(jj));
 			WordType bra2 = ket2 ^ (BasisType::bitmask(ii)|BasisType::bitmask(jj));
 			size_t temp = basis.perfectIndex(bra1,bra2);
-			sparseRow.add(temp,mp_.hubbardU[2]*0.5);
+			sparseRow.add(temp,FERMION_SIGN * mp_.hubbardU[2]*0.5);
 		}
 
 		// N.B.: orb1!=orb2 here
@@ -230,7 +230,7 @@ namespace LanczosPlusPlus {
 			WordType bra1 = ket1 ^ (BasisType::bitmask(ii)|BasisType::bitmask(jj));
 			WordType bra2 = ket2 ^ (BasisType::bitmask(ii)|BasisType::bitmask(jj));
 			size_t temp = basis.perfectIndex(bra1,bra2);
-			sparseRow.add(temp,mp_.hubbardU[3]);
+			sparseRow.add(temp,FERMION_SIGN * mp_.hubbardU[3]);
 		}
 
 		void calcDiagonalElements(
@@ -273,36 +273,6 @@ namespace LanczosPlusPlus {
 				}
 				diag[ispace]=s;
 			}
-		}
-		
-		size_t hoppingNonZero(
-				const WordType& ket1,
-				const WordType& ket2,
-				size_t i,
-				size_t orb,
-				size_t nsite) const
-		{
-			// Hopping term (only count how many non-zero)
-			WordType s1i= (ket1 & BasisType::bitmask(i*ORBITALS+orb));
-			WordType s2i= (ket2 & BasisType::bitmask(i*ORBITALS+orb));
-			if (s1i>0) s1i=1;
-			if (s2i>0) s2i=1;
-
-			size_t nzero = 0;
-			for (size_t j=0;j<nsite;j++) {
-				if (j<i) continue;
-				for (size_t orb2=0;orb2<ORBITALS;orb2++) {
-					RealType tmp = hoppings(i,orb,j,orb2);
-					if (tmp==0) continue;
-					WordType s1j= (ket1 & BasisType::bitmask(j*ORBITALS+orb2));
-					WordType s2j= (ket2 & BasisType::bitmask(j*ORBITALS+orb2));
-					if (s1j>0) s1j=1;
-					if (s2j>0) s2j=1;
-					if (s1i+s1j==1) nzero++;
-					if (s2i+s2j==1) nzero++;
-				}
-			}
-			return nzero;
 		}
 
 		size_t U2termNonZero(
@@ -367,26 +337,6 @@ namespace LanczosPlusPlus {
 				sum += basis.isThereAnElectronAt(ket1,ket2,i,spin,orb);
 			return sum;
 		}
-		
-//		RealType heisenbergTerm
-//			(size_t i,size_t orb1,size_t j,size_t orb2) const
-//		{
-//			RealType sum = heisenbergTermSplusSminus(i,orb1,j,orb2);
-//			sum += heisenbergTermSplusSminus(j,orb2,i,orb1);
-//			sum *= 0.5;
-//			sum += heisenbergTermSzSz(i,orb1,j,orb2);
-//			return sum;
-//		}
-//
-//		RealType heisenbergTermSplusSminus
-//			(size_t i,size_t orb1,size_t j,size_t orb2) const
-//		{
-//			// Apply c_{j,orb2, up}
-//			if (basis.isThereAnElectronAt(ket1,ket2,j,SPIN_UP,orb2)==0)
-//				return 0;
-//
-//
-//		}
 
 		RealType u2Diagonal(
 				const WordType& ket1,

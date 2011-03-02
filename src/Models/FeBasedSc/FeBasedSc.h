@@ -246,7 +246,7 @@ namespace LanczosPlusPlus {
 				const BasisType &basis) const
 		{
 			for (size_t j=0;j<geometry_.numberOfSites();j++) {
-				RealType value = geometry_(i,0,j,0,TERM_J)*0.5;
+				RealType value = jCoupling(i,j)*0.5;
 				if (value==0) continue;
 				value *= 0.5; // double counting i,j
 				assert(i!=j);
@@ -313,7 +313,7 @@ namespace LanczosPlusPlus {
 						// JNN and JNNN diagonal part
 						for (size_t j=0;j<nsite;j++) {
 							for (size_t orb2=0;orb2<ORBITALS;orb2++) {
-								RealType value = geometry_(i,0,j,0,TERM_J);
+								RealType value = jCoupling(i,j);
 								if (value==0) continue;
 								s += value*0.5* // double counting i,j
 									szTerm(ket1,ket2,i,orb,basis)*
@@ -396,6 +396,12 @@ namespace LanczosPlusPlus {
 			return 0.5*sz;
 		}
 		
+		RealType jCoupling(size_t i,size_t j) const
+		{
+			if (geometry_.terms()==1) return 0;
+			return geometry_(i,0,j,0,TERM_J);
+		}
+
 		const ParametersType& mp_;
 		const GeometryType& geometry_;
 		BasisType basis_;

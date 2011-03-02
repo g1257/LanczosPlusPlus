@@ -311,15 +311,15 @@ namespace LanczosPlusPlus {
 						}
 
 						// JNN and JNNN diagonal part
-//						for (size_t j=0;j<nsite;j++) {
-//							for (size_t orb2=0;orb2<ORBITALS;orb2++) {
-//								RealType value = geometry_(i,0,j,0,TERM_J);
-//								if (value==0) continue;
-//								s += value*0.5* // double counting i,j
-//									szTerm(ket1,ket2,i,orb,basis)*
-//									szTerm(ket1,ket2,j,orb2,basis);
-//							}
-//						}
+						for (size_t j=0;j<nsite;j++) {
+							for (size_t orb2=0;orb2<ORBITALS;orb2++) {
+								RealType value = geometry_(i,0,j,0,TERM_J);
+								if (value==0) continue;
+								s += value*0.5* // double counting i,j
+									szTerm(ket1,ket2,i,orb,basis)*
+									szTerm(ket1,ket2,j,orb2,basis);
+							}
+						}
 
 						// Potential term
 						if (mp_.potentialV[i]!=0)

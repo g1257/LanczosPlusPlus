@@ -401,7 +401,7 @@ namespace LanczosPlusPlus {
 
 	size_t BasisOneSpin::nsite_=0;
 	PsimagLite::Matrix<size_t> BasisOneSpin::comb_;
-	std::vector<typename BasisOneSpin::WordType> BasisOneSpin::bitmask_;
+	std::vector<BasisOneSpin::WordType> BasisOneSpin::bitmask_;
 	
 	
 } // namespace LanczosPlusPlus

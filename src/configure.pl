@@ -158,7 +158,7 @@ print FOUT<<EOF;
 #include <cstdlib>
 #include <getopt.h>
 #include "$concurrencyName.h"
-#include "ContinuedFraction.h"
+#include "Engine.h"
 #include "$model.h"
 #include "$parametersName.h"
 #include "Geometry.h"
@@ -174,29 +174,28 @@ typedef Dmrg::Geometry<RealType,ProgramGlobals> GeometryType;
 typedef $parametersName<RealType> ParametersModelType;
 typedef PsimagLite::IoSimple::In IoInputType;
 typedef $model<RealType,ParametersModelType,GeometryType> ModelType;
-typedef ContinuedFraction<ModelType,ConcurrencyType> ContinuedFractionType;
-typedef ContinuedFractionType::TridiagonalMatrixType TridiagonalMatrixType;
+typedef Engine<ModelType,ConcurrencyType> EngineType;
+typedef EngineType::TridiagonalMatrixType TridiagonalMatrixType;
 
 
 ComplexType greenFunction(const TridiagonalMatrixType& ab,ComplexType z,RealType isign,
-		const ContinuedFractionType& cf)
+		const EngineType& engine)
 {
-	//return ab.computeContinuedFraction(z,isign);
-	return cf.continuedFraction(z,ab);
+	return engine.continuedFraction(z,ab);
 }
 
 ComplexType greenFunction(RealType omega,RealType Eg,
 		const TridiagonalMatrixType& abPlus,RealType normaPlus,
 		const TridiagonalMatrixType& abMinus,RealType normaMinus,
-		const ContinuedFractionType& cf)
+		const EngineType& engine)
 {
 	RealType isign = 1.0;
 	RealType eps = 0.05;
 	ComplexType z(omega + Eg,eps);
-	ComplexType x = normaPlus * greenFunction(abPlus,z,isign,cf);
+	ComplexType x = normaPlus * greenFunction(abPlus,z,isign,engine);
 	RealType normalizer = 2.0;
 	if (normaMinus!=0.0) {
-		x -= normaMinus * greenFunction(abMinus,z,isign,cf);
+		x -= normaMinus * greenFunction(abMinus,z,isign,engine);
 		normalizer = 4.0;
 	}
 	return x/normalizer;
@@ -262,22 +261,22 @@ int main(int argc,char *argv[])
 	//! Setup the Model
 	ModelType model(nup,ndown,mp,geometry);
 
-	ContinuedFractionType cf(model);
+	EngineType engine(model);
 
 	//! get the g.s.:
-	RealType Eg = cf.gsEnergy();
+	RealType Eg = engine.gsEnergy();
 	std::cout<<"Energy="<<Eg<<"\\n";
 	
 	if (delta==0) return 0;
 	std::cout<<"gf(i="<<i<<",j="<<j<<")\\n";
 	RealType normaPlus=0,normaMinus=0;
 	TridiagonalMatrixType abPlus,abMinus;
-	cf.getGreenFunction(abPlus,normaPlus,i,j,ContinuedFractionType::PLUS);
-	if (i!=j) cf.getGreenFunction(abMinus,normaMinus,i,j,ContinuedFractionType::MINUS);
+	engine.getGreenFunction(abPlus,normaPlus,i,j,EngineType::PLUS);
+	if (i!=j) engine.getGreenFunction(abMinus,normaMinus,i,j,EngineType::MINUS);
 	for (size_t i=0;i<times;i++) {
 		RealType omega = delta*i;
 		std::cout<<omega<<" "<<std::imag(greenFunction(omega,Eg,abPlus,normaPlus,
-				abMinus,normaMinus,cf))<<"\\n";
+				abMinus,normaMinus,engine))<<"\\n";
 	}
 }
 

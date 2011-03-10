@@ -18,20 +18,21 @@ Please see full open source license included in file LICENSE.
 
 */
 
-#ifndef CONTINUED_FRACTION_H 
-#define CONTINUED_FRACTION_H
+#ifndef ENGINE_H_
+#define ENGINE_H_
 #include <iostream>
 #include "ProgressIndicator.h"
 #include "BLAS.h"
 #include "LanczosSolver.h"
 #include "Random48.h"
 #include "ProgramGlobals.h"
+#include "ContinuedFraction.h"
 
 namespace LanczosPlusPlus {
 	template<
     	typename ModelType_,
 	 	typename ConcurrencyType_>
-	class ContinuedFraction  {
+	class Engine  {
 	public:
 		
 		typedef ModelType_ ModelType;
@@ -43,24 +44,27 @@ namespace LanczosPlusPlus {
 		typedef typename VectorType::value_type FieldType;
 		typedef typename ModelType::BasisType BasisType;
 		typedef PsimagLite::Random48<RealType> RandomType;
-		typedef PsimagLite::LanczosSolver<RealType,SparseMatrixType,VectorType,RandomType,ProgramGlobals> LanczosSolverType;
+		typedef PsimagLite::LanczosSolver<RealType,SparseMatrixType,
+				VectorType,RandomType,ProgramGlobals> LanczosSolverType;
 		typedef PsimagLite::Matrix<FieldType> MatrixType;
-		typedef typename LanczosSolverType::TridiagonalMatrixType TridiagonalMatrixType;
+		typedef typename LanczosSolverType::TridiagonalMatrixType
+				TridiagonalMatrixType;
+		typedef PsimagLite::ContinuedFraction<RealType,TridiagonalMatrixType>
+			ContinuedFractionType;
 
-		static const size_t parallelRank_ = 0; // ContF needs to support concurrency FIXME
+		// ContF needs to support concurrency FIXME
+		static const size_t parallelRank_ = 0;
+
 		enum {PLUS,MINUS};
 		
-		
-		ContinuedFraction(const ModelType& model)
+		Engine(const ModelType& model)
 			: model_(model),progress_("ContinuedFraction",0)
 		{
 			// printHeader();
 			// task 1: Compute Hamiltonian and
 			// task 2: Compute ground state |phi>
 			computeGroundState();
-			
 		} 
-		
 
 		RealType gsEnergy() const
 		{
@@ -80,30 +84,29 @@ namespace LanczosPlusPlus {
 
 			norma = initVector*initVector;
 		}
-		
 
-		ComplexType continuedFraction(ComplexType z,const TridiagonalMatrixType& ab) const
+		ComplexType continuedFraction(
+				ComplexType z,
+				const TridiagonalMatrixType& ab) const
 		{
-			static MatrixType T;
-			static bool firstcall = true;
-			static std::vector<RealType> eigs(T.n_row());
-			if (firstcall) {
-				ab.buildDenseMatrix(T);
-				diag(T,eigs,'V');
-				firstcall = false;
-			}
-			ComplexType sum(0.0);
-			for (size_t i=0;i<T.n_row();i++) {
-				sum += T(i,0)*T(i,0)/(z-eigs[i]);
-			}
-			return sum;
+			static ContinuedFractionType cf(ab,0);
+			return cf.iOfOmega(z,0);
+//			static MatrixType T;
+//			static bool firstcall = true;
+//			static std::vector<RealType> eigs(T.n_row());
+//			if (firstcall) {
+//				ab.buildDenseMatrix(T);
+//				diag(T,eigs,'V');
+//				firstcall = false;
+//			}
+//			ComplexType sum(0.0);
+//			for (size_t i=0;i<T.n_row();i++) {
+//				sum += T(i,0)*T(i,0)/(z-eigs[i]);
+//			}
+//			return sum;
 		}
 
-		
-		
-	
 	private:
-		
 
 		void computeGroundState()
 		{
@@ -161,7 +164,6 @@ namespace LanczosPlusPlus {
 
 		}
 		
-
 		void fullDiag(MatrixType& fm) const
 		{
 			std::vector<RealType> e(fm.n_row());
@@ -169,8 +171,6 @@ namespace LanczosPlusPlus {
 			for (size_t i=0;i<e.size();i++)
 				std::cout<<e[i]<<"\n";
 		}
-		
-		
 		
 		const ModelType& model_;
 		PsimagLite::ProgressIndicator progress_;
@@ -180,4 +180,4 @@ namespace LanczosPlusPlus {
 	}; // class ContinuedFraction
 } // namespace Dmrg
 
-#endif 
+#endif  // ENGINE_H_

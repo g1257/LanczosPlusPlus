@@ -26,7 +26,6 @@ Please see full open source license included in file LICENSE.
 #include "LanczosSolver.h"
 #include "Random48.h"
 #include "ProgramGlobals.h"
-#include "ContinuedFraction.h"
 
 namespace LanczosPlusPlus {
 	template<
@@ -49,8 +48,6 @@ namespace LanczosPlusPlus {
 		typedef PsimagLite::Matrix<FieldType> MatrixType;
 		typedef typename LanczosSolverType::TridiagonalMatrixType
 				TridiagonalMatrixType;
-		typedef PsimagLite::ContinuedFraction<RealType,TridiagonalMatrixType>
-			ContinuedFractionType;
 
 		// ContF needs to support concurrency FIXME
 		static const size_t parallelRank_ = 0;
@@ -83,27 +80,6 @@ namespace LanczosPlusPlus {
 			triDiagonalize(ab,initVector);
 
 			norma = initVector*initVector;
-		}
-
-		ComplexType continuedFraction(
-				ComplexType z,
-				const TridiagonalMatrixType& ab) const
-		{
-			static ContinuedFractionType cf(ab,0);
-			return cf.iOfOmega(z,0);
-//			static MatrixType T;
-//			static bool firstcall = true;
-//			static std::vector<RealType> eigs(T.n_row());
-//			if (firstcall) {
-//				ab.buildDenseMatrix(T);
-//				diag(T,eigs,'V');
-//				firstcall = false;
-//			}
-//			ComplexType sum(0.0);
-//			for (size_t i=0;i<T.n_row();i++) {
-//				sum += T(i,0)*T(i,0)/(z-eigs[i]);
-//			}
-//			return sum;
 		}
 
 	private:
@@ -143,6 +119,8 @@ namespace LanczosPlusPlus {
 			model_.getOperator(ci,destruction,i,spin);
 			SparseMatrixType cj;
 			model_.getOperator(cj,destruction,j,spin);
+			for (size_t i=0;i<initVector.size();i++)
+				initVector[i] = tmpVector[i] = 0;
 			ci.matrixVectorProduct(tmpVector,gsVector_);
 			cj.matrixVectorProduct(initVector,gsVector_);
 			if (plusOrMinus == PLUS) initVector += tmpVector;

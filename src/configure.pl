@@ -162,9 +162,10 @@ print FOUT<<EOF;
 #include "$model.h"
 #include "$parametersName.h"
 #include "Geometry.h"
-#include "IoSimple.h"
+#include "IoSimple.h" // in PsimagLite
 #include "ProgramGlobals.h"
-
+#include "ContinuedFraction.h" // in PsimagLite 
+#
 using namespace LanczosPlusPlus;
 
 typedef double RealType;
@@ -177,30 +178,6 @@ typedef $model<RealType,ParametersModelType,GeometryType> ModelType;
 typedef Engine<ModelType,ConcurrencyType> EngineType;
 typedef EngineType::TridiagonalMatrixType TridiagonalMatrixType;
 
-
-ComplexType greenFunction(const TridiagonalMatrixType& ab,ComplexType z,RealType isign,
-		const EngineType& engine)
-{
-	return engine.continuedFraction(z,ab);
-}
-
-ComplexType greenFunction(RealType omega,RealType Eg,
-		const TridiagonalMatrixType& abPlus,RealType normaPlus,
-		const TridiagonalMatrixType& abMinus,RealType normaMinus,
-		const EngineType& engine)
-{
-	RealType isign = 1.0;
-	RealType eps = 0.05;
-	ComplexType z(omega + Eg,eps);
-	ComplexType x = normaPlus * greenFunction(abPlus,z,isign,engine);
-	RealType normalizer = 2.0;
-	if (normaMinus!=0.0) {
-		x -= normaMinus * greenFunction(abMinus,z,isign,engine);
-		normalizer = 4.0;
-	}
-	return x/normalizer;
-}
-
 int main(int argc,char *argv[])
 {
 	int opt = 0;
@@ -208,9 +185,9 @@ int main(int argc,char *argv[])
 	std::string file = "";
 	size_t i = 0;
 	size_t j = 0;
-	size_t times = 0;
+	double wbegin = 0, wend = 0, wstep = 0;
 	double delta = 0;
-	while ((opt = getopt(argc, argv, "gf:i:j:t:d:")) != -1) {
+	while ((opt = getopt(argc, argv, "gf:i:j:b:e:s:d:")) != -1) {
 		switch (opt) {
 		case 'g':
 			gf = true;
@@ -221,8 +198,14 @@ int main(int argc,char *argv[])
 		case 'j':
 			j = atoi(optarg);
 			break;
-		case 't':
-			times = atof(optarg);
+		case 'b':
+			wbegin = atof(optarg);
+			break;
+		case 'e':
+			wend = atof(optarg);
+			break;
+		case 's':
+			wstep = atof(optarg);
 			break;
 		case 'd':
 			delta = atof(optarg);
@@ -231,7 +214,7 @@ int main(int argc,char *argv[])
 			file = optarg;
 			break;
 		default: /* '?' */
-			std::cerr<<"Usage: "<<argv[0]<<" [-g] -f filename\\n";
+			std::cerr<<"Usage: "<<argv[0]<<" [-g -i i -j j -d delta -b begin -e end -s step] -f filename\\n";
 			return 1;
 		}
 	}
@@ -266,17 +249,29 @@ int main(int argc,char *argv[])
 	//! get the g.s.:
 	RealType Eg = engine.gsEnergy();
 	std::cout<<"Energy="<<Eg<<"\\n";
-	
-	if (delta==0) return 0;
-	std::cout<<"gf(i="<<i<<",j="<<j<<")\\n";
+	if (!gf) return 0;
+
+	if (delta==0 || wend<=wbegin || wstep<=0)
+		throw std::runtime_error("Either delta==0 || wend<=wbegin || wstep<=0\\n");
+
+	std::cout<<"#gf(i="<<i<<",j="<<j<<")\\n";
 	RealType normaPlus=0,normaMinus=0;
 	TridiagonalMatrixType abPlus,abMinus;
 	engine.getGreenFunction(abPlus,normaPlus,i,j,EngineType::PLUS);
-	if (i!=j) engine.getGreenFunction(abMinus,normaMinus,i,j,EngineType::MINUS);
-	for (size_t i=0;i<times;i++) {
-		RealType omega = delta*i;
-		std::cout<<omega<<" "<<std::imag(greenFunction(omega,Eg,abPlus,normaPlus,
-				abMinus,normaMinus,engine))<<"\\n";
+	typedef PsimagLite::ContinuedFraction<RealType,TridiagonalMatrixType>
+		                        ContinuedFractionType;
+
+	ContinuedFractionType cfPlus(abPlus,Eg,normaPlus);
+	typename ContinuedFractionType::PlotDataType v;
+	cfPlus.plot(v,wbegin,wend,wstep,delta);
+	if (i!=j) {
+		engine.getGreenFunction(abMinus,normaMinus,i,j,EngineType::MINUS);
+		ContinuedFractionType cfMinus(abMinus,Eg,normaMinus);
+		cfMinus.plot(v,wbegin,wend,wstep,delta);
+	}
+	for (size_t x=0;x<v.size();x++) {
+		std::cout<<v[x].first<<" "<<std::real(v[x].second);
+		std::cout<<" "<<std::imag(v[x].second)<<"\\n";
 	}
 }
 

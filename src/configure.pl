@@ -179,6 +179,11 @@ typedef $model<RealType,ParametersModelType,GeometryType> ModelType;
 typedef Engine<ModelType,ConcurrencyType> EngineType;
 typedef EngineType::TridiagonalMatrixType TridiagonalMatrixType;
 
+void usage(const char *progName)
+{
+	std::cerr<<"Usage: "<<progName<<" [-g -i i -j j] -f filename\\n";
+}
+
 int main(int argc,char *argv[])
 {
 	int opt = 0;
@@ -186,9 +191,7 @@ int main(int argc,char *argv[])
 	std::string file = "";
 	size_t i = 0;
 	size_t j = 0;
-	double wbegin = 0, wend = 0, wstep = 0;
-	double delta = 0;
-	while ((opt = getopt(argc, argv, "gf:i:j:b:e:s:d:")) != -1) {
+	while ((opt = getopt(argc, argv, "gf:i:j:")) != -1) {
 		switch (opt) {
 		case 'g':
 			gf = true;
@@ -199,28 +202,16 @@ int main(int argc,char *argv[])
 		case 'j':
 			j = atoi(optarg);
 			break;
-		case 'b':
-			wbegin = atof(optarg);
-			break;
-		case 'e':
-			wend = atof(optarg);
-			break;
-		case 's':
-			wstep = atof(optarg);
-			break;
-		case 'd':
-			delta = atof(optarg);
-			break;
 		case 'f':
 			file = optarg;
 			break;
 		default: /* '?' */
-			std::cerr<<"Usage: "<<argv[0]<<" [-g -i i -j j -d delta -b begin -e end -s step] -f filename\\n";
+			usage(argv[0]);
 			return 1;
 		}
 	}
 	if (file == "") {
-		std::cerr<<"Usage: "<<argv[0]<<" [-g] -f filename\\n";
+		usage(argv[0]);
 		return 1;
 	}
 	//! setup distributed parallelization
@@ -251,9 +242,6 @@ int main(int argc,char *argv[])
 	RealType Eg = engine.gsEnergy();
 	std::cout<<"Energy="<<Eg<<"\\n";
 	if (!gf) return 0;
-
-	if (delta==0 || wend<=wbegin || wstep<=0)
-		throw std::runtime_error("Either delta==0 || wend<=wbegin || wstep<=0\\n");
 
 	std::cout<<"#gf(i="<<i<<",j="<<j<<")\\n";
 	typedef PsimagLite::ContinuedFraction<RealType,TridiagonalMatrixType>

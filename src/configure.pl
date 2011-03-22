@@ -165,7 +165,8 @@ print FOUT<<EOF;
 #include "IoSimple.h" // in PsimagLite
 #include "ProgramGlobals.h"
 #include "ContinuedFraction.h" // in PsimagLite 
-#
+#include "TwoContinuedFraction.h" // in PsimagLite
+
 using namespace LanczosPlusPlus;
 
 typedef double RealType;
@@ -255,24 +256,34 @@ int main(int argc,char *argv[])
 		throw std::runtime_error("Either delta==0 || wend<=wbegin || wstep<=0\\n");
 
 	std::cout<<"#gf(i="<<i<<",j="<<j<<")\\n";
-	RealType normaPlus=0,normaMinus=0;
-	TridiagonalMatrixType abPlus,abMinus;
-	engine.getGreenFunction(abPlus,normaPlus,i,j,EngineType::PLUS);
 	typedef PsimagLite::ContinuedFraction<RealType,TridiagonalMatrixType>
-		                        ContinuedFractionType;
-
+		ContinuedFractionType;
+	typedef PsimagLite::TwoContinuedFraction<ContinuedFractionType>
+		TwoContinuedFractionType;	
+	
+	//Plus:
+	RealType normaPlus=0;
+	TridiagonalMatrixType abPlus;
+	engine.getGreenFunction(abPlus,normaPlus,i,j,EngineType::PLUS);
 	ContinuedFractionType cfPlus(abPlus,Eg,normaPlus);
-	typename ContinuedFractionType::PlotDataType v;
-	cfPlus.plot(v,wbegin,wend,wstep,delta);
-	if (i!=j) {
-		engine.getGreenFunction(abMinus,normaMinus,i,j,EngineType::MINUS);
-		ContinuedFractionType cfMinus(abMinus,Eg,normaMinus);
-		cfMinus.plot(v,wbegin,wend,wstep,delta);
-	}
+	
+	//Minus:
+	RealType normaMinus=0;
+	TridiagonalMatrixType abMinus;
+	if (i!=j) engine.getGreenFunction(abMinus,normaMinus,i,j,EngineType::MINUS);
+	ContinuedFractionType cfMinus(abMinus,Eg,normaMinus);
+	
+	TwoContinuedFractionType twoContFraction(cfPlus,cfMinus); 
+	typename PsimagLite::IoSimple::Out ioOut(std::cout);
+	twoContFraction.save(ioOut);
+
+	/* typename TwoContinuedFractionType::PlotDataType v;
+	twoContFraction.plot(v,wbegin,wend,wstep,delta);
+
 	for (size_t x=0;x<v.size();x++) {
 		std::cout<<v[x].first<<" "<<std::real(v[x].second);
 		std::cout<<" "<<std::imag(v[x].second)<<"\\n";
-	}
+	}*/
 }
 
 EOF

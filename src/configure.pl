@@ -189,18 +189,10 @@ int main(int argc,char *argv[])
 	int opt = 0;
 	bool gf = false;
 	std::string file = "";
-	size_t i = 0;
-	size_t j = 0;
-	while ((opt = getopt(argc, argv, "gf:i:j:")) != -1) {
+	while ((opt = getopt(argc, argv, "gf:")) != -1) {
 		switch (opt) {
 		case 'g':
 			gf = true;
-			break;
-		case 'i':
-			i = atoi(optarg);
-			break;
-		case 'j':
-			j = atoi(optarg);
 			break;
 		case 'f':
 			file = optarg;
@@ -233,6 +225,12 @@ int main(int argc,char *argv[])
 	if (qns.size()<2) throw std::runtime_error("HubbardLanczos::ctor(...)\\n");
 	size_t nup=size_t(geometry.numberOfSites()*qns[0]);
 	size_t ndown=size_t(geometry.numberOfSites()*qns[1]);
+
+	std::vector<size_t> sites;
+	io.read(sites,"TSPSites");
+	if (sites.size()==0) throw std::runtime_error("No sites in input file!\\n");
+	if (sites.size()==1) sites.push_back(sites[0]);
+
 	//! Setup the Model
 	ModelType model(nup,ndown,mp,geometry);
 
@@ -243,7 +241,7 @@ int main(int argc,char *argv[])
 	std::cout<<"Energy="<<Eg<<"\\n";
 	if (!gf) return 0;
 
-	std::cout<<"#gf(i="<<i<<",j="<<j<<")\\n";
+	std::cout<<"#gf(i="<<sites[0]<<",j="<<sites[1]<<")\\n";
 	typedef PsimagLite::ContinuedFraction<RealType,TridiagonalMatrixType>
 		ContinuedFractionType;
 	typedef PsimagLite::TwoContinuedFraction<ContinuedFractionType>
@@ -252,13 +250,14 @@ int main(int argc,char *argv[])
 	//Plus:
 	RealType normaPlus=0;
 	TridiagonalMatrixType abPlus;
-	engine.getGreenFunction(abPlus,normaPlus,i,j,EngineType::PLUS);
+	engine.getGreenFunction(abPlus,normaPlus,sites[0],sites[1],EngineType::PLUS);
 	ContinuedFractionType cfPlus(abPlus,Eg,normaPlus);
 	
 	//Minus:
 	RealType normaMinus=0;
 	TridiagonalMatrixType abMinus;
-	if (i!=j) engine.getGreenFunction(abMinus,normaMinus,i,j,EngineType::MINUS);
+	if (sites[0]!=sites[1]) 
+		engine.getGreenFunction(abMinus,normaMinus,sites[0],sites[1],EngineType::MINUS);
 	ContinuedFractionType cfMinus(abMinus,Eg,normaMinus);
 	
 	TwoContinuedFractionType twoContFraction(cfPlus,cfMinus); 

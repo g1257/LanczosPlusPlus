@@ -35,7 +35,7 @@ namespace LanczosPlusPlus {
 		
 		
 
-			size_t size() const { return basis1_.size()*basis2_.size(); }
+		size_t size() const { return basis1_.size()*basis2_.size(); }
 		
 
 		void setupHamiltonian(SparseMatrixType &matrix) const
@@ -60,7 +60,7 @@ namespace LanczosPlusPlus {
 					WordType ket2 = basis2_[ispace2];
 					WordType bra1 = ket1;
 					WordType bra2 = ket2;
-					if (sector==SPIN_DOWN) {
+					if (sector==SPIN_UP) {
 						// modify bra1
 						if (!getBra(bra1,ket1,what,i)) continue;
 					} else {
@@ -152,7 +152,7 @@ namespace LanczosPlusPlus {
 								WordType bra1= ket1 ^(BasisType::bitmask(i)|BasisType::bitmask(j));
 								size_t temp = perfectIndex(basis1,basis2,bra1,ket2);
 								matrix.setCol(nCounter,temp);
-								cTemp=hoppings(i,j)*doSign(ket1,ket2,i,j,SPIN_DOWN); // check SIGN FIXME
+								cTemp=hoppings(i,j)*doSign(ket1,ket2,i,j,SPIN_UP); // check SIGN FIXME
 								if (cTemp==0.0) {
 									std::cerr<<"ctemp=0 and hopping="<<hoppings(i,j)<<" and i="<<i<<" and j="<<j<<"\n";
 								}
@@ -163,7 +163,7 @@ namespace LanczosPlusPlus {
 								WordType bra2= ket2 ^(BasisType::bitmask(i)|BasisType::bitmask(j));
 								size_t temp = perfectIndex(basis1,basis2,ket1,bra2);
 								matrix.setCol(nCounter,temp);
-								cTemp=hoppings(i,j)*doSign(ket1,ket2,i,j,SPIN_UP); // Check SIGN FIXME
+								cTemp=hoppings(i,j)*doSign(ket1,ket2,i,j,SPIN_DOWN); // Check SIGN FIXME
 								matrix.setValues(nCounter,cTemp);
 								nCounter++;					
 							}
@@ -250,35 +250,40 @@ namespace LanczosPlusPlus {
 			mask &= ((1 << (i+1)) - 1) ^ ((1 << j) - 1);
 			int s=(PsimagLite::BitManip::count(mask) & 1) ? -1 : 1; // Parity of single occupied between i and j
 
-			if (sector==SPIN_DOWN) { // Is there a down at j?
-				if (BasisType::bitmask(j) & b) s = -s;
+			if (sector==SPIN_UP) { 
+				// Is there a down at i?
+				if (BasisType::bitmask(i) & b) s = -s;
+				// Is there an up at i?(killed due to Hermitian)
+				// if (BasisType::bitmask(i) & a) s = -s;
 			}
-			if (sector==SPIN_UP) { // Is there an up at i?
-				if (BasisType::bitmask(i) & a) s = -s;
+			if (sector==SPIN_DOWN) {
+				 // Is there an up at j?
+				if (BasisType::bitmask(j) & a) s = -s;
+				// Is there a down at i? (killed due to Hermitian)
+				// if (BasisType::bitmask(i) & b) s = -s;
 			}
 
 			return s;
 		}
 		
 
-		int doSign(WordType a, WordType b,size_t i,size_t sector) const
+		int doSign(WordType a, WordType b,size_t ind,size_t sector) const
 		{
-			size_t nsite = geometry_.numberOfSites();
-			if (i<nsite-1) {
-				WordType mask = a ^ b;
-				mask &= ((1 << (i+1)) - 1) ^ ((1 << nsite) - 1);
-				int s=(PsimagLite::BitManip::count(mask) & 1) ? -1 : 1; // Parity of single occupied between i and nsite-1
-				//cout<<"sign1: "<<s<<"a="<<a<<" b="<<b<<"sector="<<sector<<endl;
-				if (sector==SPIN_UP) { // Is there an up at i?
-					if (BasisType::bitmask(i) & a) s = -s;
-					//cout<<"sign2: "<<s<<endl;
-				}
-				return s;
+			if (ind==0) {
+				if (sector==SPIN_UP) return 1;
+				// is there an up at i?
+				return (BasisType::bitmask(0) & a) ? -1 : 1;
 			}
-
-			int s=1;
-			if (sector==SPIN_UP) { // Is there an up at i?
-				if (BasisType::bitmask(i) & a) s = -s;
+			// ind>0 from now on
+			size_t i = 0;
+			size_t j = ind;
+			WordType mask = a ^  b;
+			mask &= ((1 << (i+1)) - 1) ^ ((1 << j) - 1);
+			int s=(PsimagLite::BitManip::count(mask) & 1) ? -1 : 1; // Parity of single occupied between i and j
+			
+			if (sector==SPIN_DOWN) {
+				// is there an up at j?
+				if (BasisType::bitmask(j) & a) s = -s;
 			}
 
 			return s;

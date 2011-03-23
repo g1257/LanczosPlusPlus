@@ -114,7 +114,7 @@ namespace PsimagLite {
 			setMode(options);
 			std::ostringstream msg;
 			msg<<"Lanczos Constructor, mat.rank="<<mat_.rank()<<" steps="<<steps_<<" eps="<<eps_;
-			progress_.printline(msg,std::cout);
+			progress_.printline(msg,std::cerr);
 		}
 
 		void computeGroundState(RealType& gsEnergy,VectorType& z)

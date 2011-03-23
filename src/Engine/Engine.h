@@ -80,6 +80,7 @@ namespace LanczosPlusPlus {
 			triDiagonalize(ab,initVector);
 
 			norma = initVector*initVector;
+			std::cerr<<"#IVNorm="<<norma<<"\n";
 		}
 
 	private:
@@ -107,6 +108,7 @@ namespace LanczosPlusPlus {
 			LanczosSolverType lanczosSolver(hamiltonian_,iter,eps,parallelRank);
 			gsVector_.resize(hamiltonian_.rank());
 			lanczosSolver.computeGroundState(gsEnergy_,gsVector_);
+			std::cout<<"#GSNorm="<<(gsVector_*gsVector_)<<"\n";
 		} 
 
 		void computeInitVector(VectorType& initVector,size_t i,size_t j,size_t plusOrMinus) const
@@ -121,10 +123,16 @@ namespace LanczosPlusPlus {
 			model_.getOperator(cj,destruction,j,spin);
 			for (size_t i=0;i<initVector.size();i++)
 				initVector[i] = tmpVector[i] = 0;
-			ci.matrixVectorProduct(tmpVector,gsVector_);
+			
+			transposeConjugate(ci,cj); // REMOVE
+			SparseMatrixType mat;
+			multiply(mat,ci,cj);
+			mat.matrixVectorProduct(tmpVector,gsVector_);
+			//ci.matrixVectorProduct(tmpVector,gsVector_);
+			std::cerr<<"HERE = "<<(tmpVector*gsVector_)<<"\n";
 			cj.matrixVectorProduct(initVector,gsVector_);
-			if (plusOrMinus == PLUS) initVector += tmpVector;
-			else initVector -= tmpVector;
+			//if (plusOrMinus == PLUS) initVector += tmpVector;
+			//else initVector -= tmpVector;
 		} 
 
 		void triDiagonalize(TridiagonalMatrixType& ab,const VectorType& initVector) const

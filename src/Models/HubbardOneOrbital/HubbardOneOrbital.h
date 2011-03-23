@@ -246,22 +246,22 @@ namespace LanczosPlusPlus {
 				throw std::runtime_error("HubbardOneOrbital::doSign(...)\n");
 			}
 
-			WordType mask = a ^  b;
-			mask &= ((1 << (i+1)) - 1) ^ ((1 << j) - 1);
-			int s=(PsimagLite::BitManip::count(mask) & 1) ? -1 : 1; // Parity of single occupied between i and j
-
-			if (sector==SPIN_UP) { 
-				// Is there a down at i?
-				if (BasisType::bitmask(i) & b) s = -s;
+			if (sector==SPIN_UP) {
+				WordType mask = a;
+				mask &= ((1 << (i+1)) - 1) ^ ((1 << j) - 1);
+				int s=(PsimagLite::BitManip::count(mask) & 1) ? -1 : 1; // Parity of up between i and j 
 				// Is there an up at i?(killed due to Hermitian)
 				// if (BasisType::bitmask(i) & a) s = -s;
+				return s;
 			}
-			if (sector==SPIN_DOWN) {
-				 // Is there an up at j?
-				if (BasisType::bitmask(j) & a) s = -s;
-				// Is there a down at i? (killed due to Hermitian)
-				// if (BasisType::bitmask(i) & b) s = -s;
-			}
+			WordType mask = b;
+			mask &= ((1 << (i+1)) - 1) ^ ((1 << j) - 1);
+			int s=(PsimagLite::BitManip::count(mask) & 1) ? -1 : 1; // Parity of down between i and j 
+			//if (sector==SPIN_DOWN) {
+			
+			// Is there a down at i? (killed due to Hermitian)
+			// if (BasisType::bitmask(i) & b) s = -s;
+			//}
 
 			return s;
 		}
@@ -269,22 +269,31 @@ namespace LanczosPlusPlus {
 
 		int doSign(WordType a, WordType b,size_t ind,size_t sector) const
 		{
-			if (ind==0) {
-				if (sector==SPIN_UP) return 1;
-				// is there an up at i?
-				return (BasisType::bitmask(0) & a) ? -1 : 1;
+			if (sector==SPIN_UP) {
+				if (ind==0) return 1;
+	
+				// ind>0 from now on
+				size_t i = 0;
+				size_t j = ind;
+				WordType mask = a;
+				mask &= ((1 << (i+1)) - 1) ^ ((1 << j) - 1);
+				int s=(PsimagLite::BitManip::count(mask) & 1) ? -1 : 1; // Parity of up between i and j
+				return s;
 			}
+			int s=(PsimagLite::BitManip::count(a) & 1) ? -1 : 1; // Parity of up
+			if (ind==0) return s;
+	
 			// ind>0 from now on
 			size_t i = 0;
 			size_t j = ind;
-			WordType mask = a ^  b;
+			WordType mask = b;
 			mask &= ((1 << (i+1)) - 1) ^ ((1 << j) - 1);
-			int s=(PsimagLite::BitManip::count(mask) & 1) ? -1 : 1; // Parity of single occupied between i and j
-			
-			if (sector==SPIN_DOWN) {
-				// is there an up at j?
-				if (BasisType::bitmask(j) & a) s = -s;
-			}
+			s=(PsimagLite::BitManip::count(mask) & 1) ? -1 : 1; // Parity of up between i and j
+			return s;
+			//if (sector==SPIN_DOWN) {
+			// is there an up at j?
+			//if (BasisType::bitmask(j) & a) s = -s;
+			//}
 
 			return s;
 		}

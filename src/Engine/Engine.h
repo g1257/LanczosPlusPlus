@@ -68,19 +68,15 @@ namespace LanczosPlusPlus {
 			return gsEnergy_;
 		} 
 
-		void getGreenFunction(TridiagonalMatrixType& ab,RealType& norma,
-				size_t i,size_t j,size_t plusOrMinus) const
+
+		template<typename ContinuedFractionCollectionType>
+		void greenFunction(
+				ContinuedFractionCollectionType& cfCollection,
+				size_t i,
+				size_t j,
+				size_t spin) const
 		{
-			// task 3: compute |initVector> =\sum_x c_x|phi>, where
-			// c_x are some operator
-			VectorType initVector;
-			computeInitVector(initVector,i,j,plusOrMinus);
-
-			// task 4: tridiag H starting with |initVector>
-			triDiagonalize(ab,initVector);
-
-			norma = initVector*initVector;
-			std::cerr<<"#IVNorm="<<norma<<"\n";
+			model_.greenFunction(cfCollection,i,j,spin,gsEnergy_);
 		}
 
 	private:
@@ -109,31 +105,7 @@ namespace LanczosPlusPlus {
 			gsVector_.resize(hamiltonian_.rank());
 			lanczosSolver.computeGroundState(gsEnergy_,gsVector_);
 			std::cout<<"#GSNorm="<<(gsVector_*gsVector_)<<"\n";
-		} 
-
-		void computeInitVector(VectorType& initVector,size_t i,size_t j,size_t plusOrMinus) const
-		{
-			initVector.resize(model_.size());
-			VectorType tmpVector(initVector.size());
-			size_t spin = ModelType::SPIN_UP;
-			size_t destruction = ModelType::DESTRUCTOR;
-			SparseMatrixType ci;
-			model_.getOperator(ci,destruction,i,spin);
-			SparseMatrixType cj;
-			model_.getOperator(cj,destruction,j,spin);
-			for (size_t i=0;i<initVector.size();i++)
-				initVector[i] = tmpVector[i] = 0;
-			
-			transposeConjugate(ci,cj); // REMOVE
-			SparseMatrixType mat;
-			multiply(mat,ci,cj);
-			mat.matrixVectorProduct(tmpVector,gsVector_);
-			//ci.matrixVectorProduct(tmpVector,gsVector_);
-			std::cerr<<"HERE = "<<(tmpVector*gsVector_)<<"\n";
-			cj.matrixVectorProduct(initVector,gsVector_);
-			//if (plusOrMinus == PLUS) initVector += tmpVector;
-			//else initVector -= tmpVector;
-		} 
+		}
 
 		void triDiagonalize(TridiagonalMatrixType& ab,const VectorType& initVector) const
 		{

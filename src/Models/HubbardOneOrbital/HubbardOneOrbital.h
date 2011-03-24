@@ -42,46 +42,32 @@ namespace LanczosPlusPlus {
 		{
 			setupHamiltonian(matrix,basis1_,basis2_);
 		}
-		
 
-		void getOperator(SparseMatrixType& matrix,size_t what,size_t i,size_t sector) const
+		//! Calc Green function G(isite,jsite)  (still diagonal in spin)
+		template<typename ContinuedFractionCollectionType>
+		void greenFunction(
+				ContinuedFractionCollectionType& cfCollection,
+				int isite,
+				int jsite,
+				int spin,
+				const RealType& shift) const
 		{
-			size_t hilbert1 = basis1_.size();
-			size_t hilbert2 = basis2_.size();
-
-			matrix.resize(hilbert1*hilbert2);
-
-			size_t nCounter = 0;
-			for (size_t ispace1=0;ispace1<hilbert1;ispace1++) {
-				WordType ket1 = basis1_[ispace1];
-				for (size_t ispace2=0;ispace2<hilbert2;ispace2++) {
-					matrix.setRow(ispace2+hilbert2*ispace1,nCounter);
-
-					WordType ket2 = basis2_[ispace2];
-					WordType bra1 = ket1;
-					WordType bra2 = ket2;
-					if (sector==SPIN_UP) {
-						// modify bra1
-						if (!getBra(bra1,ket1,what,i)) continue;
-					} else {
-						//modify bra2:
-						if (!getBra(bra2,ket2,what,i)) continue;
-					}
-					size_t temp = perfectIndex(basis1_,basis2_,bra1,bra2);
-					matrix.pushCol(temp);
-					RealType cTemp=doSign(ket1,ket2,i,sector); // check SIGN FIXME
-
-					matrix.pushValue(cTemp);
-					nCounter++;
-				}
+			typedef typename ContinuedFractionCollectionType::
+					ContinuedFractionType ContinuedFractionType;
+			for (size_t type=0;type<4;type++) {
+				if (isite==jsite && type>1) continue;
+				std::vector<RealType> modifVector;
+				getModifiedStates(modifVector,type,isite,jsite,spin);
+				std::pair<int,int> newParts = getNewParts(type,spin);
+				if (newParts.first<0) continue;
+				ContinuedFractionType cf;
+				calcGf(cf,newParts,modifVector,type,spin);
+				cfCollection.push(cf);
 			}
-			matrix.setRow(hilbert1*hilbert2,nCounter);
 		}
-		
-		
+
 	private:
 		
-
 		bool getBra(WordType& bra, const WordType& ket,size_t what,size_t i) const
 		{
 			WordType s1i=(ket & BasisType::bitmask(i));
@@ -298,8 +284,36 @@ namespace LanczosPlusPlus {
 			return s;
 		}
 		
+		//! Gf. related functions below:
+
+		std::pair<int,int> getNewParts(size_t type,size_t spin) const
+		{
+			throw std::runtime_error("getNewParts: unimplemented");
+		}
 		
 		
+		void getModifiedStates(
+				std::vector<RealType>& modifVector,
+				size_t type,
+				size_t isite,
+				size_t jsite,
+				size_t spin) const
+		{
+			throw std::runtime_error("getModifiedStates: unimplemented");
+		}
+
+
+		template<typename ContinuedFractionType>
+		void calcGf(
+				ContinuedFractionType& cf,
+				const std::pair<int,int>& newParts,
+				const std::vector<RealType>& modifVector,
+				size_t type,
+				size_t spin) const
+		{
+			throw std::runtime_error("calcGf: unimplemented");
+		}
+
 		const ParametersType& mp_;
 		const GeometryType& geometry_;
 		BasisType basis1_;

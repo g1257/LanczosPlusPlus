@@ -144,15 +144,15 @@ namespace LanczosPlusPlus {
 				size_t jsite,
 				size_t spin) const
 		{
-			int isign= (type>1) ? -1 : 1;
-
 			size_t what= (type&1) ? DESTRUCTOR : CONSTRUCTOR;
 
 			modifVector.resize(basis1New.size()*basis2New.size());
-			for (size_t temp=0;temp<modifVector.size();temp++) modifVector[temp]=0.0;
+			for (size_t temp=0;temp<modifVector.size();temp++)
+				modifVector[temp]=0.0;
 
 			accModifiedState(modifVector,basis1New,basis2New,gsVector,
 					what,isite,spin,1);
+			int isign= (type>1) ? -1 : 1;
 			accModifiedState(modifVector,basis1New,basis2New,gsVector,
 					what,jsite,spin,isign);
 		}

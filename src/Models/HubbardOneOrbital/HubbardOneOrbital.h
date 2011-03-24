@@ -8,6 +8,7 @@
 #include "CrsMatrix.h"
 #include "BasisHubbardLanczos.h"
 #include "BitManip.h"
+#include "TypeToString.h"
 
 namespace LanczosPlusPlus {
 	
@@ -25,18 +26,14 @@ namespace LanczosPlusPlus {
 		typedef std::vector<RealType> VectorType;
 		enum {SPIN_UP,SPIN_DOWN};
 		enum {DESTRUCTOR,CONSTRUCTOR};
-		
-		
+
 		HubbardOneOrbital(size_t nup,size_t ndown,const ParametersType& mp,GeometryType& geometry)
 			: mp_(mp),geometry_(geometry),
 			  basis1_(geometry.numberOfSites(),nup),basis2_(geometry.numberOfSites(),ndown)
 		{
 		}
-		
-		
 
 		size_t size() const { return basis1_.size()*basis2_.size(); }
-		
 
 		void setupHamiltonian(SparseMatrixType &matrix) const
 		{
@@ -47,6 +44,7 @@ namespace LanczosPlusPlus {
 		template<typename ContinuedFractionCollectionType>
 		void greenFunction(
 				ContinuedFractionCollectionType& cfCollection,
+				const std::vector<RealType>& gsVector,
 				int isite,
 				int jsite,
 				int spin,
@@ -56,10 +54,11 @@ namespace LanczosPlusPlus {
 					ContinuedFractionType ContinuedFractionType;
 			for (size_t type=0;type<4;type++) {
 				if (isite==jsite && type>1) continue;
-				std::vector<RealType> modifVector;
-				getModifiedStates(modifVector,type,isite,jsite,spin);
 				std::pair<int,int> newParts = getNewParts(type,spin);
 				if (newParts.first<0) continue;
+				std::vector<RealType> modifVector;
+				getModifiedState(modifVector,newParts,gsVector,
+						type,isite,jsite,spin);
 				ContinuedFractionType cf;
 				calcGf(cf,newParts,modifVector,type,spin);
 				cfCollection.push(cf);
@@ -67,7 +66,7 @@ namespace LanczosPlusPlus {
 		}
 
 	private:
-		
+
 		bool getBra(WordType& bra, const WordType& ket,size_t what,size_t i) const
 		{
 			WordType s1i=(ket & BasisType::bitmask(i));
@@ -86,13 +85,11 @@ namespace LanczosPlusPlus {
 			}
 			return true;
 		}
-		
 
 		RealType hoppings(size_t i,size_t j) const
 		{
 			return geometry_(i,0,j,0,0);
 		}
-		
 
 		void setupHamiltonian(SparseMatrixType &matrix,const BasisType &basis1,const BasisType& basis2) const
 		{
@@ -252,12 +249,155 @@ namespace LanczosPlusPlus {
 			return s;
 		}
 		
+		
+		//! Gf. related functions below:
 
-		int doSign(WordType a, WordType b,size_t ind,size_t sector) const
+		std::pair<int,int> getNewParts(size_t type,size_t spin) const
+		{
+			throw std::runtime_error("getNewParts: unimplemented");
+		}
+		
+		
+		void getModifiedState(
+				std::vector<RealType>& modifVector,
+				const std::pair<int,int>& newParts,
+				const std::vector<RealType>& gsVector,
+				size_t type,
+				size_t isite,
+				size_t jsite,
+				size_t spin) const
+		{
+			// Create new bases
+			BasisType basis1New(geometry_.numberOfSites(),newParts.first);
+			BasisType basis2New(geometry_.numberOfSites(),newParts.second);
+
+			// Create new vector
+			std::vector<RealType> gsNewVector;
+
+			int isign= (type>1) ? -1 : 1;
+
+			size_t what= (type&1) ? DESTRUCTOR : CONSTRUCTOR;
+
+			modifVector.resize(basis1New.size()*basis2New.size());
+			for (size_t temp=0;temp<modifVector.size();temp++) modifVector[temp]=0.0;
+
+			accModifiedState(modifVector,basis1New,basis2New,gsVector,
+					what,isite,spin,1);
+			accModifiedState(modifVector,basis1New,basis2New,gsVector,
+					what,jsite,spin,isign);
+		}
+
+		void accModifiedState(
+				std::vector<RealType> &z,
+				const BasisType& newBasis1,
+				const BasisType& newBasis2,
+				const std::vector<RealType> &gsVector,
+				size_t what,
+				size_t site,
+				size_t spin,
+				int isign) const
+		{
+			for (size_t ispace1=0;ispace1<basis1_.size();ispace1++) {
+				WordType ket1 = basis1_[ispace1];
+				for (size_t ispace2=0;ispace2<basis2_.size();ispace2++) {
+					WordType ket2 = basis2_[ispace2];
+					int mysign = 0;
+					int temp= getBraIndex(mysign,ket1,ket2,
+							newBasis1,newBasis2,what,site,spin);
+					if (temp>=0 && size_t(temp)>=z.size()) {
+						std::string s = "old basis=" + ttos(basis1_.size());
+						s += " and old basis2=" + ttos(basis2_.size());
+						s += " newbasis1=" + ttos(newBasis1.size()) +
+							" newbasis2=" + ttos(newBasis2.size());
+						s += "\n";
+						s += "what=" + ttos(what) + " spin=" + ttos(spin);
+						s += " site=" + ttos(site);
+						s += "ket1=" + ttos(ket1) + " and ket2=" + ttos(ket2);
+						s += "\n";
+						s += "getModifiedState: z.size=" + ttos(z.size());
+						s += " but temp=" + ttos(temp) + "\n";
+						throw std::runtime_error(s.c_str());
+					}
+					if (temp<0) continue;
+					z[temp] += isign*mysign*
+							gsVector[ispace2+ispace1*basis2_.size()];
+				}
+			}
+
+		}
+
+
+		template<typename ContinuedFractionType>
+		void calcGf(
+				ContinuedFractionType& cf,
+				const std::pair<int,int>& newParts,
+				const std::vector<RealType>& modifVector,
+				size_t type,
+				size_t spin) const
+		{
+			throw std::runtime_error("calcGf: unimplemented");
+		}
+
+		int getBraIndex(
+				int &mysign,
+				const WordType& ket1,
+				const WordType& ket2,
+				const BasisType& newBasis1,
+				const BasisType& newBasis2,
+				size_t what,
+				size_t site,
+				size_t spin) const
+		{
+			WordType bra1 = ket1;
+			WordType bra2 = ket2;
+
+			if (spin==0) { // up sector
+				// down sector unchanged
+				bra1 = ket1 ^(BasisType::bitmask(site));
+				if ((bra1 & BasisType::bitmask(site))) { // the site site has no spin up
+					if (what==CONSTRUCTOR) { // then create it
+						bra1 = (ket1 | BasisType::bitmask(site));
+						mysign = doSignGf(ket1,ket2,site,spin);
+						return perfectIndex(newBasis1,newBasis2,bra1,bra2);
+					} else { // gives null
+						return -1;
+					}
+				} else { // the site has one spin up
+					if (what==CONSTRUCTOR) { // gives null
+						return -1;
+					} else { // destroy it
+						mysign = doSignGf(ket1,ket2,site,spin);
+						return perfectIndex(newBasis1,newBasis2,bra1,bra2);
+					}
+				}
+			} else { // down sector
+				// up sector unchanged
+				bra2 = ket2 ^ BasisType::bitmask(site);
+				if ((bra2 & BasisType::bitmask(site))) { // the site site has no spin down
+					if (what==CONSTRUCTOR) { // then create it
+						bra2 = (ket2 | BasisType::bitmask(site));
+						mysign = doSignGf(ket1,ket2,site,spin);
+						return perfectIndex(newBasis1,newBasis2,bra1,bra2);
+					} else { // gives null
+						return -1;
+					}
+				} else { // the site has one spin down
+					if (what==CONSTRUCTOR) { // gives null
+						return -1;
+					} else { // destroy it
+						mysign = doSignGf(ket1,ket2,site,spin);
+						return perfectIndex(newBasis1,newBasis2,bra1,bra2);
+					}
+				}
+			}
+			return -1;
+		}
+
+		int doSignGf(WordType a, WordType b,size_t ind,size_t sector) const
 		{
 			if (sector==SPIN_UP) {
 				if (ind==0) return 1;
-	
+
 				// ind>0 from now on
 				size_t i = 0;
 				size_t j = ind;
@@ -268,7 +408,7 @@ namespace LanczosPlusPlus {
 			}
 			int s=(PsimagLite::BitManip::count(a) & 1) ? -1 : 1; // Parity of up
 			if (ind==0) return s;
-	
+
 			// ind>0 from now on
 			size_t i = 0;
 			size_t j = ind;
@@ -282,36 +422,6 @@ namespace LanczosPlusPlus {
 			//}
 
 			return s;
-		}
-		
-		//! Gf. related functions below:
-
-		std::pair<int,int> getNewParts(size_t type,size_t spin) const
-		{
-			throw std::runtime_error("getNewParts: unimplemented");
-		}
-		
-		
-		void getModifiedStates(
-				std::vector<RealType>& modifVector,
-				size_t type,
-				size_t isite,
-				size_t jsite,
-				size_t spin) const
-		{
-			throw std::runtime_error("getModifiedStates: unimplemented");
-		}
-
-
-		template<typename ContinuedFractionType>
-		void calcGf(
-				ContinuedFractionType& cf,
-				const std::pair<int,int>& newParts,
-				const std::vector<RealType>& modifVector,
-				size_t type,
-				size_t spin) const
-		{
-			throw std::runtime_error("calcGf: unimplemented");
 		}
 
 		const ParametersType& mp_;

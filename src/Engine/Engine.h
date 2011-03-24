@@ -76,7 +76,7 @@ namespace LanczosPlusPlus {
 				size_t j,
 				size_t spin) const
 		{
-			model_.greenFunction(cfCollection,i,j,spin,gsEnergy_);
+			model_.greenFunction(cfCollection,gsVector_,i,j,spin,gsEnergy_);
 		}
 
 	private:

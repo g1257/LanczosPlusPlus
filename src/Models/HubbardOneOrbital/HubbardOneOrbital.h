@@ -40,30 +40,124 @@ namespace LanczosPlusPlus {
 			setupHamiltonian(matrix,basis1_,basis2_);
 		}
 
-		//! Calc Green function G(isite,jsite)  (still diagonal in spin)
-		template<typename ContinuedFractionCollectionType>
-		void greenFunction(
-				ContinuedFractionCollectionType& cfCollection,
-				const std::vector<RealType>& gsVector,
-				int isite,
-				int jsite,
-				int spin,
-				const RealType& shift) const
+		//! Gf. related functions below:
+
+		void setupHamiltonian(
+				SparseMatrixType &matrix,
+				const BasisType &basis1,
+				const BasisType& basis2) const
 		{
-			typedef typename ContinuedFractionCollectionType::
-					ContinuedFractionType ContinuedFractionType;
-			for (size_t type=0;type<4;type++) {
-				if (isite==jsite && type>1) continue;
-				std::pair<int,int> newParts = getNewParts(type,spin);
-				if (newParts.first<0) continue;
-				std::vector<RealType> modifVector;
-				getModifiedState(modifVector,newParts,gsVector,
-						type,isite,jsite,spin);
-				ContinuedFractionType cf;
-				calcGf(cf,newParts,modifVector,type,spin);
-				cfCollection.push(cf);
+			// Calculate diagonal elements AND count non-zero matrix elements
+			size_t hilbert1=basis1.size();
+			size_t hilbert2=basis2.size();
+			MatrixType diag(hilbert2,hilbert1);
+			size_t nzero = countNonZero(diag,basis1,basis2);
+
+			size_t nsite = geometry_.numberOfSites();
+
+			// Setup CRS matrix
+			matrix.resize(hilbert1*hilbert2,nzero);
+
+			// Calculate off-diagonal elements AND store matrix
+			size_t nCounter=0;
+			matrix.setRow(0,0);
+			for (size_t ispace1=0;ispace1<hilbert1;ispace1++) {
+				WordType ket1 = basis1[ispace1];
+				for (size_t ispace2=0;ispace2<hilbert2;ispace2++) {
+					WordType ket2 = basis2[ispace2];
+					// Save diagonal
+					matrix.setCol(nCounter,ispace2+ispace1*hilbert2);
+					RealType cTemp=diag(ispace2,ispace1);
+					matrix.setValues(nCounter,cTemp);
+					nCounter++;
+					for (size_t i=0;i<nsite;i++) {
+						WordType s1i=(ket1 & BasisType::bitmask(i));
+						WordType s2i=(ket2 & BasisType::bitmask(i));
+						if (s1i>0) s1i=1;
+						if (s2i>0) s2i=1;
+
+						// Hopping term
+						for (size_t j=0;j<nsite;j++) {
+							if (j<i) continue;
+							RealType tmp = hoppings(i,j);
+							if (tmp==0) continue;
+							WordType s1j= (ket1 & BasisType::bitmask(j));
+							WordType s2j= (ket2 & BasisType::bitmask(j));
+							if (s1j>0) s1j=1;
+							if (s2j>0) s2j=1;
+							if (s1i+s1j==1) {
+								WordType bra1= ket1 ^(BasisType::bitmask(i)|BasisType::bitmask(j));
+								size_t temp = perfectIndex(basis1,basis2,bra1,ket2);
+								matrix.setCol(nCounter,temp);
+								cTemp=hoppings(i,j)*doSign(ket1,ket2,i,j,SPIN_UP); // check SIGN FIXME
+								if (cTemp==0.0) {
+									std::cerr<<"ctemp=0 and hopping="<<hoppings(i,j)<<" and i="<<i<<" and j="<<j<<"\n";
+								}
+								matrix.setValues(nCounter,cTemp);
+								nCounter++;
+							}
+							if (s2i+s2j==1) {
+								WordType bra2= ket2 ^(BasisType::bitmask(i)|BasisType::bitmask(j));
+								size_t temp = perfectIndex(basis1,basis2,ket1,bra2);
+								matrix.setCol(nCounter,temp);
+								cTemp=hoppings(i,j)*doSign(ket1,ket2,i,j,SPIN_DOWN); // Check SIGN FIXME
+								matrix.setValues(nCounter,cTemp);
+								nCounter++;
+							}
+						}
+					}
+					matrix.setRow(ispace2+hilbert2*ispace1+1,nCounter);
+				}
 			}
+			matrix.setRow(hilbert1*hilbert2,nCounter);
 		}
+
+		bool hasNewParts(
+				std::pair<size_t,size_t>& newParts,
+				size_t type,
+				size_t spin) const
+		{
+
+			size_t newPart1=basis1_.electrons();
+			size_t newPart2=basis2_.electrons();
+			int c = (type&1) ? -1 : 1;
+			if (spin==0) newPart1 += c;
+			else newPart2 += c;
+
+			if (newPart1<0 || newPart2<0) return false;
+			size_t nsite = geometry_.numberOfSites();
+			if (newPart1>nsite || newPart2>nsite) return false;
+			if (newPart1==0 && newPart2==0) return false;
+			newParts.first = size_t(newPart1);
+			newParts.second = size_t(newPart2);
+			return true;
+		}
+
+
+		void getModifiedState(
+				std::vector<RealType>& modifVector,
+				const std::vector<RealType>& gsVector,
+				const BasisType& basis1New,
+				const BasisType& basis2New,
+				size_t type,
+				size_t isite,
+				size_t jsite,
+				size_t spin) const
+		{
+			int isign= (type>1) ? -1 : 1;
+
+			size_t what= (type&1) ? DESTRUCTOR : CONSTRUCTOR;
+
+			modifVector.resize(basis1New.size()*basis2New.size());
+			for (size_t temp=0;temp<modifVector.size();temp++) modifVector[temp]=0.0;
+
+			accModifiedState(modifVector,basis1New,basis2New,gsVector,
+					what,isite,spin,1);
+			accModifiedState(modifVector,basis1New,basis2New,gsVector,
+					what,jsite,spin,isign);
+		}
+
+
 
 	private:
 
@@ -90,74 +184,6 @@ namespace LanczosPlusPlus {
 		{
 			return geometry_(i,0,j,0,0);
 		}
-
-		void setupHamiltonian(SparseMatrixType &matrix,const BasisType &basis1,const BasisType& basis2) const
-		{
-			// Calculate diagonal elements AND count non-zero matrix elements
-			size_t hilbert1=basis1.size();
-			size_t hilbert2=basis2.size();
-			MatrixType diag(hilbert2,hilbert1);
-			size_t nzero = countNonZero(diag,basis1,basis2);
-			
-			size_t nsite = geometry_.numberOfSites();
-			
-			// Setup CRS matrix
-			matrix.resize(hilbert1*hilbert2,nzero);
-			
-			// Calculate off-diagonal elements AND store matrix
-			size_t nCounter=0;
-			matrix.setRow(0,0);
-			for (size_t ispace1=0;ispace1<hilbert1;ispace1++) {
-				WordType ket1 = basis1[ispace1];
-				for (size_t ispace2=0;ispace2<hilbert2;ispace2++) {
-					WordType ket2 = basis2[ispace2];
-					// Save diagonal
-					matrix.setCol(nCounter,ispace2+ispace1*hilbert2);
-					RealType cTemp=diag(ispace2,ispace1);
-					matrix.setValues(nCounter,cTemp);
-					nCounter++;
-					for (size_t i=0;i<nsite;i++) {
-						WordType s1i=(ket1 & BasisType::bitmask(i));
-						WordType s2i=(ket2 & BasisType::bitmask(i));
-						if (s1i>0) s1i=1;
-						if (s2i>0) s2i=1;
-						
-						// Hopping term 
-						for (size_t j=0;j<nsite;j++) {
-							if (j<i) continue;
-							RealType tmp = hoppings(i,j);
-							if (tmp==0) continue;
-							WordType s1j= (ket1 & BasisType::bitmask(j));
-							WordType s2j= (ket2 & BasisType::bitmask(j));
-							if (s1j>0) s1j=1;
-							if (s2j>0) s2j=1;
-							if (s1i+s1j==1) {
-								WordType bra1= ket1 ^(BasisType::bitmask(i)|BasisType::bitmask(j));
-								size_t temp = perfectIndex(basis1,basis2,bra1,ket2);
-								matrix.setCol(nCounter,temp);
-								cTemp=hoppings(i,j)*doSign(ket1,ket2,i,j,SPIN_UP); // check SIGN FIXME
-								if (cTemp==0.0) {
-									std::cerr<<"ctemp=0 and hopping="<<hoppings(i,j)<<" and i="<<i<<" and j="<<j<<"\n";
-								}
-								matrix.setValues(nCounter,cTemp);
-								nCounter++;
-							}
-							if (s2i+s2j==1) {
-								WordType bra2= ket2 ^(BasisType::bitmask(i)|BasisType::bitmask(j));
-								size_t temp = perfectIndex(basis1,basis2,ket1,bra2);
-								matrix.setCol(nCounter,temp);
-								cTemp=hoppings(i,j)*doSign(ket1,ket2,i,j,SPIN_DOWN); // Check SIGN FIXME
-								matrix.setValues(nCounter,cTemp);
-								nCounter++;					
-							}
-						}
-					}
-					matrix.setRow(ispace2+hilbert2*ispace1+1,nCounter);
-				}
-			}
-			matrix.setRow(hilbert1*hilbert2,nCounter);
-		}
-		
 
 		size_t countNonZero(MatrixType& diag,const BasisType &basis1,const BasisType& basis2) const
 		{
@@ -250,43 +276,8 @@ namespace LanczosPlusPlus {
 		}
 		
 		
-		//! Gf. related functions below:
-
-		std::pair<int,int> getNewParts(size_t type,size_t spin) const
-		{
-			throw std::runtime_error("getNewParts: unimplemented");
-		}
+		//! Gf Related functions:
 		
-		
-		void getModifiedState(
-				std::vector<RealType>& modifVector,
-				const std::pair<int,int>& newParts,
-				const std::vector<RealType>& gsVector,
-				size_t type,
-				size_t isite,
-				size_t jsite,
-				size_t spin) const
-		{
-			// Create new bases
-			BasisType basis1New(geometry_.numberOfSites(),newParts.first);
-			BasisType basis2New(geometry_.numberOfSites(),newParts.second);
-
-			// Create new vector
-			std::vector<RealType> gsNewVector;
-
-			int isign= (type>1) ? -1 : 1;
-
-			size_t what= (type&1) ? DESTRUCTOR : CONSTRUCTOR;
-
-			modifVector.resize(basis1New.size()*basis2New.size());
-			for (size_t temp=0;temp<modifVector.size();temp++) modifVector[temp]=0.0;
-
-			accModifiedState(modifVector,basis1New,basis2New,gsVector,
-					what,isite,spin,1);
-			accModifiedState(modifVector,basis1New,basis2New,gsVector,
-					what,jsite,spin,isign);
-		}
-
 		void accModifiedState(
 				std::vector<RealType> &z,
 				const BasisType& newBasis1,
@@ -324,18 +315,6 @@ namespace LanczosPlusPlus {
 				}
 			}
 
-		}
-
-
-		template<typename ContinuedFractionType>
-		void calcGf(
-				ContinuedFractionType& cf,
-				const std::pair<int,int>& newParts,
-				const std::vector<RealType>& modifVector,
-				size_t type,
-				size_t spin) const
-		{
-			throw std::runtime_error("calcGf: unimplemented");
 		}
 
 		int getBraIndex(

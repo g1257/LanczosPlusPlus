@@ -234,7 +234,7 @@ int main(int argc,char *argv[])
 	//! Setup the Model
 	ModelType model(nup,ndown,mp,geometry);
 
-	EngineType engine(model);
+	EngineType engine(model,geometry.numberOfSites());
 
 	//! get the g.s.:
 	RealType Eg = engine.gsEnergy();

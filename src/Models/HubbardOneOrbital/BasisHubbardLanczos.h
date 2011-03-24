@@ -74,7 +74,9 @@ namespace LanczosPlusPlus {
 		static const WordType& bitmask(size_t i)
 		{
 			return bitmask_[i];
-		} 
+		}
+
+		size_t electrons() const { return npart_; }
 		
 
 	private:

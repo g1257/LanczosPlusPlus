@@ -51,11 +51,13 @@ namespace LanczosPlusPlus {
 
 		// ContF needs to support concurrency FIXME
 		static const size_t parallelRank_ = 0;
+		static const size_t CHECK_HERMICITY = 1;
 
 		enum {PLUS,MINUS};
 		
-		Engine(const ModelType& model)
-			: model_(model),progress_("ContinuedFraction",0)
+		Engine(const ModelType& model,size_t numberOfSites)
+			: model_(model),numberOfSites_(numberOfSites),
+			  progress_("ContinuedFraction",0)
 		{
 			// printHeader();
 			// task 1: Compute Hamiltonian and
@@ -68,15 +70,36 @@ namespace LanczosPlusPlus {
 			return gsEnergy_;
 		} 
 
-
+		//! Calc Green function G(isite,jsite)  (still diagonal in spin)
 		template<typename ContinuedFractionCollectionType>
 		void greenFunction(
 				ContinuedFractionCollectionType& cfCollection,
-				size_t i,
-				size_t j,
-				size_t spin) const
+				int isite,
+				int jsite,
+				int spin) const
 		{
-			model_.greenFunction(cfCollection,gsVector_,i,j,spin,gsEnergy_);
+			typedef typename ContinuedFractionCollectionType::
+					ContinuedFractionType ContinuedFractionType;
+			typedef typename ModelType::BasisType BasisType;
+
+			for (size_t type=0;type<4;type++) {
+				if (isite==jsite && type>1) continue;
+				std::pair<size_t,size_t> newParts(0,0);
+				if (!model_.hasNewParts(newParts,type,spin)) continue;
+				// Create new bases
+				BasisType basis1New(numberOfSites_,newParts.first);
+				BasisType basis2New(numberOfSites_,newParts.second);
+
+				std::vector<RealType> modifVector;
+				model_.getModifiedState(modifVector,gsVector_,basis1New,basis2New,
+						type,isite,jsite,spin);
+				SparseMatrixType matrix;
+				model_.setupHamiltonian(matrix,basis1New,basis2New);
+				ContinuedFractionType cf;
+
+				calcGf(cf,modifVector,matrix,type,spin);
+				cfCollection.push(cf);
+			}
 		}
 
 	private:
@@ -84,6 +107,20 @@ namespace LanczosPlusPlus {
 		void computeGroundState()
 		{
 			model_.setupHamiltonian(hamiltonian_);
+			if (CHECK_HERMICITY) checkHermicity();
+
+			RealType eps= 0.01*ProgramGlobals::LanczosTolerance;
+			size_t iter= ProgramGlobals::LanczosSteps;
+			size_t parallelRank = 0;
+
+			LanczosSolverType lanczosSolver(hamiltonian_,iter,eps,parallelRank);
+			gsVector_.resize(hamiltonian_.rank());
+			lanczosSolver.computeGroundState(gsEnergy_,gsVector_);
+			std::cout<<"#GSNorm="<<(gsVector_*gsVector_)<<"\n";
+		}
+
+		void checkHermicity() const
+		{
 			MatrixType fm;
 			crsMatrixToFullMatrix(fm,hamiltonian_);
 			bool verbose = true;
@@ -96,15 +133,6 @@ namespace LanczosPlusPlus {
 			std::cerr<<"Done setting up Hamiltonian\n";
 
 			//fullDiag(fm);
-
-			RealType eps= 0.01*ProgramGlobals::LanczosTolerance;
-			size_t iter= ProgramGlobals::LanczosSteps;
-			size_t parallelRank = 0;
-
-			LanczosSolverType lanczosSolver(hamiltonian_,iter,eps,parallelRank);
-			gsVector_.resize(hamiltonian_.rank());
-			lanczosSolver.computeGroundState(gsEnergy_,gsVector_);
-			std::cout<<"#GSNorm="<<(gsVector_*gsVector_)<<"\n";
 		}
 
 		void triDiagonalize(TridiagonalMatrixType& ab,const VectorType& initVector) const
@@ -121,7 +149,34 @@ namespace LanczosPlusPlus {
 			lanczosSolver.tridiagonalDecomposition(initVector,ab,V);
 
 		}
+
+		template<typename ContinuedFractionType>
+		void calcGf(
+				ContinuedFractionType& cf,
+				const std::vector<RealType>& modifVector,
+				const SparseMatrixType& matrix,
+				size_t type,
+				size_t spin) const
+		{
+			typedef typename ContinuedFractionType::TridiagonalMatrixType
+					TridiagonalMatrixType;
+
+			RealType eps= 0.01*ProgramGlobals::LanczosTolerance;
+			size_t iter= ProgramGlobals::LanczosSteps;
+			size_t parallelRank = 0;
+
+			LanczosSolverType lanczosSolver(matrix,iter,eps,parallelRank);
+			TridiagonalMatrixType ab;
+			MatrixType V;
+			lanczosSolver.tridiagonalDecomposition(modifVector,ab,V);
+			RealType weight = modifVector*modifVector;
+			weight = 1.0/weight;
+			int s = (type&1) ? -1 : 1;;
+			if (type>1) s = -s;
+			cf.set(ab,gsEnergy_,weight*s);
+		}
 		
+		//! For debugging purpose only:
 		void fullDiag(MatrixType& fm) const
 		{
 			std::vector<RealType> e(fm.n_row());
@@ -131,6 +186,7 @@ namespace LanczosPlusPlus {
 		}
 		
 		const ModelType& model_;
+		size_t numberOfSites_;
 		PsimagLite::ProgressIndicator progress_;
 		SparseMatrixType hamiltonian_;
 		RealType gsEnergy_;

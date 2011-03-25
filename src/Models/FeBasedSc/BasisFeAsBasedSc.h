@@ -44,6 +44,14 @@ namespace LanczosPlusPlus {
 //			std::cout<<basis2_;
 		}
 		
+		BasisFeAsBasedSc(size_t nsite, size_t nup)
+		: basis1_(nsite,nup),basis2_(nsite,nup)
+		{
+			std::string s = "BasisFeBasedSc::ctor(...): obsolete. ";
+			s+= "This probably means that you can't compute the Green function";
+			s+= " with this model (sorry). It might be added in the future.\n";
+			throw std::runtime_error(s.c_str());
+		}
 		
 
 		static const WordType& bitmask(size_t i)

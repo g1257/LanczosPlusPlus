@@ -61,32 +61,42 @@ namespace LanczosPlusPlus {
 			setupHamiltonian(matrix,basis_);
 		}
 		
-		void getOperator(SparseMatrixType& matrix,size_t what,size_t i,size_t flavor) const
+		bool hasNewParts(
+				std::pair<size_t,size_t>& newParts,
+				size_t type,
+				size_t spin) const
 		{
-			size_t hilbert = basis_.size();
-
-			matrix.resize(hilbert);
-
-			size_t nCounter = 0;
-			for (size_t ispace=0;ispace<hilbert;ispace++) {
-				matrix.setRow(ispace,nCounter);
-
-				size_t temp = basis_.getBraIndex(ispace,what,flavor);
-				matrix.pushCol(temp);
-				RealType cTemp=basis_.doSign(ispace,i,flavor); // check SIGN FIXME
-
-				matrix.pushValue(cTemp);
-				nCounter++;
-			}
-			matrix.setRow(hilbert,nCounter);
+			std::string s = "FeBasedSc::hasNewParts(...): unimplemented. ";
+			s+= "This probably means that you can't compute the Green function";
+			s+= " with this model (sorry). It might be added in the future.\n";
+			throw std::runtime_error(s.c_str());
 		}
 
-	private:
-		
-
-		RealType hoppings(size_t i,size_t orb1,size_t j,size_t orb2) const
+		void getModifiedState(
+				std::vector<RealType>& modifVector,
+				const std::vector<RealType>& gsVector,
+				const BasisType& basis1New,
+				const BasisType& basis2New,
+				size_t type,
+				size_t isite,
+				size_t jsite,
+				size_t spin) const
 		{
-			return geometry_(i,orb1,j,orb2,TERM_HOPPINGS);
+			std::string s = "FeBasedSc::getModifiedState(...): unimplemented. ";
+			s+= "This probably means that you can't compute the Green function";
+			s+= " with this model (sorry). It might be added in the future.\n";
+			throw std::runtime_error(s.c_str());
+		}
+
+		void setupHamiltonian(
+				SparseMatrixType &matrix,
+				const BasisType &basis1,
+				const BasisType& basis2) const
+		{
+			std::string s = "FeBasedSc::setupHamiltonian(...): obsolete. ";
+			s+= "This probably means that you can't compute the Green function";
+			s+= " with this model (sorry). It might be added in the future.\n";
+			throw std::runtime_error(s.c_str());
 		}
 
 		void setupHamiltonian(
@@ -129,6 +139,13 @@ namespace LanczosPlusPlus {
 				nCounter += sparseRow.finalize(matrix);
 			}
 			matrix.setRow(hilbert,nCounter);
+		}
+
+	private:
+
+		RealType hoppings(size_t i,size_t orb1,size_t j,size_t orb2) const
+		{
+			return geometry_(i,orb1,j,orb2,TERM_HOPPINGS);
 		}
 
 		void setHoppingTerm(

@@ -226,11 +226,6 @@ int main(int argc,char *argv[])
 	size_t nup=size_t(geometry.numberOfSites()*qns[0]);
 	size_t ndown=size_t(geometry.numberOfSites()*qns[1]);
 
-	std::vector<size_t> sites;
-	io.read(sites,"TSPSites");
-	if (sites.size()==0) throw std::runtime_error("No sites in input file!\\n");
-	if (sites.size()==1) sites.push_back(sites[0]);
-
 	//! Setup the Model
 	ModelType model(nup,ndown,mp,geometry);
 
@@ -240,6 +235,11 @@ int main(int argc,char *argv[])
 	RealType Eg = engine.gsEnergy();
 	std::cout<<"Energy="<<Eg<<"\\n";
 	if (!gf) return 0;
+	
+	std::vector<size_t> sites;
+	io.read(sites,"TSPSites");
+	if (sites.size()==0) throw std::runtime_error("No sites in input file!\\n");
+	if (sites.size()==1) sites.push_back(sites[0]);
 
 	std::cout<<"#gf(i="<<sites[0]<<",j="<<sites[1]<<")\\n";
 	typedef PsimagLite::ContinuedFraction<RealType,TridiagonalMatrixType>

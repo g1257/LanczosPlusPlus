@@ -118,15 +118,15 @@ namespace LanczosPlusPlus {
 				size_t spin) const
 		{
 
-			size_t newPart1=basis1_.electrons();
-			size_t newPart2=basis2_.electrons();
+			int newPart1=basis1_.electrons();
+			int newPart2=basis2_.electrons();
 			int c = (type&1) ? -1 : 1;
 			if (spin==0) newPart1 += c;
 			else newPart2 += c;
 
 			if (newPart1<0 || newPart2<0) return false;
 			size_t nsite = geometry_.numberOfSites();
-			if (newPart1>nsite || newPart2>nsite) return false;
+			if (size_t(newPart1)>nsite || size_t(newPart2)>nsite) return false;
 			if (newPart1==0 && newPart2==0) return false;
 			newParts.first = size_t(newPart1);
 			newParts.second = size_t(newPart2);
@@ -383,6 +383,8 @@ namespace LanczosPlusPlus {
 				WordType mask = a;
 				mask &= ((1 << (i+1)) - 1) ^ ((1 << j) - 1);
 				int s=(PsimagLite::BitManip::count(mask) & 1) ? -1 : 1; // Parity of up between i and j
+				// Is there an up at i?
+				if (BasisType::bitmask(i) & a) s = -s;
 				return s;
 			}
 			int s=(PsimagLite::BitManip::count(a) & 1) ? -1 : 1; // Parity of up
@@ -394,13 +396,10 @@ namespace LanczosPlusPlus {
 			WordType mask = b;
 			mask &= ((1 << (i+1)) - 1) ^ ((1 << j) - 1);
 			s=(PsimagLite::BitManip::count(mask) & 1) ? -1 : 1; // Parity of up between i and j
+			// Is there a down at i? (killed due to Hermitian)
+			if (BasisType::bitmask(i) & b) s = -s;
 			return s;
-			//if (sector==SPIN_DOWN) {
-			// is there an up at j?
-			//if (BasisType::bitmask(j) & a) s = -s;
-			//}
 
-			return s;
 		}
 
 		const ParametersType& mp_;

@@ -51,7 +51,7 @@ namespace LanczosPlusPlus {
 
 		// ContF needs to support concurrency FIXME
 		static const size_t parallelRank_ = 0;
-		static const size_t CHECK_HERMICITY = 1;
+		static const size_t CHECK_HERMICITY = 0;
 
 		enum {PLUS,MINUS};
 		
@@ -176,6 +176,7 @@ namespace LanczosPlusPlus {
 			int s2 = (type>1) ? -1 : 1;
 			for (size_t i=0;i<ab.size();i++) ab.a(i) *= s;
 			cf.set(ab,gsEnergy_*s,weight*s2);
+
 		}
 		
 		//! For debugging purpose only:

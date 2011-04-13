@@ -84,7 +84,7 @@ namespace LanczosPlusPlus {
 
 			for (size_t type=0;type<4;type++) {
 				if (isite==jsite && type>1) continue;
-				if (type&1) continue;
+				//if (type&1) continue;
 				std::pair<size_t,size_t> newParts(0,0);
 				if (!model_.hasNewParts(newParts,type,spin)) continue;
 				// Create new bases
@@ -174,8 +174,8 @@ namespace LanczosPlusPlus {
 			//weight = 1.0/weight;
 			int s = (type&1) ? -1 : 1;;
 			int s2 = (type>1) ? -1 : 1;
-			for (size_t i=0;i<ab.size();i++) ab.a(i) *= s;
-			cf.set(ab,gsEnergy_*s,weight*s2);
+			//for (size_t i=0;i<ab.size();i++) ab.a(i) *= s;
+			cf.set(ab,gsEnergy_,weight*s2,s);
 
 		}
 		

@@ -396,7 +396,7 @@ namespace LanczosPlusPlus {
 			WordType mask = b;
 			mask &= ((1 << (i+1)) - 1) ^ ((1 << j) - 1);
 			s=(PsimagLite::BitManip::count(mask) & 1) ? -1 : 1; // Parity of up between i and j
-			// Is there a down at i? (killed due to Hermitian)
+			// Is there a down at i?
 			if (BasisType::bitmask(i) & b) s = -s;
 			return s;
 

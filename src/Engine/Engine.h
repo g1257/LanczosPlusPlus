@@ -110,7 +110,7 @@ namespace LanczosPlusPlus {
 			model_.setupHamiltonian(hamiltonian_);
 			if (CHECK_HERMICITY) checkHermicity();
 
-			RealType eps= 0.01*ProgramGlobals::LanczosTolerance;
+			RealType eps= -1; //0.01*ProgramGlobals::LanczosTolerance;
 			size_t iter= ProgramGlobals::LanczosSteps;
 			size_t parallelRank = 0;
 
@@ -136,20 +136,20 @@ namespace LanczosPlusPlus {
 			//fullDiag(fm);
 		}
 
-		void triDiagonalize(TridiagonalMatrixType& ab,const VectorType& initVector) const
-		{
-			// tridiagonalize starting with tmpVector = c^\dagger_i|gsVector>
-			MatrixType V;
-
-			RealType eps= 0.01*ProgramGlobals::LanczosTolerance;
-			size_t iter= ProgramGlobals::LanczosSteps;
-			size_t parallelRank = 0;
-
-			LanczosSolverType lanczosSolver(hamiltonian_,iter,eps,parallelRank);
-
-			lanczosSolver.tridiagonalDecomposition(initVector,ab,V);
-
-		}
+//		void triDiagonalize(TridiagonalMatrixType& ab,const VectorType& initVector) const
+//		{
+//			// tridiagonalize starting with tmpVector = c^\dagger_i|gsVector>
+//			MatrixType V;
+//
+//			RealType eps= -1; //0.01*ProgramGlobals::LanczosTolerance;
+//			size_t iter= ProgramGlobals::LanczosSteps;
+//			size_t parallelRank = 0;
+//
+//			LanczosSolverType lanczosSolver(hamiltonian_,iter,eps,parallelRank);
+//
+//			lanczosSolver.tridiagonalDecomposition(initVector,ab,V);
+//
+//		}
 
 		template<typename ContinuedFractionType>
 		void calcGf(
@@ -162,7 +162,7 @@ namespace LanczosPlusPlus {
 			typedef typename ContinuedFractionType::TridiagonalMatrixType
 					TridiagonalMatrixType;
 
-			RealType eps= 0.01*ProgramGlobals::LanczosTolerance;
+			RealType eps= -1; //0.01*ProgramGlobals::LanczosTolerance;
 			size_t iter= ProgramGlobals::LanczosSteps;
 			size_t parallelRank = 0;
 
@@ -172,7 +172,7 @@ namespace LanczosPlusPlus {
 			lanczosSolver.tridiagonalDecomposition(modifVector,ab,V);
 			RealType weight = modifVector*modifVector;
 			//weight = 1.0/weight;
-			int s = (type&1) ? -1 : 1;;
+			int s = (type&1) ? -1 : 1;
 			int s2 = (type>1) ? -1 : 1;
 			//for (size_t i=0;i<ab.size();i++) ab.a(i) *= s;
 			cf.set(ab,gsEnergy_,weight*s2,s);

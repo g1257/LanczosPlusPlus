@@ -94,6 +94,7 @@ namespace LanczosPlusPlus {
 				std::vector<RealType> modifVector;
 				model_.getModifiedState(modifVector,gsVector_,basis1New,basis2New,
 						type,isite,jsite,spin);
+
 				SparseMatrixType matrix;
 				model_.setupHamiltonian(matrix,basis1New,basis2New);
 				ContinuedFractionType cf;
@@ -110,7 +111,7 @@ namespace LanczosPlusPlus {
 			model_.setupHamiltonian(hamiltonian_);
 			if (CHECK_HERMICITY) checkHermicity();
 
-			RealType eps= -1; //0.01*ProgramGlobals::LanczosTolerance;
+			RealType eps= ProgramGlobals::LanczosTolerance;
 			size_t iter= ProgramGlobals::LanczosSteps;
 			size_t parallelRank = 0;
 
@@ -141,7 +142,7 @@ namespace LanczosPlusPlus {
 //			// tridiagonalize starting with tmpVector = c^\dagger_i|gsVector>
 //			MatrixType V;
 //
-//			RealType eps= -1; //0.01*ProgramGlobals::LanczosTolerance;
+//			RealType eps= 0.01*ProgramGlobals::LanczosTolerance;
 //			size_t iter= ProgramGlobals::LanczosSteps;
 //			size_t parallelRank = 0;
 //
@@ -162,7 +163,7 @@ namespace LanczosPlusPlus {
 			typedef typename ContinuedFractionType::TridiagonalMatrixType
 					TridiagonalMatrixType;
 
-			RealType eps= -1; //0.01*ProgramGlobals::LanczosTolerance;
+			RealType eps= ProgramGlobals::LanczosTolerance;
 			size_t iter= ProgramGlobals::LanczosSteps;
 			size_t parallelRank = 0;
 

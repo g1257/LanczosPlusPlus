@@ -193,7 +193,7 @@ namespace PsimagLite {
 					//x[i] = -btmp * tmp;
 				}
 			}
-			if (mode_ & WITH_INFO) info(gsEnergy,initialVector,std::cerr);
+			//if (mode_ & WITH_INFO) info(gsEnergy,initialVector,std::cerr);
 			
 		}
 
@@ -284,13 +284,10 @@ namespace PsimagLite {
 					y[i] = x[i] / ab.b(j) ;
 					x[i] = -ab.b(j)  * tmp;
 				}
-				if (eps_>=ProgramGlobalsType::LanczosTolerance) return;
+				//if (eps_>=ProgramGlobalsType::LanczosTolerance) return;
 			}
 			
-			/*std::cerr<<"Trying lanczosVectors with max_nstep="<<max_nstep<<"\n";
-			RealType eps = 1e-4;
-			if (!isUnitary(transposeConjugate(lanczosVectors),eps)) std::cerr<<"Oops: transpose(lanczosVectors)\n";
-			else std::cerr<<"Passed lanczosVectors\n";*/
+			if (mode_ & WITH_INFO) info(eold,initVector,std::cerr);
 			
 		}
 		

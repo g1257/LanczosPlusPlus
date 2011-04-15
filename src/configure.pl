@@ -251,7 +251,7 @@ int main(int argc,char *argv[])
 	engine.greenFunction(cfCollection,sites[0],sites[1],ModelType::SPIN_UP);
 	
 	
-	typename PsimagLite::IoSimple::Out ioOut(std::cout);
+	PsimagLite::IoSimple::Out ioOut(std::cout);
 	cfCollection.save(ioOut);
 
 }

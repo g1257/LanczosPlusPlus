@@ -118,7 +118,7 @@ namespace LanczosPlusPlus {
 
 	size_t BasisHubbardLanczos::nsite_=0;
 	PsimagLite::Matrix<size_t> BasisHubbardLanczos::comb_;
-	std::vector<typename BasisHubbardLanczos::WordType> BasisHubbardLanczos::bitmask_; 
+	std::vector<BasisHubbardLanczos::WordType> BasisHubbardLanczos::bitmask_; 
 	
 } // namespace LanczosPlusPlus
 #endif

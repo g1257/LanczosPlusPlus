@@ -29,8 +29,19 @@ namespace LanczosPlusPlus {
 
 		HubbardOneOrbital(size_t nup,size_t ndown,const ParametersType& mp,GeometryType& geometry)
 			: mp_(mp),geometry_(geometry),
-			  basis1_(geometry.numberOfSites(),nup),basis2_(geometry.numberOfSites(),ndown)
+			  basis1_(geometry.numberOfSites(),nup),basis2_(geometry.numberOfSites(),ndown),
+			  hoppings_(geometry_.numberOfSites(),geometry_.numberOfSites())
 		{
+			size_t n = geometry_.numberOfSites();
+			for (size_t i=0;i<n;i++) for (size_t j=0;j<n;j++)
+					hoppings_(i,j) = geometry_(i,0,j,0,0);
+
+			std::cerr<<"#HOPPINGS\n";
+			std::cerr<<hoppings_;
+			std::cerr<<"#HUBBARDU\n";
+			std::cerr<<mp_.hubbardU;
+			std::cerr<<"#POTENTIALV\n";
+			std::cerr<<mp_.potentialV;
 		}
 
 		size_t size() const { return basis1_.size()*basis2_.size(); }
@@ -79,7 +90,7 @@ namespace LanczosPlusPlus {
 						// Hopping term
 						for (size_t j=0;j<nsite;j++) {
 							if (j<i) continue;
-							RealType tmp = hoppings(i,j);
+							RealType tmp = hoppings_(i,j);
 							if (tmp==0) continue;
 							WordType s1j= (ket1 & BasisType::bitmask(j));
 							WordType s2j= (ket2 & BasisType::bitmask(j));
@@ -89,9 +100,9 @@ namespace LanczosPlusPlus {
 								WordType bra1= ket1 ^(BasisType::bitmask(i)|BasisType::bitmask(j));
 								size_t temp = perfectIndex(basis1,basis2,bra1,ket2);
 								matrix.setCol(nCounter,temp);
-								cTemp=hoppings(i,j)*doSign(ket1,ket2,i,j,SPIN_UP); // check SIGN FIXME
+								cTemp=hoppings_(i,j)*doSign(ket1,ket2,i,j,SPIN_UP); // check SIGN FIXME
 								if (cTemp==0.0) {
-									std::cerr<<"ctemp=0 and hopping="<<hoppings(i,j)<<" and i="<<i<<" and j="<<j<<"\n";
+									std::cerr<<"ctemp=0 and hopping="<<hoppings_(i,j)<<" and i="<<i<<" and j="<<j<<"\n";
 								}
 								matrix.setValues(nCounter,cTemp);
 								nCounter++;
@@ -100,7 +111,7 @@ namespace LanczosPlusPlus {
 								WordType bra2= ket2 ^(BasisType::bitmask(i)|BasisType::bitmask(j));
 								size_t temp = perfectIndex(basis1,basis2,ket1,bra2);
 								matrix.setCol(nCounter,temp);
-								cTemp=hoppings(i,j)*doSign(ket1,ket2,i,j,SPIN_DOWN); // Check SIGN FIXME
+								cTemp=hoppings_(i,j)*doSign(ket1,ket2,i,j,SPIN_DOWN); // Check SIGN FIXME
 								matrix.setValues(nCounter,cTemp);
 								nCounter++;
 							}
@@ -121,7 +132,7 @@ namespace LanczosPlusPlus {
 			int newPart1=basis1_.electrons();
 			int newPart2=basis2_.electrons();
 			int c = (type&1) ? -1 : 1;
-			if (spin==0) newPart1 += c;
+			if (spin==SPIN_UP) newPart1 += c;
 			else newPart2 += c;
 
 			if (newPart1<0 || newPart2<0) return false;
@@ -144,7 +155,7 @@ namespace LanczosPlusPlus {
 				size_t jsite,
 				size_t spin) const
 		{
-			size_t what= (type&1) ? DESTRUCTOR : CONSTRUCTOR;
+			size_t what= (type&1) ?  DESTRUCTOR : CONSTRUCTOR;
 
 			modifVector.resize(basis1New.size()*basis2New.size());
 			for (size_t temp=0;temp<modifVector.size();temp++)
@@ -152,38 +163,21 @@ namespace LanczosPlusPlus {
 
 			accModifiedState(modifVector,basis1New,basis2New,gsVector,
 					what,isite,spin,1);
+			std::cerr<<"isite="<<isite<<" type="<<type<<" modif="<<(modifVector*modifVector)<<"\n";
 			int isign= (type>1) ? -1 : 1;
 			accModifiedState(modifVector,basis1New,basis2New,gsVector,
 					what,jsite,spin,isign);
+			std::cerr<<"jsite="<<jsite<<" type="<<type<<" modif="<<(modifVector*modifVector)<<"\n";
 		}
 
 
 
 	private:
 
-		bool getBra(WordType& bra, const WordType& ket,size_t what,size_t i) const
-		{
-			WordType s1i=(ket & BasisType::bitmask(i));
-			if (what==DESTRUCTOR) {
-				if (s1i>0) {
-					bra = (ket ^ BasisType::bitmask(i));
-				} else {
-					return false; // cannot destroy, there's nothing
-				}
-			} else {
-				if (s1i==0) {
-					bra = (ket ^ BasisType::bitmask(i));
-				} else {
-					return false; // cannot contruct, there's already one
-				}
-			}
-			return true;
-		}
-
-		RealType hoppings(size_t i,size_t j) const
-		{
-			return geometry_(i,0,j,0,0);
-		}
+//		RealType hoppings(size_t i,size_t j) const
+//		{
+//			return geometry_(i,0,j,0,0);
+//		}
 
 		size_t countNonZero(MatrixType& diag,const BasisType &basis1,const BasisType& basis2) const
 		{
@@ -214,7 +208,7 @@ namespace LanczosPlusPlus {
 						// Hopping term (only count how many non-zero)
 						for (size_t j=0;j<nsite;j++) {
 							if (j<i) continue;
-							RealType tmp = hoppings(i,j);
+							RealType tmp = hoppings_(i,j);
 							if (tmp==0) continue;
 							
 							WordType s1j= (ket1 & BasisType::bitmask(j));
@@ -316,6 +310,25 @@ namespace LanczosPlusPlus {
 			}
 
 		}
+		
+		bool getBra(WordType& bra, const WordType& ket,size_t what,size_t i) const
+		{
+			WordType s1i=(ket & BasisType::bitmask(i));
+			if (what==DESTRUCTOR) {
+				if (s1i>0) {
+					bra = (ket ^ BasisType::bitmask(i));
+				} else {
+					return false; // cannot destroy, there's nothing
+				}
+			} else {
+				if (s1i==0) {
+					bra = (ket ^ BasisType::bitmask(i));
+				} else {
+					return false; // cannot contruct, there's already one
+				}
+			}
+			return true;
+		}
 
 		int getBraIndex(
 				int &mysign,
@@ -329,46 +342,20 @@ namespace LanczosPlusPlus {
 		{
 			WordType bra1 = ket1;
 			WordType bra2 = ket2;
-
-			if (spin==0) { // up sector
-				// down sector unchanged
-				bra1 = ket1 ^(BasisType::bitmask(site));
-				if ((bra1 & BasisType::bitmask(site))) { // the site site has no spin up
-					if (what==CONSTRUCTOR) { // then create it
-						bra1 = (ket1 | BasisType::bitmask(site));
-						mysign = doSignGf(ket1,ket2,site,spin);
-						return perfectIndex(newBasis1,newBasis2,bra1,bra2);
-					} else { // gives null
-						return -1;
-					}
-				} else { // the site has one spin up
-					if (what==CONSTRUCTOR) { // gives null
-						return -1;
-					} else { // destroy it
-						mysign = doSignGf(ket1,ket2,site,spin);
-						return perfectIndex(newBasis1,newBasis2,bra1,bra2);
-					}
-				}
-			} else { // down sector
-				// up sector unchanged
-				bra2 = ket2 ^ BasisType::bitmask(site);
-				if ((bra2 & BasisType::bitmask(site))) { // the site site has no spin down
-					if (what==CONSTRUCTOR) { // then create it
-						bra2 = (ket2 | BasisType::bitmask(site));
-						mysign = doSignGf(ket1,ket2,site,spin);
-						return perfectIndex(newBasis1,newBasis2,bra1,bra2);
-					} else { // gives null
-						return -1;
-					}
-				} else { // the site has one spin down
-					if (what==CONSTRUCTOR) { // gives null
-						return -1;
-					} else { // destroy it
-						mysign = doSignGf(ket1,ket2,site,spin);
-						return perfectIndex(newBasis1,newBasis2,bra1,bra2);
-					}
-				}
+			if (spin==SPIN_UP) {
+				bool ret = getBra(bra1, ket1,what,site);
+				if (ret) {
+					mysign = doSignGf(ket1,ket2,site,spin);
+					return perfectIndex(newBasis1,newBasis2,bra1,bra2);
+				} 
+				return -1;
 			}
+			bool ret = getBra(bra2, ket2,what,site);
+			
+			if (ret) {
+				mysign = doSignGf(ket1,ket2,site,spin);
+				return perfectIndex(newBasis1,newBasis2,bra1,bra2);
+			} 
 			return -1;
 		}
 
@@ -406,6 +393,7 @@ namespace LanczosPlusPlus {
 		const GeometryType& geometry_;
 		BasisType basis1_;
 		BasisType basis2_;
+		PsimagLite::Matrix<RealType> hoppings_;
 		
 	}; // class HubbardOneOrbital 
 } // namespace LanczosPlusPlus

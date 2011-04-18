@@ -51,7 +51,7 @@ namespace LanczosPlusPlus {
 
 		// ContF needs to support concurrency FIXME
 		static const size_t parallelRank_ = 0;
-		static const size_t CHECK_HERMICITY = 0;
+		static const size_t CHECK_HERMICITY = 1;
 
 		enum {PLUS,MINUS};
 		
@@ -123,11 +123,11 @@ namespace LanczosPlusPlus {
 
 		void checkHermicity() const
 		{
-			MatrixType fm;
-			crsMatrixToFullMatrix(fm,hamiltonian_);
-			bool verbose = true;
+			//MatrixType fm;
+			//crsMatrixToFullMatrix(fm,hamiltonian_);
+			//bool verbose = true;
 			//printNonZero(fm,std::cerr);
-			if (!isHermitian(fm,verbose)) {
+			if (!isHermitian(hamiltonian_)) {
 				//std::cerr<<fm;
 				throw std::runtime_error("Hamiltonian non Hermitian\n");
 			}

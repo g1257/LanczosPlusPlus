@@ -41,6 +41,7 @@ $gslLibs =" " if ($hasGsl=~/n/i);
 
 my $model="";
 my $modelLocation="";
+my $stored="";
 askQuestions();
 
 createMakefile();
@@ -61,6 +62,17 @@ sub askQuestions
 	}
 	$model = $_;
 	$modelLocation = "-IModels/$model";
+
+	print "Do you want matrix-vector to be Stored or OnTheFly?\n";
+	print "Available: Stored OnTheFly\n";
+	print "Default: Stored (press ENTER): ";
+	$_=<STDIN>;
+	chomp;
+	s/ //g;
+	if ($_ eq "") {
+		$_="Stored";
+	}
+	$stored = $_;
 }
 
 sub createMakefile
@@ -176,7 +188,7 @@ print FOUT<<EOF;
 #include "$model.h"
 #include "$parametersName.h"
 #include "Geometry.h"
-#include "InternalProductStored.h"
+#include "InternalProduct$stored.h"
 #include "IoSimple.h" // in PsimagLite
 #include "ProgramGlobals.h"
 #include "ContinuedFraction.h" // in PsimagLite 
@@ -191,7 +203,7 @@ typedef Dmrg::Geometry<RealType,ProgramGlobals> GeometryType;
 typedef $parametersName<RealType> ParametersModelType;
 typedef PsimagLite::IoSimple::In IoInputType;
 typedef $model<RealType,ParametersModelType,GeometryType> ModelType;
-typedef InternalProductStored<ModelType> InternalProductType;
+typedef InternalProduct$stored<ModelType> InternalProductType;
 typedef Engine<ModelType,InternalProductType,ConcurrencyType> EngineType;
 typedef EngineType::TridiagonalMatrixType TridiagonalMatrixType;
 

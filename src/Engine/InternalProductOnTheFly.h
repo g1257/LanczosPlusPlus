@@ -90,8 +90,8 @@ namespace LanczosPlusPlus {
 	class InternalProductOnTheFly {
 	public:	
 		typedef typename ModelType::BasisType BasisType;
-		typedef typename ModelHelperType::SparseMatrixType SparseMatrixType;
-		typedef typename ModelHelperType::RealType RealType;
+		typedef typename ModelType::SparseMatrixType SparseMatrixType;
+		typedef typename ModelType::RealType RealType;
 
 		InternalProductOnTheFly(const ModelType& model,
 		                      const BasisType& b1,

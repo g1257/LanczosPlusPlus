@@ -176,6 +176,7 @@ print FOUT<<EOF;
 #include "$model.h"
 #include "$parametersName.h"
 #include "Geometry.h"
+#include "InternalProductStored.h"
 #include "IoSimple.h" // in PsimagLite
 #include "ProgramGlobals.h"
 #include "ContinuedFraction.h" // in PsimagLite 
@@ -190,7 +191,8 @@ typedef Dmrg::Geometry<RealType,ProgramGlobals> GeometryType;
 typedef $parametersName<RealType> ParametersModelType;
 typedef PsimagLite::IoSimple::In IoInputType;
 typedef $model<RealType,ParametersModelType,GeometryType> ModelType;
-typedef Engine<ModelType,ConcurrencyType> EngineType;
+typedef InternalProductStored<ModelType> InternalProductType;
+typedef Engine<ModelType,InternalProductType,ConcurrencyType> EngineType;
 typedef EngineType::TridiagonalMatrixType TridiagonalMatrixType;
 
 void usage(const char *progName)

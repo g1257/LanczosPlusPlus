@@ -28,9 +28,7 @@ Please see full open source license included in file LICENSE.
 #include "ProgramGlobals.h"
 
 namespace LanczosPlusPlus {
-	template<
-    	typename ModelType_,
-	 	typename ConcurrencyType_>
+	template<typename ModelType_,typename InternalProductType,typename ConcurrencyType_>
 	class Engine  {
 	public:
 		
@@ -43,7 +41,7 @@ namespace LanczosPlusPlus {
 		typedef typename VectorType::value_type FieldType;
 		typedef typename ModelType::BasisType BasisType;
 		typedef PsimagLite::Random48<RealType> RandomType;
-		typedef PsimagLite::LanczosSolver<RealType,SparseMatrixType,
+		typedef PsimagLite::LanczosSolver<RealType,InternalProductType,
 				VectorType,RandomType,ProgramGlobals> LanczosSolverType;
 		typedef PsimagLite::Matrix<FieldType> MatrixType;
 		typedef typename LanczosSolverType::TridiagonalMatrixType
@@ -95,8 +93,7 @@ namespace LanczosPlusPlus {
 				model_.getModifiedState(modifVector,gsVector_,basis1New,basis2New,
 						type,isite,jsite,spin);
 
-				SparseMatrixType matrix;
-				model_.setupHamiltonian(matrix,basis1New,basis2New);
+				InternalProductType matrix(model_,basis1New,basis2New);
 				ContinuedFractionType cf;
 
 				calcGf(cf,modifVector,matrix,type,spin);
@@ -108,55 +105,23 @@ namespace LanczosPlusPlus {
 
 		void computeGroundState()
 		{
-			model_.setupHamiltonian(hamiltonian_);
-			if (CHECK_HERMICITY) checkHermicity();
+			InternalProductType hamiltonian(model_);
+			//if (CHECK_HERMICITY) checkHermicity(h);
 
 			RealType eps= ProgramGlobals::LanczosTolerance;
 			size_t iter= ProgramGlobals::LanczosSteps;
 			size_t parallelRank = 0;
 
-			LanczosSolverType lanczosSolver(hamiltonian_,iter,eps,parallelRank);
-			gsVector_.resize(hamiltonian_.rank());
+			LanczosSolverType lanczosSolver(hamiltonian,iter,eps,parallelRank);
+			gsVector_.resize(hamiltonian.rank());
 			lanczosSolver.computeGroundState(gsEnergy_,gsVector_);
 			std::cout<<"#GSNorm="<<(gsVector_*gsVector_)<<"\n";
 		}
 
-		void checkHermicity() const
-		{
-			//MatrixType fm;
-			//crsMatrixToFullMatrix(fm,hamiltonian_);
-			//bool verbose = true;
-			//printNonZero(fm,std::cerr);
-			if (!isHermitian(hamiltonian_)) {
-				//std::cerr<<fm;
-				throw std::runtime_error("Hamiltonian non Hermitian\n");
-			}
-			//std::cerr<<hamiltonian_;
-			std::cerr<<"Done setting up Hamiltonian\n";
-
-			//fullDiag(fm);
-		}
-
-//		void triDiagonalize(TridiagonalMatrixType& ab,const VectorType& initVector) const
-//		{
-//			// tridiagonalize starting with tmpVector = c^\dagger_i|gsVector>
-//			MatrixType V;
-//
-//			RealType eps= 0.01*ProgramGlobals::LanczosTolerance;
-//			size_t iter= ProgramGlobals::LanczosSteps;
-//			size_t parallelRank = 0;
-//
-//			LanczosSolverType lanczosSolver(hamiltonian_,iter,eps,parallelRank);
-//
-//			lanczosSolver.tridiagonalDecomposition(initVector,ab,V);
-//
-//		}
-
 		template<typename ContinuedFractionType>
-		void calcGf(
-				ContinuedFractionType& cf,
+		void calcGf(ContinuedFractionType& cf,
 				const std::vector<RealType>& modifVector,
-				const SparseMatrixType& matrix,
+				const InternalProductType& matrix,
 				size_t type,
 				size_t spin) const
 		{
@@ -192,7 +157,6 @@ namespace LanczosPlusPlus {
 		const ModelType& model_;
 		size_t numberOfSites_;
 		PsimagLite::ProgressIndicator progress_;
-		SparseMatrixType hamiltonian_;
 		RealType gsEnergy_;
 		VectorType gsVector_; 
 	}; // class ContinuedFraction

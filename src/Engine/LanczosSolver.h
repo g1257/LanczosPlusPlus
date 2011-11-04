@@ -119,15 +119,15 @@ namespace PsimagLite {
 
 		void computeGroundState(RealType& gsEnergy,VectorType& z)
 		{
-
-
 			size_t n =mat_.rank();
 			RealType atmp=0.0;
 			RealType tmp;
 			std::vector<RealType> y(n);
+			
+			RandomType random(3409011);
 
 			for (size_t i=0;i<n;i++) {
-				tmp = RandomType::random()-0.5;
+				tmp = random()-0.5;
 				y[i]=tmp;
 				atmp += std::real(y[i]*std::conj(y[i]));
 			}

@@ -47,9 +47,8 @@ createMakefile();
 
 createDriver();
 
-#createObserverDriver();
 
-sub askQuestions()
+sub askQuestions
 {
 	print "Enter model\n";
 	print "Available: HubbardOneOrbital FeBasedSc\n";
@@ -61,20 +60,20 @@ sub askQuestions()
 		$_="HubbardOneOrbital";
 	}
 	$model = $_;
-	$modelLocation = "Models/$model";
+	$modelLocation = "-IModels/$model";
 }
 
 sub createMakefile
 {
 	system("cp Makefile Makefile.bak") if (-r "Makefile");
 	my $compiler = compilerName();
-	my $headerFiles = join(' ', glob("Engine/*.h Models/*/*.h Geometries/*.h"));
-	my @litProgFiles = glob("Engine/*.w Models/*/*.w Geometries/*.w");
+	open(FOUT,">Makefile") or die "Cannot open Makefile for writing: $!\n";
+	my $usePthreadsOrNot = " ";
+	$usePthreadsOrNot = " -DUSE_PTHREADS " if ($pthreads);
 	if ($modelLocation=~/extendedhubbard1orb/i) {
 		$modelLocation = $modelLocation." -IModels/HubbardOneBand ";
 	}
-	my $litProgTargets = getLitProgTargets(\@litProgFiles);
-	open(FOUT,">Makefile") or die "Cannot open Makefile for writing: $!\n";
+
 print FOUT<<EOF;
 # DO NOT EDIT!!! Changes will be lost. Modify configure.pl instead
 # This Makefile was written by configure.pl
@@ -83,24 +82,39 @@ print FOUT<<EOF;
 # MPI: $mpi
 
 LDFLAGS =    $lapack  $gslLibs $pthreadsLib
-CPPFLAGS = -Werror -Wall -I../PartialPsimag -IEngine -I$modelLocation -IGeometries -I$PsimagLite
+CPPFLAGS = -Werror -Wall  -IEngine $modelLocation -IGeometries -I$PsimagLite $usePthreadsOrNot
 EOF
 if ($mpi) {
-	print FOUT "CXX = mpicxx -O2 -DNDEBUG \n";
+	print FOUT "CXX = mpicxx -O3 -DNDEBUG \n";
 } else {
-	print FOUT "CXX = $compiler -pg -O2 -DNDEBUG\n";
+	print FOUT "CXX = $compiler  -O3 -DNDEBUG\n";
+	print FOUT "#Comment out line below for debugging: \n";
+	print FOUT "#CXX = $compiler -g3 \n";
 }
 print FOUT<<EOF;
+EXENAME = lanczos
 all: \$(EXENAME)
-HEADERSH = $headerFiles
 
-all: lanczos
+lanczos.cpp: configure.pl
+	perl configure.pl
 
-lanczos: \$(HEADERSH)
-	\$(CXX) -o lanczos \$(CPPFLAGS) lanczos.cpp \$(LDFLAGS)
+lanczos:  lanczos.o 
+	\$(CXX) -o lanczos lanczos.o \$(LDFLAGS)  
+
+correctionVectorMulti: correctionVectorMulti.o
+	\$(CXX) -o correctionVectorMulti correctionVectorMulti.o \$(LDFLAGS)
+
+# dependencies brought about by Makefile.dep
+%.o: %.cpp Makefile
+	\$(CXX) \$(CPPFLAGS) -c \$< 
+
+Makefile.dep: lanczos.cpp
+	\$(CXX) \$(CPPFLAGS) -MM lanczos.cpp  > Makefile.dep
 
 clean:
-	rm -f core* \$(EXENAME) *.o *.ii *.tt
+	rm -f core* \$(EXENAME) *.o
+
+include Makefile.dep
 
 ######## End of Makefile ########
 

@@ -41,8 +41,8 @@ namespace LanczosPlusPlus {
 		typedef typename VectorType::value_type FieldType;
 		typedef typename ModelType::BasisType BasisType;
 		typedef PsimagLite::Random48<RealType> RandomType;
-		typedef PsimagLite::LanczosSolver<RealType,InternalProductType,
-				VectorType,RandomType,ProgramGlobals> LanczosSolverType;
+		typedef PsimagLite::LanczosSolver<RealType,InternalProductType,VectorType>
+		                    LanczosSolverType;
 		typedef PsimagLite::Matrix<FieldType> MatrixType;
 		typedef typename LanczosSolverType::TridiagonalMatrixType
 				TridiagonalMatrixType;
@@ -112,7 +112,9 @@ namespace LanczosPlusPlus {
 			size_t iter= ProgramGlobals::LanczosSteps;
 			size_t parallelRank = 0;
 
-			LanczosSolverType lanczosSolver(hamiltonian,iter,eps,parallelRank);
+			LanczosSolverType lanczosSolver(hamiltonian,iter,eps,parallelRank,
+			      ProgramGlobals::LanczosTolerance,ProgramGlobals::MaxLanczosSteps);
+
 			gsVector_.resize(hamiltonian.rank());
 			lanczosSolver.computeGroundState(gsEnergy_,gsVector_);
 			std::cout<<"#GSNorm="<<(gsVector_*gsVector_)<<"\n";
@@ -132,7 +134,9 @@ namespace LanczosPlusPlus {
 			size_t iter= ProgramGlobals::LanczosSteps;
 			size_t parallelRank = 0;
 
-			LanczosSolverType lanczosSolver(matrix,iter,eps,parallelRank);
+			LanczosSolverType lanczosSolver(matrix,iter,eps,parallelRank,
+			   ProgramGlobals::LanczosTolerance,ProgramGlobals::MaxLanczosSteps);
+
 			TridiagonalMatrixType ab;
 			MatrixType V;
 			lanczosSolver.tridiagonalDecomposition(modifVector,ab,V);

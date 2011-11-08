@@ -26,6 +26,7 @@ Please see full open source license included in file LICENSE.
 #include "LanczosSolver.h"
 #include "Random48.h"
 #include "ProgramGlobals.h"
+#include "ParametersForSolver.h"
 
 namespace LanczosPlusPlus {
 	template<typename ModelType_,typename InternalProductType,typename ConcurrencyType_>
@@ -41,7 +42,8 @@ namespace LanczosPlusPlus {
 		typedef typename VectorType::value_type FieldType;
 		typedef typename ModelType::BasisType BasisType;
 		typedef PsimagLite::Random48<RealType> RandomType;
-		typedef PsimagLite::LanczosSolver<RealType,InternalProductType,VectorType>
+		typedef PsimagLite::ParametersForSolver<RealType> ParametersForSolverType;
+		typedef PsimagLite::LanczosSolver<ParametersForSolverType,InternalProductType,VectorType>
 		                    LanczosSolverType;
 		typedef PsimagLite::Matrix<FieldType> MatrixType;
 		typedef typename LanczosSolverType::TridiagonalMatrixType
@@ -110,10 +112,9 @@ namespace LanczosPlusPlus {
 
 			RealType eps= ProgramGlobals::LanczosTolerance;
 			size_t iter= ProgramGlobals::LanczosSteps;
-			size_t parallelRank = 0;
 
-			LanczosSolverType lanczosSolver(hamiltonian,iter,eps,parallelRank,
-			      ProgramGlobals::LanczosTolerance,ProgramGlobals::MaxLanczosSteps);
+			ParametersForSolverType params(iter,eps,ProgramGlobals::MaxLanczosSteps,"",0,0);
+			LanczosSolverType lanczosSolver(hamiltonian,params);
 
 			gsVector_.resize(hamiltonian.rank());
 			lanczosSolver.computeGroundState(gsEnergy_,gsVector_);
@@ -132,10 +133,9 @@ namespace LanczosPlusPlus {
 
 			RealType eps= ProgramGlobals::LanczosTolerance;
 			size_t iter= ProgramGlobals::LanczosSteps;
-			size_t parallelRank = 0;
 
-			LanczosSolverType lanczosSolver(matrix,iter,eps,parallelRank,
-			   ProgramGlobals::LanczosTolerance,ProgramGlobals::MaxLanczosSteps);
+			ParametersForSolverType params(iter,eps,ProgramGlobals::MaxLanczosSteps,"",0,0);
+			LanczosSolverType lanczosSolver(matrix,params);
 
 			TridiagonalMatrixType ab;
 			MatrixType V;

@@ -139,7 +139,7 @@ namespace LanczosPlusPlus {
 
 			TridiagonalMatrixType ab;
 			MatrixType V;
-			lanczosSolver.tridiagonalDecomposition(modifVector,ab,V);
+			lanczosSolver.decomposition(modifVector,ab,V);
 			RealType weight = modifVector*modifVector;
 			//weight = 1.0/weight;
 			int s = (type&1) ? -1 : 1;

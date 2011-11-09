@@ -113,7 +113,11 @@ namespace LanczosPlusPlus {
 			RealType eps= ProgramGlobals::LanczosTolerance;
 			size_t iter= ProgramGlobals::LanczosSteps;
 
-			ParametersForSolverType params(iter,eps,ProgramGlobals::MaxLanczosSteps,"",0,0);
+			ParametersForSolverType params;
+			params.steps = iter;
+			params.tolerance = eps;
+			params.stepsForEnergyConvergence =ProgramGlobals::MaxLanczosSteps;
+
 			LanczosSolverType lanczosSolver(hamiltonian,params);
 
 			gsVector_.resize(hamiltonian.rank());
@@ -134,7 +138,11 @@ namespace LanczosPlusPlus {
 			RealType eps= ProgramGlobals::LanczosTolerance;
 			size_t iter= ProgramGlobals::LanczosSteps;
 
-			ParametersForSolverType params(iter,eps,ProgramGlobals::MaxLanczosSteps,"",0,0);
+			ParametersForSolverType params;
+			params.steps = iter;
+			params.tolerance = eps;
+			params.stepsForEnergyConvergence =ProgramGlobals::MaxLanczosSteps;
+
 			LanczosSolverType lanczosSolver(matrix,params);
 
 			TridiagonalMatrixType ab;

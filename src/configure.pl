@@ -94,7 +94,7 @@ print FOUT<<EOF;
 # MPI: $mpi
 
 LDFLAGS =    $lapack  $gslLibs $pthreadsLib
-CPPFLAGS = -Werror -Wall  -IEngine $modelLocation -IGeometries -I$PsimagLite $usePthreadsOrNot
+CPPFLAGS = -Werror -Wall  -IEngine $modelLocation -I$PsimagLite/Geometry -I$PsimagLite $usePthreadsOrNot
 EOF
 if ($mpi) {
 	print FOUT "CXX = mpicxx -O3 -DNDEBUG \n";
@@ -199,7 +199,7 @@ using namespace LanczosPlusPlus;
 typedef double RealType;
 typedef std::complex<RealType> ComplexType;
 typedef PsimagLite::$concurrencyName<RealType> ConcurrencyType;
-typedef Dmrg::Geometry<RealType,ProgramGlobals> GeometryType;
+typedef PsimagLite::Geometry<RealType,ProgramGlobals> GeometryType;
 typedef $parametersName<RealType> ParametersModelType;
 typedef PsimagLite::IoSimple::In IoInputType;
 typedef $model<RealType,ParametersModelType,GeometryType> ModelType;

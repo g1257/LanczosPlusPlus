@@ -56,8 +56,8 @@ namespace LanczosPlusPlus {
 		enum {PLUS,MINUS};
 		
 		Engine(const ModelType& model,size_t numberOfSites)
-			: model_(model),numberOfSites_(numberOfSites),
-			  progress_("ContinuedFraction",0)
+		: model_(model),
+		  progress_("ContinuedFraction",0)
 		{
 			// printHeader();
 			// task 1: Compute Hamiltonian and
@@ -88,8 +88,8 @@ namespace LanczosPlusPlus {
 				std::pair<size_t,size_t> newParts(0,0);
 				if (!model_.hasNewParts(newParts,type,spin)) continue;
 				// Create new bases
-				BasisType basis1New(numberOfSites_,newParts.first);
-				BasisType basis2New(numberOfSites_,newParts.second);
+				BasisType basis1New(model_.geometry(),newParts.first);
+				BasisType basis2New(model_.geometry(),newParts.second);
 
 				std::vector<RealType> modifVector;
 				model_.getModifiedState(modifVector,gsVector_,basis1New,basis2New,
@@ -167,7 +167,6 @@ namespace LanczosPlusPlus {
 		}
 		
 		const ModelType& model_;
-		size_t numberOfSites_;
 		PsimagLite::ProgressIndicator progress_;
 		RealType gsEnergy_;
 		VectorType gsVector_; 

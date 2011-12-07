@@ -31,27 +31,22 @@ namespace LanczosPlusPlus {
 		typedef BasisOneSpin BasisType;
 		typedef BasisType::WordType WordType;
 
-		class OrbsPerSite {
+		class OrbsPerSite : public std::vector<size_t> {
 
 		public:
 
 			OrbsPerSite(const GeometryType& geometry)
-			: data_(geometry.numberOfSites())
+			: std::vector<size_t>(geometry.numberOfSites())
 			{
 				typename GeometryType::AdditionalDataType additional;
-				geometry.fillAdditional(additional,i,0);
-				
-				data_[i] = (additional.type1==additional.TYPE_C) ? 1 : 2;
+				additional.type1 = 0;
+				for (size_t i=0;i<this->size();i++) {
+					geometry.fillAdditionalData(additional,0,i,0);
+					this->operator[](i) = (additional.type1==additional.TYPE_C) ? 1 : 2;
+				}
 			}
-
-			size_t operator()(size_t i) const { return data_[i]; }
-
-			size_t size() const { return data_.size(); }
-
-		private:
-
-			std::vector<size_t> data_;
 		};
+
 		static int const FERMION_SIGN = BasisType::FERMION_SIGN;
 		
 		enum {SPIN_UP,SPIN_DOWN};
@@ -69,8 +64,8 @@ namespace LanczosPlusPlus {
 //			std::cout<<basis2_;
 		}
 		
-		BasisImmm(size_t nsite, size_t nup)
-		: basis1_(nsite,nup),basis2_(nsite,nup)
+		BasisImmm(const GeometryType& geometry, size_t nup)
+		: orbsPerSite_(geometry),basis1_(orbsPerSite_,nup),basis2_(orbsPerSite_,nup)
 		{
 			std::string s = "BasisImmm::ctor(...): obsolete. ";
 			s+= "This probably means that you can't compute the Green function";
@@ -168,9 +163,12 @@ namespace LanczosPlusPlus {
 				return basis1_.isThereAnElectronAt(ket1,site,orb);
 			return basis2_.isThereAnElectronAt(ket2,site,orb);
 		}
+		
+		size_t orbsPerSite(size_t i) const { return orbsPerSite_[i]; }
 
 	private:
-
+		
+		OrbsPerSite orbsPerSite_;
 		BasisType basis1_,basis2_;
 
 	}; // class BasisImmm

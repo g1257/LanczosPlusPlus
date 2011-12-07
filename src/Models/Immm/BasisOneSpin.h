@@ -24,7 +24,7 @@ Please see full open source license included in file LICENSE.
 #include "BitManip.h"
 
 namespace LanczosPlusPlus {
-	
+
 	class BasisOneSpin {
 
 	public:
@@ -40,15 +40,15 @@ namespace LanczosPlusPlus {
 		static std::vector<WordType> bitmask_; 
 
 		BasisOneSpin(const std::vector<size_t>& orbsPerSite, size_t npart)
-		: npart_(npart)
+		: orbsPerSite_(orbsPerSite),npart_(npart)
 		{
-			if (nsite_>0 && nsite!=nsite_) {
+			if (nsite_>0 && orbsPerSite.size()!=nsite_) {
 				std::string s =  
 				    "BasisOneSpin: All basis must have same number of sites\n";
 				throw std::runtime_error(s.c_str());
 			}
 
-			nsite_ = nsite;
+			nsite_ = orbsPerSite.size();
 			doCombinatorial();
 			doBitmask();
 
@@ -121,10 +121,11 @@ namespace LanczosPlusPlus {
 
 		size_t getN(size_t i) const
 		{
-			size_t c = 0;
-			for (size_t orb=0;orb<ORBITALS;orb++)
-				c += getN(i,orb);
-			return c;
+// 			size_t c = 0;
+// 			for (size_t orb=0;orb<orbsPerSite_[i];orb++)
+// 				c += getN(i,orb);
+// 			return c;
+			throw std::runtime_error("getN\n");
 		}
 
 		size_t getBraIndex(size_t i,size_t what,size_t orb) const
@@ -167,28 +168,28 @@ namespace LanczosPlusPlus {
 				size_t j,
 				size_t orb2) const
 		{
-			if (i > j) {
-				std::cerr<<"FATAL: At doSign\n";
-				std::cerr<<"INFO: i="<<i<<" j="<<j<<std::endl;
-				std::cerr<<"AT: "<<__FILE__<<" : "<<__LINE__<<std::endl;
+// 			if (i > j) {
+// 				std::cerr<<"FATAL: At doSign\n";
+// 				std::cerr<<"INFO: i="<<i<<" j="<<j<<std::endl;
+// 				std::cerr<<"AT: "<<__FILE__<<" : "<<__LINE__<<std::endl;
 				throw std::runtime_error("FeBasedSc::doSign(...)\n");
-			}
-			size_t x0 = (i+1)*ORBITALS; // i+1 cannot be the last site, 'cause i<j
-			size_t x1 = j*ORBITALS;
-
-			size_t sum = getNbyKet(ket,x0,x1);
-
-			// at site i we need to be carefull
-			x0 = i*ORBITALS+orb1;
-			x1 = (i+1)*ORBITALS;
-			sum += getNbyKet(ket,x0,x1);
-
-			// same at site j
-			x0 = j*ORBITALS;
-			x1 = j*ORBITALS+orb2;
-			sum += getNbyKet(ket,x0,x1);
-
-			return (sum & 1) ? FERMION_SIGN : 1;
+// 			}
+// 			size_t x0 = (i+1)*ORBITALS; // i+1 cannot be the last site, 'cause i<j
+// 			size_t x1 = j*ORBITALS;
+// 
+// 			size_t sum = getNbyKet(ket,x0,x1);
+// 
+// 			// at site i we need to be carefull
+// 			x0 = i*ORBITALS+orb1;
+// 			x1 = (i+1)*ORBITALS;
+// 			sum += getNbyKet(ket,x0,x1);
+// 
+// 			// same at site j
+// 			x0 = j*ORBITALS;
+// 			x1 = j*ORBITALS+orb2;
+// 			sum += getNbyKet(ket,x0,x1);
+// 
+// 			return (sum & 1) ? FERMION_SIGN : 1;
 		}
 
 		size_t getNbyKet(size_t ket) const
@@ -204,8 +205,9 @@ namespace LanczosPlusPlus {
 
 		size_t isThereAnElectronAt(size_t ket,size_t site,size_t orb) const
 		{
-			size_t x = site*ORBITALS + orb;
-			return (ket & bitmask_[x]) ? 1 : 0;
+			throw std::runtime_error("isThereAnElectronAt\n");
+/*			size_t x = site*ORBITALS + orb;
+			return (ket & bitmask_[x]) ? 1 : 0;*/
 		}
 
 	private:
@@ -364,6 +366,7 @@ namespace LanczosPlusPlus {
 		}
 
 		size_t size_;
+		const std::vector<size_t> orbsPerSite_;
 		size_t npart_;
 		std::vector<WordType> data_;
 

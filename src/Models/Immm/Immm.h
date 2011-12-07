@@ -96,6 +96,8 @@ namespace LanczosPlusPlus {
 			throw std::runtime_error(s.c_str());
 		}
 
+		const GeometryType& geometry() const { return geometry_; }
+
 	private:
 
 		void setupHamiltonian(
@@ -122,13 +124,13 @@ namespace LanczosPlusPlus {
 				// Save diagonal
 				sparseRow.add(ispace,diag[ispace]);
 				for (size_t i=0;i<nsite;i++) {
-					for (size_t orb=0;orb<ORBITALS;orb++) {
+					for (size_t orb=0;orb<basis.orbsPerSite(i);orb++) {
 						setHoppingTerm(sparseRow,ket1,ket2,
 								i,orb,basis);
-						if (orb==0) {
-							setU2OffDiagonalTerm(sparseRow,ket1,ket2,
-								i,orb,basis);
-						}
+// 						if (orb==0) {
+// 							setU2OffDiagonalTerm(sparseRow,ket1,ket2,
+// 								i,orb,basis);
+// 						}
 // 						setU3Term(sparseRow,ket1,ket2,
 // 								i,orb,1-orb,basis);
 // 						setJTermOffDiagonal(sparseRow,ket1,ket2,
@@ -142,7 +144,7 @@ namespace LanczosPlusPlus {
 
 		RealType hoppings(size_t i,size_t orb1,size_t j,size_t orb2) const
 		{
-			return geometry_(i,orb1,j,orb2,TERM_HOPPINGS);
+			return geometry_(i,orb1,j,orb2,0);
 		}
 
 		void setHoppingTerm(
@@ -153,103 +155,104 @@ namespace LanczosPlusPlus {
 				size_t orb,
 				const BasisType &basis) const
 		{
-			size_t ii = i*ORBITALS+orb;
-			WordType s1i=(ket1 & BasisType::bitmask(ii));
-			if (s1i>0) s1i=1;
-			WordType s2i=(ket2 & BasisType::bitmask(ii));
-			if (s2i>0) s2i=1;
-
-			size_t nsite = geometry_.numberOfSites();
-
-			// Hopping term
-			for (size_t j=0;j<nsite;j++) {
-				if (j<i) continue;
-				for (size_t orb2=0;orb2<ORBITALS;orb2++) {
-					size_t jj = j*ORBITALS+orb2;
-					RealType h = hoppings(i,orb,j,orb2);
-					if (h==0) continue;
-					WordType s1j= (ket1 & BasisType::bitmask(jj));
-					if (s1j>0) s1j=1;
-					WordType s2j= (ket2 & BasisType::bitmask(jj));
-					if (s2j>0) s2j=1;
-
-					if (s1i+s1j==1) {
-						WordType bra1= ket1 ^(BasisType::bitmask(ii)|BasisType::bitmask(jj));
-						size_t temp = basis.perfectIndex(bra1,ket2);
-						int extraSign = (s1i==1) ? FERMION_SIGN : 1;
-						RealType cTemp = h*extraSign*basis_.doSign(
-							ket1,ket2,i,orb,j,orb2,SPIN_UP);
-						sparseRow.add(temp,cTemp);
-
-					}
-					if (s2i+s2j==1) {
-						WordType bra2= ket2 ^(BasisType::bitmask(ii)|BasisType::bitmask(jj));
-						size_t temp = basis.perfectIndex(ket1,bra2);
-						int extraSign = (s2i==1) ? FERMION_SIGN : 1;
-						RealType cTemp = h*extraSign*basis_.doSign(
-							ket1,ket2,i,orb,j,orb2,SPIN_DOWN);
-						sparseRow.add(temp,cTemp);
-					}
-				}
-			}
+			throw std::runtime_error("setHoppingTerm\n");
+// 			size_t ii = i*ORBITALS+orb;
+// 			WordType s1i=(ket1 & BasisType::bitmask(ii));
+// 			if (s1i>0) s1i=1;
+// 			WordType s2i=(ket2 & BasisType::bitmask(ii));
+// 			if (s2i>0) s2i=1;
+// 
+// 			size_t nsite = geometry_.numberOfSites();
+// 
+// 			// Hopping term
+// 			for (size_t j=0;j<nsite;j++) {
+// 				if (j<i) continue;
+// 				for (size_t orb2=0;orb2<ORBITALS;orb2++) {
+// 					size_t jj = j*ORBITALS+orb2;
+// 					RealType h = hoppings(i,orb,j,orb2);
+// 					if (h==0) continue;
+// 					WordType s1j= (ket1 & BasisType::bitmask(jj));
+// 					if (s1j>0) s1j=1;
+// 					WordType s2j= (ket2 & BasisType::bitmask(jj));
+// 					if (s2j>0) s2j=1;
+// 
+// 					if (s1i+s1j==1) {
+// 						WordType bra1= ket1 ^(BasisType::bitmask(ii)|BasisType::bitmask(jj));
+// 						size_t temp = basis.perfectIndex(bra1,ket2);
+// 						int extraSign = (s1i==1) ? FERMION_SIGN : 1;
+// 						RealType cTemp = h*extraSign*basis_.doSign(
+// 							ket1,ket2,i,orb,j,orb2,SPIN_UP);
+// 						sparseRow.add(temp,cTemp);
+// 
+// 					}
+// 					if (s2i+s2j==1) {
+// 						WordType bra2= ket2 ^(BasisType::bitmask(ii)|BasisType::bitmask(jj));
+// 						size_t temp = basis.perfectIndex(ket1,bra2);
+// 						int extraSign = (s2i==1) ? FERMION_SIGN : 1;
+// 						RealType cTemp = h*extraSign*basis_.doSign(
+// 							ket1,ket2,i,orb,j,orb2,SPIN_DOWN);
+// 						sparseRow.add(temp,cTemp);
+// 					}
+// 				}
+// 			}
 		}
 		
-		void setU2OffDiagonalTerm(
-				SparseRowType &sparseRow,
-				const WordType& ket1,
-				const WordType& ket2,
-				size_t i,
-				size_t orb,
-				const BasisType &basis) const
-		{
-			RealType val = FERMION_SIGN * mp_.hubbardU[2]*0.5;
-			setSplusSminus(sparseRow,ket1,ket2,i,orb,i,1-orb,val,basis);
-			setSplusSminus(sparseRow,ket1,ket2,i,1-orb,i,orb,val,basis);
-		}
-
-		// N.B.: orb1!=orb2 here
-		void setSplusSminus(
-				SparseRowType &sparseRow,
-				const WordType& ket1,
-				const WordType& ket2,
-				size_t i,
-				size_t orb1,
-				size_t j,
-				size_t orb2,
-				RealType value,
-				const BasisType &basis) const
-		{
-			if (splusSminusNonZero(ket1,ket2,i,orb1,j,orb2,basis)==0) return;
-
-			size_t ii = i*ORBITALS + orb1;
-			size_t jj = j*ORBITALS + orb2;
-			assert(ii!=jj);
-			WordType bra1 = ket1 ^ (BasisType::bitmask(ii)|BasisType::bitmask(jj));
-			WordType bra2 = ket2 ^ (BasisType::bitmask(ii)|BasisType::bitmask(jj));
-			size_t temp = basis.perfectIndex(bra1,bra2);
-			sparseRow.add(temp,value);
-		}
-
-		// N.B.: orb1!=orb2 here
-		void setU3Term(
-				SparseRowType &sparseRow,
-				const WordType& ket1,
-				const WordType& ket2,
-				size_t i,
-				size_t orb1,
-				size_t orb2,
-				const BasisType &basis) const
-		{
-			assert(orb1!=orb2);
-			if (u3TermNonZero(ket1,ket2,i,orb1,orb2,basis)==0) return;
-
-			size_t ii = i*ORBITALS + orb1;
-			size_t jj = i*ORBITALS + orb2;
-			WordType bra1 = ket1 ^ (BasisType::bitmask(ii)|BasisType::bitmask(jj));
-			WordType bra2 = ket2 ^ (BasisType::bitmask(ii)|BasisType::bitmask(jj));
-			size_t temp = basis.perfectIndex(bra1,bra2);
-			sparseRow.add(temp,FERMION_SIGN * mp_.hubbardU[3]);
-		}
+// 		void setU2OffDiagonalTerm(
+// 				SparseRowType &sparseRow,
+// 				const WordType& ket1,
+// 				const WordType& ket2,
+// 				size_t i,
+// 				size_t orb,
+// 				const BasisType &basis) const
+// 		{
+// 			RealType val = FERMION_SIGN * mp_.hubbardU[2]*0.5;
+// 			setSplusSminus(sparseRow,ket1,ket2,i,orb,i,1-orb,val,basis);
+// 			setSplusSminus(sparseRow,ket1,ket2,i,1-orb,i,orb,val,basis);
+// 		}
+// 
+// 		// N.B.: orb1!=orb2 here
+// 		void setSplusSminus(
+// 				SparseRowType &sparseRow,
+// 				const WordType& ket1,
+// 				const WordType& ket2,
+// 				size_t i,
+// 				size_t orb1,
+// 				size_t j,
+// 				size_t orb2,
+// 				RealType value,
+// 				const BasisType &basis) const
+// 		{
+// 			if (splusSminusNonZero(ket1,ket2,i,orb1,j,orb2,basis)==0) return;
+// 
+// 			size_t ii = i*ORBITALS + orb1;
+// 			size_t jj = j*ORBITALS + orb2;
+// 			assert(ii!=jj);
+// 			WordType bra1 = ket1 ^ (BasisType::bitmask(ii)|BasisType::bitmask(jj));
+// 			WordType bra2 = ket2 ^ (BasisType::bitmask(ii)|BasisType::bitmask(jj));
+// 			size_t temp = basis.perfectIndex(bra1,bra2);
+// 			sparseRow.add(temp,value);
+// 		}
+// 
+// 		// N.B.: orb1!=orb2 here
+// 		void setU3Term(
+// 				SparseRowType &sparseRow,
+// 				const WordType& ket1,
+// 				const WordType& ket2,
+// 				size_t i,
+// 				size_t orb1,
+// 				size_t orb2,
+// 				const BasisType &basis) const
+// 		{
+// 			assert(orb1!=orb2);
+// 			if (u3TermNonZero(ket1,ket2,i,orb1,orb2,basis)==0) return;
+// 
+// 			size_t ii = i*ORBITALS + orb1;
+// 			size_t jj = i*ORBITALS + orb2;
+// 			WordType bra1 = ket1 ^ (BasisType::bitmask(ii)|BasisType::bitmask(jj));
+// 			WordType bra2 = ket2 ^ (BasisType::bitmask(ii)|BasisType::bitmask(jj));
+// 			size_t temp = basis.perfectIndex(bra1,bra2);
+// 			sparseRow.add(temp,FERMION_SIGN * mp_.hubbardU[3]);
+// 		}
 
 // 		void setJTermOffDiagonal(
 // 				SparseRowType &sparseRow,
@@ -304,7 +307,7 @@ namespace LanczosPlusPlus {
 				WordType ket2 = basis(ispace,SPIN_DOWN);
 				RealType s=0;
 				for (size_t i=0;i<nsite;i++) {
-					for (size_t orb=0;orb<ORBITALS;orb++) {
+					for (size_t orb=0;orb<basis.orbsPerSite(i);orb++) {
 
 						// Hubbard term U0
 						s += mp_.hubbardU[0] * basis.isThereAnElectronAt(ket1,ket2,
@@ -318,22 +321,22 @@ namespace LanczosPlusPlus {
 						}
 
 						// Diagonal U2 term
-						if (orb==0 && mp_.hubbardU[2]!=0) {
-							s+= mp_.hubbardU[2]*
-								szTerm(ket1,ket2,i,orb,basis)*
-								szTerm(ket1,ket2,i,1-orb,basis);
-						}
+// 						if (orb==0 && mp_.hubbardU[2]!=0) {
+// 							s+= mp_.hubbardU[2]*
+// 								szTerm(ket1,ket2,i,orb,basis)*
+// 								szTerm(ket1,ket2,i,1-orb,basis);
+// 						}
 
-						// JNN and JNNN diagonal part
-						for (size_t j=0;j<nsite;j++) {
-							for (size_t orb2=0;orb2<ORBITALS;orb2++) {
-								RealType value = jCoupling(i,j);
-								if (value==0) continue;
-								s += value*0.5* // double counting i,j
-									szTerm(ket1,ket2,i,orb,basis)*
-									szTerm(ket1,ket2,j,orb2,basis);
-							}
-						}
+// 						// JNN and JNNN diagonal part
+// 						for (size_t j=0;j<nsite;j++) {
+// 							for (size_t orb2=0;orb2<ORBITALS;orb2++) {
+// 								RealType value = jCoupling(i,j);
+// 								if (value==0) continue;
+// 								s += value*0.5* // double counting i,j
+// 									szTerm(ket1,ket2,i,orb,basis)*
+// 									szTerm(ket1,ket2,j,orb2,basis);
+// 							}
+// 						}
 
 						// Potential term
 						if (mp_.potentialV[i]!=0)

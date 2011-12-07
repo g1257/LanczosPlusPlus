@@ -55,9 +55,10 @@ namespace LanczosPlusPlus {
 
 		enum {PLUS,MINUS};
 		
-		Engine(const ModelType& model,size_t numberOfSites)
+		Engine(const ModelType& model,size_t numberOfSites,bool lotaMemory)
 		: model_(model),
-		  progress_("ContinuedFraction",0)
+		  progress_("ContinuedFraction",0),
+		  lotaMemory_(lotaMemory)
 		{
 			// printHeader();
 			// task 1: Compute Hamiltonian and
@@ -116,6 +117,7 @@ namespace LanczosPlusPlus {
 			ParametersForSolverType params;
 			params.steps = iter;
 			params.tolerance = eps;
+			params.lotaMemory = lotaMemory_;
 			params.stepsForEnergyConvergence =ProgramGlobals::MaxLanczosSteps;
 
 			LanczosSolverType lanczosSolver(hamiltonian,params);
@@ -133,7 +135,8 @@ namespace LanczosPlusPlus {
 				size_t spin) const
 		{
 			typedef typename ContinuedFractionType::TridiagonalMatrixType
-					TridiagonalMatrixType;
+			                                        TridiagonalMatrixType;
+			
 
 			RealType eps= ProgramGlobals::LanczosTolerance;
 			size_t iter= ProgramGlobals::LanczosSteps;
@@ -141,13 +144,14 @@ namespace LanczosPlusPlus {
 			ParametersForSolverType params;
 			params.steps = iter;
 			params.tolerance = eps;
+			params.lotaMemory = lotaMemory_;
 			params.stepsForEnergyConvergence =ProgramGlobals::MaxLanczosSteps;
 
 			LanczosSolverType lanczosSolver(matrix,params);
 
 			TridiagonalMatrixType ab;
-			MatrixType V;
-			lanczosSolver.decomposition(modifVector,ab,V);
+
+			lanczosSolver.decomposition(modifVector,ab);
 			RealType weight = modifVector*modifVector;
 			//weight = 1.0/weight;
 			int s = (type&1) ? -1 : 1;
@@ -168,6 +172,7 @@ namespace LanczosPlusPlus {
 		
 		const ModelType& model_;
 		PsimagLite::ProgressIndicator progress_;
+		bool lotaMemory_;
 		RealType gsEnergy_;
 		VectorType gsVector_; 
 	}; // class ContinuedFraction

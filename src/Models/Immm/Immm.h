@@ -95,6 +95,53 @@ namespace LanczosPlusPlus {
 			s+= " with this model (sorry). It might be added in the future.\n";
 			throw std::runtime_error(s.c_str());
 		}
+		
+		void matrixVectorProduct(VectorType &x,const VectorType& y) const
+		{
+			// Calculate diagonal elements AND count non-zero matrix elements
+			size_t hilbert=basis_.size();
+			std::vector<RealType> diag(hilbert);
+			calcDiagonalElements(diag,basis_);
+
+			size_t nsite = geometry_.numberOfSites();
+
+			// Calculate off-diagonal elements AND store matrix
+// 			size_t nCounter=0;
+			for (size_t ispace=0;ispace<hilbert;ispace++) {
+				SparseRowType sparseRow;
+				WordType ket1 = basis_(ispace,SPIN_UP);
+				WordType ket2 = basis_(ispace,SPIN_DOWN);
+				// Save diagonal
+				sparseRow.add(ispace,diag[ispace]);
+				for (size_t i=0;i<nsite;i++) {
+					for (size_t orb=0;orb<basis_.orbsPerSite(i);orb++) {
+						setHoppingTerm(sparseRow,ket1,ket2,
+								i,orb,basis_);
+// 						if (orb==0) {
+// 							setU2OffDiagonalTerm(sparseRow,ket1,ket2,
+// 								i,orb,basis);
+// 						}
+// 						setU3Term(sparseRow,ket1,ket2,
+// 								i,orb,1-orb,basis);
+// 						setJTermOffDiagonal(sparseRow,ket1,ket2,
+// 								i,orb,basis);
+					}
+				}
+				//nCounter += sparseRow.finalize(matrix);
+				x[ispace] += sparseRow.matrixVectorProduct(y);
+			}
+		}
+		
+		void matrixVectorProduct(VectorType &x,
+		                         const VectorType& y,
+		                         const BasisType* b1,
+		                         const BasisType* b2) const
+		{
+			std::string s = "Immm::matrixVectorProduct(...): unimplemented. ";
+			s+= "This probably means that you can't compute the Green function";
+			s+= " with this model (sorry). It might be added in the future.\n";
+			throw std::runtime_error(s.c_str());
+		}
 
 		const GeometryType& geometry() const { return geometry_; }
 

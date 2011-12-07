@@ -22,6 +22,7 @@ Please see full open source license included in file LICENSE.
 #define BASIS_ONE_SPIN_H
 #include "Matrix.h"
 #include "BitManip.h"
+#include <cassert>
 
 namespace LanczosPlusPlus {
 
@@ -55,16 +56,14 @@ namespace LanczosPlusPlus {
 			/* compute size of basis */
 			if (npart==0) {
 				data_.resize(1);
-				size_ =1;
 				data_[0]=0;
 				return;
 			}
-			size_ = 0;
-			for (size_t na=0;na<=npart;na++) {
-					size_t nb = npart - na;
-					size_ += comb_(nsite_,na) * comb_(nsite_,nb);
-			}
-			data_.resize(size_);
+			size_t levels = 0;
+			for (size_t i=0;i<orbsPerSite_.size();i++)
+				levels += orbsPerSite_[i];
+			size_t tmp = comb_(levels,npart);
+			data_.resize(tmp);
 
 			// compute basis:
 			size_t counter = 0;
@@ -77,7 +76,7 @@ namespace LanczosPlusPlus {
 			}
 		}
 
-		size_t size() const { return size_; }
+		size_t size() const { return data_.size(); }
 
 		const WordType& operator[](size_t i) const
 		{
@@ -86,29 +85,31 @@ namespace LanczosPlusPlus {
 
 		size_t perfectIndex(WordType ket) const
 		{
-		//	for (size_t i=0;i<data_.size();i++)
-		//		if (data_[i]==ket) return i;
-		//	throw std::runtime_error("perfectindex\n");
-
-			WordType ketA=0,ketB=0;
-			uncollateKet(ketA,ketB,ket);
-			// p(ket) = \sum_{na'=0}^{na'<na} S_na' * S_nb'
-			//			+ p_A(ket_A)*S_nb + p_B(ket_B)
-			// where S_x = C^n_x
-			size_t na = PsimagLite::BitManip::count(ketA);
-			// note nb = PsimagLite::BitManip::count(ketB)
-			// or nb  = npart -na
-			size_t s = 0;
-			for (size_t nap=0;nap<na;nap++) {
-				size_t nbp = npart_ - nap;
-				s += comb_(nsite_,nap) * comb_(nsite_,nbp);
-			}
-			size_t nb = npart_ - na;
-			s += perfectIndexPartial(ketA)*comb_(nsite_,nb);
-			s += perfectIndexPartial(ketB);
-			if (s>=data_.size())
-				throw std::runtime_error("BasisOneSpin::PerfectIndex>=data_.size()\n");
-			return s;
+			for (size_t i=0;i<data_.size();i++)
+				if (data_[i]==ket) return i;
+			assert(false);
+			return 0; // bogus
+// 			throw std::runtime_error("perfectindex\n");
+// 
+// 			WordType ketA=0,ketB=0;
+// 			uncollateKet(ketA,ketB,ket);
+// 			// p(ket) = \sum_{na'=0}^{na'<na} S_na' * S_nb'
+// 			//			+ p_A(ket_A)*S_nb + p_B(ket_B)
+// 			// where S_x = C^n_x
+// 			size_t na = PsimagLite::BitManip::count(ketA);
+// 			// note nb = PsimagLite::BitManip::count(ketB)
+// 			// or nb  = npart -na
+// 			size_t s = 0;
+// 			for (size_t nap=0;nap<na;nap++) {
+// 				size_t nbp = npart_ - nap;
+// 				s += comb_(nsite_,nap) * comb_(nsite_,nbp);
+// 			}
+// 			size_t nb = npart_ - na;
+// 			s += perfectIndexPartial(ketA)*comb_(nsite_,nb);
+// 			s += perfectIndexPartial(ketB);
+// 			if (s>=data_.size())
+// 				throw std::runtime_error("BasisOneSpin::PerfectIndex>=data_.size()\n");
+// 			return s;
 		}
 
 		size_t getN(size_t i,size_t orb) const
@@ -243,23 +244,34 @@ namespace LanczosPlusPlus {
 			}
 		}
 
-		void collateBasis(
-				size_t& counter,
-				const std::vector<WordType>& basisA,
-				const std::vector<WordType>& basisB)
+		void collateBasis(size_t& counter,
+		                  const std::vector<WordType>& basisA,
+		                  const std::vector<WordType>& basisB)
 		{
 			for (size_t i=0;i<basisA.size();i++) {
 				for (size_t j=0;j<basisB.size();j++) {
+					if (isForbiddenSite(basisB[j])) continue;
 					WordType ket = getCollatedKet(basisA[i],basisB[j]);
+					assert(counter<data_.size());
 					data_[counter++] = ket;
 				}
 			}
+		}
+		
+		bool isForbiddenSite(const WordType& ket) const
+		{
+			for (size_t i=0;i<orbsPerSite_.size();i++) {
+				if (orbsPerSite_[i]>1) continue;
+				WordType mask = (1<<i);
+				if (mask & ket) return true;
+			}
+			return false;
 		}
 
 		void doCombinatorial()
 		{
 			/* look-up table for binomial coefficients */
-			comb_.reset(nsite_+1,nsite_+1);
+			comb_.reset(orbs()*nsite_,orbs()*nsite_);
 
 			for (size_t n=0;n<comb_.n_row();n++)
 				for (size_t i=0;i<comb_.n_col();i++)
@@ -366,7 +378,6 @@ namespace LanczosPlusPlus {
 			return sum;
 		}
 
-		size_t size_;
 		const std::vector<size_t> orbsPerSite_;
 		size_t npart_;
 		std::vector<WordType> data_;

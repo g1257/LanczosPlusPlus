@@ -27,14 +27,13 @@ Please see full open source license included in file LICENSE.
 
 namespace LanczosPlusPlus {
 	
-	template<typename RealType_,typename ParametersType,
-		typename GeometryType>
+	template<typename RealType_,typename ParametersType,typename GeometryType>
 	class FeBasedSc {
 		
 		typedef PsimagLite::Matrix<RealType_> MatrixType;
 	public:
 		
-		typedef BasisFeAsBasedSc BasisType;
+		typedef BasisFeAsBasedSc<GeometryType> BasisType;
 		typedef typename BasisType::WordType WordType;
 		typedef RealType_ RealType;
 		typedef PsimagLite::CrsMatrix<RealType> SparseMatrixType;
@@ -49,8 +48,7 @@ namespace LanczosPlusPlus {
 		
 		
 		FeBasedSc(size_t nup,size_t ndown,const ParametersType& mp,GeometryType& geometry)
-			: mp_(mp),geometry_(geometry),
-			  basis_(geometry.numberOfSites(),nup,ndown)
+		: mp_(mp),geometry_(geometry),basis_(geometry,nup,ndown)
 		{
 		}
 		
@@ -98,6 +96,8 @@ namespace LanczosPlusPlus {
 			s+= " with this model (sorry). It might be added in the future.\n";
 			throw std::runtime_error(s.c_str());
 		}
+
+		const GeometryType& geometry() const { return geometry_; }
 
 	private:
 

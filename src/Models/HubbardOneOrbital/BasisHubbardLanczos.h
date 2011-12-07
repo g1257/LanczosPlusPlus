@@ -8,6 +8,7 @@
 
 namespace LanczosPlusPlus {
 	
+	template<typename GeometryType>
 	class BasisHubbardLanczos {
 	public:
 		
@@ -16,8 +17,11 @@ namespace LanczosPlusPlus {
 		static PsimagLite::Matrix<size_t> comb_;
 		static std::vector<WordType> bitmask_; 
 		
-		BasisHubbardLanczos(size_t nsite, size_t npart) : npart_(npart)
+		BasisHubbardLanczos(const GeometryType& geometry, size_t npart) 
+		: npart_(npart)
 		{
+			size_t nsite = geometry.numberOfSites();
+
 			if (nsite_>0 && nsite!=nsite_)
 				throw std::runtime_error("BasisHubbardLanczos: All basis must have same number of sites\n");
 			nsite_ = nsite;
@@ -116,9 +120,15 @@ namespace LanczosPlusPlus {
 		
 	}; // class BasisHubbardLanczos
 
-	size_t BasisHubbardLanczos::nsite_=0;
-	PsimagLite::Matrix<size_t> BasisHubbardLanczos::comb_;
-	std::vector<BasisHubbardLanczos::WordType> BasisHubbardLanczos::bitmask_; 
+	template<typename GeometryType>
+	size_t BasisHubbardLanczos<GeometryType>::nsite_=0;
+
+	template<typename GeometryType>
+	PsimagLite::Matrix<size_t> BasisHubbardLanczos<GeometryType>::comb_;
+
+	template<typename GeometryType>
+	std::vector<typename BasisHubbardLanczos<GeometryType>::WordType> 
+	                        BasisHubbardLanczos<GeometryType>::bitmask_; 
 	
 } // namespace LanczosPlusPlus
 #endif

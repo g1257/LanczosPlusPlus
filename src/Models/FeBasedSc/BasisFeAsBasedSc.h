@@ -23,7 +23,8 @@ Please see full open source license included in file LICENSE.
 #include "BasisOneSpin.h"
 
 namespace LanczosPlusPlus {
-	
+
+	template<typename GeometryType>
 	class BasisFeAsBasedSc {
 	public:
 		
@@ -35,8 +36,9 @@ namespace LanczosPlusPlus {
 		enum {DESTRUCTOR=BasisType::DESTRUCTOR,CONSTRUCTOR=BasisType::CONSTRUCTOR};
 		
 		
-		BasisFeAsBasedSc(size_t nsite, size_t nup,size_t ndown)
-				: basis1_(nsite,nup),basis2_(nsite,ndown)
+		BasisFeAsBasedSc(const GeometryType& geometry, size_t nup,size_t ndown)
+		: basis1_(geometry.numberOfSites(),nup),
+		  basis2_(geometry.numberOfSites(),ndown)
 		{
 //			std::cout<<"Basis1\n";
 //			std::cout<<basis1_;
@@ -44,8 +46,9 @@ namespace LanczosPlusPlus {
 //			std::cout<<basis2_;
 		}
 		
-		BasisFeAsBasedSc(size_t nsite, size_t nup)
-		: basis1_(nsite,nup),basis2_(nsite,nup)
+		BasisFeAsBasedSc(const GeometryType& geometry, size_t nup)
+		: basis1_(geometry.numberOfSites(),nup),
+		  basis2_(geometry.numberOfSites(),nup)
 		{
 			std::string s = "BasisFeBasedSc::ctor(...): obsolete. ";
 			s+= "This probably means that you can't compute the Green function";

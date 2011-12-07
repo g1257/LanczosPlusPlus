@@ -12,14 +12,13 @@
 
 namespace LanczosPlusPlus {
 
-	template<typename RealType_,typename ParametersType,
-	         typename GeometryType>
+	template<typename RealType_,typename ParametersType,typename GeometryType>
 	class HubbardOneOrbital {
 
 		typedef PsimagLite::Matrix<RealType_> MatrixType;
 	public:
 
-		typedef BasisHubbardLanczos BasisType;
+		typedef BasisHubbardLanczos<GeometryType> BasisType;
 		typedef typename BasisType::WordType WordType;
 		typedef RealType_ RealType;
 		typedef PsimagLite::CrsMatrix<RealType> SparseMatrixType;
@@ -34,8 +33,8 @@ namespace LanczosPlusPlus {
 		                  GeometryType& geometry)
 		: mp_(mp),
 		  geometry_(geometry),
-		  basis1_(geometry.numberOfSites(),nup),
-		  basis2_(geometry.numberOfSites(),ndown),
+		  basis1_(geometry,nup),
+		  basis2_(geometry,ndown),
 		  hoppings_(geometry_.numberOfSites(),geometry_.numberOfSites())
 		{
 			size_t n = geometry_.numberOfSites();
@@ -170,6 +169,8 @@ namespace LanczosPlusPlus {
 			                 what,jsite,spin,isign);
 			std::cerr<<"jsite="<<jsite<<" type="<<type<<" modif="<<(modifVector*modifVector)<<"\n";
 		}
+
+		const GeometryType& geometry() const { return geometry_; }
 
 	private:
 

@@ -329,7 +329,7 @@ sub isAMac
 
 sub getParametersName
 {
-	my $parametersName="UNKNOWN";
+	my $parametersName="Parameters$model";
 	if ($model=~/hubbard/i) {
 		$parametersName = "ParametersModelHubbard";
 	} elsif ($model=~/heisenberg/i) {

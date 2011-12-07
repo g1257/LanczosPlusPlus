@@ -18,55 +18,52 @@ Please see full open source license included in file LICENSE.
 
 */
 
-#ifndef FEBASED_SC_H
-#define FEBASED_SC_H
+#ifndef IMMM_HEADER_H
+#define IMMM_HEADER_H
 
 #include "CrsMatrix.h"
-#include "BasisFeAsBasedSc.h"
+#include "BasisImmm.h"
 #include "SparseRow.h"
 
 namespace LanczosPlusPlus {
 	
-	template<typename RealType_,typename ParametersType,
-		typename GeometryType>
-	class FeBasedSc {
-		
+	template<typename RealType_,typename ParametersType,typename GeometryType>
+	class Immm {
+
 		typedef PsimagLite::Matrix<RealType_> MatrixType;
+
 	public:
 		
-		typedef BasisFeAsBasedSc BasisType;
+		typedef BasisImmm<GeometryType> BasisType;
 		typedef typename BasisType::WordType WordType;
 		typedef RealType_ RealType;
 		typedef PsimagLite::CrsMatrix<RealType> SparseMatrixType;
 		typedef PsimagLite::SparseRow<SparseMatrixType> SparseRowType;
 		typedef std::vector<RealType> VectorType;
+
 		enum {SPIN_UP=BasisType::SPIN_UP,SPIN_DOWN=BasisType::SPIN_DOWN};
 		enum {DESTRUCTOR=BasisType::DESTRUCTOR,CONSTRUCTOR=BasisType::CONSTRUCTOR};
-		enum {TERM_HOPPINGS=0,TERM_J=1};
-		static size_t const ORBITALS  = BasisType::ORBITALS;
-		static size_t const DEGREES_OF_FREEDOM = 2*ORBITALS;
+
 		static int const FERMION_SIGN = BasisType::FERMION_SIGN;
 		
 		
-		FeBasedSc(size_t nup,size_t ndown,const ParametersType& mp,GeometryType& geometry)
-			: mp_(mp),geometry_(geometry),
-			  basis_(geometry.numberOfSites(),nup,ndown)
-		{
-		}
-		
+		Immm(size_t nup,size_t ndown,const ParametersType& mp,GeometryType& geometry)
+		: mp_(mp),geometry_(geometry),basis_(geometry,nup,ndown)
+		{}
+
 		size_t size() const { return basis_.size(); }
 		
 		void setupHamiltonian(SparseMatrixType &matrix) const
 		{
 			setupHamiltonian(matrix,basis_);
 		}
-		
+
 		bool hasNewParts(
 				std::pair<size_t,size_t>& newParts,
 				size_t type,
 				size_t spin) const
 		{
-			std::string s = "FeBasedSc::hasNewParts(...): unimplemented. ";
+			std::string s = "Immm::hasNewParts(...): unimplemented. ";
 			s+= "This probably means that you can't compute the Green function";
 			s+= " with this model (sorry). It might be added in the future.\n";
 			throw std::runtime_error(s.c_str());
@@ -82,7 +79,7 @@ namespace LanczosPlusPlus {
 				size_t jsite,
 				size_t spin) const
 		{
-			std::string s = "FeBasedSc::getModifiedState(...): unimplemented. ";
+			std::string s = "Immm::getModifiedState(...): unimplemented. ";
 			s+= "This probably means that you can't compute the Green function";
 			s+= " with this model (sorry). It might be added in the future.\n";
 			throw std::runtime_error(s.c_str());
@@ -93,7 +90,7 @@ namespace LanczosPlusPlus {
 				const BasisType &basis1,
 				const BasisType& basis2) const
 		{
-			std::string s = "FeBasedSc::setupHamiltonian(...): obsolete. ";
+			std::string s = "Immm::setupHamiltonian(...): obsolete. ";
 			s+= "This probably means that you can't compute the Green function";
 			s+= " with this model (sorry). It might be added in the future.\n";
 			throw std::runtime_error(s.c_str());
@@ -132,10 +129,10 @@ namespace LanczosPlusPlus {
 							setU2OffDiagonalTerm(sparseRow,ket1,ket2,
 								i,orb,basis);
 						}
-						setU3Term(sparseRow,ket1,ket2,
-								i,orb,1-orb,basis);
-						setJTermOffDiagonal(sparseRow,ket1,ket2,
-								i,orb,basis);
+// 						setU3Term(sparseRow,ket1,ket2,
+// 								i,orb,1-orb,basis);
+// 						setJTermOffDiagonal(sparseRow,ket1,ket2,
+// 								i,orb,basis);
 					}
 				}
 				nCounter += sparseRow.finalize(matrix);
@@ -254,45 +251,45 @@ namespace LanczosPlusPlus {
 			sparseRow.add(temp,FERMION_SIGN * mp_.hubbardU[3]);
 		}
 
-		void setJTermOffDiagonal(
-				SparseRowType &sparseRow,
-				const WordType& ket1,
-				const WordType& ket2,
-				size_t i,
-				size_t orb,
-				const BasisType &basis) const
-		{
-			for (size_t j=0;j<geometry_.numberOfSites();j++) {
-				RealType value = jCoupling(i,j)*0.5;
-				if (value==0) continue;
-				value *= 0.5; // double counting i,j
-				assert(i!=j);
-				for (size_t orb2=0;orb2<ORBITALS;orb2++) {
-					//if (orb2!=orb) continue; // testing only!!
-					int sign = jTermSign(ket1,ket2,i,orb,j,orb2,basis);
-					setSplusSminus(sparseRow,ket1,ket2,
-							i,orb,j,orb2,value*sign,basis);
-					setSplusSminus(sparseRow,ket1,ket2,
-							j,orb2,i,orb,value*sign,basis);
-				}
-			}
+// 		void setJTermOffDiagonal(
+// 				SparseRowType &sparseRow,
+// 				const WordType& ket1,
+// 				const WordType& ket2,
+// 				size_t i,
+// 				size_t orb,
+// 				const BasisType &basis) const
+// 		{
+// 			for (size_t j=0;j<geometry_.numberOfSites();j++) {
+// 				RealType value = jCoupling(i,j)*0.5;
+// 				if (value==0) continue;
+// 				value *= 0.5; // double counting i,j
+// 				assert(i!=j);
+// 				for (size_t orb2=0;orb2<ORBITALS;orb2++) {
+// 					//if (orb2!=orb) continue; // testing only!!
+// 					int sign = jTermSign(ket1,ket2,i,orb,j,orb2,basis);
+// 					setSplusSminus(sparseRow,ket1,ket2,
+// 							i,orb,j,orb2,value*sign,basis);
+// 					setSplusSminus(sparseRow,ket1,ket2,
+// 							j,orb2,i,orb,value*sign,basis);
+// 				}
+// 			}
+// 
+// 		}
 
-		}
-
-		int jTermSign(
-				const WordType& ket1,
-				const WordType& ket2,
-				size_t i,
-				size_t orb1,
-				size_t j,
-				size_t orb2,
-				const BasisType &basis) const
-		{
-			if (i>j) return jTermSign(ket1,ket2,j,orb2,i,orb1,basis);
-			int x = basis.doSign(ket1,ket2,i,orb1,j,orb2,SPIN_UP);
-			x *= basis.doSign(ket1,ket2,i,orb1,j,orb2,SPIN_DOWN);
-			return x;
-		}
+// 		int jTermSign(
+// 				const WordType& ket1,
+// 				const WordType& ket2,
+// 				size_t i,
+// 				size_t orb1,
+// 				size_t j,
+// 				size_t orb2,
+// 				const BasisType &basis) const
+// 		{
+// 			if (i>j) return jTermSign(ket1,ket2,j,orb2,i,orb1,basis);
+// 			int x = basis.doSign(ket1,ket2,i,orb1,j,orb2,SPIN_UP);
+// 			x *= basis.doSign(ket1,ket2,i,orb1,j,orb2,SPIN_DOWN);
+// 			return x;
+// 		}
 
 		void calcDiagonalElements(
 				std::vector<RealType>& diag,
@@ -401,29 +398,29 @@ namespace LanczosPlusPlus {
 			return sum;
 		}
 
-		RealType szTerm(
-				const WordType& ket1,
-				const WordType& ket2,
-				size_t i,
-				size_t orb,
-				const BasisType &basis) const
-		{
-			RealType sz = basis.isThereAnElectronAt(ket1,ket2,i,SPIN_UP,orb);
-			sz -= basis.isThereAnElectronAt(ket1,ket2,i,SPIN_DOWN,orb);
-			return 0.5*sz;
-		}
+// 		RealType szTerm(
+// 				const WordType& ket1,
+// 				const WordType& ket2,
+// 				size_t i,
+// 				size_t orb,
+// 				const BasisType &basis) const
+// 		{
+// 			RealType sz = basis.isThereAnElectronAt(ket1,ket2,i,SPIN_UP,orb);
+// 			sz -= basis.isThereAnElectronAt(ket1,ket2,i,SPIN_DOWN,orb);
+// 			return 0.5*sz;
+// 		}
 		
-		RealType jCoupling(size_t i,size_t j) const
-		{
-			if (geometry_.terms()==1) return 0;
-			return geometry_(i,0,j,0,TERM_J);
-		}
+// 		RealType jCoupling(size_t i,size_t j) const
+// 		{
+// 			if (geometry_.terms()==1) return 0;
+// 			return geometry_(i,0,j,0,TERM_J);
+// 		}
 
 		const ParametersType& mp_;
 		const GeometryType& geometry_;
 		BasisType basis_;
 		
-	}; // class FeBasedSc
+	}; // class Immm
 	
 } // namespace LanczosPlusPlus
 #endif

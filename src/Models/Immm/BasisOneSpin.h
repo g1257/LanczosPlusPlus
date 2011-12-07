@@ -26,21 +26,28 @@ Please see full open source license included in file LICENSE.
 namespace LanczosPlusPlus {
 	
 	class BasisOneSpin {
+
 	public:
 		
 		typedef unsigned int long long WordType;
+		
 		enum {DESTRUCTOR,CONSTRUCTOR};
-		static size_t const ORBITALS  = 2;
+
+		// 		static size_t const ORBITALS  = 2;
 		static int const FERMION_SIGN  = -1;
 		static size_t nsite_;
 		static PsimagLite::Matrix<size_t> comb_;
 		static std::vector<WordType> bitmask_; 
-		
-		BasisOneSpin(size_t nsite, size_t npart)
-				: npart_(npart)
+
+		BasisOneSpin(const std::vector<size_t>& orbsPerSite, size_t npart)
+		: npart_(npart)
 		{
-			if (nsite_>0 && nsite!=nsite_)
-				throw std::runtime_error("BasisOneSpin: All basis must have same number of sites\n");
+			if (nsite_>0 && nsite!=nsite_) {
+				std::string s =  
+				    "BasisOneSpin: All basis must have same number of sites\n";
+				throw std::runtime_error(s.c_str());
+			}
+
 			nsite_ = nsite;
 			doCombinatorial();
 			doBitmask();

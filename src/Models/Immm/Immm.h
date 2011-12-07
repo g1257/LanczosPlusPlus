@@ -155,46 +155,45 @@ namespace LanczosPlusPlus {
 				size_t orb,
 				const BasisType &basis) const
 		{
-			throw std::runtime_error("setHoppingTerm\n");
-// 			size_t ii = i*ORBITALS+orb;
-// 			WordType s1i=(ket1 & BasisType::bitmask(ii));
-// 			if (s1i>0) s1i=1;
-// 			WordType s2i=(ket2 & BasisType::bitmask(ii));
-// 			if (s2i>0) s2i=1;
-// 
-// 			size_t nsite = geometry_.numberOfSites();
-// 
-// 			// Hopping term
-// 			for (size_t j=0;j<nsite;j++) {
-// 				if (j<i) continue;
-// 				for (size_t orb2=0;orb2<ORBITALS;orb2++) {
-// 					size_t jj = j*ORBITALS+orb2;
-// 					RealType h = hoppings(i,orb,j,orb2);
-// 					if (h==0) continue;
-// 					WordType s1j= (ket1 & BasisType::bitmask(jj));
-// 					if (s1j>0) s1j=1;
-// 					WordType s2j= (ket2 & BasisType::bitmask(jj));
-// 					if (s2j>0) s2j=1;
-// 
-// 					if (s1i+s1j==1) {
-// 						WordType bra1= ket1 ^(BasisType::bitmask(ii)|BasisType::bitmask(jj));
-// 						size_t temp = basis.perfectIndex(bra1,ket2);
-// 						int extraSign = (s1i==1) ? FERMION_SIGN : 1;
-// 						RealType cTemp = h*extraSign*basis_.doSign(
-// 							ket1,ket2,i,orb,j,orb2,SPIN_UP);
-// 						sparseRow.add(temp,cTemp);
-// 
-// 					}
-// 					if (s2i+s2j==1) {
-// 						WordType bra2= ket2 ^(BasisType::bitmask(ii)|BasisType::bitmask(jj));
-// 						size_t temp = basis.perfectIndex(ket1,bra2);
-// 						int extraSign = (s2i==1) ? FERMION_SIGN : 1;
-// 						RealType cTemp = h*extraSign*basis_.doSign(
-// 							ket1,ket2,i,orb,j,orb2,SPIN_DOWN);
-// 						sparseRow.add(temp,cTemp);
-// 					}
-// 				}
-// 			}
+			size_t ii = i*basis.orbs()+orb;
+			WordType s1i=(ket1 & BasisType::bitmask(ii));
+			if (s1i>0) s1i=1;
+			WordType s2i=(ket2 & BasisType::bitmask(ii));
+			if (s2i>0) s2i=1;
+
+			size_t nsite = geometry_.numberOfSites();
+
+			// Hopping term
+			for (size_t j=0;j<nsite;j++) {
+				if (j<i) continue;
+				for (size_t orb2=0;orb2<basis.orbsPerSite(j);orb2++) {
+					size_t jj = j*basis.orbs()+orb2;
+					RealType h = hoppings(i,orb,j,orb2);
+					if (h==0) continue;
+					WordType s1j= (ket1 & BasisType::bitmask(jj));
+					if (s1j>0) s1j=1;
+					WordType s2j= (ket2 & BasisType::bitmask(jj));
+					if (s2j>0) s2j=1;
+
+					if (s1i+s1j==1) {
+						WordType bra1= ket1 ^(BasisType::bitmask(ii)|BasisType::bitmask(jj));
+						size_t temp = basis.perfectIndex(bra1,ket2);
+						int extraSign = (s1i==1) ? FERMION_SIGN : 1;
+						RealType cTemp = h*extraSign*basis_.doSign(
+							ket1,ket2,i,orb,j,orb2,SPIN_UP);
+						sparseRow.add(temp,cTemp);
+
+					}
+					if (s2i+s2j==1) {
+						WordType bra2= ket2 ^(BasisType::bitmask(ii)|BasisType::bitmask(jj));
+						size_t temp = basis.perfectIndex(ket1,bra2);
+						int extraSign = (s2i==1) ? FERMION_SIGN : 1;
+						RealType cTemp = h*extraSign*basis_.doSign(
+							ket1,ket2,i,orb,j,orb2,SPIN_DOWN);
+						sparseRow.add(temp,cTemp);
+					}
+				}
+			}
 		}
 		
 // 		void setU2OffDiagonalTerm(

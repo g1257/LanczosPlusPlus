@@ -168,28 +168,28 @@ namespace LanczosPlusPlus {
 				size_t j,
 				size_t orb2) const
 		{
-// 			if (i > j) {
-// 				std::cerr<<"FATAL: At doSign\n";
-// 				std::cerr<<"INFO: i="<<i<<" j="<<j<<std::endl;
-// 				std::cerr<<"AT: "<<__FILE__<<" : "<<__LINE__<<std::endl;
-				throw std::runtime_error("FeBasedSc::doSign(...)\n");
-// 			}
-// 			size_t x0 = (i+1)*ORBITALS; // i+1 cannot be the last site, 'cause i<j
-// 			size_t x1 = j*ORBITALS;
-// 
-// 			size_t sum = getNbyKet(ket,x0,x1);
-// 
-// 			// at site i we need to be carefull
-// 			x0 = i*ORBITALS+orb1;
-// 			x1 = (i+1)*ORBITALS;
-// 			sum += getNbyKet(ket,x0,x1);
-// 
-// 			// same at site j
-// 			x0 = j*ORBITALS;
-// 			x1 = j*ORBITALS+orb2;
-// 			sum += getNbyKet(ket,x0,x1);
-// 
-// 			return (sum & 1) ? FERMION_SIGN : 1;
+			if (i > j) {
+				std::cerr<<"FATAL: At doSign\n";
+				std::cerr<<"INFO: i="<<i<<" j="<<j<<std::endl;
+				std::cerr<<"AT: "<<__FILE__<<" : "<<__LINE__<<std::endl;
+				throw std::runtime_error("BasisOneSpin::doSign(...)\n");
+			}
+			size_t x0 = (i+1)*orbs(); // i+1 cannot be the last site, 'cause i<j
+			size_t x1 = j*orbs();
+
+			size_t sum = getNbyKet(ket,x0,x1);
+
+			// at site i we need to be carefull
+			x0 = i*orbs()+orb1;
+			x1 = (i+1)*orbs();
+			sum += getNbyKet(ket,x0,x1);
+
+			// same at site j
+			x0 = j*orbs();
+			x1 = j*orbs()+orb2;
+			sum += getNbyKet(ket,x0,x1);
+
+			return (sum & 1) ? FERMION_SIGN : 1;
 		}
 
 		size_t getNbyKet(size_t ket) const
@@ -205,12 +205,13 @@ namespace LanczosPlusPlus {
 
 		size_t isThereAnElectronAt(size_t ket,size_t site,size_t orb) const
 		{
-			throw std::runtime_error("isThereAnElectronAt\n");
-/*			size_t x = site*ORBITALS + orb;
-			return (ket & bitmask_[x]) ? 1 : 0;*/
+			size_t x = site*orbs() + orb;
+			return (ket & bitmask_[x]) ? 1 : 0;
 		}
 
 	private:
+
+		size_t orbs() const { return orbsPerSite_[0]; }
 
 		void fillPartialBasis(std::vector<WordType>& partialBasis,size_t npart)
 		{

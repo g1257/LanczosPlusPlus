@@ -166,6 +166,8 @@ namespace LanczosPlusPlus {
 		
 		size_t orbsPerSite(size_t i) const { return orbsPerSite_[i]; }
 
+		size_t orbs() const { return orbsPerSite_[0]; }
+
 	private:
 		
 		OrbsPerSite orbsPerSite_;

@@ -104,14 +104,7 @@ namespace LanczosPlusPlus {
 			assert(i <= j);
 			return (spin==SPIN_UP) ? basis1_.doSign(ket1,i,j): basis2_.doSign(ket2,i,j);
 		}
-		
-		int doSign(WordType ket,
-		           size_t i,
-		           size_t spin) const
-		{
-			return (spin==SPIN_UP) ? basis1_.doSign(ket,i): basis2_.doSign(ket,i);
-		}
-		
+
 		int getBraIndex(const WordType& ket1,
 		                   const WordType& ket2,
 		                   size_t what,

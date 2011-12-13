@@ -177,6 +177,17 @@ namespace LanczosPlusPlus {
 
 			return (sum & 1) ? FERMION_SIGN : 1;
 		}
+		
+		int doSignGf(WordType ket,size_t site,size_t orb) const
+		{
+			WordType ketA=0,ketB=0;
+			uncollateKet(ketA,ketB,ket);
+			if (orb==0) return doSign(ketA,site);
+
+			size_t c = PsimagLite::BitManip::count(ketA);
+			int ret = (c&1) ? FERMION_SIGN : 1;
+			return ret * doSign(ketB,site);
+		}
 
 		size_t getNbyKet(size_t ket) const
 		{

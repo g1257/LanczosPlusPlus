@@ -154,31 +154,11 @@ namespace LanczosPlusPlus {
 		
 		int doSignGf(WordType a, WordType b,size_t ind,size_t spin,size_t orb) const
 		{
-			if (sector==SPIN_UP) {
-				if (ind==0) return 1;
-
-				// ind>0 from now on
-				size_t i = 0;
-				size_t j = ind;
-				WordType mask = a;
-				mask &= ((1 << (i+1)) - 1) ^ ((1 << j) - 1);
-				int s=(PsimagLite::BitManip::count(mask) & 1) ? -1 : 1; // Parity of up between i and j
-				// Is there an up at i?
-				if (BasisType::bitmask(i) & a) s = -s;
-				return s;
+			if (spin==SPIN_UP) {
+				return basis1_.doSignGf(a,ind,orb);
 			}
 			int s=(PsimagLite::BitManip::count(a) & 1) ? -1 : 1; // Parity of up
-			if (ind==0) return s;
-
-			// ind>0 from now on
-			size_t i = 0;
-			size_t j = ind;
-			WordType mask = b;
-			mask &= ((1 << (i+1)) - 1) ^ ((1 << j) - 1);
-			s=(PsimagLite::BitManip::count(mask) & 1) ? -1 : 1; // Parity of up between i and j
-			// Is there a down at i?
-			if (BasisType::bitmask(i) & b) s = -s;
-			return s;
+			return s*basis2_.doSignGf(b,ind,orb);
 		}
 
 		size_t isThereAnElectronAt(size_t ket1,

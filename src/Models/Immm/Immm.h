@@ -87,30 +87,18 @@ namespace LanczosPlusPlus {
 		{
 			size_t what= (type&1) ?  DESTRUCTOR : CONSTRUCTOR;
 
-			modifVector.resize(basis1New.size()*basis2New.size());
+			modifVector.resize(basisNew.size());
 			for (size_t temp=0;temp<modifVector.size();temp++)
 				modifVector[temp]=0.0;
 
-			accModifiedState(modifVector,basis1New,basis2New,gsVector,
-			                 what,isite,spin,1);
+			accModifiedState(modifVector,basisNew,gsVector,what,isite,spin,1);
 			std::cerr<<"isite="<<isite<<" type="<<type;
 			std::cerr<<" modif="<<(modifVector*modifVector)<<"\n";
 
 			int isign= (type>1) ? -1 : 1;
-			accModifiedState(modifVector,basis1New,basis2New,gsVector,
-			                 what,jsite,spin,isign);
+			accModifiedState(modifVector,basisNew,gsVector,what,jsite,spin,isign);
 			std::cerr<<"jsite="<<jsite<<" type="<<type;
 			std::cerr<<" modif="<<(modifVector*modifVector)<<"\n";
-		}
-
-		void setupHamiltonian(SparseMatrixType &matrix,
-		                      const BasisType &basis1,
-		                      const BasisType& basis2) const
-		{
-			std::string s = "Immm::setupHamiltonian(...): obsolete. ";
-			s+= "This probably means that you can't compute the Green function";
-			s+= " with this model (sorry). It might be added in the future.\n";
-			throw std::runtime_error(s.c_str());
 		}
 
 		void matrixVectorProduct(VectorType &x,const VectorType& y) const
@@ -160,8 +148,6 @@ namespace LanczosPlusPlus {
 
 		const GeometryType& geometry() const { return geometry_; }
 
-	private:
-
 		void setupHamiltonian(SparseMatrixType &matrix,
 		                      const BasisType &basis) const
 		{
@@ -201,6 +187,8 @@ namespace LanczosPlusPlus {
 			}
 			matrix.setRow(hilbert,nCounter);
 		}
+
+	private:
 
 		RealType hoppings(size_t i,size_t orb1,size_t j,size_t orb2) const
 		{
@@ -475,6 +463,52 @@ namespace LanczosPlusPlus {
 // 			if (geometry_.terms()==1) return 0;
 // 			return geometry_(i,0,j,0,TERM_J);
 // 		}
+
+		//! Gf Related function:
+		void accModifiedState(std::vector<RealType> &z,
+		                      const BasisType& newBasis,
+		                      const std::vector<RealType> &gsVector,
+		                      size_t what,
+		                      size_t site,
+		                      size_t spin,
+		                      int isign) const
+		{
+			for (size_t orb=0;orb<newBasis.orbsPerSite(site);orb++)
+				accModifiedState(z,newBasis,gsVector,what,site,spin,orb,isign);
+		}
+
+		//! Gf Related function:
+		void accModifiedState(std::vector<RealType> &z,
+		                      const BasisType& newBasis,
+		                      const std::vector<RealType> &gsVector,
+		                      size_t what,
+		                      size_t site,
+		                      size_t spin,
+		                      size_t orb,
+		                      int isign) const
+		{
+			for (size_t ispace=0;ispace<basis_.size();ispace++) {
+				WordType ket1 = basis_(ispace,SPIN_UP);
+				WordType ket2 = basis_(ispace,SPIN_DOWN);
+				int temp = newBasis.getBraIndex(ket1,ket2,what,site,spin,orb);
+// 				int temp= getBraIndex(mysign,ket1,ket2,newBasis,what,site,spin);
+				if (temp>=0 && size_t(temp)>=z.size()) {
+					std::string s = "old basis=" + ttos(basis_.size());
+					s += " newbasis=" + ttos(newBasis.size());
+					s += "\n";
+					s += "what=" + ttos(what) + " spin=" + ttos(spin);
+					s += " site=" + ttos(site);
+					s += "ket1=" + ttos(ket1) + " and ket2=" + ttos(ket2);
+					s += "\n";
+					s += "getModifiedState: z.size=" + ttos(z.size());
+					s += " but temp=" + ttos(temp) + "\n";
+					throw std::runtime_error(s.c_str());
+				}
+				if (temp<0) continue;
+				int mysign = basis_.doSignGf(ket1,ket2,site,spin,orb);
+				z[temp] += isign*mysign*gsVector[ispace];
+			}
+		}
 
 		const ParametersType& mp_;
 		const GeometryType& geometry_;

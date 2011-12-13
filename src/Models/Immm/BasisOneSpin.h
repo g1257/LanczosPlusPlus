@@ -129,21 +129,6 @@ namespace LanczosPlusPlus {
 			throw std::runtime_error("getN\n");
 		}
 
-		size_t getBraIndex(size_t i,size_t what,size_t orb) const
-		{
-			WordType ketA=0,ketB=0;
-			uncollateKet(ketA,ketB,data_[i]);
-			WordType braA = ketA;
-			WordType braB = ketB;
-			if (orb==0) {
-				if (!getBra(braA,ketA,what,i)) throw std::runtime_error("getBraIndex::orb==0 problem\n");
-			} else {
-				if (!getBra(braB,ketB,what,i)) throw std::runtime_error("getBraIndex::orb!=0 problem\n");
-			}
-			WordType bra = getCollatedKet(braA,braB);
-			return perfectIndex(bra);
-		}
-
 		static const WordType& bitmask(size_t i)
 		{
 			return bitmask_[i];
@@ -211,6 +196,30 @@ namespace LanczosPlusPlus {
 		}
 
 		size_t electrons() const { return npart_; }
+
+		bool getBra(WordType& bra,
+		            const WordType& ket,
+		            size_t what,
+		            size_t site,
+		            size_t orb) const
+		{
+			size_t ii = site*orbs()+orb;
+			WordType si=(ket & bitmask_[ii]);
+			if (what==DESTRUCTOR) {
+				if (si>0) {
+					bra = (ket ^ bitmask_[ii]);
+				} else {
+					return false; // cannot destroy, there's nothing
+				}
+			} else {
+				if (si==0) {
+					bra = (ket ^ bitmask_[ii]);
+				} else {
+					return false; // cannot contruct, there's already one
+				}
+			}
+			return true;
+		}
 
 	private:
 
@@ -337,26 +346,6 @@ namespace LanczosPlusPlus {
 				counter++;
 				ket >>= 2;
 			}
-		}
-
-		bool getBra(WordType& bra, const WordType& ket,size_t what,size_t i) const
-		{
-
-			WordType si=(ket & bitmask_[i]);
-			if (what==DESTRUCTOR) {
-				if (si>0) {
-					bra = (ket ^ bitmask_[i]);
-				} else {
-					return false; // cannot destroy, there's nothing
-				}
-			} else {
-				if (si==0) {
-					bra = (ket ^ bitmask_[i]);
-				} else {
-					return false; // cannot contruct, there's already one
-				}
-			}
-			return true;
 		}
 
 		int doSign(WordType a, size_t i) const

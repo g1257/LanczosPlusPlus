@@ -221,8 +221,8 @@ namespace LanczosPlusPlus {
 						// Potential term
 						if (mp_.potentialV[i]!=0)
 							s += mp_.potentialV[i]*
-								(basis.getN(ispace,SPIN_UP) +
-								basis.getN(ispace,SPIN_DOWN));
+								(basis.getN(ket1,ket2,i,SPIN_UP) +
+								basis.getN(ket1,ket2,i,SPIN_DOWN));
 				}
 				diag[ispace]=s;
 			}

@@ -91,21 +91,30 @@ namespace LanczosPlusPlus {
 			return (spin==SPIN_UP) ? basis1_.getN(x,orb) : basis2_.getN(y,orb);
 		}
 
-		size_t getBraIndex(size_t i,size_t what,size_t sector) const
+		size_t getBraIndex(WordType ket1,
+		                   WordType ket2,
+		                   size_t what,
+		                   size_t site,
+		                   size_t spin,
+		                   size_t orb) const
 		{
-			size_t y = i/basis1_.size();
-			size_t x = i%basis1_.size();
-			size_t i1 = basis1_.perfectIndex(basis1_[x]);
-			size_t i2 = basis2_.perfectIndex(basis2_[y]);
-			size_t spin = sector/2;
-			size_t orb = (sector & 1);
-			if (spin==SPIN_UP) {
-				i1 = basis1_.getBraIndex(x,what,orb);
-			} else {
-				i2 =  basis2_.getBraIndex(y,what,orb);
-			}
+			WordType bra;
+			bool b = getBra(bra,ket1,ket2,what,site,spin,orb);
+			if (!b) return -1;
+			return (spin==SPIN_UP) ? perfectIndex(bra,ket2) :
+			                         perfectIndex(ket1,bra);
+		}
 
-			return i1 + i2*basis1_.size();
+		bool getBra(WordType& bra,
+		            const WordType& ket1,
+		            const WordType& ket2,
+		            size_t what,
+		            size_t site,
+		            size_t spin,
+		            size_t orb) const
+		{
+			return (spin==SPIN_UP) ? basis1_.getBra(bra,ket1,what,site,orb) :
+			                         basis2_.getBra(bra,ket2,what,site,orb);
 		}
 
 		int doSign(size_t i,size_t site,size_t sector) const
@@ -141,6 +150,35 @@ namespace LanczosPlusPlus {
 				return basis1_.doSign(ket1,i,orb1,j,orb2);
 			}
 			return basis2_.doSign(ket2,i,orb1,j,orb2);
+		}
+		
+		int doSignGf(WordType a, WordType b,size_t ind,size_t spin,size_t orb) const
+		{
+			if (sector==SPIN_UP) {
+				if (ind==0) return 1;
+
+				// ind>0 from now on
+				size_t i = 0;
+				size_t j = ind;
+				WordType mask = a;
+				mask &= ((1 << (i+1)) - 1) ^ ((1 << j) - 1);
+				int s=(PsimagLite::BitManip::count(mask) & 1) ? -1 : 1; // Parity of up between i and j
+				// Is there an up at i?
+				if (BasisType::bitmask(i) & a) s = -s;
+				return s;
+			}
+			int s=(PsimagLite::BitManip::count(a) & 1) ? -1 : 1; // Parity of up
+			if (ind==0) return s;
+
+			// ind>0 from now on
+			size_t i = 0;
+			size_t j = ind;
+			WordType mask = b;
+			mask &= ((1 << (i+1)) - 1) ^ ((1 << j) - 1);
+			s=(PsimagLite::BitManip::count(mask) & 1) ? -1 : 1; // Parity of up between i and j
+			// Is there a down at i?
+			if (BasisType::bitmask(i) & b) s = -s;
+			return s;
 		}
 
 		size_t isThereAnElectronAt(size_t ket1,

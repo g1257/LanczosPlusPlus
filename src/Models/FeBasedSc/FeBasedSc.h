@@ -73,8 +73,7 @@ namespace LanczosPlusPlus {
 		void getModifiedState(
 				std::vector<RealType>& modifVector,
 				const std::vector<RealType>& gsVector,
-				const BasisType& basis1New,
-				const BasisType& basis2New,
+				const BasisType& basisNew,
 				size_t type,
 				size_t isite,
 				size_t jsite,
@@ -86,20 +85,7 @@ namespace LanczosPlusPlus {
 			throw std::runtime_error(s.c_str());
 		}
 
-		void setupHamiltonian(
-				SparseMatrixType &matrix,
-				const BasisType &basis1,
-				const BasisType& basis2) const
-		{
-			std::string s = "FeBasedSc::setupHamiltonian(...): obsolete. ";
-			s+= "This probably means that you can't compute the Green function";
-			s+= " with this model (sorry). It might be added in the future.\n";
-			throw std::runtime_error(s.c_str());
-		}
-
 		const GeometryType& geometry() const { return geometry_; }
-
-	private:
 
 		void setupHamiltonian(
 				SparseMatrixType &matrix,
@@ -142,6 +128,8 @@ namespace LanczosPlusPlus {
 			}
 			matrix.setRow(hilbert,nCounter);
 		}
+
+	private:
 
 		RealType hoppings(size_t i,size_t orb1,size_t j,size_t orb2) const
 		{

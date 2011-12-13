@@ -51,8 +51,8 @@ namespace LanczosPlusPlus {
 			return (spin==SPIN_UP) ? basis1_[x] : basis2_[y];
 		}
 
-		size_t isThereAnElectronAt(size_t ket1,
-		                           size_t ket2,
+		size_t isThereAnElectronAt(WordType ket1,
+		                           WordType ket2,
 		                           size_t site,
 		                           size_t spin) const
 		{
@@ -61,11 +61,9 @@ namespace LanczosPlusPlus {
 			return basis2_.isThereAnElectronAt(ket2,site);
 		}
 
-		size_t getN(size_t i,size_t spin) const
+		size_t getN(WordType ket1,WordType ket2, size_t site,size_t spin) const
 		{
-			size_t y = i/basis1_.size();
-			size_t x = i%basis1_.size();
-			return (spin==SPIN_UP) ? basis1_.getN(x) : basis2_.getN(y);
+			return (spin==SPIN_UP) ? basis1_.getN(ket1,site) : basis2_.getN(ket2,site);
 		}
 		
 		int doSignGf(WordType a, WordType b,size_t ind,size_t sector) const

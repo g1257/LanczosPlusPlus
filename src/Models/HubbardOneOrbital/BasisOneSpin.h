@@ -84,14 +84,14 @@ namespace LanczosPlusPlus {
 
 		size_t electrons() const { return npart_; }
 
-		size_t isThereAnElectronAt(size_t ket,size_t site) const
+		size_t isThereAnElectronAt(WordType ket,size_t site) const
 		{
 			return (ket & bitmask_[site]) ? 1 : 0;
 		}
 		
-		size_t getN(size_t i) const
+		size_t getN(WordType ket,size_t site) const
 		{
-			return isThereAnElectronAt(data_[i],i);
+			return isThereAnElectronAt(ket,site);
 		}
 
 		int doSign(WordType a, size_t i) const

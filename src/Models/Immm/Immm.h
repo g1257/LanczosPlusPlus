@@ -26,14 +26,14 @@ Please see full open source license included in file LICENSE.
 #include "SparseRow.h"
 
 namespace LanczosPlusPlus {
-	
+
 	template<typename RealType_,typename ParametersType,typename GeometryType>
 	class Immm {
 
 		typedef PsimagLite::Matrix<RealType_> MatrixType;
 
 	public:
-		
+
 		typedef BasisImmm<GeometryType> BasisType;
 		typedef typename BasisType::WordType WordType;
 		typedef RealType_ RealType;
@@ -42,60 +42,77 @@ namespace LanczosPlusPlus {
 		typedef std::vector<RealType> VectorType;
 
 		enum {SPIN_UP=BasisType::SPIN_UP,SPIN_DOWN=BasisType::SPIN_DOWN};
+
 		enum {DESTRUCTOR=BasisType::DESTRUCTOR,CONSTRUCTOR=BasisType::CONSTRUCTOR};
 
 		static int const FERMION_SIGN = BasisType::FERMION_SIGN;
-		
-		
+
 		Immm(size_t nup,size_t ndown,const ParametersType& mp,GeometryType& geometry)
 		: mp_(mp),geometry_(geometry),basis_(geometry,nup,ndown)
 		{}
 
 		size_t size() const { return basis_.size(); }
-		
+
 		void setupHamiltonian(SparseMatrixType &matrix) const
 		{
 			setupHamiltonian(matrix,basis_);
 		}
 
-		bool hasNewParts(
-				std::pair<size_t,size_t>& newParts,
-				size_t type,
-				size_t spin) const
+		bool hasNewParts(std::pair<size_t,size_t>& newParts,
+		                 size_t type,
+		                 size_t spin) const
 		{
-			std::string s = "Immm::hasNewParts(...): unimplemented. ";
-			s+= "This probably means that you can't compute the Green function";
-			s+= " with this model (sorry). It might be added in the future.\n";
-			throw std::runtime_error(s.c_str());
+			int newPart1=basis_.electrons(SPIN_UP);
+			int newPart2=basis_.electrons(SPIN_DOWN);
+			int c = (type&1) ? -1 : 1;
+			if (spin==SPIN_UP) newPart1 += c;
+			else newPart2 += c;
+
+			if (newPart1<0 || newPart2<0) return false;
+			size_t nsite = geometry_.numberOfSites();
+			if (size_t(newPart1)>nsite || size_t(newPart2)>nsite) return false;
+			if (newPart1==0 && newPart2==0) return false;
+			newParts.first = size_t(newPart1);
+			newParts.second = size_t(newPart2);
+			return true;
 		}
 
-		void getModifiedState(
-				std::vector<RealType>& modifVector,
-				const std::vector<RealType>& gsVector,
-				const BasisType& basis1New,
-				const BasisType& basis2New,
-				size_t type,
-				size_t isite,
-				size_t jsite,
-				size_t spin) const
+		void getModifiedState(std::vector<RealType>& modifVector,
+		                      const std::vector<RealType>& gsVector,
+		                      const BasisType& basisNew,
+		                      size_t type,
+		                      size_t isite,
+		                      size_t jsite,
+		                      size_t spin) const
 		{
-			std::string s = "Immm::getModifiedState(...): unimplemented. ";
-			s+= "This probably means that you can't compute the Green function";
-			s+= " with this model (sorry). It might be added in the future.\n";
-			throw std::runtime_error(s.c_str());
+			size_t what= (type&1) ?  DESTRUCTOR : CONSTRUCTOR;
+
+			modifVector.resize(basis1New.size()*basis2New.size());
+			for (size_t temp=0;temp<modifVector.size();temp++)
+				modifVector[temp]=0.0;
+
+			accModifiedState(modifVector,basis1New,basis2New,gsVector,
+			                 what,isite,spin,1);
+			std::cerr<<"isite="<<isite<<" type="<<type;
+			std::cerr<<" modif="<<(modifVector*modifVector)<<"\n";
+
+			int isign= (type>1) ? -1 : 1;
+			accModifiedState(modifVector,basis1New,basis2New,gsVector,
+			                 what,jsite,spin,isign);
+			std::cerr<<"jsite="<<jsite<<" type="<<type;
+			std::cerr<<" modif="<<(modifVector*modifVector)<<"\n";
 		}
 
-		void setupHamiltonian(
-				SparseMatrixType &matrix,
-				const BasisType &basis1,
-				const BasisType& basis2) const
+		void setupHamiltonian(SparseMatrixType &matrix,
+		                      const BasisType &basis1,
+		                      const BasisType& basis2) const
 		{
 			std::string s = "Immm::setupHamiltonian(...): obsolete. ";
 			s+= "This probably means that you can't compute the Green function";
 			s+= " with this model (sorry). It might be added in the future.\n";
 			throw std::runtime_error(s.c_str());
 		}
-		
+
 		void matrixVectorProduct(VectorType &x,const VectorType& y) const
 		{
 			// Calculate diagonal elements AND count non-zero matrix elements
@@ -106,7 +123,6 @@ namespace LanczosPlusPlus {
 			size_t nsite = geometry_.numberOfSites();
 
 			// Calculate off-diagonal elements AND store matrix
-// 			size_t nCounter=0;
 			for (size_t ispace=0;ispace<hilbert;ispace++) {
 				SparseRowType sparseRow;
 				WordType ket1 = basis_(ispace,SPIN_UP);
@@ -115,8 +131,7 @@ namespace LanczosPlusPlus {
 				sparseRow.add(ispace,diag[ispace]);
 				for (size_t i=0;i<nsite;i++) {
 					for (size_t orb=0;orb<basis_.orbsPerSite(i);orb++) {
-						setHoppingTerm(sparseRow,ket1,ket2,
-								i,orb,basis_);
+						setHoppingTerm(sparseRow,ket1,ket2,i,orb,basis_);
 // 						if (orb==0) {
 // 							setU2OffDiagonalTerm(sparseRow,ket1,ket2,
 // 								i,orb,basis);
@@ -131,7 +146,7 @@ namespace LanczosPlusPlus {
 				x[ispace] += sparseRow.matrixVectorProduct(y);
 			}
 		}
-		
+
 		void matrixVectorProduct(VectorType &x,
 		                         const VectorType& y,
 		                         const BasisType* b1,
@@ -147,9 +162,8 @@ namespace LanczosPlusPlus {
 
 	private:
 
-		void setupHamiltonian(
-				SparseMatrixType &matrix,
-				const BasisType &basis) const
+		void setupHamiltonian(SparseMatrixType &matrix,
+		                      const BasisType &basis) const
 		{
 			// Calculate diagonal elements AND count non-zero matrix elements
 			size_t hilbert=basis.size();
@@ -172,8 +186,7 @@ namespace LanczosPlusPlus {
 				sparseRow.add(ispace,diag[ispace]);
 				for (size_t i=0;i<nsite;i++) {
 					for (size_t orb=0;orb<basis.orbsPerSite(i);orb++) {
-						setHoppingTerm(sparseRow,ket1,ket2,
-								i,orb,basis);
+						setHoppingTerm(sparseRow,ket1,ket2,i,orb,basis);
 // 						if (orb==0) {
 // 							setU2OffDiagonalTerm(sparseRow,ket1,ket2,
 // 								i,orb,basis);
@@ -226,11 +239,10 @@ namespace LanczosPlusPlus {
 						WordType bra1= ket1 ^(BasisType::bitmask(ii)|BasisType::bitmask(jj));
 						size_t temp = basis.perfectIndex(bra1,ket2);
 						int extraSign = (s1i==1) ? FERMION_SIGN : 1;
-						RealType cTemp = h*extraSign*basis_.doSign(
-							ket1,ket2,i,orb,j,orb2,SPIN_UP);
+						RealType cTemp = h*extraSign*basis_.doSign(ket1,ket2,i,orb,j,orb2,SPIN_UP);
 						sparseRow.add(temp,cTemp);
-
 					}
+
 					if (s2i+s2j==1) {
 						WordType bra2= ket2 ^(BasisType::bitmask(ii)|BasisType::bitmask(jj));
 						size_t temp = basis.perfectIndex(ket1,bra2);
@@ -242,7 +254,7 @@ namespace LanczosPlusPlus {
 				}
 			}
 		}
-		
+
 // 		void setU2OffDiagonalTerm(
 // 				SparseRowType &sparseRow,
 // 				const WordType& ket1,
@@ -340,9 +352,8 @@ namespace LanczosPlusPlus {
 // 			return x;
 // 		}
 
-		void calcDiagonalElements(
-				std::vector<RealType>& diag,
-				const BasisType &basis) const
+		void calcDiagonalElements(std::vector<RealType>& diag,
+		                          const BasisType &basis) const
 		{
 			size_t hilbert=basis.size();
 			size_t nsite = geometry_.numberOfSites();
@@ -468,7 +479,6 @@ namespace LanczosPlusPlus {
 		const ParametersType& mp_;
 		const GeometryType& geometry_;
 		BasisType basis_;
-		
 	}; // class Immm
 	
 } // namespace LanczosPlusPlus

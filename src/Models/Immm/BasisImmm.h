@@ -40,17 +40,18 @@ namespace LanczosPlusPlus {
 			{
 				typename GeometryType::AdditionalDataType additional;
 				additional.type1 = 0;
+				additional.TYPE_C = 0;
 				for (size_t i=0;i<this->size();i++) {
 					geometry.fillAdditionalData(additional,0,i,0);
 					this->operator[](i) = (additional.type1==additional.TYPE_C) ? 1 : 2;
 				}
 			}
-		};
+		}; // class OrbsPerSite
 
 		static int const FERMION_SIGN = BasisType::FERMION_SIGN;
-		
+
 		enum {SPIN_UP,SPIN_DOWN};
-		
+
 		enum {DESTRUCTOR=BasisType::DESTRUCTOR,CONSTRUCTOR=BasisType::CONSTRUCTOR};
 
 		BasisImmm(const GeometryType& geometry, size_t nup,size_t ndown)
@@ -62,15 +63,6 @@ namespace LanczosPlusPlus {
 //			std::cout<<basis1_;
 //			std::cout<<"Basis2\n";
 //			std::cout<<basis2_;
-		}
-		
-		BasisImmm(const GeometryType& geometry, size_t nup)
-		: orbsPerSite_(geometry),basis1_(orbsPerSite_,nup),basis2_(orbsPerSite_,nup)
-		{
-			std::string s = "BasisImmm::ctor(...): obsolete. ";
-			s+= "This probably means that you can't compute the Green function";
-			s+= " with this model (sorry). It might be added in the future.\n";
-			throw std::runtime_error(s.c_str());
 		}
 
 		static const WordType& bitmask(size_t i)
@@ -131,14 +123,13 @@ namespace LanczosPlusPlus {
 			return ret * basis2_.doSign(y,site,orb);
 		}
 
-		int doSign(
-				WordType ket1,
-				WordType ket2,
-				size_t i,
-				size_t orb1,
-				size_t j,
-				size_t orb2,
-				size_t spin) const
+		int doSign(WordType ket1,
+		           WordType ket2,
+		           size_t i,
+		           size_t orb1,
+		           size_t j,
+		           size_t orb2,
+		           size_t spin) const
 		{
 			if (i > j) {
 				std::cerr<<"FATAL: At doSign\n";
@@ -152,12 +143,11 @@ namespace LanczosPlusPlus {
 			return basis2_.doSign(ket2,i,orb1,j,orb2);
 		}
 
-		size_t isThereAnElectronAt(
-				size_t ket1,
-				size_t ket2,
-				size_t site,
-				size_t spin,
-				size_t orb) const
+		size_t isThereAnElectronAt(size_t ket1,
+		                           size_t ket2,
+		                           size_t site,
+		                           size_t spin,
+		                           size_t orb) const
 		{
 			if (spin==SPIN_UP)
 				return basis1_.isThereAnElectronAt(ket1,site,orb);
@@ -167,6 +157,11 @@ namespace LanczosPlusPlus {
 		size_t orbsPerSite(size_t i) const { return orbsPerSite_[i]; }
 
 		size_t orbs() const { return orbsPerSite_[0]; }
+
+		size_t electrons(size_t what) const
+		{
+			return (what==SPIN_UP) ? basis1_.electrons() : basis2_.electrons();
+		}
 
 	private:
 		

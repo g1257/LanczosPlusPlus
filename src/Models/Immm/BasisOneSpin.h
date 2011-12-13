@@ -210,6 +210,8 @@ namespace LanczosPlusPlus {
 			return (ket & bitmask_[x]) ? 1 : 0;
 		}
 
+		size_t electrons() const { return npart_; }
+
 	private:
 
 		size_t orbs() const { return orbsPerSite_[0]; }

@@ -94,36 +94,34 @@ namespace LanczosPlusPlus {
 		typedef typename ModelType::RealType RealType;
 
 		InternalProductOnTheFly(const ModelType& model,
-		                      const BasisType& b1,
-		                      const BasisType& b2)
-		: model_(model),b1_(&b1),b2_(&b2)
+		                        const BasisType& basis)
+		: model_(model),basis_(&basis)
 		{
 			//model.setupHamiltonian(matrixStored_,b1,b2);
 		}
 
 		InternalProductOnTheFly(const ModelType& model)
-		: model_(model),b1_(0),b2_(0)
+		: model_(model),basis_(0)
 		{
 			//model.setupHamiltonian(matrixStored_);
 		}
 
 		size_t rank() const { return model_.size(); }
-		
+
 		template<typename SomeVectorType>
 		void matrixVectorProduct(SomeVectorType &x,SomeVectorType const &y) const
 		{
-			assert((b1_==0 && b2_==0) || (b1_ && b2_)); 
-			if (b1_==0) {
+			if (basis_==0) {
 				model_.matrixVectorProduct(x,y);
 			} else {
-				model_.matrixVectorProduct(x,y,b1_,b2_);
+				model_.matrixVectorProduct(x,y,basis_);
 			}
 		}
 
 	private:
+
 		const ModelType& model_;
-		const BasisType* b1_;
-		const BasisType* b2_;
+		const BasisType* basis_;
 	}; // class InternalProductOnTheFly
 } // namespace LanczosPlusPlus
 

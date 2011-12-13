@@ -93,10 +93,9 @@ namespace LanczosPlusPlus {
 		typedef typename ModelType::RealType RealType;
 		
 		InternalProductStored(const ModelType& model,
-		                      const BasisType& b1,
-		                      const BasisType& b2)
+		                      const BasisType& basis)
 		{
-			model.setupHamiltonian(matrixStored_,b1,b2);
+			model.setupHamiltonian(matrixStored_,basis);
 		}
 
 		InternalProductStored(const ModelType& model)

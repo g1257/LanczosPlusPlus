@@ -4,7 +4,7 @@
 
 #ifndef BASISHUBBARDLANCZOS_H
 #define BASISHUBBARDLANCZOS_H
-#include "Matrix.h"
+#include "BasisOneSpin.h"
 
 namespace LanczosPlusPlus {
 	
@@ -12,123 +12,137 @@ namespace LanczosPlusPlus {
 	class BasisHubbardLanczos {
 	public:
 		
-		typedef unsigned int long long WordType;
-		static size_t nsite_;
-		static PsimagLite::Matrix<size_t> comb_;
-		static std::vector<WordType> bitmask_; 
+		typedef BasisOneSpin BasisType;
+		typedef typename BasisType::WordType WordType;
+
+		enum {SPIN_UP,SPIN_DOWN};
+
+		enum {DESTRUCTOR=BasisType::DESTRUCTOR,CONSTRUCTOR=BasisType::CONSTRUCTOR};
+
+		static int const FERMION_SIGN = BasisType::FERMION_SIGN;
+
+		BasisHubbardLanczos(const GeometryType& geometry, size_t nup,size_t ndown) 
+		: basis1_(geometry.numberOfSites(),nup),
+		  basis2_(geometry.numberOfSites(),ndown)
+		{} 
 		
-		BasisHubbardLanczos(const GeometryType& geometry, size_t npart) 
-		: npart_(npart)
-		{
-			size_t nsite = geometry.numberOfSites();
-
-			if (nsite_>0 && nsite!=nsite_)
-				throw std::runtime_error("BasisHubbardLanczos: All basis must have same number of sites\n");
-			nsite_ = nsite;
-			doCombinatorial();
-			doBitmask();
-
-			/* compute size of basis */
-			size_t hilbert=1;
-			int n=nsite;
-			size_t m=1;
-			for (;m<=npart;n--,m++)
-				hilbert=hilbert*n/m;
-
-			if (data_.size()!=hilbert) {
-				data_.clear();
-				data_.resize(hilbert);
-			}
-
-			if (npart==0) {
-				data_[0]=0;
-				return;
-			}
-			
-			/* define basis states */
-			WordType ket = (1ul<<npart)-1;
-			for (size_t i=0;i<hilbert;i++) {
-				data_[i] = ket;
-				n=m=0;
-				for (;(ket&3)!=1;n++,ket>>=1) {
-					m += ket&1;
-				}
-				ket = ((ket+1)<<n) ^ ((1<<m)-1);
-			}
-			size_ = hilbert;
-		} 
-		
-
-		size_t size() const { return size_; } 
-
-		const WordType& operator[](size_t i) const
-		{
-			return data_[i];
-		} 
-
-		size_t perfectIndex(WordType state) const
-		{
-			size_t n=0;
-			for (size_t b=0,c=1;state>0;b++,state>>=1)
-				if (state&1) n += comb_(b,c++);
-
-			return n;
-		} 
-
 		static const WordType& bitmask(size_t i)
 		{
-			return bitmask_[i];
+			return BasisType::bitmask(i);
 		}
 
-		size_t electrons() const { return npart_; }
+		size_t size() const { return basis1_.size()*basis2_.size(); }
+
+		size_t perfectIndex(WordType ket1,WordType ket2) const
+		{
+			return basis1_.perfectIndex(ket1) + 
+			       basis2_.perfectIndex(ket2)*basis1_.size();
+		}
+
+		size_t electrons(size_t what) const
+		{
+			return (what==SPIN_UP) ? basis1_.electrons() : basis2_.electrons();
+		}
+
+		const WordType& operator()(size_t i,size_t spin) const
+		{
+			size_t y = i/basis1_.size();
+			size_t x = i%basis1_.size();
+			return (spin==SPIN_UP) ? basis1_[x] : basis2_[y];
+		}
+
+		size_t isThereAnElectronAt(size_t ket1,
+		                           size_t ket2,
+		                           size_t site,
+		                           size_t spin) const
+		{
+			if (spin==SPIN_UP)
+				return basis1_.isThereAnElectronAt(ket1,site);
+			return basis2_.isThereAnElectronAt(ket2,site);
+		}
+
+		size_t getN(size_t i,size_t spin) const
+		{
+			size_t y = i/basis1_.size();
+			size_t x = i%basis1_.size();
+			return (spin==SPIN_UP) ? basis1_.getN(x) : basis2_.getN(y);
+		}
 		
+		int doSignGf(WordType a, WordType b,size_t ind,size_t sector) const
+		{
+			if (sector==SPIN_UP) {
+				if (ind==0) return 1;
+
+				// ind>0 from now on
+				size_t i = 0;
+				size_t j = ind;
+				WordType mask = a;
+				mask &= ((1 << (i+1)) - 1) ^ ((1 << j) - 1);
+				int s=(PsimagLite::BitManip::count(mask) & 1) ? -1 : 1; // Parity of up between i and j
+				// Is there an up at i?
+				if (BasisType::bitmask(i) & a) s = -s;
+				return s;
+			}
+			int s=(PsimagLite::BitManip::count(a) & 1) ? -1 : 1; // Parity of up
+			if (ind==0) return s;
+
+			// ind>0 from now on
+			size_t i = 0;
+			size_t j = ind;
+			WordType mask = b;
+			mask &= ((1 << (i+1)) - 1) ^ ((1 << j) - 1);
+			s=(PsimagLite::BitManip::count(mask) & 1) ? -1 : 1; // Parity of up between i and j
+			// Is there a down at i?
+			if (BasisType::bitmask(i) & b) s = -s;
+			return s;
+		}
+
+		int doSign(WordType ket1,
+		           WordType ket2,
+		           size_t i,
+		           size_t j,
+		           size_t spin) const
+		{
+			assert(i <= j);
+			return (spin==SPIN_UP) ? basis1_.doSign(ket1,i,j): basis2_.doSign(ket2,i,j);
+		}
+		
+		int doSign(WordType ket,
+		           size_t i,
+		           size_t spin) const
+		{
+			return (spin==SPIN_UP) ? basis1_.doSign(ket,i): basis2_.doSign(ket,i);
+		}
+		
+		int getBraIndex(const WordType& ket1,
+		                   const WordType& ket2,
+		                   size_t what,
+		                   size_t site,
+		                   size_t spin) const
+		{
+			WordType bra;
+			bool b = getBra(bra,ket1,ket2,what,site,spin);
+			if (!b) return -1;
+			return (spin==SPIN_UP) ? perfectIndex(bra,ket2) :
+			                         perfectIndex(ket1,bra);
+		}
+		
+		bool getBra(WordType& bra,
+		            const WordType& ket1,
+		            const WordType& ket2,
+		            size_t what,
+		            size_t site,
+		            size_t spin) const
+		{
+			return (spin==SPIN_UP) ? basis1_.getBra(bra,ket1,what,site) :
+			                         basis2_.getBra(bra,ket2,what,site);
+		}
 
 	private:
-		
 
-		void doCombinatorial()
-		{
-			/* look-up table for binomial coefficients */
-			comb_.reset(nsite_,nsite_);
-
-			for (size_t n=0;n<nsite_;n++)
-				for (size_t i=0;i<nsite_;i++)
-					comb_(n,i)=0;
-
-			for (size_t n=0;n<nsite_;n++) {
-				size_t m = 0;
-				int j = n;
-				size_t i = 1;
-				size_t cnm  = 1;
-				for (;m<=n/2;m++,cnm=cnm*j/i,i++,j--)
-					comb_(n,m) = comb_(n,n-m) = cnm;
-			}
-		} 
-
-		void doBitmask()
-		{
-			bitmask_.resize(nsite_);
-			bitmask_[0]=1ul;
-			for (size_t i=1;i<nsite_;i++)
-				bitmask_[i] = bitmask_[i-1]<<1;
-		} 
-		
-		
-		size_t size_;
-		size_t npart_;
-		std::vector<WordType> data_;
+		BasisType basis1_,basis2_;
 		
 	}; // class BasisHubbardLanczos
-
-	template<typename GeometryType>
-	size_t BasisHubbardLanczos<GeometryType>::nsite_=0;
-
-	template<typename GeometryType>
-	PsimagLite::Matrix<size_t> BasisHubbardLanczos<GeometryType>::comb_;
-
-	template<typename GeometryType>
-	std::vector<typename BasisHubbardLanczos<GeometryType>::WordType> 
-	                        BasisHubbardLanczos<GeometryType>::bitmask_; 
 	
 } // namespace LanczosPlusPlus
 #endif

@@ -89,14 +89,12 @@ namespace LanczosPlusPlus {
 				std::pair<size_t,size_t> newParts(0,0);
 				if (!model_.hasNewParts(newParts,type,spin)) continue;
 				// Create new bases
-				BasisType basis1New(model_.geometry(),newParts.first);
-				BasisType basis2New(model_.geometry(),newParts.second);
+				BasisType basisNew(model_.geometry(),newParts.first,newParts.second);
 
 				std::vector<RealType> modifVector;
-				model_.getModifiedState(modifVector,gsVector_,basis1New,basis2New,
-						type,isite,jsite,spin);
+				model_.getModifiedState(modifVector,gsVector_,basisNew,type,isite,jsite,spin);
 
-				InternalProductType matrix(model_,basis1New,basis2New);
+				InternalProductType matrix(model_,basisNew);
 				ContinuedFractionType cf;
 
 				calcGf(cf,modifVector,matrix,type,spin);

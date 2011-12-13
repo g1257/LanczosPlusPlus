@@ -137,8 +137,7 @@ namespace LanczosPlusPlus {
 
 		void matrixVectorProduct(VectorType &x,
 		                         const VectorType& y,
-		                         const BasisType* b1,
-		                         const BasisType* b2) const
+		                         const BasisType* basis) const
 		{
 			std::string s = "Immm::matrixVectorProduct(...): unimplemented. ";
 			s+= "This probably means that you can't compute the Green function";

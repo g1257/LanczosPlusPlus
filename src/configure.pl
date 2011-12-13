@@ -113,9 +113,6 @@ lanczos.cpp: configure.pl
 lanczos:  lanczos.o 
 	\$(CXX) -o lanczos lanczos.o \$(LDFLAGS)  
 
-correctionVectorMulti: correctionVectorMulti.o
-	\$(CXX) -o correctionVectorMulti correctionVectorMulti.o \$(LDFLAGS)
-
 # dependencies brought about by Makefile.dep
 %.o: %.cpp Makefile
 	\$(CXX) \$(CPPFLAGS) -c \$< 
@@ -135,25 +132,6 @@ EOF
 	print STDERR "File Makefile has been written\n";
 }
 
-sub getLitProgTargets
-{
-	my ($array)=@_;
-	my $x = "";
-	my $litProgTool = "nuweb.pl -v -l  -s  -d ";
-	foreach my $f (@$array) {
-		my $fh = $f;
-		$fh =~ s/\.w$/\.h/;
-		$x = $x."$fh: $f\n";
-		my $dir = $f;
-		$dir =~ s/\/[^\/]+$/\//;
-		my $fnd = $f;
-		$fnd =~ s/$dir//;
-		my $dirChange = computeBackwardMovements($dir);
-		$x = $x."\t cd $dir; $dirChange$litProgTool $fnd\n";
-		$x = $x."\n";
-	}
-	return $x;
-}
 
 sub computeBackwardMovements
 {

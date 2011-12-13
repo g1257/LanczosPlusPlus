@@ -1,6 +1,4 @@
  
-NOTE: THIS IS WORK IN PROGRESS
-	
 Licensing
 The full software license for LanczosPlusPlus++ version 1.0.0 
 can be found in
@@ -36,7 +34,7 @@ TBW.
 Required Software
 
 * (required) GNU C++
-* (required) The LAPACK library.
+* (required) The LAPACK and BLAS libraries
 This library is available for most platforms.
 The configure.pl script will ask for the LDFLAGS variable 
 to pass to the compiler/linker. If the linux platform was
@@ -48,7 +46,6 @@ More information on LAPACK is here: http://netlib.org/lapack/
 * (required) PsimagLite. This is here \url{https://github.com/g1257/PsimagLite/}.
 You can do \verb=git clone https://github.com/g1257/PsimagLite.git= in a separate directory
 outside of the DMRG++ distribution. \verb=configure.pl= will ask you where you put it.
-* (semi-optional) GNU Scientific Library (see doc/manual.pdf)
 * (optional) make or gmake (only needed to use the Makefile)
 * (optional) perl (only needed to run the configure.pl script)
 

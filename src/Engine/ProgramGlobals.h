@@ -90,7 +90,7 @@ namespace LanczosPlusPlus {
 		static double const LanczosTolerance; // tolerance of the Lanczos Algorithm
 		enum {FERMION,BOSON};
 	}; // ProgramGlobals
-	
+
 	double const ProgramGlobals::LanczosTolerance = 1e-12;
 }; // namespace LanczosPlusPlus
 /*@}*/

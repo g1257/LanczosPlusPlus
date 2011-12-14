@@ -102,6 +102,8 @@ if ($mpi) {
 	print FOUT "CXX = $compiler  -O3 -DNDEBUG\n";
 	print FOUT "#Comment out line below for debugging: \n";
 	print FOUT "#CXX = $compiler -g3 \n";
+	print FOUT "#Comment out line below for valgrind callgrind analysis: \n";
+	print FOUT "#CXX = $compiler -g3 -DNDEBUG -O1 \n";
 }
 print FOUT<<EOF;
 EXENAME = lanczos

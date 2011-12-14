@@ -151,7 +151,7 @@ namespace LanczosPlusPlus {
 			}
 			return basis2_.doSign(ket2,i,orb1,j,orb2);
 		}
-		
+
 		int doSignGf(WordType a, WordType b,size_t ind,size_t spin,size_t orb) const
 		{
 			if (spin==SPIN_UP) {

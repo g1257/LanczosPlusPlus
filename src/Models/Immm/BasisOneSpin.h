@@ -64,15 +64,20 @@ namespace LanczosPlusPlus {
 				levels += orbsPerSite_[i];
 			size_t tmp = comb_(levels,npart);
 			data_.resize(tmp);
+			
+			levels = orbsPerSite_.size()*orbs();			
+			tmp = comb_(levels,npart);
+			reordering_.resize(tmp);
 
 			// compute basis:
 			size_t counter = 0;
+			size_t counter2 = 0;
 			for (size_t na=0;na<=npart;na++) {
 				size_t nb = npart - na;
 				std::vector<WordType> basisA, basisB;
 				fillPartialBasis(basisA,na);
 				fillPartialBasis(basisB,nb);
-				collateBasis(counter,basisA,basisB);
+				collateBasis(counter,counter2,basisA,basisB);
 			}
 		}
 
@@ -85,31 +90,29 @@ namespace LanczosPlusPlus {
 
 		size_t perfectIndex(WordType ket) const
 		{
-			for (size_t i=0;i<data_.size();i++)
+/*			for (size_t i=0;i<data_.size();i++)
 				if (data_[i]==ket) return i;
 			assert(false);
-			return 0; // bogus
-// 			throw std::runtime_error("perfectindex\n");
-// 
-// 			WordType ketA=0,ketB=0;
-// 			uncollateKet(ketA,ketB,ket);
-// 			// p(ket) = \sum_{na'=0}^{na'<na} S_na' * S_nb'
-// 			//			+ p_A(ket_A)*S_nb + p_B(ket_B)
-// 			// where S_x = C^n_x
-// 			size_t na = PsimagLite::BitManip::count(ketA);
-// 			// note nb = PsimagLite::BitManip::count(ketB)
-// 			// or nb  = npart -na
-// 			size_t s = 0;
-// 			for (size_t nap=0;nap<na;nap++) {
-// 				size_t nbp = npart_ - nap;
-// 				s += comb_(nsite_,nap) * comb_(nsite_,nbp);
-// 			}
-// 			size_t nb = npart_ - na;
-// 			s += perfectIndexPartial(ketA)*comb_(nsite_,nb);
-// 			s += perfectIndexPartial(ketB);
-// 			if (s>=data_.size())
-// 				throw std::runtime_error("BasisOneSpin::PerfectIndex>=data_.size()\n");
-// 			return s;
+			return 0; */
+			WordType ketA=0,ketB=0;
+			uncollateKet(ketA,ketB,ket);
+			// p(ket) = \sum_{na'=0}^{na'<na} S_na' * S_nb'
+			//			+ p_A(ket_A)*S_nb + p_B(ket_B)
+			// where S_x = C^n_x
+			size_t na = PsimagLite::BitManip::count(ketA);
+			// note nb = PsimagLite::BitManip::count(ketB)
+			// or nb  = npart -na
+			size_t s = 0;
+			for (size_t nap=0;nap<na;nap++) {
+				size_t nbp = npart_ - nap;
+				s += comb_(nsite_,nap) * comb_(nsite_,nbp);
+			}
+			size_t nb = npart_ - na;
+			s += perfectIndexPartial(ketA)*comb_(nsite_,nb);
+			s += perfectIndexPartial(ketB);
+			assert(s<reordering_.size());
+			assert(reordering_[s]<data_.size());
+			return reordering_[s];
 		}
 
 		size_t getN(size_t i,size_t orb) const
@@ -267,11 +270,13 @@ namespace LanczosPlusPlus {
 		}
 
 		void collateBasis(size_t& counter,
+		                  size_t& counter2,
 		                  const std::vector<WordType>& basisA,
 		                  const std::vector<WordType>& basisB)
 		{
 			for (size_t i=0;i<basisA.size();i++) {
 				for (size_t j=0;j<basisB.size();j++) {
+					reordering_[counter2++]=counter;
 					if (isForbiddenSite(basisB[j])) continue;
 					WordType ket = getCollatedKet(basisA[i],basisB[j]);
 					assert(counter<data_.size());
@@ -293,7 +298,7 @@ namespace LanczosPlusPlus {
 		void doCombinatorial()
 		{
 			/* look-up table for binomial coefficients */
-			comb_.reset(orbs()*nsite_,orbs()*nsite_);
+			comb_.reset(orbs()*nsite_+1,orbs()*nsite_+1);
 
 			for (size_t n=0;n<comb_.n_row();n++)
 				for (size_t i=0;i<comb_.n_col();i++)
@@ -383,6 +388,7 @@ namespace LanczosPlusPlus {
 		const std::vector<size_t> orbsPerSite_;
 		size_t npart_;
 		std::vector<WordType> data_;
+		std::vector<WordType> reordering_;
 
 	}; // class BasisOneSpin
 

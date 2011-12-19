@@ -58,12 +58,7 @@ namespace LanczosPlusPlus {
 		: orbsPerSite_(geometry),
 		  basis1_(orbsPerSite_,nup),
 		  basis2_(orbsPerSite_,ndown)
-		{
-//			std::cout<<"Basis1\n";
-//			std::cout<<basis1_;
-//			std::cout<<"Basis2\n";
-//			std::cout<<basis2_;
-		}
+		{}
 
 		static const WordType& bitmask(size_t i)
 		{
@@ -98,7 +93,7 @@ namespace LanczosPlusPlus {
 		                   size_t spin,
 		                   size_t orb) const
 		{
-			WordType bra;
+			WordType bra = 0;
 			bool b = getBra(bra,ket1,ket2,what,site,spin,orb);
 			if (!b) return -1;
 			return (spin==SPIN_UP) ? perfectIndex(bra,ket2) :
@@ -182,7 +177,7 @@ namespace LanczosPlusPlus {
 		}
 
 	private:
-		
+
 		OrbsPerSite orbsPerSite_;
 		BasisType basis1_,basis2_;
 

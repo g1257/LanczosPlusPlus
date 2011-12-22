@@ -126,7 +126,7 @@ namespace LanczosPlusPlus {
 				sparseRow.add(ispace,diag[ispace]);
 				for (size_t i=0;i<nsite;i++) {
 					for (size_t orb=0;orb<basis->orbsPerSite(i);orb++) {
-						setHoppingTerm(sparseRow,ket1,ket2,i,orb,*basis);
+						setHoppingTerm(sparseRow,ket1,ket2,ispace,i,orb,*basis);
 // 						if (orb==0) {
 // 							setU2OffDiagonalTerm(sparseRow,ket1,ket2,
 // 								i,orb,basis);
@@ -191,13 +191,13 @@ namespace LanczosPlusPlus {
 			return geometry_(i,orb1,j,orb2,0);
 		}
 
-		void setHoppingTerm(
-				SparseRowType &sparseRow,
-				const WordType& ket1,
-				const WordType& ket2,
-				size_t i,
-				size_t orb,
-				const BasisType &basis) const
+		void setHoppingTerm(SparseRowType &sparseRow,
+		                    const WordType& ket1,
+		                    const WordType& ket2,
+		                    size_t ispace,
+		                    size_t i,
+		                    size_t orb,
+		                    const BasisType &basis) const
 		{
 			size_t ii = i*basis.orbs()+orb;
 			WordType s1i=(ket1 & BasisType::bitmask(ii));
@@ -221,7 +221,7 @@ namespace LanczosPlusPlus {
 
 					if (s1i+s1j==1) {
 						WordType bra1= ket1 ^(BasisType::bitmask(ii)|BasisType::bitmask(jj));
-						size_t temp = basis.perfectIndex(bra1,ket2);
+						size_t temp = basis.perfectIndex(bra1,ispace,SPIN_UP);
 						int extraSign = (s1i==1) ? FERMION_SIGN : 1;
 						RealType cTemp = h*extraSign*basis_.doSign(ket1,ket2,i,orb,j,orb2,SPIN_UP);
 						sparseRow.add(temp,cTemp);
@@ -229,7 +229,7 @@ namespace LanczosPlusPlus {
 
 					if (s2i+s2j==1) {
 						WordType bra2= ket2 ^(BasisType::bitmask(ii)|BasisType::bitmask(jj));
-						size_t temp = basis.perfectIndex(ket1,bra2);
+						size_t temp = basis.perfectIndex(bra2,ispace,SPIN_DOWN);
 						int extraSign = (s2i==1) ? FERMION_SIGN : 1;
 						RealType cTemp = h*extraSign*basis_.doSign(
 							ket1,ket2,i,orb,j,orb2,SPIN_DOWN);
@@ -486,7 +486,7 @@ namespace LanczosPlusPlus {
 			for (size_t ispace=0;ispace<basis_.size();ispace++) {
 				WordType ket1 = basis_(ispace,SPIN_UP);
 				WordType ket2 = basis_(ispace,SPIN_DOWN);
-				int temp = newBasis.getBraIndex(ket1,ket2,what,site,spin,orb);
+				int temp = newBasis.getBraIndex(ket1,ket2,ispace,what,site,spin,orb);
 // 				int temp= getBraIndex(mysign,ket1,ket2,newBasis,what,site,spin);
 				if (temp>=0 && size_t(temp)>=z.size()) {
 					std::string s = "old basis=" + ttos(basis_.size());
@@ -510,7 +510,7 @@ namespace LanczosPlusPlus {
 		const GeometryType& geometry_;
 		BasisType basis_;
 	}; // class Immm
-	
+
 } // namespace LanczosPlusPlus
 #endif
 

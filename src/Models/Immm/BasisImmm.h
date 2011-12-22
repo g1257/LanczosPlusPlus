@@ -74,9 +74,19 @@ namespace LanczosPlusPlus {
 			return (spin==SPIN_UP) ? basis1_[x] : basis2_[y];
 		}
 
-		size_t perfectIndex(WordType ket1,WordType ket2) const
+// 		size_t perfectIndex(WordType ket1,WordType ket2) const
+// 		{
+// 			return basis1_.perfectIndex(ket1) + basis2_.perfectIndex(ket2)*basis1_.size();
+// 		}
+		
+		size_t perfectIndex(WordType newKet,size_t ispace,size_t spinOfNew) const
 		{
-			return basis1_.perfectIndex(ket1) + basis2_.perfectIndex(ket2)*basis1_.size();
+			if (spinOfNew==SPIN_UP) {
+				size_t oldIndex1 = ispace / basis1_.size();
+				return basis1_.perfectIndex(newKet) + oldIndex1*basis1_.size();
+			}
+			size_t oldIndex2 = ispace % basis1_.size();
+			return oldIndex2 + basis1_.perfectIndex(newKet) * basis1_.size();
 		}
 
 		size_t getN(size_t i,size_t spin,size_t orb) const
@@ -85,9 +95,9 @@ namespace LanczosPlusPlus {
 			size_t x = i%basis1_.size();
 			return (spin==SPIN_UP) ? basis1_.getN(x,orb) : basis2_.getN(y,orb);
 		}
-
-		size_t getBraIndex(WordType ket1,
-		                   WordType ket2,
+		size_t getBraIndex(const WordType& ket1,
+		                   const WordType& ket2,
+		                   size_t ispace,
 		                   size_t what,
 		                   size_t site,
 		                   size_t spin,
@@ -96,9 +106,23 @@ namespace LanczosPlusPlus {
 			WordType bra = 0;
 			bool b = getBra(bra,ket1,ket2,what,site,spin,orb);
 			if (!b) return -1;
-			return (spin==SPIN_UP) ? perfectIndex(bra,ket2) :
-			                         perfectIndex(ket1,bra);
+			return (spin==SPIN_UP) ? perfectIndex(bra,ispace,spin) :
+			                         perfectIndex(bra,ispace,spin);
 		}
+
+// 		size_t getBraIndex(WordType ket,
+// 		                   size_t oldIndex,
+// 		                   size_t what,
+// 		                   size_t site,
+// 		                   size_t spin,
+// 		                   size_t orb) const
+// 		{
+// 			WordType bra = 0;
+// 			bool b = getBra(bra,ket,what,site,spin,orb);
+// 			if (!b) return -1;
+// 			return (spin==SPIN_UP) ? perfectIndex(bra,oldIndex,spin) :
+// 			                         perfectIndex(bra,oldIndex,spin);
+// 		}
 
 		bool getBra(WordType& bra,
 		            const WordType& ket1,

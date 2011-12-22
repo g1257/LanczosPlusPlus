@@ -284,7 +284,7 @@ namespace LanczosPlusPlus {
 				}
 			}
 		}
-		
+
 		bool isForbiddenSite(const WordType& ket) const
 		{
 			for (size_t i=0;i<orbsPerSite_.size();i++) {

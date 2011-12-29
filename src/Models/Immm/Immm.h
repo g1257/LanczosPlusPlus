@@ -225,7 +225,7 @@ namespace LanczosPlusPlus {
 						WordType bra1= ket1 ^(BasisType::bitmask(ii)|BasisType::bitmask(jj));
 						size_t temp = basis.perfectIndex(bra1,ispace,SPIN_UP);
 						int extraSign = (s1i==1) ? FERMION_SIGN : 1;
-						RealType cTemp = h*extraSign*basis_.doSign(ket1,ket2,i,orb,j,orb2,SPIN_UP);
+						RealType cTemp = h*extraSign*basis.doSign(ket1,ket2,i,orb,j,orb2,SPIN_UP);
 						sparseRow.add(temp,cTemp);
 					}
 
@@ -233,7 +233,7 @@ namespace LanczosPlusPlus {
 						WordType bra2= ket2 ^(BasisType::bitmask(ii)|BasisType::bitmask(jj));
 						size_t temp = basis.perfectIndex(bra2,ispace,SPIN_DOWN);
 						int extraSign = (s2i==1) ? FERMION_SIGN : 1;
-						RealType cTemp = h*extraSign*basis_.doSign(
+						RealType cTemp = h*extraSign*basis.doSign(
 							ket1,ket2,i,orb,j,orb2,SPIN_DOWN);
 						sparseRow.add(temp,cTemp);
 					}

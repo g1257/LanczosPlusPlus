@@ -85,8 +85,8 @@ namespace LanczosPlusPlus {
 				size_t oldIndex1 = ispace / basis1_.size();
 				return basis1_.perfectIndex(newKet) + oldIndex1*basis1_.size();
 			}
-			size_t oldIndex2 = ispace % basis1_.size();
-			return oldIndex2 + basis1_.perfectIndex(newKet) * basis1_.size();
+			size_t oldIndex2 = ispace % basis2_.size();
+			return oldIndex2 + basis2_.perfectIndex(newKet) * basis2_.size();
 		}
 
 		size_t getN(size_t i,size_t spin,size_t orb) const

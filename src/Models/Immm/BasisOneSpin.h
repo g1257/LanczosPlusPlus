@@ -79,6 +79,8 @@ namespace LanczosPlusPlus {
 				fillPartialBasis(basisB,nb);
 				collateBasis(counter,counter2,basisA,basisB);
 			}
+// 			std::cerr<<" in ctor NPART="<<npart_<<"\n";
+// 			print(std::cout);
 		}
 
 		size_t size() const { return data_.size(); }
@@ -87,32 +89,41 @@ namespace LanczosPlusPlus {
 		{
 			return data_[i];
 		}
+		
+		void print(std::ostream& os) const
+		{
+			std::cerr<<"--------------npart="<<npart_<<"\n";
+			for (size_t i=0;i<data_.size();i++)
+				std::cerr<<data_[i]<<"\n";
+			std::cerr<<"--------------\n";
+		}
 
 		size_t perfectIndex(WordType ket) const
 		{
-/*			for (size_t i=0;i<data_.size();i++)
+			for (size_t i=0;i<data_.size();i++)
 				if (data_[i]==ket) return i;
+			print(std::cout);
 			assert(false);
-			return 0; */
-			WordType ketA=0,ketB=0;
-			uncollateKet(ketA,ketB,ket);
-			// p(ket) = \sum_{na'=0}^{na'<na} S_na' * S_nb'
-			//			+ p_A(ket_A)*S_nb + p_B(ket_B)
-			// where S_x = C^n_x
-			size_t na = PsimagLite::BitManip::count(ketA);
-			// note nb = PsimagLite::BitManip::count(ketB)
-			// or nb  = npart -na
-			size_t s = 0;
-			for (size_t nap=0;nap<na;nap++) {
-				size_t nbp = npart_ - nap;
-				s += comb_(nsite_,nap) * comb_(nsite_,nbp);
-			}
-			size_t nb = npart_ - na;
-			s += perfectIndexPartial(ketA)*comb_(nsite_,nb);
-			s += perfectIndexPartial(ketB);
-			assert(s<reordering_.size());
-			assert(reordering_[s]<data_.size());
-			return reordering_[s];
+			return 0; 
+// 			WordType ketA=0,ketB=0;
+// 			uncollateKet(ketA,ketB,ket);
+// 			// p(ket) = \sum_{na'=0}^{na'<na} S_na' * S_nb'
+// 			//			+ p_A(ket_A)*S_nb + p_B(ket_B)
+// 			// where S_x = C^n_x
+// 			size_t na = PsimagLite::BitManip::count(ketA);
+// 			// note nb = PsimagLite::BitManip::count(ketB)
+// 			// or nb  = npart -na
+// 			size_t s = 0;
+// 			for (size_t nap=0;nap<na;nap++) {
+// 				size_t nbp = npart_ - nap;
+// 				s += comb_(nsite_,nap) * comb_(nsite_,nbp);
+// 			}
+// 			size_t nb = npart_ - na;
+// 			s += perfectIndexPartial(ketA)*comb_(nsite_,nb);
+// 			s += perfectIndexPartial(ketB);
+// 			assert(s<reordering_.size());
+// 			assert(reordering_[s]<data_.size());
+// 			return reordering_[s];
 		}
 
 		size_t getN(size_t i,size_t orb) const

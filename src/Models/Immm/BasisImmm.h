@@ -78,7 +78,7 @@ namespace LanczosPlusPlus {
 // 		{
 // 			return basis1_.perfectIndex(ket1) + basis2_.perfectIndex(ket2)*basis1_.size();
 // 		}
-		
+
 		size_t perfectIndex(WordType newKet,size_t ispace,size_t spinOfNew) const
 		{
 			if (spinOfNew==SPIN_UP) {
@@ -95,6 +95,7 @@ namespace LanczosPlusPlus {
 			size_t x = i%basis1_.size();
 			return (spin==SPIN_UP) ? basis1_.getN(x,orb) : basis2_.getN(y,orb);
 		}
+
 		size_t getBraIndex(const WordType& ket1,
 		                   const WordType& ket2,
 		                   size_t ispace,
@@ -190,7 +191,7 @@ namespace LanczosPlusPlus {
 				return basis1_.isThereAnElectronAt(ket1,site,orb);
 			return basis2_.isThereAnElectronAt(ket2,site,orb);
 		}
-		
+
 		size_t orbsPerSite(size_t i) const { return orbsPerSite_[i]; }
 
 		size_t orbs() const { return orbsPerSite_[0]; }
@@ -208,4 +209,3 @@ namespace LanczosPlusPlus {
 	}; // class BasisImmm
 } // namespace LanczosPlusPlus
 #endif
-

@@ -23,7 +23,7 @@ Please see full open source license included in file LICENSE.
 
 #include "CrsMatrix.h"
 #include "BasisImmm.h"
-#include "SparseRow.h"
+#include "SparseRowCached.h"
 
 namespace LanczosPlusPlus {
 
@@ -38,7 +38,7 @@ namespace LanczosPlusPlus {
 		typedef typename BasisType::WordType WordType;
 		typedef RealType_ RealType;
 		typedef PsimagLite::CrsMatrix<RealType> SparseMatrixType;
-		typedef PsimagLite::SparseRow<SparseMatrixType> SparseRowType;
+		typedef PsimagLite::SparseRowCached<SparseMatrixType> SparseRowType;
 		typedef std::vector<RealType> VectorType;
 
 		enum {SPIN_UP=BasisType::SPIN_UP,SPIN_DOWN=BasisType::SPIN_DOWN};
@@ -118,8 +118,10 @@ namespace LanczosPlusPlus {
 			size_t nsite = geometry_.numberOfSites();
 
 			// Calculate off-diagonal elements AND store matrix
+			size_t cacheSize = hilbert/10;
+			if (cacheSize<100) cacheSize=100;
+			SparseRowType sparseRow(cacheSize);
 			for (size_t ispace=0;ispace<hilbert;ispace++) {
-				SparseRowType sparseRow;
 				WordType ket1 = basis->operator()(ispace,SPIN_UP);
 				WordType ket2 = basis->operator()(ispace,SPIN_DOWN);
 				// Save diagonal
@@ -159,8 +161,8 @@ namespace LanczosPlusPlus {
 
 			// Calculate off-diagonal elements AND store matrix
 			size_t nCounter=0;
+			SparseRowType sparseRow;
 			for (size_t ispace=0;ispace<hilbert;ispace++) {
-				SparseRowType sparseRow;
 				matrix.setRow(ispace,nCounter);
 				WordType ket1 = basis(ispace,SPIN_UP);
 				WordType ket2 = basis(ispace,SPIN_DOWN);

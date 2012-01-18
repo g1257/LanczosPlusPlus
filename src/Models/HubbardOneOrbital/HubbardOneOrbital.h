@@ -61,35 +61,14 @@ namespace LanczosPlusPlus {
 
 		void setupHamiltonian(SparseMatrixType &matrix) const
 		{
-			setupHamiltonian(matrix,basis_);
-
-			PsimagLite::Matrix<RealType> fullMatrix;
-			crsMatrixToFullMatrix(fullMatrix,matrix);
-			std::cerr<<"-----------\n";
-			std::cerr<<fullMatrix<<"\n";
-
+			if (!mp_.useReflectionSymmetry) {
+				setupHamiltonian(matrix,basis_);
+				return;
+			}
+			SparseMatrixType matrix2;
+			setupHamiltonian(matrix2,basis_);
 			ReflectionSymmetryType rs(basis_,geometry_);
-
-			const SparseMatrixType& r = rs();
-			SparseMatrixType rT;
-			transposeConjugate(rT,r);
-
-			SparseMatrixType tmp;
-			multiply(tmp,matrix,rT);
-			PsimagLite::Matrix<RealType> mtmp;
-			crsMatrixToFullMatrix(mtmp,tmp);
-			std::cerr<<"-----------\n";
-			std::cerr<<mtmp;
-
-			SparseMatrixType tmp2;
-			multiply(tmp2,r,tmp);
-			PsimagLite::Matrix<RealType> mtmp2;
-			crsMatrixToFullMatrix(mtmp2,tmp2);
-			std::cerr<<"-----------\n";
-			std::cerr<<mtmp2;
-
-			throw std::runtime_error("testing\n");
-
+			rs.transform(matrix,matrix2);
 		}
 
 		//! Gf. related functions below:

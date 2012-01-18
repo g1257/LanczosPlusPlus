@@ -111,10 +111,39 @@ namespace LanczosPlusPlus {
 			}
 //			s_.setRow(s_.rank(),counter);
 			setTransform(buffer);
-			checkTransform();
+//			checkTransform();
 		}
 
-		const SparseMatrixType operator()() const { return transform_; }
+		void transform(SparseMatrixType& matrix2,const SparseMatrixType& matrix) const
+		{
+//			PsimagLite::Matrix<RealType> fullMatrix;
+//			crsMatrixToFullMatrix(fullMatrix,matrix);
+//			std::cerr<<"-----------\n";
+//			std::cerr<<fullMatrix<<"\n";
+
+//			ReflectionSymmetryType rs(basis_,geometry_);
+
+//			const SparseMatrixType& r = rs();
+			SparseMatrixType rT;
+			transposeConjugate(rT,transform_);
+
+			SparseMatrixType tmp;
+			multiply(tmp,matrix,rT);
+//			PsimagLite::Matrix<RealType> mtmp;
+//			crsMatrixToFullMatrix(mtmp,tmp);
+//			std::cerr<<"-----------\n";
+//			std::cerr<<mtmp;
+
+			multiply(matrix2,transform_,tmp);
+//			PsimagLite::Matrix<RealType> mtmp2;
+//			crsMatrixToFullMatrix(mtmp2,tmp2);
+//			std::cerr<<"-----------\n";
+//			std::cerr<<mtmp2;
+
+//			throw std::runtime_error("testing\n");
+		}
+
+		//const SparseMatrixType operator()() const { return transform_; }
 
 //		const SparseMatrixType reflectionSymmetry() const { return s_; }
 

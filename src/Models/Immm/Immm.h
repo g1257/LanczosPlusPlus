@@ -24,6 +24,7 @@ Please see full open source license included in file LICENSE.
 #include "CrsMatrix.h"
 #include "BasisImmm.h"
 #include "SparseRowCached.h"
+#include "ReflectionSymmetry.h"
 
 namespace LanczosPlusPlus {
 
@@ -40,6 +41,7 @@ namespace LanczosPlusPlus {
 		typedef PsimagLite::CrsMatrix<RealType> SparseMatrixType;
 		typedef PsimagLite::SparseRowCached<SparseMatrixType> SparseRowType;
 		typedef std::vector<RealType> VectorType;
+		typedef ReflectionSymmetry<GeometryType,BasisType> ReflectionSymmetryType;
 
 		enum {SPIN_UP=BasisType::SPIN_UP,SPIN_DOWN=BasisType::SPIN_DOWN};
 
@@ -55,7 +57,14 @@ namespace LanczosPlusPlus {
 
 		void setupHamiltonian(SparseMatrixType &matrix) const
 		{
-			setupHamiltonian(matrix,basis_);
+			if (!mp_.useReflectionSymmetry) {
+				setupHamiltonian(matrix,basis_);
+				return;
+			}
+//			SparseMatrixType matrix2;
+//			setupHamiltonian(matrix2,basis_);
+//			ReflectionSymmetryType rs(basis_,geometry_);
+//			rs.transform(matrix,matrix2);
 		}
 
 		bool hasNewParts(std::pair<size_t,size_t>& newParts,
@@ -161,7 +170,7 @@ namespace LanczosPlusPlus {
 
 			// Calculate off-diagonal elements AND store matrix
 			size_t nCounter=0;
-			SparseRowType sparseRow;
+			SparseRowType sparseRow(100);
 			for (size_t ispace=0;ispace<hilbert;ispace++) {
 				matrix.setRow(ispace,nCounter);
 				WordType ket1 = basis(ispace,SPIN_UP);
@@ -170,7 +179,7 @@ namespace LanczosPlusPlus {
 				sparseRow.add(ispace,diag[ispace]);
 				for (size_t i=0;i<nsite;i++) {
 					for (size_t orb=0;orb<basis.orbsPerSite(i);orb++) {
-						setHoppingTerm(sparseRow,ket1,ket2,i,orb,basis);
+						setHoppingTerm(sparseRow,ket1,ket2,ispace,i,orb,basis);
 // 						if (orb==0) {
 // 							setU2OffDiagonalTerm(sparseRow,ket1,ket2,
 // 								i,orb,basis);

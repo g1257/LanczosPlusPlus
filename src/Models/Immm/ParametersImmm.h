@@ -95,13 +95,22 @@ namespace LanczosPlusPlus {
 	
 			io.read(hubbardU,"hubbardU");
 			io.read(potentialV,"potentialV");
-			//io.readline(density,"density=");
+			useReflectionSymmetry=0;
+			nOfElectrons=0;
+			try {
+				io.readline(useReflectionSymmetry,"UseReflectionSymmetry=");
+			} catch (std::exception& e) {
+			}
+			io.rewind();
+
 		}
 
 		// Hubbard U values (one for each site)
 		std::vector<Field> hubbardU; 
 		// Onsite potential values, one for each site
 		std::vector<Field> potentialV;
+		// use reflection symmetry if set to 1
+		size_t useReflectionSymmetry;
 		// target number of electrons  in the system
 		int nOfElectrons;
 		// target density
@@ -117,6 +126,7 @@ namespace LanczosPlusPlus {
 		os<<parameters.hubbardU;
 		os<<"potentialV\n";
 		os<<parameters.potentialV;
+		os<<"UseReflectionSymmetry="<<parameters.useReflectionSymmetry<<"\n";
 		return os;
 	}
 } // namespace Dmrg

@@ -33,6 +33,15 @@ namespace LanczosPlusPlus {
 
 		size_t size() const { return basis1_.size()*basis2_.size(); }
 
+		//! Spin up and spin down
+		size_t dofs() const { return 2; }
+
+		size_t perfectIndex(std::vector<WordType>& kets) const
+		{
+			assert(kets.size()==2);
+			return perfectIndex(kets[0],kets[1]);
+		}
+
 		size_t perfectIndex(WordType ket1,WordType ket2) const
 		{
 			return basis1_.perfectIndex(ket1) + 

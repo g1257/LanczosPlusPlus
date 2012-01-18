@@ -57,7 +57,7 @@ namespace LanczosPlusPlus {
 		
 		Engine(const ModelType& model,size_t numberOfSites,bool lotaMemory)
 		: model_(model),
-		  progress_("ContinuedFraction",0),
+		  progress_("Engine",0),
 		  lotaMemory_(lotaMemory)
 		{
 			// printHeader();

@@ -240,7 +240,7 @@ namespace LanczosPlusPlus {
 				if (si==0) {
 					bra = (ket ^ bitmask_[ii]);
 				} else {
-					return false; // cannot contruct, there's already one
+					return false; // cannot construct, there's already one
 				}
 			}
 			return true;

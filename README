@@ -5,10 +5,11 @@ can be found in
 file LICENSE. 
 LanczosPlusPlus is a free and open source implementation of the 
 Lanczos algorithm for models of strongly correlated electrons. 
-You are welcome to use it and publish data 
+You are welcomed to use it and publish data 
 obtained with Lanczos++. If you do, please cite this
 work .
 
+-------------------------------------------------------------------------------
 How To Cite This Work
 
 @article{re:alvarez09,
@@ -31,6 +32,35 @@ Publisher = {\url{http://www.ornl.gov/~gz1/dmrgPlusPlus}} }
 Building and Running Lanczos++
 TBW.
 
+-------------------------------------------------------------------------------
+
+DISCLAIMER
+
+THE SOFTWARE IS SUPPLIED BY THE COPYRIGHT HOLDERS AND
+CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+COPYRIGHT OWNER, CONTRIBUTORS, UNITED STATES GOVERNMENT,
+OR THE UNITED STATES DEPARTMENT OF ENERGY BE LIABLE FOR
+ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
+DAMAGE.
+
+NEITHER THE UNITED STATES GOVERNMENT, NOR THE UNITED
+STATES DEPARTMENT OF ENERGY, NOR THE COPYRIGHT OWNER, NOR
+ANY OF THEIR EMPLOYEES, REPRESENTS THAT THE USE OF ANY
+INFORMATION, DATA, APPARATUS, PRODUCT, OR PROCESS
+DISCLOSED WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
+
+-------------------------------------------------------------------------------
+
 Required Software
 
 * (required) GNU C++
@@ -52,3 +82,4 @@ outside of the DMRG++ distribution. \verb=configure.pl= will ask you where you p
 Quick Start
 TBW.
 
+-------------------------------------------------------------------------------

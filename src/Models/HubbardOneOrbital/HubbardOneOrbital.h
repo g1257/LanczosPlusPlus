@@ -10,6 +10,7 @@
 #include "BitManip.h"
 #include "TypeToString.h"
 #include "SparseRow.h"
+#include "ReflectionSymmetry.h"
 
 namespace LanczosPlusPlus {
 
@@ -23,6 +24,7 @@ namespace LanczosPlusPlus {
 		typedef PsimagLite::CrsMatrix<RealType_> SparseMatrixType;
 		typedef PsimagLite::SparseRow<SparseMatrixType> SparseRowType;
 		typedef BasisHubbardLanczos<GeometryType> BasisType;
+		typedef ReflectionSymmetry<GeometryType,BasisType> ReflectionSymmetryType;
 		typedef typename BasisType::WordType WordType;
 		typedef RealType_ RealType;
 		typedef std::vector<RealType> VectorType;
@@ -60,6 +62,34 @@ namespace LanczosPlusPlus {
 		void setupHamiltonian(SparseMatrixType &matrix) const
 		{
 			setupHamiltonian(matrix,basis_);
+
+			PsimagLite::Matrix<RealType> fullMatrix;
+			crsMatrixToFullMatrix(fullMatrix,matrix);
+			std::cerr<<"-----------\n";
+			std::cerr<<fullMatrix<<"\n";
+
+			ReflectionSymmetryType rs(basis_,geometry_);
+
+			const SparseMatrixType& r = rs();
+			SparseMatrixType rT;
+			transposeConjugate(rT,r);
+
+			SparseMatrixType tmp;
+			multiply(tmp,matrix,rT);
+			PsimagLite::Matrix<RealType> mtmp;
+			crsMatrixToFullMatrix(mtmp,tmp);
+			std::cerr<<"-----------\n";
+			std::cerr<<mtmp;
+
+			SparseMatrixType tmp2;
+			multiply(tmp2,r,tmp);
+			PsimagLite::Matrix<RealType> mtmp2;
+			crsMatrixToFullMatrix(mtmp2,tmp2);
+			std::cerr<<"-----------\n";
+			std::cerr<<mtmp2;
+
+			throw std::runtime_error("testing\n");
+
 		}
 
 		//! Gf. related functions below:

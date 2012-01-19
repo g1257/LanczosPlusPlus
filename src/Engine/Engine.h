@@ -161,35 +161,9 @@ namespace LanczosPlusPlus {
 			RealType gsEnergy2 = 0;
 			lanczosSolver.computeGroundState(gsEnergy2,gsVector2);
 
-			setGs(gsEnergy1,gsVector1,gsEnergy2,gsVector2);
+			gsEnergy_=rs->setGroundState(gsVector_,gsEnergy1,gsVector1,gsEnergy2,gsVector2);
 
 			std::cout<<"#GSNorm="<<(gsVector_*gsVector_)<<"\n";
-		}
-
-		void setGs(const RealType& gsEnergy1,
-			   const VectorType& gsVector1,
-			   const RealType& gsEnergy2,
-			   const VectorType& gsVector2)
-		{
-			size_t rank = gsVector1.size() + gsVector2.size();
-			if (gsEnergy1<=gsEnergy2) {
-				gsEnergy_  = gsEnergy1;
-				setGs(gsVector1,rank,0);
-				return;
-			}
-			gsEnergy_  = gsEnergy2;
-			setGs(gsVector2,rank,gsVector1.size());
-		}
-
-		void setGs(const VectorType& v,size_t rank,size_t offset)
-		{
-			gsVector_.resize(rank);
-			for (size_t i=0;i<gsVector_.size();i++)
-				gsVector_[i]=0;
-
-			for (size_t i=0;i<v.size();i++) {
-				gsVector_[i+offset]=v[i];
-			}
 		}
 
 		template<typename ContinuedFractionType>

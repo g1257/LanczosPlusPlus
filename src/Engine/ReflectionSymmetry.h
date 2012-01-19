@@ -60,7 +60,7 @@ namespace LanczosPlusPlus {
 		typedef typename GeometryType::RealType RealType;
 		typedef typename BasisType::WordType WordType;
 		typedef PsimagLite::CrsMatrix<RealType> SparseMatrixType;
-
+		typedef std::vector<RealType> VectorType;
 
 		typedef ReflectionItem ItemType;
 
@@ -130,7 +130,34 @@ namespace LanczosPlusPlus {
 			split(matrixA,matrixB,matrix2);
 		}
 
+		RealType setGroundState(VectorType& gs,
+					const RealType& gsEnergy1,
+					const VectorType& gsVector1,
+					const RealType& gsEnergy2,
+					const VectorType& gsVector2)
+		{
+			size_t rank = gsVector1.size() + gsVector2.size();
+			if (gsEnergy1<=gsEnergy2) {
+				setGs(gs,gsVector1,rank,0);
+				return gsEnergy1;
+			}
+			setGs(gs,gsVector2,rank,gsVector1.size());
+			return gsEnergy2;
+		}
+
 	private:
+
+		void setGs(VectorType& gs,const VectorType& v,size_t rank,size_t offset)
+		{
+			std::vector<RealType> gstmp(rank,0);
+
+			for (size_t i=0;i<v.size();i++) {
+				gstmp[i+offset]=v[i];
+			}
+			SparseMatrixType rT;
+			transposeConjugate(rT,transform_);
+			multiply(gs,rT,gstmp);
+		}
 
 		void checkTransform() const
 		{

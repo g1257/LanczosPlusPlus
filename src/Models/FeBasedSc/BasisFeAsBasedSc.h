@@ -66,7 +66,6 @@ namespace LanczosPlusPlus {
 
 		size_t size() const { return basis1_.size()*basis2_.size(); }
 		
-
 		const WordType& operator()(size_t i,size_t spin) const
 		{
 			size_t y = i/basis1_.size();

@@ -27,6 +27,7 @@ Please see full open source license included in file LICENSE.
 #include "Random48.h"
 #include "ProgramGlobals.h"
 #include "ParametersForSolver.h"
+#include "ParametersEngine.h"
 
 namespace LanczosPlusPlus {
 	template<typename ModelType_,typename InternalProductType,typename ConcurrencyType_>
@@ -55,10 +56,10 @@ namespace LanczosPlusPlus {
 
 		enum {PLUS,MINUS};
 		
-		Engine(const ModelType& model,size_t numberOfSites,bool lotaMemory)
+		Engine(const ModelType& model,size_t numberOfSites,PsimagLite::IoSimple::In& io)
 		: model_(model),
 		  progress_("Engine",0),
-		  lotaMemory_(lotaMemory)
+		  params_(io)
 		{
 			// printHeader();
 			// task 1: Compute Hamiltonian and
@@ -104,9 +105,30 @@ namespace LanczosPlusPlus {
 
 	private:
 
+//		void computeGroundState()
+//		{
+//			InternalProductType hamiltonian(model_);
+//			//if (CHECK_HERMICITY) checkHermicity(h);
+
+//			RealType eps= ProgramGlobals::LanczosTolerance;
+//			size_t iter= ProgramGlobals::LanczosSteps;
+
+//			ParametersForSolverType params;
+//			params.steps = iter;
+//			params.tolerance = eps;
+//			params.lotaMemory = lotaMemory_;
+//			params.stepsForEnergyConvergence =ProgramGlobals::MaxLanczosSteps;
+
+//			LanczosSolverType lanczosSolver(hamiltonian,params);
+
+//			gsVector_.resize(hamiltonian.rank());
+//			lanczosSolver.computeGroundState(gsEnergy_,gsVector_);
+//			std::cout<<"#GSNorm="<<(gsVector_*gsVector_)<<"\n";
+//		}
+
 		void computeGroundState()
 		{
-			InternalProductType hamiltonian(model_);
+			InternalProductType hamiltonian(model_,params_.useReflectionSymmetry);
 			//if (CHECK_HERMICITY) checkHermicity(h);
 
 			RealType eps= ProgramGlobals::LanczosTolerance;
@@ -115,14 +137,55 @@ namespace LanczosPlusPlus {
 			ParametersForSolverType params;
 			params.steps = iter;
 			params.tolerance = eps;
-			params.lotaMemory = lotaMemory_;
+			params.lotaMemory = params_.storeLanczosVectors;
 			params.stepsForEnergyConvergence =ProgramGlobals::MaxLanczosSteps;
 
 			LanczosSolverType lanczosSolver(hamiltonian,params);
 
-			gsVector_.resize(hamiltonian.rank());
-			lanczosSolver.computeGroundState(gsEnergy_,gsVector_);
+			VectorType gsVector1(hamiltonian.rank());
+			RealType gsEnergy1 = 0;
+			lanczosSolver.computeGroundState(gsEnergy1,gsVector1);
+
+			if (!params_.useReflectionSymmetry) {
+				gsVector_=gsVector1;
+				gsEnergy_=gsEnergy1;
+				return;
+			}
+
+			hamiltonian.pointer(1);
+			VectorType gsVector2(hamiltonian.rank());
+			RealType gsEnergy2 = 0;
+			lanczosSolver.computeGroundState(gsEnergy2,gsVector2);
+
+			setGs(gsEnergy1,gsVector1,gsEnergy2,gsVector2);
+
 			std::cout<<"#GSNorm="<<(gsVector_*gsVector_)<<"\n";
+		}
+
+		void setGs(const RealType& gsEnergy1,
+			   const VectorType& gsVector1,
+			   const RealType& gsEnergy2,
+			   const VectorType& gsVector2)
+		{
+			size_t rank = gsVector1.size() + gsVector2.size();
+			if (gsEnergy1<=gsEnergy2) {
+				gsEnergy_  = gsEnergy1;
+				setGs(gsVector1,rank,0);
+				return;
+			}
+			gsEnergy_  = gsEnergy2;
+			setGs(gsVector2,rank,gsVector1.size());
+		}
+
+		void setGs(const VectorType& v,size_t rank,size_t offset)
+		{
+			gsVector_.resize(rank);
+			for (size_t i=0;i<gsVector_.size();i++)
+				gsVector_[i]=0;
+
+			for (size_t i=0;i<v.size();i++) {
+				gsVector_[i+offset]=v[i];
+			}
 		}
 
 		template<typename ContinuedFractionType>
@@ -142,7 +205,7 @@ namespace LanczosPlusPlus {
 			ParametersForSolverType params;
 			params.steps = iter;
 			params.tolerance = eps;
-			params.lotaMemory = lotaMemory_;
+			params.lotaMemory = params_.storeLanczosVectors;
 			params.stepsForEnergyConvergence =ProgramGlobals::MaxLanczosSteps;
 
 			LanczosSolverType lanczosSolver(matrix,params);
@@ -170,7 +233,7 @@ namespace LanczosPlusPlus {
 		
 		const ModelType& model_;
 		PsimagLite::ProgressIndicator progress_;
-		bool lotaMemory_;
+		ParametersEngine<RealType> params_;
 		RealType gsEnergy_;
 		VectorType gsVector_; 
 	}; // class ContinuedFraction

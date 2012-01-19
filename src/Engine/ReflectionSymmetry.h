@@ -68,8 +68,8 @@ namespace LanczosPlusPlus {
 
 		ReflectionSymmetry(const BasisType& basis,const GeometryType& geometry)
 		: progress_("ReflectionSymmetry",0),
-		  transform_(basis.size(),basis.size())
-//		  s_(basis.size(),basis.size()) // needed only for debugging
+		  transform_(basis.size(),basis.size()),
+		  plusSector_(0)
 		{
 			size_t hilbert = basis.size();
 			size_t numberOfDofs = basis.dofs();
@@ -114,38 +114,21 @@ namespace LanczosPlusPlus {
 //			checkTransform();
 		}
 
-		void transform(SparseMatrixType& matrix2,const SparseMatrixType& matrix) const
+		void transform(SparseMatrixType& matrixA,
+			       SparseMatrixType& matrixB,
+			       const SparseMatrixType& matrix) const
 		{
-//			PsimagLite::Matrix<RealType> fullMatrix;
-//			crsMatrixToFullMatrix(fullMatrix,matrix);
-//			std::cerr<<"-----------\n";
-//			std::cerr<<fullMatrix<<"\n";
-
-//			ReflectionSymmetryType rs(basis_,geometry_);
-
-//			const SparseMatrixType& r = rs();
 			SparseMatrixType rT;
 			transposeConjugate(rT,transform_);
 
 			SparseMatrixType tmp;
 			multiply(tmp,matrix,rT);
-//			PsimagLite::Matrix<RealType> mtmp;
-//			crsMatrixToFullMatrix(mtmp,tmp);
-//			std::cerr<<"-----------\n";
-//			std::cerr<<mtmp;
 
+			SparseMatrixType matrix2;
 			multiply(matrix2,transform_,tmp);
-//			PsimagLite::Matrix<RealType> mtmp2;
-//			crsMatrixToFullMatrix(mtmp2,tmp2);
-//			std::cerr<<"-----------\n";
-//			std::cerr<<mtmp2;
 
-//			throw std::runtime_error("testing\n");
+			split(matrixA,matrixB,matrix2);
 		}
-
-		//const SparseMatrixType operator()() const { return transform_; }
-
-//		const SparseMatrixType reflectionSymmetry() const { return s_; }
 
 	private:
 
@@ -237,6 +220,7 @@ namespace LanczosPlusPlus {
 			std::ostringstream msg;
 			msg<<pluses<<" +, "<<minuses<<" -, "<<zeros<<" zeros.";
 			progress_.printline(msg,std::cout);
+			plusSector_ = zeros + pluses;
 		}
 
 		void isIdentity(const SparseMatrixType& s,const std::string& label) const
@@ -257,8 +241,58 @@ namespace LanczosPlusPlus {
 			return (fabs(x)<1e-6);
 		}
 
+		void split(SparseMatrixType& matrixA,SparseMatrixType& matrixB,const SparseMatrixType& matrix) const
+		{
+			size_t counter = 0;
+			matrixA.resize(plusSector_,plusSector_);
+			for (size_t i=0;i<plusSector_;i++) {
+				matrixA.setRow(i,counter);
+				for (int k=matrix.getRowPtr(i);k<matrix.getRowPtr(i+1);k++) {
+					size_t col = matrix.getCol(k);
+					RealType val = matrix.getValue(k);
+					if (col<plusSector_) {
+						matrixA.pushCol(col);
+						matrixA.pushValue(val);
+						counter++;
+						continue;
+					}
+					if (!isAlmostZero(val)) {
+						std::string s(__FILE__);
+						s += " Hamiltonian has no reflection symmetry.";
+						throw std::runtime_error(s.c_str());
+					}
+				}
+			}
+			matrixA.setRow(plusSector_,counter);
+
+			size_t rank = matrix.rank();
+			size_t minusSector=rank-plusSector_;
+			matrixB.resize(minusSector);
+			counter=0;
+			for (size_t i=plusSector_;i<rank;i++) {
+				matrixB.setRow(i-plusSector_,counter);
+				for (int k=matrix.getRowPtr(i);k<matrix.getRowPtr(i+1);k++) {
+					size_t col = matrix.getCol(k);
+					RealType val = matrix.getValue(k);
+					if (col>=plusSector_) {
+						matrixB.pushCol(col-plusSector_);
+						matrixB.pushValue(val);
+						counter++;
+						continue;
+					}
+					if (!isAlmostZero(val)) {
+						std::string s(__FILE__);
+						s += " Hamiltonian has no reflection symmetry.";
+						throw std::runtime_error(s.c_str());
+					}
+				}
+			}
+			matrixB.setRow(minusSector,counter);
+		}
+
 		PsimagLite::ProgressIndicator progress_;
 		SparseMatrixType transform_;
+		size_t plusSector_;
 //		SparseMatrixType s_;
 	}; // class ReflectionSymmetry
 } // namespace Dmrg

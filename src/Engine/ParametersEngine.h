@@ -74,72 +74,52 @@ DISCLOSED WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
 /** \ingroup LanczosPlusPlus */
 /*@{*/
 
-/*! \file ParametersModelHubbard.h
+/*! \file ParametersEngine.h
  *
  *  Contains the parameters for the Hubbard model and function to read them from a JSON file
  *
  */
-#ifndef PARAMETERSMODELHUBBARD_H
-#define PARAMETERSMODELHUBBARD_H
+#ifndef PARAMETERS_ENGINE_H
+#define PARAMETERS_ENGINE_H
 #include "Vector.h"
 #include <stdexcept>
 
 namespace LanczosPlusPlus {
 	//! Hubbard Model Parameters
 	template<typename Field>
-	struct ParametersModelHubbard {
+	struct ParametersEngine {
 		
 		template<typename IoInputType>
-		ParametersModelHubbard(IoInputType& io) 
+		ParametersEngine(IoInputType& io)
 		{
 	
-			io.read(hubbardU,"hubbardU");
-			io.read(potentialV,"potentialV");
-			nOfElectrons=0;
-
-			//io.readline(density,"density=");
+			int tmp = 1;
+			try {
+				io.readline(tmp,"StoreLanczosVectors=");
+			} catch (std::exception& e) {
+				io.rewind();
+			}
+			storeLanczosVectors = (tmp==1) ? true : false;
+			tmp = 0;
+			try {
+				io.readline(tmp,"UseReflectionSymmetry=");
+			} catch (std::exception& e) {
+				io.rewind();
+			}
+			useReflectionSymmetry = (tmp==1) ? true : false;
 		}
 		
-		// Do not include here connection parameters
-		// those are handled by the Geometry
-		// Hubbard U values (one for each site)
-		std::vector<Field> hubbardU; 
-		// Onsite potential values, one for each site
-		std::vector<Field> potentialV;
-		// target number of electrons  in the system
-		int nOfElectrons;
-		// target density
-		//Field density;
+		bool storeLanczosVectors;
+		bool useReflectionSymmetry;
 	};
 
-
-	//! Operator to read Model Parameters from JSON file.
-	/* template<typename FieldType>
-	ParametersModelHubbard<FieldType>&
-	operator <= (ParametersModelHubbard<FieldType>& parameters, const dca::JsonReader& reader) 
-	{
-
-		const dca::JsonAccessor<std::string>& dmrg(reader["programSpecific"]["DMRG"]);
-		
-		parameters.hubbardU <= dmrg["hubbardU"];
-		parameters.potentialV <= dmrg["potentialV"];
-
-		parameters.linSize <= dmrg["linSize"];
-		
-		parameters.density <= dmrg["density"];
-		parameters.hoppings.resize(parameters.linSize,parameters.linSize);
-		parameters.hoppings  <= dmrg["hoppings"]["data"];
-		return parameters;
-	} */
 	
 	//! Function that prints model parameters to stream os
 	template<typename FieldType>
-	std::ostream& operator<<(std::ostream &os,const ParametersModelHubbard<FieldType>& parameters)
+	std::ostream& operator<<(std::ostream &os,const ParametersEngine<FieldType>& parameters)
 	{
-		//os<<"parameters.density="<<parameters.density<<"\n";
-		PsimagLite::vectorPrint(parameters.hubbardU,"hubbardU",os);
-		PsimagLite::vectorPrint(parameters.potentialV,"potentialV",os);
-//		os<<"UseReflectionSymmetry="<<parameters.useReflectionSymmetry<<"\n";
+		os<<"parameters.storeLanczosVectors="<<parameters.storeLanczosVectors<<"\n";
+		os<<"parameters.useReflectionSymmetry="<<parameters.useReflectionSymmetry<<"\n";
 		return os;
 	}
 } // namespace LanczosPlusPlus

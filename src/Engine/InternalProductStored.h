@@ -83,6 +83,7 @@ DISCLOSED WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
 #define InternalProductStored_HEADER_H
 
 #include <vector>
+#include "ReflectionSymmetry.h"
 
 namespace LanczosPlusPlus {
 	template<typename ModelType>
@@ -91,29 +92,54 @@ namespace LanczosPlusPlus {
 		typedef typename ModelType::BasisType BasisType;
 		typedef typename ModelType::SparseMatrixType SparseMatrixType;
 		typedef typename ModelType::RealType RealType;
-		
+		typedef typename ModelType::GeometryType GeometryType;
+		typedef ReflectionSymmetry<GeometryType,BasisType> ReflectionSymmetryType;
+
 		InternalProductStored(const ModelType& model,
-		                      const BasisType& basis)
+				      const BasisType& basis,
+				      bool useReflectionSymmetry=false)
+		: matrixStored_(2),pointer_(0)
 		{
-			model.setupHamiltonian(matrixStored_,basis);
+			if (!useReflectionSymmetry) {
+				model.setupHamiltonian(matrixStored_[0],basis);
+				return;
+			}
+			SparseMatrixType matrix2;
+			model.setupHamiltonian(matrix2,basis);
+			ReflectionSymmetryType rs(basis,model.geometry());
+			rs.transform(matrixStored_[0],matrixStored_[1],matrix2);
 		}
 
-		InternalProductStored(const ModelType& model)
+		InternalProductStored(const ModelType& model,
+				      bool useReflectionSymmetry=false)
+		: matrixStored_(2),pointer_(0)
 		{
-			model.setupHamiltonian(matrixStored_);
+			if (!useReflectionSymmetry) {
+				model.setupHamiltonian(matrixStored_[0]);
+				return;
+			}
+			SparseMatrixType matrix2;
+			model.setupHamiltonian(matrix2);
+			ReflectionSymmetryType rs(model.basis(),model.geometry());
+			rs.transform(matrixStored_[0],matrixStored_[1],matrix2);
 		}
 
-		size_t rank() const { return matrixStored_.rank(); }
+		size_t rank() const { return matrixStored_[pointer_].rank(); }
 
 		template<typename SomeVectorType>
 		void matrixVectorProduct(SomeVectorType &x, SomeVectorType const &y) const
 		{
-			 matrixStored_.matrixVectorProduct(x,y);
+			 matrixStored_[pointer_].matrixVectorProduct(x,y);
 		}
+
+		size_t pointer() const { return pointer_; }
+
+		void pointer(size_t p) { pointer_=p; }
 
 	private:
 
-		SparseMatrixType matrixStored_;
+		std::vector<SparseMatrixType> matrixStored_;
+		size_t pointer_;
 	}; // class InternalProductStored
 } // namespace LanczosPlusPlus
 

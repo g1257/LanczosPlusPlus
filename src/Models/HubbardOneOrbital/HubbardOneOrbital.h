@@ -10,21 +10,20 @@
 #include "BitManip.h"
 #include "TypeToString.h"
 #include "SparseRow.h"
-#include "ReflectionSymmetry.h"
 
 namespace LanczosPlusPlus {
 
-	template<typename RealType_,typename ParametersType,typename GeometryType>
+	template<typename RealType_,typename ParametersType,typename GeometryType_>
 	class HubbardOneOrbital {
 
 		typedef PsimagLite::Matrix<RealType_> MatrixType;
 
 	public:
 
+		typedef GeometryType_ GeometryType;
 		typedef PsimagLite::CrsMatrix<RealType_> SparseMatrixType;
 		typedef PsimagLite::SparseRow<SparseMatrixType> SparseRowType;
 		typedef BasisHubbardLanczos<GeometryType> BasisType;
-		typedef ReflectionSymmetry<GeometryType,BasisType> ReflectionSymmetryType;
 		typedef typename BasisType::WordType WordType;
 		typedef RealType_ RealType;
 		typedef std::vector<RealType> VectorType;
@@ -61,14 +60,7 @@ namespace LanczosPlusPlus {
 
 		void setupHamiltonian(SparseMatrixType &matrix) const
 		{
-			if (!mp_.useReflectionSymmetry) {
-				setupHamiltonian(matrix,basis_);
-				return;
-			}
-			SparseMatrixType matrix2;
-			setupHamiltonian(matrix2,basis_);
-			ReflectionSymmetryType rs(basis_,geometry_);
-			rs.transform(matrix,matrix2);
+			setupHamiltonian(matrix,basis_);
 		}
 
 		//! Gf. related functions below:
@@ -143,6 +135,8 @@ namespace LanczosPlusPlus {
 		}
 
 		const GeometryType& geometry() const { return geometry_; }
+
+		const BasisType& basis() const { return basis_; }
 
 	private:
 

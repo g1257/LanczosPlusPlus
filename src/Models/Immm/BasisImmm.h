@@ -65,6 +65,11 @@ namespace LanczosPlusPlus {
 			return BasisType::bitmask(i);
 		}
 
+		size_t dofs() const
+		{
+			throw std::runtime_error("Wrong way!\n");
+		}
+
 		size_t size() const { return basis1_.size()*basis2_.size(); }
 
 		const WordType& operator()(size_t i,size_t spin) const
@@ -74,10 +79,10 @@ namespace LanczosPlusPlus {
 			return (spin==SPIN_UP) ? basis1_[x] : basis2_[y];
 		}
 
-// 		size_t perfectIndex(WordType ket1,WordType ket2) const
-// 		{
-// 			return basis1_.perfectIndex(ket1) + basis2_.perfectIndex(ket2)*basis1_.size();
-// 		}
+		size_t perfectIndex(const std::vector<WordType>& ket1) const
+		{
+			throw std::runtime_error("Wrong way!\n");
+		}
 
 		size_t perfectIndex(WordType newKet,size_t ispace,size_t spinOfNew) const
 		{

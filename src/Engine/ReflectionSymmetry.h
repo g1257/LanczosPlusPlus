@@ -244,7 +244,7 @@ namespace LanczosPlusPlus {
 		void split(SparseMatrixType& matrixA,SparseMatrixType& matrixB,const SparseMatrixType& matrix) const
 		{
 			size_t counter = 0;
-			matrixA.resize(plusSector_,plusSector_);
+			matrixA.resize(plusSector_);
 			for (size_t i=0;i<plusSector_;i++) {
 				matrixA.setRow(i,counter);
 				for (int k=matrix.getRowPtr(i);k<matrix.getRowPtr(i+1);k++) {

@@ -173,6 +173,7 @@ print FOUT<<EOF;
 #include "ProgramGlobals.h"
 #include "ContinuedFraction.h" // in PsimagLite 
 #include "ContinuedFractionCollection.h" // in PsimagLite
+#include "ReflectionSymmetry.h"
 
 using namespace LanczosPlusPlus;
 
@@ -183,7 +184,9 @@ typedef PsimagLite::Geometry<RealType,ProgramGlobals> GeometryType;
 typedef $parametersName<RealType> ParametersModelType;
 typedef PsimagLite::IoSimple::In IoInputType;
 typedef $model<RealType,ParametersModelType,GeometryType> ModelType;
-typedef InternalProduct$stored<ModelType> InternalProductType;
+typedef typename ModelType::BasisType BasisType;
+typedef ReflectionSymmetry<GeometryType,BasisType> ReflectionSymmetryType;
+typedef InternalProduct$stored<ModelType,ReflectionSymmetryType> InternalProductType;
 typedef Engine<ModelType,InternalProductType,ConcurrencyType> EngineType;
 typedef EngineType::TridiagonalMatrixType TridiagonalMatrixType;
 
@@ -237,14 +240,7 @@ int main(int argc,char *argv[])
 	//! Setup the Model
 	ModelType model(nup,ndown,mp,geometry);
 
-	int tmp = 1;
-	try {
-		io.readline(tmp,"StoreLanczosVectors=");
-	} catch (std::exception& e) {
-		io.rewind();
-	}
-	bool lotaMemory = (tmp==1) ? true : false;
-	EngineType engine(model,geometry.numberOfSites(),lotaMemory);
+	EngineType engine(model,geometry.numberOfSites(),io);
 
 	//! get the g.s.:
 	RealType Eg = engine.gsEnergy();

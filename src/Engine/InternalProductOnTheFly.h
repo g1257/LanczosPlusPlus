@@ -86,21 +86,26 @@ DISCLOSED WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
 #include <cassert>
 
 namespace LanczosPlusPlus {
-	template<typename ModelType>
+	template<typename ModelType,typename ReflectionSymmetryType_>
 	class InternalProductOnTheFly {
-	public:	
+
+	public:
+
+		typedef ReflectionSymmetryType_ ReflectionSymmetryType;
 		typedef typename ModelType::BasisType BasisType;
 		typedef typename ModelType::SparseMatrixType SparseMatrixType;
 		typedef typename ModelType::RealType RealType;
 
 		InternalProductOnTheFly(const ModelType& model,
-		                        const BasisType& basis)
+					const BasisType& basis,
+					const ReflectionSymmetryType* rs=0)
 		: model_(model),basis_(&basis)
 		{
 			//model.setupHamiltonian(matrixStored_,b1,b2);
 		}
 
-		InternalProductOnTheFly(const ModelType& model)
+		InternalProductOnTheFly(const ModelType& model,
+					const ReflectionSymmetryType* rs=0)
 		: model_(model),basis_(0)
 		{
 			//model.setupHamiltonian(matrixStored_);
@@ -117,6 +122,10 @@ namespace LanczosPlusPlus {
 				model_.matrixVectorProduct(x,y,basis_);
 			}
 		}
+
+		size_t reflectionSector() const { return 0; }
+
+		void reflectionSector(size_t p) {  }
 
 	private:
 

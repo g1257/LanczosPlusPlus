@@ -27,12 +27,13 @@ Please see full open source license included in file LICENSE.
 
 namespace LanczosPlusPlus {
 	
-	template<typename RealType_,typename ParametersType,typename GeometryType>
+	template<typename RealType_,typename ParametersType,typename GeometryType_>
 	class FeBasedSc {
 		
 		typedef PsimagLite::Matrix<RealType_> MatrixType;
 	public:
 		
+		typedef GeometryType_ GeometryType;
 		typedef BasisFeAsBasedSc<GeometryType> BasisType;
 		typedef typename BasisType::WordType WordType;
 		typedef RealType_ RealType;
@@ -128,6 +129,8 @@ namespace LanczosPlusPlus {
 			}
 			matrix.setRow(hilbert,nCounter);
 		}
+
+		const BasisType& basis() const { return basis_; }
 
 	private:
 

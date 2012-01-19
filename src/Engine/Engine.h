@@ -42,6 +42,7 @@ namespace LanczosPlusPlus {
 		typedef typename ModelType::SparseMatrixType SparseMatrixType;
 		typedef typename VectorType::value_type FieldType;
 		typedef typename ModelType::BasisType BasisType;
+		typedef typename InternalProductType::ReflectionSymmetryType ReflectionSymmetryType;
 		typedef PsimagLite::Random48<RealType> RandomType;
 		typedef PsimagLite::ParametersForSolver<RealType> ParametersForSolverType;
 		typedef PsimagLite::LanczosSolver<ParametersForSolverType,InternalProductType,VectorType>
@@ -128,7 +129,10 @@ namespace LanczosPlusPlus {
 
 		void computeGroundState()
 		{
-			InternalProductType hamiltonian(model_,params_.useReflectionSymmetry);
+			ReflectionSymmetryType* rs=0;
+			if (params_.useReflectionSymmetry)
+				rs = new ReflectionSymmetryType(model_.basis(),model_.geometry());
+			InternalProductType hamiltonian(model_,rs);
 			//if (CHECK_HERMICITY) checkHermicity(h);
 
 			RealType eps= ProgramGlobals::LanczosTolerance;
@@ -152,7 +156,7 @@ namespace LanczosPlusPlus {
 				return;
 			}
 
-			hamiltonian.pointer(1);
+			hamiltonian.reflectionSector(1);
 			VectorType gsVector2(hamiltonian.rank());
 			RealType gsEnergy2 = 0;
 			lanczosSolver.computeGroundState(gsEnergy2,gsVector2);

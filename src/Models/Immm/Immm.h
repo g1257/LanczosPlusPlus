@@ -155,6 +155,8 @@ namespace LanczosPlusPlus {
 
 		const GeometryType& geometry() const { return geometry_; }
 
+		const BasisType& basis() const { return basis_; }
+
 		void setupHamiltonian(SparseMatrixType &matrix,
 		                      const BasisType &basis) const
 		{

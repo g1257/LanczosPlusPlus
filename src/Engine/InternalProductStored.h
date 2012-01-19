@@ -83,45 +83,44 @@ DISCLOSED WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
 #define InternalProductStored_HEADER_H
 
 #include <vector>
-#include "ReflectionSymmetry.h"
 
 namespace LanczosPlusPlus {
-	template<typename ModelType>
+	template<typename ModelType,typename ReflectionSymmetryType_>
 	class InternalProductStored {
+
 	public:	
+
+		typedef ReflectionSymmetryType_ ReflectionSymmetryType;
 		typedef typename ModelType::BasisType BasisType;
 		typedef typename ModelType::SparseMatrixType SparseMatrixType;
 		typedef typename ModelType::RealType RealType;
 		typedef typename ModelType::GeometryType GeometryType;
-		typedef ReflectionSymmetry<GeometryType,BasisType> ReflectionSymmetryType;
 
 		InternalProductStored(const ModelType& model,
 				      const BasisType& basis,
-				      bool useReflectionSymmetry=false)
+				      const ReflectionSymmetryType* rs=0)
 		: matrixStored_(2),pointer_(0)
 		{
-			if (!useReflectionSymmetry) {
+			if (!rs) {
 				model.setupHamiltonian(matrixStored_[0],basis);
 				return;
 			}
 			SparseMatrixType matrix2;
 			model.setupHamiltonian(matrix2,basis);
-			ReflectionSymmetryType rs(basis,model.geometry());
-			rs.transform(matrixStored_[0],matrixStored_[1],matrix2);
+			rs->transform(matrixStored_[0],matrixStored_[1],matrix2);
 		}
 
 		InternalProductStored(const ModelType& model,
-				      bool useReflectionSymmetry=false)
+				      const ReflectionSymmetryType* rs=0)
 		: matrixStored_(2),pointer_(0)
 		{
-			if (!useReflectionSymmetry) {
+			if (!rs) {
 				model.setupHamiltonian(matrixStored_[0]);
 				return;
 			}
 			SparseMatrixType matrix2;
 			model.setupHamiltonian(matrix2);
-			ReflectionSymmetryType rs(model.basis(),model.geometry());
-			rs.transform(matrixStored_[0],matrixStored_[1],matrix2);
+			rs->transform(matrixStored_[0],matrixStored_[1],matrix2);
 		}
 
 		size_t rank() const { return matrixStored_[pointer_].rank(); }
@@ -132,9 +131,9 @@ namespace LanczosPlusPlus {
 			 matrixStored_[pointer_].matrixVectorProduct(x,y);
 		}
 
-		size_t pointer() const { return pointer_; }
+		size_t reflectionSector() const { return pointer_; }
 
-		void pointer(size_t p) { pointer_=p; }
+		void reflectionSector(size_t p) { pointer_=p; }
 
 	private:
 

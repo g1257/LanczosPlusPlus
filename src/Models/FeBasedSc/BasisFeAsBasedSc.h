@@ -62,6 +62,7 @@ namespace LanczosPlusPlus {
 			return BasisType::bitmask(i);
 		}
 		
+		size_t dofs() const { return 2*ORBITALS; }
 
 		size_t size() const { return basis1_.size()*basis2_.size(); }
 		
@@ -72,7 +73,12 @@ namespace LanczosPlusPlus {
 			size_t x = i%basis1_.size();
 			return (spin==SPIN_UP) ? basis1_[x] : basis2_[y];
 		}
-		
+
+		size_t perfectIndex(const std::vector<WordType>& kets) const
+		{
+			assert(kets.size()==2);
+			return  perfectIndex(kets[0],kets[1]);
+		}
 
 		size_t perfectIndex(WordType ket1,WordType ket2) const
 		{

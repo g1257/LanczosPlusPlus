@@ -54,6 +54,9 @@ namespace LanczosPlusPlus {
 			std::cerr<<mp_.hubbardU;
 			std::cerr<<"#POTENTIALV\n";
 			std::cerr<<mp_.potentialV;
+			std::cerr<<"#POTENTIALT\n";
+			std::cerr<<mp_.potentialT;
+			std::cerr<<"omegaTime="<<mp_.omegaTime<<"\n";
 		}
 
 		size_t size() const { return basis_.size(); }
@@ -222,8 +225,9 @@ namespace LanczosPlusPlus {
 						     basis.isThereAnElectronAt(ket1,ket2,i,SPIN_DOWN);
 
 						// Potential term
-						if (mp_.potentialV[i]!=0)
-							s += mp_.potentialV[i]*
+						RealType tmp = mp_.potentialV[i] + mp_.potentialT[i]*cos(mp_.omegaTime);
+						if (tmp!=0)
+							s += tmp*
 								(basis.getN(ket1,ket2,i,SPIN_UP) +
 								basis.getN(ket1,ket2,i,SPIN_DOWN));
 				}

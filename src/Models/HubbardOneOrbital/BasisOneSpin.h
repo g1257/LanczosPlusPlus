@@ -44,6 +44,7 @@ namespace LanczosPlusPlus {
 
 			if (npart==0) {
 				data_[0]=0;
+				size_ = 1;
 				return;
 			}
 			

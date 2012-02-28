@@ -120,7 +120,8 @@ namespace LanczosPlusPlus {
 		{
 			SparseMatrixType rT;
 			transposeConjugate(rT,transform_);
-
+			
+			printFullMatrix(matrix,"originalHam");
 			SparseMatrixType tmp;
 			multiply(tmp,matrix,rT);
 
@@ -159,18 +160,12 @@ namespace LanczosPlusPlus {
 			multiply(gs,rT,gstmp);
 		}
 
-		void checkTransform() const
+		void printFullMatrix(const SparseMatrixType& s,const std::string& label) const
 		{
-			SparseMatrixType transformTc;
-			transposeConjugate(transformTc,transform_);
-
-//			SparseMatrixType tmp;
-//			multiply(tmp,s_,s_);
 			PsimagLite::Matrix<RealType> mtmp;
-			crsMatrixToFullMatrix(mtmp,transform_);
-			std::cerr<<"&&&&&&&&&&&&&&&&&&&&&&&\n";
+			crsMatrixToFullMatrix(mtmp,s);
+			std::cerr<<"----------->  "<<label<<"  <----------------\n";
 			std::cerr<<mtmp;
-//			throw std::runtime_error("checking\n");
 		}
 
 		void addTo(WordType& yy,size_t what,size_t site) const

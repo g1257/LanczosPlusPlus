@@ -83,18 +83,26 @@ DISCLOSED WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
 #define PARAMETERSMODELHUBBARD_H
 #include "Vector.h"
 #include <stdexcept>
+#include "IoSimple.h"
 
 namespace LanczosPlusPlus {
 	//! Hubbard Model Parameters
 	template<typename Field>
 	struct ParametersModelHubbard {
-		
-		template<typename IoInputType>
-		ParametersModelHubbard(IoInputType& io) 
+
+		ParametersModelHubbard(PsimagLite::IoSimple::In& io)
 		{
 	
 			io.read(hubbardU,"hubbardU");
 			io.read(potentialV,"potentialV");
+			omegaTime = 0;
+			try {
+				io.read(potentialT,"PotentialT");
+				io.readline(omegaTime,"omegaTime=");
+			} catch (std::exception& e) {
+
+			}
+			io.rewind();
 			nOfElectrons=0;
 
 			//io.readline(density,"density=");
@@ -106,6 +114,8 @@ namespace LanczosPlusPlus {
 		std::vector<Field> hubbardU; 
 		// Onsite potential values, one for each site
 		std::vector<Field> potentialV;
+		std::vector<Field> potentialT;
+		Field omegaTime;
 		// target number of electrons  in the system
 		int nOfElectrons;
 		// target density

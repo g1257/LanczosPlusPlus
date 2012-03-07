@@ -48,15 +48,15 @@ namespace LanczosPlusPlus {
 				for (size_t j=0;j<n;j++)
 					hoppings_(i,j) = geometry_(i,0,j,0,0);
 
-			std::cerr<<"#HOPPINGS\n";
-			std::cerr<<hoppings_;
-			std::cerr<<"#HUBBARDU\n";
-			std::cerr<<mp_.hubbardU;
-			std::cerr<<"#POTENTIALV\n";
-			std::cerr<<mp_.potentialV;
-			std::cerr<<"#POTENTIALT\n";
-			std::cerr<<mp_.potentialT;
-			std::cerr<<"omegaTime="<<mp_.omegaTime<<"\n";
+//			std::cerr<<"#HOPPINGS\n";
+//			std::cerr<<hoppings_;
+//			std::cerr<<"#HUBBARDU\n";
+//			std::cerr<<mp_.hubbardU;
+//			std::cerr<<"#POTENTIALV\n";
+//			std::cerr<<mp_.potentialV;
+//			std::cerr<<"#POTENTIALT\n";
+//			std::cerr<<mp_.potentialT;
+//			std::cerr<<"timeFactor="<<mp_.timeFactor<<"\n";
 		}
 
 		size_t size() const { return basis_.size(); }
@@ -225,7 +225,7 @@ namespace LanczosPlusPlus {
 						     basis.isThereAnElectronAt(ket1,ket2,i,SPIN_DOWN);
 
 						// Potential term
-						RealType tmp = mp_.potentialV[i] + mp_.potentialT[i]*cos(mp_.omegaTime);
+						RealType tmp = mp_.potentialV[i] + mp_.potentialT[i]*mp_.timeFactor;
 						if (tmp!=0)
 							s += tmp*
 								(basis.getN(ket1,ket2,i,SPIN_UP) +

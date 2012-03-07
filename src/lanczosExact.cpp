@@ -29,42 +29,41 @@ typedef ReflectionSymmetry<GeometryType,BasisType> ReflectionSymmetryType;
 typedef InternalProductStored<ModelType,ReflectionSymmetryType> InternalProductType;
 typedef Engine<ModelType,InternalProductType,ConcurrencyType> EngineType;
 typedef typename InternalProductType::SparseMatrixType SparseMatrixType;
+typedef std::complex<RealType> ComplexType;
 
 void usage(const char *progName)
 {
 	std::cerr<<"Usage: "<<progName<<" [-g -i i -j j] -f filename\n";
 }
 
-RealType proc(const SparseMatrixType& hti,const SparseMatrixType& htd,const RealType& time)
+ComplexType proc(std::vector<ComplexType>& psi,
+		 const SparseMatrixType& hmat,
+		 const SparseMatrixType& hIntegral,
+		 const RealType& tau)
 {
-	PsimagLite::Matrix<RealType> fhti;
-	crsMatrixToFullMatrix(fhti,hti);
-	std::vector<RealType> eigs(fhti.n_row());
-	std::cerr<<"Diag. size="<<eigs.size()<<"\n";
-	diag(fhti,eigs,'V');
-	std::cout<<"Lowest energy: time independent="<<eigs[0]<<" "<<(2.0*eigs[0])<<"\n";
+	PsimagLite::Matrix<ComplexType> fhmat;
+	crsMatrixToFullMatrix(fhmat,hmat);
 
+	size_t n = fhmat.n_row();
+	PsimagLite::Matrix<ComplexType> fhIntegral(n,n);
+	crsMatrixToFullMatrix(fhIntegral,hIntegral);
+	ComplexType val= ComplexType(0,-tau);
+	fhIntegral = (val * fhIntegral);
 
-	PsimagLite::Matrix<RealType> fhtd;
-	crsMatrixToFullMatrix(fhtd,htd);
+	exp(fhIntegral);
 
-	diag(fhtd,eigs,'V');
-	std::cout<<"Lowest energy: time dependent="<<eigs[0]<<" "<<(2.0*eigs[0])<<" time="<<time<<"\n";
-
-	RealType sum2 = 0;
-
-	size_t n = fhtd.n_row();
+	std::vector<ComplexType> psiNew(n);
 	for (size_t i=0;i<n;i++) {
-		RealType sum = 0.0;
-		for (size_t k=0;k<n;k++) {
-			for (size_t k2=0;k2<n;k2++) {
-				sum += std::conj(fhtd(k,i))*fhtd(k2,i)*std::conj(fhti(k,0))*fhti(k2,0);
-			}
-		}
-		sum2 += eigs[i] * sum;
+		ComplexType sum = 0;
+		for (size_t j=0;j<n;j++)  sum += fhIntegral(i,j) * psi[j];
+		psiNew[i] = sum;
 	}
-	std::cout<<"<psi(0)|S S lambda_i | psi(0)>="<<sum2<<" "<<(2.0*sum2)<<" time="<<time<<"\n";
-	return (2.0*sum2);
+
+	std::vector<ComplexType> v = fhmat * psiNew;
+
+	//std::cout<<"<psi(0)|S S lambda_i | psi(0)>="<<sum2<<" "<<(2.0*sum2)<<" time="<<time<<"\n";
+	psi = psiNew;
+	return psiNew * v;
 }
 
 int main(int argc,char *argv[])
@@ -107,29 +106,45 @@ int main(int argc,char *argv[])
 	size_t ndown=size_t(geometry.numberOfSites()*qns[1]);
 
 	ParametersModelType mpTimeIndepedent = mp;
-	mpTimeIndepedent.omegaTime = 0.0;
 
-	ModelType modelTimeIndependent(nup,ndown,mpTimeIndepedent,geometry);
-	SparseMatrixType hTimeIndependent;
-	modelTimeIndependent.setupHamiltonian(hTimeIndependent);
+	mpTimeIndepedent.timeFactor = 1.0;
+
+	ModelType modelTimeIndependent2(nup,ndown,mpTimeIndepedent,geometry);
+	SparseMatrixType psiM;
+	modelTimeIndependent2.setupHamiltonian(psiM);
+
+	PsimagLite::Matrix<RealType> fpsi;
+	crsMatrixToFullMatrix(fpsi,psiM);
+	std::vector<RealType> eigs2(fpsi.n_row());
+	diag(fpsi,eigs2,'V');
+	std::vector<ComplexType> psi(eigs2.size());
+	for (size_t i=0;i<psi.size();i++) psi[i] = fpsi(i,0);
 
 	//! Setup the Models
-	size_t numberOfTimes = 11;
-	RealType deltaTime = 0.1;
+	size_t numberOfTimes = 510;
+	RealType deltaTime = 0.01;
 	RealType omega = 0.8;
-	std::vector<RealType> v(numberOfTimes);
+	std::vector<ComplexType> v(numberOfTimes);
 	for (size_t i=0;i<numberOfTimes;i++) {
 		RealType time = i*deltaTime;
-		mp.omegaTime = omega * time;
 
-		ModelType modelTimeDependent(nup,ndown,mp,geometry);
-		SparseMatrixType hTimeDependent;
-		modelTimeDependent.setupHamiltonian(hTimeDependent);
-		v[i] = proc(hTimeIndependent,hTimeDependent,time);
+		mp.timeFactor = cos(omega*time);
+		ModelType modelH(nup,ndown,mp,geometry);
+		SparseMatrixType hmat;
+		modelH.setupHamiltonian(hmat);
+
+//		mp.timeFactor = 0;
+//		if (time>0) mp.timeFactor = sin(omega*time)/(omega*deltaTime);
+//		ModelType modelHIntegral(nup,ndown,mp,geometry);
+//		SparseMatrixType hIntegral;
+//		modelHIntegral.setupHamiltonian(hIntegral);
+		v[i] = proc(psi,hmat,hmat,deltaTime);
+		std::cerr<<time<<" "<<v[i]<<"\n";
 	}
+
 	for (size_t i=0;i<v.size();i++) {
 		RealType time = i*deltaTime;
-		std::cout<<time<<" "<<v[i]<<"\n";
+		std::cout<<time<<" "<<std::real(v[i])<<"\n";
 	}
 }
 

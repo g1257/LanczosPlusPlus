@@ -95,10 +95,10 @@ namespace LanczosPlusPlus {
 	
 			io.read(hubbardU,"hubbardU");
 			io.read(potentialV,"potentialV");
-			omegaTime = 0;
+			timeFactor = 0;
 			try {
 				io.read(potentialT,"PotentialT");
-				io.readline(omegaTime,"omegaTime=");
+				io.readline(timeFactor,"timeFactor=");
 			} catch (std::exception& e) {
 
 			}
@@ -115,7 +115,7 @@ namespace LanczosPlusPlus {
 		// Onsite potential values, one for each site
 		std::vector<Field> potentialV;
 		std::vector<Field> potentialT;
-		Field omegaTime;
+		Field timeFactor;
 		// target number of electrons  in the system
 		int nOfElectrons;
 		// target density

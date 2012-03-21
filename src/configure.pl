@@ -174,6 +174,7 @@ print FOUT<<EOF;
 #include "ContinuedFraction.h" // in PsimagLite 
 #include "ContinuedFractionCollection.h" // in PsimagLite
 #include "ReflectionSymmetry.h"
+#include "Split.h"
 
 using namespace LanczosPlusPlus;
 
@@ -200,13 +201,19 @@ int main(int argc,char *argv[])
 	int opt = 0;
 	bool gf = false;
 	std::string file = "";
-	while ((opt = getopt(argc, argv, "gf:")) != -1) {
+	std::vector<size_t> sites;
+	bool cicj=false;
+	while ((opt = getopt(argc, argv, "gf:c:")) != -1) {
 		switch (opt) {
 		case 'g':
 			gf = true;
 			break;
 		case 'f':
 			file = optarg;
+			break;
+		case 'c':
+			PsimagLite::split(sites,optarg,',');
+			cicj=true;
 			break;
 		default: /* '?' */
 			usage(argv[0]);
@@ -245,26 +252,32 @@ int main(int argc,char *argv[])
 	//! get the g.s.:
 	RealType Eg = engine.gsEnergy();
 	std::cout<<"Energy="<<Eg<<"\\n";
-	if (!gf) return 0;
-	
-	std::vector<size_t> sites;
-	io.read(sites,"TSPSites");
-	if (sites.size()==0) throw std::runtime_error("No sites in input file!\\n");
-	if (sites.size()==1) sites.push_back(sites[0]);
+	if (gf) {
+		io.read(sites,"TSPSites");
+		if (sites.size()==0) throw std::runtime_error("No sites in input file!\\n");
+		if (sites.size()==1) sites.push_back(sites[0]);
 
-	std::cout<<"#gf(i="<<sites[0]<<",j="<<sites[1]<<")\\n";
-	typedef PsimagLite::ContinuedFraction<RealType,TridiagonalMatrixType>
+		std::cout<<"#gf(i="<<sites[0]<<",j="<<sites[1]<<")\\n";
+		typedef PsimagLite::ContinuedFraction<RealType,TridiagonalMatrixType>
 		ContinuedFractionType;
-	typedef PsimagLite::ContinuedFractionCollection<ContinuedFractionType>
-		ContinuedFractionCollectionType;	
+		typedef PsimagLite::ContinuedFractionCollection<ContinuedFractionType>
+			ContinuedFractionCollectionType;
 
-	ContinuedFractionCollectionType cfCollection;	
-	engine.greenFunction(cfCollection,sites[0],sites[1],ModelType::SPIN_UP);
+		ContinuedFractionCollectionType cfCollection;
+		engine.greenFunction(cfCollection,sites[0],sites[1],ModelType::SPIN_UP);
 	
 	
-	PsimagLite::IoSimple::Out ioOut(std::cout);
-	cfCollection.save(ioOut);
+		PsimagLite::IoSimple::Out ioOut(std::cout);
+		cfCollection.save(ioOut);
+	}
+	if (!cicj) return 0;
 
+	if (sites.size()==0 || sites.size()>2) throw std::runtime_error("No sites or too many sites!\\n");
+	if (sites.size()==1) sites.push_back(sites[0]);
+	size_t total = geometry.numberOfSites();
+	PsimagLite::Matrix<RealType> cicjMatrix(total,total);
+	engine.ciCj(cicjMatrix,ModelType::SPIN_UP);
+	std::cout<<cicjMatrix;
 }
 
 EOF

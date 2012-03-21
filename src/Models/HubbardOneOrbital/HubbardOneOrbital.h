@@ -141,9 +141,6 @@ namespace LanczosPlusPlus {
 
 		const BasisType& basis() const { return basis_; }
 
-	private:
-
-		
 		//! Gf Related functions:
 		void accModifiedState(std::vector<RealType> &z,
 		                      const BasisType& newBasis,
@@ -175,6 +172,8 @@ namespace LanczosPlusPlus {
 				z[temp] += isign*mysign*gsVector[ispace];
 			}
 		}
+
+	private:
 
 // 		int doSignGf(WordType a, WordType b,size_t ind,size_t sector) const
 // 		{
@@ -225,7 +224,8 @@ namespace LanczosPlusPlus {
 						     basis.isThereAnElectronAt(ket1,ket2,i,SPIN_DOWN);
 
 						// Potential term
-						RealType tmp = mp_.potentialV[i] + mp_.potentialT[i]*mp_.timeFactor;
+						RealType tmp = mp_.potentialV[i];
+						if (mp_.potentialT.size()>0) tmp += mp_.potentialT[i]*mp_.timeFactor;
 						if (tmp!=0)
 							s += tmp*
 								(basis.getN(ket1,ket2,i,SPIN_UP) +

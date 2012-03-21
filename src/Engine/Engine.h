@@ -104,6 +104,31 @@ namespace LanczosPlusPlus {
 			}
 		}
 
+		void ciCj(PsimagLite::Matrix<RealType>& result,size_t spin) const
+		{
+			size_t type = 0;
+			std::pair<size_t,size_t> newParts(0,0);
+			if (!model_.hasNewParts(newParts,type,spin)) return;
+
+			BasisType basisNew(model_.geometry(),newParts.first,newParts.second);
+
+			size_t isign = 1;
+
+			size_t total =result.n_row();
+			for (size_t isite=0;isite<total;isite++) {
+				std::vector<RealType> modifVector1;
+				modifVector1.resize(basisNew.size());
+				model_.accModifiedState(modifVector1,basisNew,gsVector_,BasisType::DESTRUCTOR,isite,spin,isign);
+				for (size_t jsite=0;jsite<total;jsite++) {
+					std::vector<RealType> modifVector2;
+					modifVector2.resize(basisNew.size());
+					model_.accModifiedState(modifVector2,basisNew,gsVector_,BasisType::DESTRUCTOR,jsite,spin,isign);
+					result(isite,jsite) = modifVector2*modifVector1;
+				}
+			}
+
+		}
+
 	private:
 
 //		void computeGroundState()

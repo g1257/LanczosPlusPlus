@@ -132,6 +132,38 @@ namespace LanczosPlusPlus {
 
 		const BasisType& basis() const { return basis_; }
 
+		void accModifiedState(std::vector<RealType> &z,
+				      const BasisType& newBasis,
+				      const std::vector<RealType> &gsVector,
+				      size_t what,
+				      size_t site,
+				      size_t spin,
+				      size_t orb,
+				      int isign) const
+		{
+			for (size_t ispace=0;ispace<basis_.size();ispace++) {
+				WordType ket1 = basis_(ispace,SPIN_UP);
+				WordType ket2 = basis_(ispace,SPIN_DOWN);
+				int temp = newBasis.getBraIndex(ispace,what,site,spin,orb);
+				// 				int temp= getBraIndex(mysign,ket1,ket2,newBasis,what,site,spin);
+				if (temp>=0 && size_t(temp)>=z.size()) {
+					std::string s = "old basis=" + ttos(basis_.size());
+					s += " newbasis=" + ttos(newBasis.size());
+					s += "\n";
+					s += "what=" + ttos(what) + " spin=" + ttos(spin);
+					s += " site=" + ttos(site);
+					s += "ket1=" + ttos(ket1) + " and ket2=" + ttos(ket2);
+					s += "\n";
+					s += "getModifiedState: z.size=" + ttos(z.size());
+					s += " but temp=" + ttos(temp) + "\n";
+					throw std::runtime_error(s.c_str());
+				}
+				if (temp<0) continue;
+				int mysign = basis_.doSignGf(ket1,ket2,site,spin,orb);
+				z[temp] += isign*mysign*gsVector[ispace];
+			}
+		}
+
 	private:
 
 		RealType hoppings(size_t i,size_t orb1,size_t j,size_t orb2) const

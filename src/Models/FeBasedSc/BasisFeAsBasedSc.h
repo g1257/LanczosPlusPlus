@@ -93,23 +93,21 @@ namespace LanczosPlusPlus {
 		}
 		
 
-		size_t getBraIndex(size_t i,size_t what,size_t sector) const
+		size_t getBraIndex(size_t i,size_t what,size_t site,size_t spin,size_t orb) const
 		{
 			size_t y = i/basis1_.size();
 			size_t x = i%basis1_.size();
 			size_t i1 = basis1_.perfectIndex(basis1_[x]);
 			size_t i2 = basis2_.perfectIndex(basis2_[y]);
-			size_t spin = sector/2;
-			size_t orb = (sector & 1);
+
 			if (spin==SPIN_UP) {
-				i1 = basis1_.getBraIndex(x,what,orb);
+				i1 = basis1_.getBraIndex(x,what,site,orb);
 			} else {
-				i2 =  basis2_.getBraIndex(y,what,orb);
+				i2 =  basis2_.getBraIndex(y,what,site,orb);
 			}
 
 			return i1 + i2*basis1_.size();
 		}
-		
 
 		int doSign(size_t i,size_t site,size_t sector) const
 		{
@@ -147,7 +145,11 @@ namespace LanczosPlusPlus {
 			}
 			return basis2_.doSign(ket2,i,orb1,j,orb2);
 		}
-		
+
+		int doSignGf(WordType a, WordType b,size_t ind,size_t spin,size_t orb) const
+		{
+			throw std::runtime_error("doSignGf: Unimplemented\n");
+		}
 
 		size_t isThereAnElectronAt(
 				size_t ket1,

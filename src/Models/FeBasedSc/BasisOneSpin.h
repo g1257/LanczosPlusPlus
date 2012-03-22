@@ -120,16 +120,17 @@ namespace LanczosPlusPlus {
 			return c;
 		}
 
-		size_t getBraIndex(size_t i,size_t what,size_t orb) const
+		size_t getBraIndex(size_t x,size_t what,size_t site,size_t orb) const
 		{
 			WordType ketA=0,ketB=0;
-			uncollateKet(ketA,ketB,data_[i]);
+			uncollateKet(ketA,ketB,data_[x]);
 			WordType braA = ketA;
 			WordType braB = ketB;
+
 			if (orb==0) {
-				if (!getBra(braA,ketA,what,i)) throw std::runtime_error("getBraIndex::orb==0 problem\n");
+				if (!getBra(braA,ketA,what,site)) throw std::runtime_error("getBraIndex::orb==0 problem\n");
 			} else {
-				if (!getBra(braB,ketB,what,i)) throw std::runtime_error("getBraIndex::orb!=0 problem\n");
+				if (!getBra(braB,ketB,what,site)) throw std::runtime_error("getBraIndex::orb!=0 problem\n");
 			}
 			WordType bra = getCollatedKet(braA,braB);
 			return perfectIndex(bra);

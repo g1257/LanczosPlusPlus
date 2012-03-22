@@ -104,7 +104,7 @@ namespace LanczosPlusPlus {
 			}
 		}
 
-		void ciCj(PsimagLite::Matrix<RealType>& result,size_t spin) const
+		void ciCj(PsimagLite::Matrix<RealType>& result,size_t spin,size_t orb) const
 		{
 			size_t type = 0;
 			std::pair<size_t,size_t> newParts(0,0);
@@ -118,11 +118,11 @@ namespace LanczosPlusPlus {
 			for (size_t isite=0;isite<total;isite++) {
 				std::vector<RealType> modifVector1;
 				modifVector1.resize(basisNew.size());
-				model_.accModifiedState(modifVector1,basisNew,gsVector_,BasisType::DESTRUCTOR,isite,spin,isign);
+				model_.accModifiedState(modifVector1,basisNew,gsVector_,BasisType::DESTRUCTOR,isite,spin,orb,isign);
 				for (size_t jsite=0;jsite<total;jsite++) {
 					std::vector<RealType> modifVector2;
 					modifVector2.resize(basisNew.size());
-					model_.accModifiedState(modifVector2,basisNew,gsVector_,BasisType::DESTRUCTOR,jsite,spin,isign);
+					model_.accModifiedState(modifVector2,basisNew,gsVector_,BasisType::DESTRUCTOR,jsite,spin,orb,isign);
 					result(isite,jsite) = modifVector2*modifVector1;
 				}
 			}

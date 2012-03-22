@@ -276,7 +276,8 @@ int main(int argc,char *argv[])
 	if (sites.size()==1) sites.push_back(sites[0]);
 	size_t total = geometry.numberOfSites();
 	PsimagLite::Matrix<RealType> cicjMatrix(total,total);
-	engine.ciCj(cicjMatrix,ModelType::SPIN_UP);
+	size_t orbital = 0;
+	engine.ciCj(cicjMatrix,ModelType::SPIN_UP,orbital);
 	std::cout<<cicjMatrix;
 }
 

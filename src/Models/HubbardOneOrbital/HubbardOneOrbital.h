@@ -127,12 +127,13 @@ namespace LanczosPlusPlus {
 			for (size_t temp=0;temp<modifVector.size();temp++)
 				modifVector[temp]=0.0;
 
-			accModifiedState(modifVector,basisNew,gsVector,what,isite,spin,1);
+			size_t orb = 0; // bogus orbital index, no orbitals in this model
+			accModifiedState(modifVector,basisNew,gsVector,what,isite,spin,orb,1);
 			std::cerr<<"isite="<<isite<<" type="<<type;
 			std::cerr<<" modif="<<(modifVector*modifVector)<<"\n";
 
 			int isign= (type>1) ? -1 : 1;
-			accModifiedState(modifVector,basisNew,gsVector,what,jsite,spin,isign);
+			accModifiedState(modifVector,basisNew,gsVector,what,jsite,spin,orb,isign);
 			std::cerr<<"jsite="<<jsite<<" type="<<type;
 			std::cerr<<" modif="<<(modifVector*modifVector)<<"\n";
 		}
@@ -148,6 +149,7 @@ namespace LanczosPlusPlus {
 		                      size_t what,
 		                      size_t site,
 		                      size_t spin,
+				      size_t orb,
 		                      int isign) const
 		{
 			for (size_t ispace=0;ispace<basis_.size();ispace++) {
@@ -218,18 +220,18 @@ namespace LanczosPlusPlus {
 				RealType s=0;
 				for (size_t i=0;i<nsite;i++) {
 
-						// Hubbard term U0
-						s += mp_.hubbardU[i] * 
-						     basis.isThereAnElectronAt(ket1,ket2,i,SPIN_UP) *
-						     basis.isThereAnElectronAt(ket1,ket2,i,SPIN_DOWN);
+					// Hubbard term U0
+					s += mp_.hubbardU[i] *
+							basis.isThereAnElectronAt(ket1,ket2,i,SPIN_UP) *
+							basis.isThereAnElectronAt(ket1,ket2,i,SPIN_DOWN);
 
-						// Potential term
-						RealType tmp = mp_.potentialV[i];
-						if (mp_.potentialT.size()>0) tmp += mp_.potentialT[i]*mp_.timeFactor;
-						if (tmp!=0)
-							s += tmp*
+					// Potential term
+					RealType tmp = mp_.potentialV[i];
+					if (mp_.potentialT.size()>0) tmp += mp_.potentialT[i]*mp_.timeFactor;
+					if (tmp!=0)
+						s += tmp*
 								(basis.getN(ket1,ket2,i,SPIN_UP) +
-								basis.getN(ket1,ket2,i,SPIN_DOWN));
+								 basis.getN(ket1,ket2,i,SPIN_DOWN));
 				}
 				diag[ispace]=s;
 			}

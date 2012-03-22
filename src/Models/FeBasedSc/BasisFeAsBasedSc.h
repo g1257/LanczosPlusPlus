@@ -91,23 +91,33 @@ namespace LanczosPlusPlus {
 			size_t x = i%basis1_.size();
 			return (spin==SPIN_UP) ? basis1_.getN(x,orb) : basis2_.getN(y,orb);
 		}
-		
 
-		size_t getBraIndex(size_t i,size_t what,size_t site,size_t spin,size_t orb) const
+		int getBraIndex(WordType ket1, WordType ket2,size_t what,size_t site,size_t spin,size_t orb) const
 		{
-			size_t y = i/basis1_.size();
-			size_t x = i%basis1_.size();
-			size_t i1 = basis1_.perfectIndex(basis1_[x]);
-			size_t i2 = basis2_.perfectIndex(basis2_[y]);
-
-			if (spin==SPIN_UP) {
-				i1 = basis1_.getBraIndex(x,what,site,orb);
-			} else {
-				i2 =  basis2_.getBraIndex(y,what,site,orb);
-			}
-
-			return i1 + i2*basis1_.size();
+			WordType bra;
+			bool b = getBra(bra,ket1,ket2,what,site,spin,orb);
+			if (!b) return -1;
+			return (spin==SPIN_UP) ? perfectIndex(bra,ket2) :
+						 perfectIndex(ket1,bra);
 		}
+
+//		int getBraIndex(size_t i,size_t what,size_t site,size_t spin,size_t orb) const
+//		{
+//			size_t y = i/basis1_.size();
+//			size_t x = i%basis1_.size();
+//			int i1 = basis1_.perfectIndex(basis1_[x]);
+//			int i2 = basis2_.perfectIndex(basis2_[y]);
+
+//			if (spin==SPIN_UP) {
+//				i1 = basis1_.getBraIndex(x,what,site,orb);
+//				if (i1<0) return -1;
+//			} else {
+//				i2 =  basis2_.getBraIndex(y,what,site,orb);
+//				if (i2<0) return -1;
+//			}
+
+//			return i1 + i2*basis1_.size();
+//		}
 
 		int doSign(size_t i,size_t site,size_t sector) const
 		{
@@ -148,7 +158,12 @@ namespace LanczosPlusPlus {
 
 		int doSignGf(WordType a, WordType b,size_t ind,size_t spin,size_t orb) const
 		{
-			throw std::runtime_error("doSignGf: Unimplemented\n");
+			if (spin==SPIN_UP) return basis1_.doSignGf(a,ind,orb);
+
+			int s=(PsimagLite::BitManip::count(a) & 1) ? -1 : 1; // Parity of up
+			int s2 = basis2_.doSignGf(b,ind,orb);
+
+			return s*s2;
 		}
 
 		size_t isThereAnElectronAt(
@@ -163,13 +178,44 @@ namespace LanczosPlusPlus {
 			return basis2_.isThereAnElectronAt(ket2,site,orb);
 		}
 		
-		
+//		size_t electrons(size_t what) const
+//		{
+//			return (what==SPIN_UP) ? basis1_.electrons() : basis2_.electrons();
+//		}
 
+		bool hasNewParts(std::pair<size_t,size_t>& newParts,
+				size_t type,
+				size_t spin,
+				const std::pair<size_t,size_t>& orbs) const
+		{
+			int newPart1=basis1_.electrons();
+			int newPart2=basis2_.electrons();
+
+			if (spin==SPIN_UP) newPart1 = basis1_.newPart(type,orbs.first);
+			else newPart2 = basis2_.newPart(type,orbs.second);
+
+			if (newPart1<0 || newPart2<0) return false;
+
+			if (newPart1==0 && newPart2==0) return false;
+			newParts.first = size_t(newPart1);
+			newParts.second = size_t(newPart2);
+			return true;
+		}
+		
 	private:
 		
+		bool getBra(WordType& bra,
+			    const WordType& ket1,
+			    const WordType& ket2,
+			    size_t what,
+			    size_t site,
+			    size_t spin,
+			    size_t orb) const
+		{
+			return (spin==SPIN_UP) ? basis1_.getBra(bra,ket1,what,site,orb) :
+						 basis2_.getBra(bra,ket2,what,site,orb);
+		}
 
-		
-		
 		BasisType basis1_,basis2_;
 		
 	}; // class BasisFeAsBasedSc

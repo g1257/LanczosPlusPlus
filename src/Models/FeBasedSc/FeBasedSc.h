@@ -55,6 +55,8 @@ namespace LanczosPlusPlus {
 		
 		size_t size() const { return basis_.size(); }
 		
+		size_t orbitals() const { return ORBITALS; }
+
 		void setupHamiltonian(SparseMatrixType &matrix) const
 		{
 			setupHamiltonian(matrix,basis_);
@@ -63,12 +65,10 @@ namespace LanczosPlusPlus {
 		bool hasNewParts(
 				std::pair<size_t,size_t>& newParts,
 				size_t type,
-				size_t spin) const
+				size_t spin,
+				const std::pair<size_t,size_t>& orbs) const
 		{
-			std::string s = "FeBasedSc::hasNewParts(...): unimplemented. ";
-			s+= "This probably means that you can't compute the Green function";
-			s+= " with this model (sorry). It might be added in the future.\n";
-			throw std::runtime_error(s.c_str());
+			return basis_.hasNewParts(newParts,type,spin,orbs);
 		}
 
 		void getModifiedState(
@@ -144,7 +144,7 @@ namespace LanczosPlusPlus {
 			for (size_t ispace=0;ispace<basis_.size();ispace++) {
 				WordType ket1 = basis_(ispace,SPIN_UP);
 				WordType ket2 = basis_(ispace,SPIN_DOWN);
-				int temp = newBasis.getBraIndex(ispace,what,site,spin,orb);
+				int temp = newBasis.getBraIndex(ket1,ket2,what,site,spin,orb);
 				// 				int temp= getBraIndex(mysign,ket1,ket2,newBasis,what,site,spin);
 				if (temp>=0 && size_t(temp)>=z.size()) {
 					std::string s = "old basis=" + ttos(basis_.size());

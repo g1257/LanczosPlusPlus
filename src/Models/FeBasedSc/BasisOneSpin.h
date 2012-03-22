@@ -120,20 +120,20 @@ namespace LanczosPlusPlus {
 			return c;
 		}
 
-		size_t getBraIndex(size_t x,size_t what,size_t site,size_t orb) const
+		bool getBra(WordType& bra,const WordType& myword,size_t what,size_t site,size_t orb) const
 		{
 			WordType ketA=0,ketB=0;
-			uncollateKet(ketA,ketB,data_[x]);
+			uncollateKet(ketA,ketB,myword);
 			WordType braA = ketA;
 			WordType braB = ketB;
 
 			if (orb==0) {
-				if (!getBra(braA,ketA,what,site)) throw std::runtime_error("getBraIndex::orb==0 problem\n");
+				if (!getBra(braA,ketA,what,site)) return false;
 			} else {
-				if (!getBra(braB,ketB,what,site)) throw std::runtime_error("getBraIndex::orb!=0 problem\n");
+				if (!getBra(braB,ketB,what,site)) return false;
 			}
-			WordType bra = getCollatedKet(braA,braB);
-			return perfectIndex(bra);
+			bra = getCollatedKet(braA,braB);
+			return true;
 		}
 
 		static const WordType& bitmask(size_t i)
@@ -202,7 +202,50 @@ namespace LanczosPlusPlus {
 			return (ket & bitmask_[x]) ? 1 : 0;
 		}
 
+		size_t electrons() const { return npart_; }
+
+		int newPart(size_t type,size_t orb) const
+		{
+			int newPart1=npart_;
+
+			int c = (type&1) ? -1 : 1;
+			newPart1 += c;
+
+			if (newPart1<0) return -1;
+
+			if (size_t(newPart1)>ORBITALS*nsite_) return -1;
+
+			return newPart1;
+		}
+
+		int doSignGf(WordType a,size_t ind,size_t orb) const
+		{
+			WordType ketA=0,ketB=0;
+
+			uncollateKet(ketA,ketB,a);
+
+			if (orb==0) return doSignGf(ketA,ind);
+			int s=(PsimagLite::BitManip::count(ketA) & 1) ? -1 : 1; // Parity of a
+
+			return s * doSignGf(ketB,ind);
+		}
+
 	private:
+
+		int doSignGf(WordType b,size_t ind) const
+		{
+			if (ind==0) return 1;
+
+			// ind>0 from now on
+			size_t i = 0;
+			size_t j = ind;
+			WordType mask = b;
+			mask &= ((1 << (i+1)) - 1) ^ ((1 << j) - 1);
+			int s=(PsimagLite::BitManip::count(mask) & 1) ? -1 : 1; // Parity of up between i and j
+			// Is there a down at i?
+			if (bitmask_[i] & b) s = -s;
+			return s;
+		}
 
 		void fillPartialBasis(std::vector<WordType>& partialBasis,size_t npart)
 		{
@@ -250,7 +293,7 @@ namespace LanczosPlusPlus {
 		void doCombinatorial()
 		{
 			/* look-up table for binomial coefficients */
-			comb_.reset(nsite_+1,nsite_+1);
+			comb_.reset(ORBITALS*nsite_+1,ORBITALS*nsite_+1);
 
 			for (size_t n=0;n<comb_.n_row();n++)
 				for (size_t i=0;i<comb_.n_col();i++)

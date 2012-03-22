@@ -61,6 +61,8 @@ namespace LanczosPlusPlus {
 
 		size_t size() const { return basis_.size(); }
 
+		size_t orbitals() const { return 1; }
+
 		void setupHamiltonian(SparseMatrixType &matrix) const
 		{
 			setupHamiltonian(matrix,basis_);
@@ -96,7 +98,8 @@ namespace LanczosPlusPlus {
 
 		bool hasNewParts(std::pair<size_t,size_t>& newParts,
 		                 size_t type,
-		                 size_t spin) const
+				 size_t spin,
+				 const std::pair<size_t,size_t>& orbs) const
 		{
 			int newPart1=basis_.electrons(SPIN_UP);
 			int newPart2=basis_.electrons(SPIN_DOWN);

@@ -79,7 +79,8 @@ namespace LanczosPlusPlus {
 				ContinuedFractionCollectionType& cfCollection,
 				int isite,
 				int jsite,
-				int spin) const
+				int spin,
+				const std::pair<size_t,size_t>& orbs) const
 		{
 			typedef typename ContinuedFractionCollectionType::
 					ContinuedFractionType ContinuedFractionType;
@@ -89,7 +90,7 @@ namespace LanczosPlusPlus {
 				if (isite==jsite && type>1) continue;
 				//if (type&1) continue;
 				std::pair<size_t,size_t> newParts(0,0);
-				if (!model_.hasNewParts(newParts,type,spin)) continue;
+				if (!model_.hasNewParts(newParts,type,spin,orbs)) continue;
 				// Create new bases
 				BasisType basisNew(model_.geometry(),newParts.first,newParts.second);
 
@@ -104,11 +105,11 @@ namespace LanczosPlusPlus {
 			}
 		}
 
-		void ciCj(PsimagLite::Matrix<RealType>& result,size_t spin,size_t orb) const
+		void ciCj(PsimagLite::Matrix<RealType>& result,size_t spin,const std::pair<size_t,size_t>& orbs) const
 		{
 			size_t type = 0;
 			std::pair<size_t,size_t> newParts(0,0);
-			if (!model_.hasNewParts(newParts,type,spin)) return;
+			if (!model_.hasNewParts(newParts,type,spin,orbs)) return;
 
 			BasisType basisNew(model_.geometry(),newParts.first,newParts.second);
 
@@ -118,11 +119,13 @@ namespace LanczosPlusPlus {
 			for (size_t isite=0;isite<total;isite++) {
 				std::vector<RealType> modifVector1;
 				modifVector1.resize(basisNew.size());
-				model_.accModifiedState(modifVector1,basisNew,gsVector_,BasisType::DESTRUCTOR,isite,spin,orb,isign);
+				model_.accModifiedState(modifVector1,basisNew,gsVector_,BasisType::DESTRUCTOR,
+							isite,spin,orbs.first,isign);
 				for (size_t jsite=0;jsite<total;jsite++) {
 					std::vector<RealType> modifVector2;
 					modifVector2.resize(basisNew.size());
-					model_.accModifiedState(modifVector2,basisNew,gsVector_,BasisType::DESTRUCTOR,jsite,spin,orb,isign);
+					model_.accModifiedState(modifVector2,basisNew,gsVector_,BasisType::DESTRUCTOR,
+								jsite,spin,orbs.second,isign);
 					result(isite,jsite) = modifVector2*modifVector1;
 				}
 			}

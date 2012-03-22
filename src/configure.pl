@@ -193,7 +193,7 @@ typedef EngineType::TridiagonalMatrixType TridiagonalMatrixType;
 
 void usage(const char *progName)
 {
-	std::cerr<<"Usage: "<<progName<<" [-g -i i -j j] -f filename\\n";
+	std::cerr<<"Usage: "<<progName<<" [-g -c] -f filename\\n";
 }
 
 int main(int argc,char *argv[])
@@ -203,7 +203,7 @@ int main(int argc,char *argv[])
 	std::string file = "";
 	std::vector<size_t> sites;
 	bool cicj=false;
-	while ((opt = getopt(argc, argv, "gf:c:")) != -1) {
+	while ((opt = getopt(argc, argv, "gcf:")) != -1) {
 		switch (opt) {
 		case 'g':
 			gf = true;
@@ -212,8 +212,7 @@ int main(int argc,char *argv[])
 			file = optarg;
 			break;
 		case 'c':
-			PsimagLite::split(sites,optarg,',');
-			cicj=true;
+			cicj = true;
 			break;
 		default: /* '?' */
 			usage(argv[0]);
@@ -264,7 +263,7 @@ int main(int argc,char *argv[])
 			ContinuedFractionCollectionType;
 
 		ContinuedFractionCollectionType cfCollection;
-		engine.greenFunction(cfCollection,sites[0],sites[1],ModelType::SPIN_UP);
+		engine.greenFunction(cfCollection,sites[0],sites[1],ModelType::SPIN_UP,std::pair<size_t,size_t>(0,0));
 	
 	
 		PsimagLite::IoSimple::Out ioOut(std::cout);
@@ -272,13 +271,13 @@ int main(int argc,char *argv[])
 	}
 	if (!cicj) return 0;
 
-	if (sites.size()==0 || sites.size()>2) throw std::runtime_error("No sites or too many sites!\\n");
-	if (sites.size()==1) sites.push_back(sites[0]);
 	size_t total = geometry.numberOfSites();
 	PsimagLite::Matrix<RealType> cicjMatrix(total,total);
-	size_t orbital = 0;
-	engine.ciCj(cicjMatrix,ModelType::SPIN_UP,orbital);
-	std::cout<<cicjMatrix;
+	size_t norbitals = model.orbitals();
+	for (size_t i=0;i<norbitals;i++) {
+		engine.ciCj(cicjMatrix,ModelType::SPIN_UP,std::pair<size_t,size_t>(i,i));
+		std::cout<<cicjMatrix;
+	}
 }
 
 EOF

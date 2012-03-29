@@ -123,7 +123,7 @@ namespace LanczosPlusPlus {
 			rs->transform(matrixStored_[0],matrixStored_[1],matrix2);
 		}
 
-		size_t rank() const { return matrixStored_[pointer_].rank(); }
+		size_t rank() const { return matrixStored_[pointer_].row(); }
 
 		template<typename SomeVectorType>
 		void matrixVectorProduct(SomeVectorType &x, SomeVectorType const &y) const

@@ -94,7 +94,7 @@ namespace LanczosPlusPlus {
 
 		int getBraIndex(WordType ket1, WordType ket2,size_t what,size_t site,size_t spin,size_t orb) const
 		{
-			WordType bra;
+			WordType bra  =0;
 			bool b = getBra(bra,ket1,ket2,what,site,spin,orb);
 			if (!b) return -1;
 			return (spin==SPIN_UP) ? perfectIndex(bra,ket2) :
@@ -135,14 +135,13 @@ namespace LanczosPlusPlus {
 		}
 		
 
-		int doSign(
-				WordType ket1,
-				WordType ket2,
-				size_t i,
-				size_t orb1,
-				size_t j,
-				size_t orb2,
-				size_t spin) const
+		int doSign(WordType ket1,
+			   WordType ket2,
+			   size_t i,
+			   size_t orb1,
+			   size_t j,
+			   size_t orb2,
+			   size_t spin) const
 		{
 			if (i > j) {
 				std::cerr<<"FATAL: At doSign\n";

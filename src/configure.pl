@@ -185,7 +185,7 @@ typedef PsimagLite::Geometry<RealType,ProgramGlobals> GeometryType;
 typedef $parametersName<RealType> ParametersModelType;
 typedef PsimagLite::IoSimple::In IoInputType;
 typedef $model<RealType,ParametersModelType,GeometryType> ModelType;
-typedef typename ModelType::BasisType BasisType;
+typedef ModelType::BasisType BasisType;
 typedef ReflectionSymmetry<GeometryType,BasisType> ReflectionSymmetryType;
 typedef InternalProduct$stored<ModelType,ReflectionSymmetryType> InternalProductType;
 typedef Engine<ModelType,InternalProductType,ConcurrencyType> EngineType;

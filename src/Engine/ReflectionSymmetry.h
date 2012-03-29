@@ -179,7 +179,7 @@ namespace LanczosPlusPlus {
 		{
 			std::vector<ItemType> buffer;
 			makeUnique(buffer,buffer2);
-			assert(buffer.size()==transform_.rank());
+			assert(buffer.size()==transform_.row());
 			size_t counter = 0;
 			RealType oneOverSqrt2 = 1.0/sqrt(2.0);
 			RealType sign = 1.0;
@@ -214,7 +214,8 @@ namespace LanczosPlusPlus {
 				transform_.pushValue(-oneOverSqrt2*sign);
 				counter++;
 			}
-			transform_.setRow(transform_.rank(),counter);
+			transform_.setRow(transform_.row(),counter);
+			transform_.checkValidity();
 		}
 
 		void makeUnique(std::vector<ItemType>& dest,const std::vector<ItemType>& src)
@@ -266,7 +267,7 @@ namespace LanczosPlusPlus {
 		void split(SparseMatrixType& matrixA,SparseMatrixType& matrixB,const SparseMatrixType& matrix) const
 		{
 			size_t counter = 0;
-			matrixA.resize(plusSector_);
+			matrixA.resize(plusSector_,plusSector_);
 			for (size_t i=0;i<plusSector_;i++) {
 				matrixA.setRow(i,counter);
 				for (int k=matrix.getRowPtr(i);k<matrix.getRowPtr(i+1);k++) {
@@ -287,9 +288,9 @@ namespace LanczosPlusPlus {
 			}
 			matrixA.setRow(plusSector_,counter);
 
-			size_t rank = matrix.rank();
+			size_t rank = matrix.row();
 			size_t minusSector=rank-plusSector_;
-			matrixB.resize(minusSector);
+			matrixB.resize(minusSector,minusSector);
 			counter=0;
 			for (size_t i=plusSector_;i<rank;i++) {
 				matrixB.setRow(i-plusSector_,counter);

@@ -88,9 +88,8 @@ namespace LanczosPlusPlus {
 
 		const GeometryType& geometry() const { return geometry_; }
 
-		void setupHamiltonian(
-				SparseMatrixType &matrix,
-				const BasisType &basis) const
+		void setupHamiltonian(SparseMatrixType &matrix,
+				      const BasisType &basis) const
 		{
 			// Calculate diagonal elements AND count non-zero matrix elements
 			size_t hilbert=basis.size();
@@ -100,7 +99,7 @@ namespace LanczosPlusPlus {
 			size_t nsite = geometry_.numberOfSites();
 
 			// Setup CRS matrix
-			matrix.resize(hilbert);
+			matrix.resize(hilbert,hilbert);
 
 			// Calculate off-diagonal elements AND store matrix
 			size_t nCounter=0;

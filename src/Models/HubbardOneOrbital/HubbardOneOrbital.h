@@ -78,7 +78,7 @@ namespace LanczosPlusPlus {
 			
 			size_t nsite = geometry_.numberOfSites();
 
-			matrix.resize(hilbert);
+			matrix.resize(hilbert,hilbert);
 			// Calculate off-diagonal elements AND store matrix
 			size_t nCounter=0;
 			for (size_t ispace=0;ispace<hilbert;ispace++) {

@@ -129,6 +129,49 @@ namespace LanczosPlusPlus {
 			matrix.setRow(hilbert,nCounter);
 		}
 
+		void matrixVectorProduct(VectorType &x,const VectorType& y) const
+		{
+			matrixVectorProduct(x,y,&basis_);
+		}
+
+		void matrixVectorProduct(VectorType &x,
+					  const VectorType& y,
+					  const BasisType* basis) const
+		{
+			// Calculate diagonal elements AND count non-zero matrix elements
+			size_t hilbert=basis->size();
+			std::vector<RealType> diag(hilbert);
+			calcDiagonalElements(diag,*basis);
+
+			size_t nsite = geometry_.numberOfSites();
+
+			// Calculate off-diagonal elements AND store matrix
+
+			for (size_t ispace=0;ispace<hilbert;ispace++) {
+				SparseRowType sparseRow;
+
+				WordType ket1 = basis->operator ()(ispace,SPIN_UP);
+				WordType ket2 = basis->operator ()(ispace,SPIN_DOWN);
+
+				x[ispace] += diag[ispace]*y[ispace];
+				for (size_t i=0;i<nsite;i++) {
+					for (size_t orb=0;orb<ORBITALS;orb++) {
+						setHoppingTerm(sparseRow,ket1,ket2,
+								i,orb,*basis);
+						if (orb==0) {
+							setU2OffDiagonalTerm(sparseRow,ket1,ket2,
+								i,orb,*basis);
+						}
+						setU3Term(sparseRow,ket1,ket2,
+								i,orb,1-orb,*basis);
+						setJTermOffDiagonal(sparseRow,ket1,ket2,
+								i,orb,*basis);
+					}
+				}
+				x[ispace] += sparseRow.finalize(y);
+			}
+		}
+
 		const BasisType& basis() const { return basis_; }
 
 		void accModifiedState(std::vector<RealType> &z,

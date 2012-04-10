@@ -209,7 +209,7 @@ namespace LanczosPlusPlus {
 
 		RealType hoppings(size_t i,size_t orb1,size_t j,size_t orb2) const
 		{
-			return geometry_(i,orb1,j,orb2,TERM_HOPPINGS);
+			return -geometry_(i,orb1,j,orb2,TERM_HOPPINGS);
 		}
 
 		void setHoppingTerm(

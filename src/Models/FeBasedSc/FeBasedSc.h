@@ -140,8 +140,7 @@ namespace LanczosPlusPlus {
 		{
 			// Calculate diagonal elements AND count non-zero matrix elements
 			size_t hilbert=basis->size();
-			std::vector<RealType> diag(hilbert);
-			calcDiagonalElements(diag,*basis);
+			calcDiagonalElements(x,y,basis);
 
 			size_t nsite = geometry_.numberOfSites();
 
@@ -153,7 +152,7 @@ namespace LanczosPlusPlus {
 				WordType ket1 = basis->operator ()(ispace,SPIN_UP);
 				WordType ket2 = basis->operator ()(ispace,SPIN_DOWN);
 
-				x[ispace] += diag[ispace]*y[ispace];
+				//x[ispace] += diag[ispace]*y[ispace];
 				for (size_t i=0;i<nsite;i++) {
 					for (size_t orb=0;orb<ORBITALS;orb++) {
 						setHoppingTerm(sparseRow,ket1,ket2,
@@ -359,9 +358,8 @@ namespace LanczosPlusPlus {
 			return x;
 		}
 
-		void calcDiagonalElements(
-				std::vector<RealType>& diag,
-				const BasisType &basis) const
+		void calcDiagonalElements(std::vector<RealType>& diag,
+					  const BasisType &basis) const
 		{
 			size_t hilbert=basis.size();
 			size_t nsite = geometry_.numberOfSites();
@@ -370,48 +368,67 @@ namespace LanczosPlusPlus {
 			for (size_t ispace=0;ispace<hilbert;ispace++) {
 				WordType ket1 = basis(ispace,SPIN_UP);
 				WordType ket2 = basis(ispace,SPIN_DOWN);
-				RealType s=0;
-				for (size_t i=0;i<nsite;i++) {
-					for (size_t orb=0;orb<ORBITALS;orb++) {
+				diag[ispace]=findS(nsite,ket1,ket2,ispace,basis);
+			}
+		}
 
-						// Hubbard term U0
-						s += mp_.hubbardU[0] * basis.isThereAnElectronAt(ket1,ket2,
-								i,SPIN_UP,orb) * basis.isThereAnElectronAt(ket1,ket2,
-								i,SPIN_DOWN,orb);
-						
-						// Hubbard term U1
-						if (orb==0) {
-							s += mp_.hubbardU[1] * nix(ket1,ket2,i,orb,basis) *
-									nix(ket1,ket2,i,1-orb,basis);
-						}
+		void calcDiagonalElements(VectorType &x,
+					  const VectorType& y,
+					  const BasisType* basis) const
+		{
+			size_t hilbert=basis->size();
+			size_t nsite = geometry_.numberOfSites();
 
-						// Diagonal U2 term
-						if (orb==0 && mp_.hubbardU[2]!=0) {
-							s+= mp_.hubbardU[2]*
+			for (size_t ispace=0;ispace<hilbert;ispace++) {
+				WordType ket1 = basis->operator()(ispace,SPIN_UP);
+				WordType ket2 = basis->operator()(ispace,SPIN_DOWN);
+				x[ispace] += findS(nsite,ket1,ket2,ispace,*basis)*y[ispace];
+			}
+		}
+
+		RealType findS(size_t nsite,WordType ket1,WordType ket2,size_t ispace,const BasisType& basis) const
+		{
+			RealType s = 0;
+			for (size_t i=0;i<nsite;i++) {
+				for (size_t orb=0;orb<ORBITALS;orb++) {
+
+					// Hubbard term U0
+					s += mp_.hubbardU[0] * basis.isThereAnElectronAt(ket1,ket2,
+											 i,SPIN_UP,orb) * basis.isThereAnElectronAt(ket1,ket2,
+																    i,SPIN_DOWN,orb);
+
+					// Hubbard term U1
+					if (orb==0) {
+						s += mp_.hubbardU[1] * nix(ket1,ket2,i,orb,basis) *
+								nix(ket1,ket2,i,1-orb,basis);
+					}
+
+					// Diagonal U2 term
+					if (orb==0 && mp_.hubbardU[2]!=0) {
+						s+= mp_.hubbardU[2]*
 								szTerm(ket1,ket2,i,orb,basis)*
 								szTerm(ket1,ket2,i,1-orb,basis);
-						}
+					}
 
-						// JNN and JNNN diagonal part
-						for (size_t j=0;j<nsite;j++) {
-							for (size_t orb2=0;orb2<ORBITALS;orb2++) {
-								RealType value = jCoupling(i,j);
-								if (value==0) continue;
-								s += value*0.5* // double counting i,j
+					// JNN and JNNN diagonal part
+					for (size_t j=0;j<nsite;j++) {
+						for (size_t orb2=0;orb2<ORBITALS;orb2++) {
+							RealType value = jCoupling(i,j);
+							if (value==0) continue;
+							s += value*0.5* // double counting i,j
 									szTerm(ket1,ket2,i,orb,basis)*
 									szTerm(ket1,ket2,j,orb2,basis);
-							}
 						}
-
-						// Potential term
-						if (mp_.potentialV[i]!=0)
-							s += mp_.potentialV[i]*
-								(basis.getN(ispace,SPIN_UP,orb) +
-								basis.getN(ispace,SPIN_DOWN,orb));
 					}
+
+					// Potential term
+					if (mp_.potentialV[i]!=0)
+						s += mp_.potentialV[i]*
+								(basis.getN(ispace,SPIN_UP,orb) +
+								 basis.getN(ispace,SPIN_DOWN,orb));
 				}
-				diag[ispace]=s;
 			}
+			return s;
 		}
 
 		size_t splusSminusNonZero(

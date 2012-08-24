@@ -41,12 +41,16 @@ namespace LanczosPlusPlus {
 		: mp_(mp),
 		  geometry_(geometry),
 		  basis_(geometry,nup,ndown),
-		  hoppings_(geometry_.numberOfSites(),geometry_.numberOfSites())
+		  hoppings_(geometry_.numberOfSites(),geometry_.numberOfSites()),
+		  j_(geometry_.numberOfSites(),geometry_.numberOfSites())
 		{
 			size_t n = geometry_.numberOfSites();
-			for (size_t i=0;i<n;i++)
-				for (size_t j=0;j<n;j++)
+			for (size_t i=0;i<n;i++) {
+				for (size_t j=0;j<n;j++) {
 					hoppings_(i,j) = geometry_(i,0,j,0,0);
+					j_(i,j) = geometry_(i,0,j,0,1);
+				}
+			}
 		}
 
 		size_t size() const { return basis_.size(); }
@@ -81,6 +85,7 @@ namespace LanczosPlusPlus {
 				sparseRow.add(ispace,diag[ispace]);
 				for (size_t i=0;i<nsite;i++) {
 					setHoppingTerm(sparseRow,ket1,ket2,i,basis);
+					setSplusSminus(sparseRow,ket1,ket2,i,basis);
 				}
 				nCounter += sparseRow.finalize(matrix);
 			}
@@ -179,7 +184,29 @@ namespace LanczosPlusPlus {
 		void calcDiagonalElements(std::vector<RealType>& diag,
 		                          const BasisType &basis) const
 		{
-			return;
+			size_t hilbert=basis.size();
+			size_t nsite = geometry_.numberOfSites();
+
+			// Calculate diagonal elements
+			for (size_t ispace=0;ispace<hilbert;ispace++) {
+				WordType ket1 = basis(ispace,SPIN_UP);
+				WordType ket2 = basis(ispace,SPIN_DOWN);
+				RealType s=0;
+				for (size_t i=0;i<nsite;i++) {
+					for (size_t j=i+1;j<nsite;j++) {
+						//Szi
+						int szi = basis.isThereAnElectronAt(ket1,ket2,i,SPIN_UP) -
+						basis.isThereAnElectronAt(ket1,ket2,i,SPIN_DOWN);
+						// Szj
+						int szj = basis.isThereAnElectronAt(ket1,ket2,j,SPIN_UP) -
+						basis.isThereAnElectronAt(ket1,ket2,j,SPIN_DOWN);
+
+						// Sz Sz term:
+						s += szi * szj * j_(i,j);
+					}
+				}
+				diag[ispace]=s;
+			}
 		}
 
 		void setHoppingTerm(SparseRowType &sparseRow,
@@ -223,10 +250,54 @@ namespace LanczosPlusPlus {
 			}
 		}
 
+		void setSplusSminus(SparseRowType &sparseRow,
+							const WordType& ket1,
+							const WordType& ket2,
+							size_t i,
+							const BasisType &basis) const
+		{
+			WordType s1i=(ket1 & BasisType::bitmask(i));
+			if (s1i>0) s1i=1;
+			WordType s2i=(ket2 & BasisType::bitmask(i));
+			if (s2i>0) s2i=1;
+
+			size_t nsite = geometry_.numberOfSites();
+
+			// Hopping term
+			for (size_t j=0;j<nsite;j++) {
+				if (j<i) continue;
+				RealType h = j_(i,j)*0.25;
+				if (h==0) continue;
+				WordType s1j= (ket1 & BasisType::bitmask(j));
+				if (s1j>0) s1j=1;
+				WordType s2j= (ket2 & BasisType::bitmask(j));
+				if (s2j>0) s2j=1;
+
+				if (s1i==1 && s1j==0 && s2i==0 && s2j==1) {
+					WordType bra1= ket1 ^ BasisType::bitmask(i);
+					bra1 |= BasisType::bitmask(j);
+					WordType bra2= ket2 | BasisType::bitmask(i);
+					bra2 ^= BasisType::bitmask(j);
+					size_t temp = basis.perfectIndex(bra1,bra2);
+					sparseRow.add(temp,h);
+				}
+
+				if (s1i==0 && s1j==1 && s2i==1 && s2j==0) {
+					WordType bra1= ket1 | BasisType::bitmask(i);
+					bra1 ^= BasisType::bitmask(j);
+					WordType bra2= ket2 ^ BasisType::bitmask(i);
+					bra2 |= BasisType::bitmask(j);
+					size_t temp = basis.perfectIndex(bra1,bra2);
+					sparseRow.add(temp,h);
+				}
+			}
+		}
+
 		const ParametersType& mp_;
 		const GeometryType& geometry_;
 		BasisType basis_;
 		PsimagLite::Matrix<RealType> hoppings_;
+		PsimagLite::Matrix<RealType> j_;
 
 	}; // class Tj1Orb
 } // namespace LanczosPlusPlus

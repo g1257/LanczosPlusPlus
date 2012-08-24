@@ -52,7 +52,7 @@ createDriver();
 sub askQuestions
 {
 	print "Enter model\n";
-	print "Available: HubbardOneOrbital FeBasedSc\n";
+	print "Available: HubbardOneOrbital FeBasedSc Tj1Orb\n";
 	print "Default: HubbardOneOrbital (press ENTER): ";
 	$_=<STDIN>;
 	chomp;

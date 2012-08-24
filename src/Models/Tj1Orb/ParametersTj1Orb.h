@@ -1,9 +1,8 @@
-// BEGIN LICENSE BLOCK
 /*
-Copyright (c) 2010-2011, UT-Battelle, LLC
+Copyright (c) 2009-2012, UT-Battelle, LLC
 All rights reserved
 
-[Lanczos++, Version 1.0.0]
+[Lanczos++, Version 2.0.0]
 [by G.A., Oak Ridge National Laboratory]
 
 UT Battelle Open Source Software License 11242008
@@ -68,82 +67,47 @@ DISCLOSED WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
 
 *********************************************************
 
-
 */
-// END LICENSE BLOCK
+
 /** \ingroup LanczosPlusPlus */
 /*@{*/
 
-/*! \file InternalProductStored.h
+/*! \file ParametersTj1Orb.h
  *
- *  A class to encapsulate the product x+=Hy, where x and y are vectors and H is the Hamiltonian matrix
+ *  Contains the parameters for the Hubbard model and function to read them from a JSON file
  *
  */
-#ifndef InternalProductStored_HEADER_H
-#define InternalProductStored_HEADER_H
-
-#include <vector>
+#ifndef PARAMETERS_TJ_1ORB_H
+#define PARAMETERS_TJ_1ORB_H
+#include "Vector.h"
+#include <stdexcept>
+#include "IoSimple.h"
 
 namespace LanczosPlusPlus {
-	template<typename ModelType,typename ReflectionSymmetryType_>
-	class InternalProductStored {
+	//! Hubbard Model Parameters
+	template<typename Field>
+	struct ParametersTj1Orb {
 
-	public:	
-
-		typedef ReflectionSymmetryType_ ReflectionSymmetryType;
-		typedef typename ModelType::BasisType BasisType;
-		typedef typename ModelType::SparseMatrixType SparseMatrixType;
-		typedef typename ModelType::RealType RealType;
-		typedef typename ModelType::GeometryType GeometryType;
-
-		InternalProductStored(const ModelType& model,
-				      const BasisType& basis,
-				      const ReflectionSymmetryType* rs=0)
-		: matrixStored_(2),pointer_(0)
+		ParametersTj1Orb(PsimagLite::IoSimple::In& io)
 		{
-			if (!rs) {
-				model.setupHamiltonian(matrixStored_[0],basis);
-				std::cout<<matrixStored_[0];
-				return;
-			}
-			SparseMatrixType matrix2;
-			model.setupHamiltonian(matrix2,basis);
-			rs->transform(matrixStored_[0],matrixStored_[1],matrix2);
+			nOfElectrons=0;
+			//io.readline(density,"density=");
 		}
+		
+		// Do not include here connection parameters
+		// those are handled by the Geometry
 
-		InternalProductStored(const ModelType& model,
-				      const ReflectionSymmetryType* rs=0)
-		: matrixStored_(2),pointer_(0)
-		{
-			if (!rs) {
-				model.setupHamiltonian(matrixStored_[0]);
-				if (matrixStored_[0].row()<40) printFullMatrix(matrixStored_[0],"matrix",1);
-				return;
-			}
-			SparseMatrixType matrix2;
-			model.setupHamiltonian(matrix2);
-			rs->transform(matrixStored_[0],matrixStored_[1],matrix2);
-		}
-
-		size_t rank() const { return matrixStored_[pointer_].row(); }
-
-		template<typename SomeVectorType>
-		void matrixVectorProduct(SomeVectorType &x, SomeVectorType const &y) const
-		{
-			 matrixStored_[pointer_].matrixVectorProduct(x,y);
-		}
-
-		size_t reflectionSector() const { return pointer_; }
-
-		void reflectionSector(size_t p) { pointer_=p; }
-
-	private:
-
-		std::vector<SparseMatrixType> matrixStored_;
-		size_t pointer_;
-	}; // class InternalProductStored
+		// target number of electrons  in the system
+		int nOfElectrons;
+	};
+	
+	//! Function that prints model parameters to stream os
+	template<typename FieldType>
+	std::ostream& operator<<(std::ostream &os,const ParametersTj1Orb<FieldType>& parameters)
+	{
+		return os;
+	}
 } // namespace LanczosPlusPlus
 
 /*@}*/
 #endif
-

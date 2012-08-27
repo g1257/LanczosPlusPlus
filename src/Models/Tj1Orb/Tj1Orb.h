@@ -106,7 +106,7 @@ namespace LanczosPlusPlus {
 		{
 			int newPart1=basis_.electrons(SPIN_UP);
 			int newPart2=basis_.electrons(SPIN_DOWN);
-			int c = (type&1) ? -1 : 1;
+			int c = (type&1) ? 1 : -1;
 			if (spin==SPIN_UP) newPart1 += c;
 			else newPart2 += c;
 
@@ -114,6 +114,7 @@ namespace LanczosPlusPlus {
 			size_t nsite = geometry_.numberOfSites();
 			if (size_t(newPart1)>nsite || size_t(newPart2)>nsite) return false;
 			if (newPart1==0 && newPart2==0) return false;
+			if (size_t(newPart1+newPart2)>nsite) return false; // no double occupancy
 			newParts.first = size_t(newPart1);
 			newParts.second = size_t(newPart2);
 			return true;
@@ -150,13 +151,13 @@ namespace LanczosPlusPlus {
 
 		//! Gf Related functions:
 		void accModifiedState(std::vector<RealType> &z,
-		                      const BasisType& newBasis,
-		                      const std::vector<RealType> &gsVector,
-		                      size_t what,
-		                      size_t site,
-		                      size_t spin,
-				      size_t orb,
-		                      int isign) const
+		const BasisType& newBasis,
+		const std::vector<RealType> &gsVector,
+		size_t what,
+		size_t site,
+		size_t spin,
+		size_t orb,
+		int isign) const
 		{
 			for (size_t ispace=0;ispace<basis_.size();ispace++) {
 				WordType ket1 = basis_(ispace,SPIN_UP);

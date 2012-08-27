@@ -238,10 +238,15 @@ int main(int argc,char *argv[])
 	if (concurrency.root()) std::cerr<<license;
 
 	std::vector<RealType> qns;
-	io.read(qns,"TargetQuantumNumbers");
-	if (qns.size()<2) throw std::runtime_error("HubbardLanczos::ctor(...)\\n");
+	//io.read(qns,"TargetQuantumNumbers");
+	size_t nup = 0;
+	size_t ndown = 0;
+	io.readline(nup,"TargetElectronsUp=");
+	io.readline(ndown,"TargetElectronsDown=");
+	/* if (qns.size()<2) throw std::runtime_error("HubbardLanczos::ctor(...)\\n");
 	size_t nup=size_t(geometry.numberOfSites()*qns[0]);
 	size_t ndown=size_t(geometry.numberOfSites()*qns[1]);
+	*/
 
 	//! Setup the Model
 	ModelType model(nup,ndown,mp,geometry);

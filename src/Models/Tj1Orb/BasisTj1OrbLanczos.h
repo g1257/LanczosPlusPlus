@@ -27,7 +27,8 @@ namespace LanczosPlusPlus {
 		BasisTj1OrbLanczos(const GeometryType& geometry, size_t nup,size_t ndown)
 		: geometry_(geometry),nup_(nup),ndown_(ndown)
 		{
-			doBitmask();
+			assert(bitmask_.size()==0 || bitmask_.size()==geometry_.numberOfSites());
+			if (bitmask_.size()==0) doBitmask();
 			std::vector<WordType> data1;
 			fillOneSector(data1,nup);
 			std::vector<WordType> data2;
@@ -55,6 +56,8 @@ namespace LanczosPlusPlus {
 
 		size_t perfectIndex(WordType ket1,WordType ket2) const
 		{
+			assert(size_t(PsimagLite::BitManip::count(ket1))==nup_);
+			assert(size_t(PsimagLite::BitManip::count(ket2))==ndown_);
 			size_t n = geometry_.numberOfSites();
 			WordType w = ket2;
 			w <<= n;
@@ -123,7 +126,7 @@ namespace LanczosPlusPlus {
 			size_t j = ind;
 			WordType mask = b;
 			mask &= ((1 << (i+1)) - 1) ^ ((1 << j) - 1);
-			s=(PsimagLite::BitManip::count(mask) & 1) ? -1 : 1; // Parity of up between i and j
+			s *= (PsimagLite::BitManip::count(mask) & 1) ? -1 : 1; // Parity of up between i and j
 			// Is there a down at i?
 			if (bitmask_[i] & b) s = -s;
 			return s;
@@ -145,7 +148,7 @@ namespace LanczosPlusPlus {
 		                   size_t site,
 		                   size_t spin) const
 		{
-			WordType bra;
+			WordType bra = 0;
 			bool b = getBra(bra,ket1,ket2,what,site,spin);
 			if (!b) return -1;
 			return (spin==SPIN_UP) ? perfectIndex(bra,ket2) :
@@ -159,11 +162,24 @@ namespace LanczosPlusPlus {
 		            size_t site,
 		            size_t spin) const
 		{
-			return (spin==SPIN_UP) ? getBra(bra,ket1,what,site) :
-									 getBra(bra,ket2,what,site);
+			if (spin==SPIN_UP) {
+				bool b1 = getBra(bra,ket1,what,site);
+				if (!b1) return false;
+				return !isDoublyOccupied(bra,ket2);
+			}
+
+			bool b2 = getBra(bra,ket2,what,site);
+			if (!b2) return false;
+			return !isDoublyOccupied(ket1,bra);
 		}
 
 	private:
+
+		bool isDoublyOccupied(const WordType& ket1,const WordType& ket2) const
+		{
+			WordType tmp = (ket1 & ket2);
+			return (tmp>0);
+		}
 
 		void fillOneSector(std::vector<WordType>& data1,size_t npart) const
 		{

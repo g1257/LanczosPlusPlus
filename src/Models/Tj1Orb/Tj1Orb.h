@@ -202,7 +202,7 @@ namespace LanczosPlusPlus {
 						basis.isThereAnElectronAt(ket1,ket2,j,SPIN_DOWN);
 
 						// Sz Sz term:
-						s += szi * szj * j_(i,j);
+						s += szi * szj * j_(i,j)*0.25;
 					}
 				}
 				diag[ispace]=s;
@@ -266,7 +266,7 @@ namespace LanczosPlusPlus {
 			// Hopping term
 			for (size_t j=0;j<nsite;j++) {
 				if (j<i) continue;
-				RealType h = j_(i,j)*0.25;
+				RealType h = j_(i,j)*0.5;
 				if (h==0) continue;
 				WordType s1j= (ket1 & BasisType::bitmask(j));
 				if (s1j>0) s1j=1;

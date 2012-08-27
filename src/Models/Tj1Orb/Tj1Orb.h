@@ -42,13 +42,15 @@ namespace LanczosPlusPlus {
 		  geometry_(geometry),
 		  basis_(geometry,nup,ndown),
 		  hoppings_(geometry_.numberOfSites(),geometry_.numberOfSites()),
-		  j_(geometry_.numberOfSites(),geometry_.numberOfSites())
+		  j_(geometry_.numberOfSites(),geometry_.numberOfSites()),
+		  w_(geometry_.numberOfSites(),geometry_.numberOfSites())
 		{
 			size_t n = geometry_.numberOfSites();
 			for (size_t i=0;i<n;i++) {
 				for (size_t j=0;j<n;j++) {
 					hoppings_(i,j) = geometry_(i,0,j,0,0);
 					j_(i,j) = geometry_(i,0,j,0,1);
+					w_(i,j) = geometry_(i,0,j,0,2);
 				}
 			}
 		}
@@ -194,15 +196,21 @@ namespace LanczosPlusPlus {
 				RealType s=0;
 				for (size_t i=0;i<nsite;i++) {
 					for (size_t j=i+1;j<nsite;j++) {
-						//Szi
-						int szi = basis.isThereAnElectronAt(ket1,ket2,i,SPIN_UP) -
-						basis.isThereAnElectronAt(ket1,ket2,i,SPIN_DOWN);
-						// Szj
-						int szj = basis.isThereAnElectronAt(ket1,ket2,j,SPIN_UP) -
-						basis.isThereAnElectronAt(ket1,ket2,j,SPIN_DOWN);
+
+						int niup = basis.isThereAnElectronAt(ket1,ket2,i,SPIN_UP);
+						int nidown = basis.isThereAnElectronAt(ket1,ket2,i,SPIN_DOWN);
+						int njup = basis.isThereAnElectronAt(ket1,ket2,j,SPIN_UP);
+						int njdown = basis.isThereAnElectronAt(ket1,ket2,j,SPIN_DOWN);
+
+						int szi =  niup - nidown;
+
+						int szj = njup - njdown;
 
 						// Sz Sz term:
 						s += szi * szj * j_(i,j)*0.25;
+
+						// ni nj term
+						s+= (niup+nidown) * (njup + njdown) * w_(i,j);
 					}
 				}
 				diag[ispace]=s;
@@ -298,6 +306,7 @@ namespace LanczosPlusPlus {
 		BasisType basis_;
 		PsimagLite::Matrix<RealType> hoppings_;
 		PsimagLite::Matrix<RealType> j_;
+		PsimagLite::Matrix<RealType> w_;
 
 	}; // class Tj1Orb
 } // namespace LanczosPlusPlus

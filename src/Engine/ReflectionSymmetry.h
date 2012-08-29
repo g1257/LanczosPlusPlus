@@ -160,14 +160,6 @@ namespace LanczosPlusPlus {
 			multiply(gs,rT,gstmp);
 		}
 
-		void printFullMatrix(const SparseMatrixType& s,const std::string& label) const
-		{
-			PsimagLite::Matrix<RealType> mtmp;
-			crsMatrixToFullMatrix(mtmp,s);
-			std::cerr<<"----------->  "<<label<<"  <----------------\n";
-			std::cerr<<mtmp;
-		}
-
 		void addTo(WordType& yy,size_t what,size_t site) const
 		{
 			if (what==0) return;

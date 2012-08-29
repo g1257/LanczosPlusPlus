@@ -173,6 +173,9 @@ namespace LanczosPlusPlus {
 			return !isDoublyOccupied(ket1,bra);
 		}
 
+		template<typename GeometryType2>
+		friend std::ostream& operator<<(std::ostream& os,const BasisTj1OrbLanczos<GeometryType2>& basis);
+
 	private:
 
 		bool isDoublyOccupied(const WordType& ket1,const WordType& ket2) const
@@ -306,7 +309,16 @@ namespace LanczosPlusPlus {
 	}; // class BasisTj1OrbLanczos
 	
 	template<typename GeometryType>
+	std::ostream& operator<<(std::ostream& os,const BasisTj1OrbLanczos<GeometryType>& basis)
+	{
+		for (size_t i=0;i<basis.data_.size();i++)
+			os<<i<<" "<<basis.data_[i]<<"\n";
+		return os;
+	}
+
+	template<typename GeometryType>
 	std::vector<typename BasisTj1OrbLanczos<GeometryType>::WordType> BasisTj1OrbLanczos<GeometryType>::bitmask_;
+
 
 } // namespace LanczosPlusPlus
 #endif

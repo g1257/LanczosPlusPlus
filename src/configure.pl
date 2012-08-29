@@ -255,6 +255,7 @@ int main(int argc,char *argv[])
 
 	//! get the g.s.:
 	RealType Eg = engine.gsEnergy();
+	std::cout.precision(8);
 	std::cout<<"Energy="<<Eg<<"\\n";
 	if (gf) {
 		io.read(sites,"TSPSites");

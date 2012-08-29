@@ -128,7 +128,7 @@ namespace LanczosPlusPlus {
 		                      size_t jsite,
 		                      size_t spin) const
 		{
-			size_t what= (type&1) ?  DESTRUCTOR : CONSTRUCTOR;
+			size_t what= (type&1) ? DESTRUCTOR : CONSTRUCTOR;
 
 			modifVector.resize(basisNew.size());
 			for (size_t temp=0;temp<modifVector.size();temp++)
@@ -182,6 +182,11 @@ namespace LanczosPlusPlus {
 			}
 		}
 
+		void printBasis(std::ostream& os) const
+		{
+			os<<basis_;
+		}
+
 	private:
 
 		void calcDiagonalElements(std::vector<RealType>& diag,
@@ -203,12 +208,8 @@ namespace LanczosPlusPlus {
 						int njup = basis.isThereAnElectronAt(ket1,ket2,j,SPIN_UP);
 						int njdown = basis.isThereAnElectronAt(ket1,ket2,j,SPIN_DOWN);
 
-						int szi =  niup - nidown;
-
-						int szj = njup - njdown;
-
 						// Sz Sz term:
-						s += szi * szj * j_(i,j)*0.25;
+						s += (niup-nidown) * (njup - njdown)  * j_(i,j)*0.25;
 
 						// ni nj term
 						s+= (niup+nidown) * (njup + njdown) * w_(i,j);
@@ -288,7 +289,7 @@ namespace LanczosPlusPlus {
 					WordType bra2= ket2 | BasisType::bitmask(i);
 					bra2 ^= BasisType::bitmask(j);
 					size_t temp = basis.perfectIndex(bra1,bra2);
-					sparseRow.add(temp,h);
+					sparseRow.add(temp,h*signSplusSminus(i,j,bra1,bra2));
 				}
 
 				if (s1i==0 && s1j==1 && s2i==1 && s2j==0) {
@@ -297,9 +298,37 @@ namespace LanczosPlusPlus {
 					WordType bra2= ket2 ^ BasisType::bitmask(i);
 					bra2 |= BasisType::bitmask(j);
 					size_t temp = basis.perfectIndex(bra1,bra2);
-					sparseRow.add(temp,h);
+					sparseRow.add(temp,h*signSplusSminus(i,j,bra1,bra2));
 				}
 			}
+		}
+
+		int signSplusSminus(size_t i, size_t j,const WordType& bra1, const WordType& bra2) const
+		{
+			size_t n = geometry_.numberOfSites();
+			int s = 1.0;
+			if (j>0) s *= parityFrom(0,j-1,bra2);
+			if (i>0) s *= parityFrom(0,i-1,bra2);
+			if (i<n-1) s *= parityFrom(i+1,n-1,bra1);
+			if (j<n-1) s *= parityFrom(j+1,n-1,bra1);
+			return -s;
+		}
+
+		// from i to j including i and j
+		// assumes i<=j
+		int parityFrom(size_t i,size_t j,const WordType& ket) const
+		{
+			if (i==j) return (BasisType::bitmask(j) & ket) ? -1 : 1;
+			assert(i<j);
+			//j>i>=0 now
+			WordType mask = ket;
+			mask &= ((1 << (i+1)) - 1) ^ ((1 << j) - 1);
+			int s=(PsimagLite::BitManip::count(mask) & 1) ? -1 : 1; // Parity of up between i and j
+			// Is there something of this species at i?
+			if (BasisType::bitmask(i) & ket) s = -s;
+			// Is there something of this species at j?
+			if (BasisType::bitmask(j) & ket) s = -s;
+			return s;
 		}
 
 		const ParametersType& mp_;

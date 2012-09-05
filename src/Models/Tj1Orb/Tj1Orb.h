@@ -128,7 +128,7 @@ namespace LanczosPlusPlus {
 		                      size_t jsite,
 		                      size_t spin) const
 		{
-			size_t what= (type&1) ? DESTRUCTOR : CONSTRUCTOR;
+			size_t what= (type&1) ? CONSTRUCTOR : DESTRUCTOR;
 
 			modifVector.resize(basisNew.size());
 			for (size_t temp=0;temp<modifVector.size();temp++)
@@ -138,6 +138,7 @@ namespace LanczosPlusPlus {
 			accModifiedState(modifVector,basisNew,gsVector,what,isite,spin,orb,1);
 			std::cerr<<"isite="<<isite<<" type="<<type;
 			std::cerr<<" modif="<<(modifVector*modifVector)<<"\n";
+			if (isite==jsite) return;
 
 			int isign= (type>1) ? -1 : 1;
 			accModifiedState(modifVector,basisNew,gsVector,what,jsite,spin,orb,isign);

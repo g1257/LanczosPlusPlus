@@ -6,6 +6,7 @@
 #define BASIS_TJ_1ORB_LANCZOS_H
 
 #include "BitManip.h"
+#include "ProgramGlobals.h"
 
 namespace LanczosPlusPlus {
 	
@@ -163,35 +164,36 @@ namespace LanczosPlusPlus {
 			return (spin==SPIN_UP) ? doSign(ket1,i,j): doSign(ket2,i,j);
 		}
 
-		int getBraIndex(const WordType& ket1,
-		                   const WordType& ket2,
-		                   size_t what,
-		                   size_t site,
-		                   size_t spin) const
-		{
-			WordType bra = 0;
-			bool b = getBra(bra,ket1,ket2,what,site,spin);
-			if (!b) return -1;
-			return (spin==SPIN_UP) ? perfectIndex(bra,ket2) :
-			                         perfectIndex(ket1,bra);
-		}
+//		int getBraIndex(size_t what2,
+//						const WordType& ket1,
+//						const WordType& ket2,
+//						size_t what,
+//						size_t site,
+//						size_t spin) const
+//		{
+//			WordType bra = 0;
+//			int b = getBra(bra,what2,ket1,ket2,what,site,spin);
+//			if (!b) return -1;
+//			return (spin==SPIN_UP) ? perfectIndex(bra,ket2) :
+//			                         perfectIndex(ket1,bra);
+//		}
 		
-		bool getBra(WordType& bra,
+		int getBra(WordType& bra,
+					size_t what2,
 		            const WordType& ket1,
 		            const WordType& ket2,
 		            size_t what,
 		            size_t site,
 		            size_t spin) const
 		{
-			if (spin==SPIN_UP) {
-				bool b1 = getBra(bra,ket1,what,site);
-				if (!b1) return false;
-				return !isDoublyOccupied(bra,ket2);
+			switch(what2) {
+			case ProgramGlobals::OPERATOR_C:
+				return getBraC(bra,ket1,ket2,what,site,spin);
+			case ProgramGlobals::OPERATOR_SZ:
+				return getBraSz(bra,ket1,ket2,site,spin);
 			}
-
-			bool b2 = getBra(bra,ket2,what,site);
-			if (!b2) return false;
-			return !isDoublyOccupied(ket1,bra);
+			assert(false);
+			return 0;
 		}
 
 		template<typename GeometryType2>
@@ -303,24 +305,57 @@ namespace LanczosPlusPlus {
 			return sum;
 		}
 
-		bool getBra(WordType& bra, const WordType& ket,size_t what,size_t site) const
+		int getBraC(WordType& bra,
+					const WordType& ket1,
+					const WordType& ket2,
+					size_t what,
+					size_t site,
+					size_t spin) const
 		{
+			if (spin==SPIN_UP) {
+				int b1 = getBraC(bra,ket1,what,site);
+				if (b1==0) return 0;
+				return (isDoublyOccupied(bra,ket2)) ? 0 : 1;
+			}
 
+			int b2 = getBraC(bra,ket2,what,site);
+			if (b2==0) return 0;
+			return (isDoublyOccupied(ket1,bra)) ? 0 : 1;
+		}
+
+		int getBraC(WordType& bra,const WordType& ket,size_t what,size_t site) const
+		{
 			WordType si=(ket & bitmask_[site]);
 			if (what==DESTRUCTOR) {
 				if (si>0) {
 					bra = (ket ^ bitmask_[site]);
 				} else {
-					return false; // cannot destroy, there's nothing
+					return 0; // cannot destroy, there's nothing
 				}
 			} else {
 				if (si==0) {
 					bra = (ket ^ bitmask_[site]);
 				} else {
-					return false; // cannot construct, there's already one
+					return 0; // cannot construct, there's already one
 				}
 			}
-			return true;
+			return 1;
+		}
+
+		bool getBraSz(WordType& bra,
+					const WordType& ket1,
+					const WordType& ket2,
+					size_t site,
+					size_t spin) const
+		{
+			assert(spin==SPIN_UP); // spin index is bogus here
+			if (spin==SPIN_UP) bra = ket1;
+			else bra = ket2;
+			WordType siup=(ket1 & bitmask_[site]);
+			WordType sidown=(ket2 & bitmask_[site]);
+			if (siup>0) siup=1;
+			if (sidown>0) sidown=1;
+			return (siup-sidown);
 		}
 
 		const GeometryType& geometry_;

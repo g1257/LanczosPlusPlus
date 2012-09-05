@@ -168,7 +168,15 @@ namespace LanczosPlusPlus {
 			for (size_t ispace=0;ispace<basis_.size();ispace++) {
 				WordType ket1 = basis_(ispace,SPIN_UP);
 				WordType ket2 = basis_(ispace,SPIN_DOWN);
-				int temp = newBasis.getBraIndex(ket1,ket2,what,site,spin);
+				WordType bra1 = ket1;
+				WordType bra2 = ket2;
+				int value = newBasis.getBra(bra1,what2,ket1,ket2,what,site,spin);
+				if (value==0) continue;
+				if (spin!=SPIN_UP) {
+					bra2 = bra1;
+					bra1 = ket1;
+				}
+				int temp = newBasis.perfectIndex(bra1,bra2);
 // 				int temp= getBraIndex(mysign,ket1,ket2,newBasis,what,site,spin);
 				if (temp>=0 && size_t(temp)>=z.size()) {
 					std::string s = "old basis=" + ttos(basis_.size());
@@ -184,7 +192,7 @@ namespace LanczosPlusPlus {
 				}
 				if (temp<0) continue;
 				int mysign = (ProgramGlobals::isFermionic(what2)) ? basis_.doSignGf(ket1,ket2,site,spin) : 1;
-				z[temp] += isign*mysign*gsVector[ispace];
+				z[temp] += isign*mysign*value*gsVector[ispace];
 			}
 		}
 

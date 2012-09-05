@@ -177,13 +177,14 @@ namespace LanczosPlusPlus {
 		const BasisType& basis() const { return basis_; }
 
 		void accModifiedState(std::vector<RealType> &z,
-				      const BasisType& newBasis,
-				      const std::vector<RealType> &gsVector,
-				      size_t what,
-				      size_t site,
-				      size_t spin,
-				      size_t orb,
-				      int isign) const
+							  size_t what2,
+							  const BasisType& newBasis,
+							  const std::vector<RealType> &gsVector,
+							  size_t what,
+							  size_t site,
+							  size_t spin,
+							  size_t orb,
+							  int isign) const
 		{
 			for (size_t ispace=0;ispace<basis_.size();ispace++) {
 				WordType ket1 = basis_(ispace,SPIN_UP);
@@ -203,7 +204,8 @@ namespace LanczosPlusPlus {
 					throw std::runtime_error(s.c_str());
 				}
 				if (temp<0) continue;
-				int mysign = basis_.doSignGf(ket1,ket2,site,spin,orb);
+//				int mysign = basis_.doSignGf(ket1,ket2,site,spin,orb);
+				int mysign = (ProgramGlobals::isFermionic(what2)) ? basis_.doSignGf(ket1,ket2,site,spin,orb) : 1;
 				z[temp] += isign*mysign*gsVector[ispace];
 			}
 		}

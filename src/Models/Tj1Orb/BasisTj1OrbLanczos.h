@@ -34,6 +34,7 @@ namespace LanczosPlusPlus {
 			std::vector<WordType> data2;
 			fillOneSector(data2,ndown);
 			combineAndFilter(data1,data2);
+			std::sort(data_.begin(),data_.end());
 //			for (size_t i=0;i<data_.size();i++)
 //				std::cout<<"data["<<i<<"]="<<data_[i]<<"\n";
 		}
@@ -62,8 +63,28 @@ namespace LanczosPlusPlus {
 			WordType w = ket2;
 			w <<= n;
 			w |= ket1;
-			for (size_t i=0;i<data_.size();i++) {
-				if (data_[i] == w) return i;
+			size_t elements = data_.size();
+			size_t i = elements/2;
+			size_t start = 0;
+			size_t end = elements;
+			size_t counter = 0;
+			size_t max = size_t(0.1*elements);
+			if (max>100) max = 100;
+		       	if (max<1) max = 1;
+
+			while(counter<max) {
+				if (data_[i]==w) return i;
+				if (data_[i]>w) {
+					if (i<end) end = i;
+					i = i/2;
+				} else {
+					if (i>start) start = i; 
+			 		i = (i+elements)/2;
+				}
+				counter++;
+			}
+			for (size_t j=start;j<end;++j) {
+				if (data_[j] == w) return j;
 			}
 			assert(false);
 			return 0;

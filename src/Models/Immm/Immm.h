@@ -110,12 +110,12 @@ template<typename RealType_,typename GeometryType_>
 			for (size_t temp=0;temp<modifVector.size();temp++)
 				modifVector[temp]=0.0;
 
-			accModifiedState(modifVector,basisNew,gsVector,what,isite,spin,1);
+			accModifiedState(modifVector,what2,basisNew,gsVector,what,isite,spin,1);
 			std::cerr<<"isite="<<isite<<" type="<<type;
 			std::cerr<<" modif="<<(modifVector*modifVector)<<"\n";
 
 			int isign= (type>1) ? -1 : 1;
-			accModifiedState(modifVector,basisNew,gsVector,what,jsite,spin,isign);
+			accModifiedState(modifVector,what2,basisNew,gsVector,what,jsite,spin,isign);
 			std::cerr<<"jsite="<<jsite<<" type="<<type;
 			std::cerr<<" modif="<<(modifVector*modifVector)<<"\n";
 		}
@@ -209,6 +209,7 @@ template<typename RealType_,typename GeometryType_>
 
 		//! Gf Related function:
 		void accModifiedState(std::vector<RealType> &z,
+							  size_t what2,
 							  const BasisType& newBasis,
 							  const std::vector<RealType> &gsVector,
 							  size_t what,
@@ -235,7 +236,8 @@ template<typename RealType_,typename GeometryType_>
 					throw std::runtime_error(s.c_str());
 				}
 				if (temp<0) continue;
-				int mysign = basis_.doSignGf(ket1,ket2,site,spin,orb);
+//				int mysign = basis_.doSignGf(ket1,ket2,site,spin,orb);
+				int mysign = (ProgramGlobals::isFermionic(what2)) ? basis_.doSignGf(ket1,ket2,site,spin,orb) : 1;
 				z[temp] += isign*mysign*gsVector[ispace];
 			}
 		}
@@ -518,6 +520,7 @@ template<typename RealType_,typename GeometryType_>
 
 		//! Gf Related function:
 		void accModifiedState(std::vector<RealType> &z,
+							  size_t what2,
 		                      const BasisType& newBasis,
 		                      const std::vector<RealType> &gsVector,
 		                      size_t what,
@@ -526,7 +529,7 @@ template<typename RealType_,typename GeometryType_>
 		                      int isign) const
 		{
 			for (size_t orb=0;orb<newBasis.orbsPerSite(site);orb++)
-				accModifiedState(z,newBasis,gsVector,what,site,spin,orb,isign);
+				accModifiedState(z,what2,newBasis,gsVector,what,site,spin,orb,isign);
 		}
 
 		const ParametersModelType& mp_;

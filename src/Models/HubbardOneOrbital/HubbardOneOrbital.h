@@ -135,12 +135,12 @@ namespace LanczosPlusPlus {
 				modifVector[temp]=0.0;
 
 			size_t orb = 0; // bogus orbital index, no orbitals in this model
-			accModifiedState(modifVector,basisNew,gsVector,what,isite,spin,orb,1);
+			accModifiedState(modifVector,what2,basisNew,gsVector,what,isite,spin,orb,1);
 			std::cerr<<"isite="<<isite<<" type="<<type;
 			std::cerr<<" modif="<<(modifVector*modifVector)<<"\n";
 
 			int isign= (type>1) ? -1 : 1;
-			accModifiedState(modifVector,basisNew,gsVector,what,jsite,spin,orb,isign);
+			accModifiedState(modifVector,what2,basisNew,gsVector,what,jsite,spin,orb,isign);
 			std::cerr<<"jsite="<<jsite<<" type="<<type;
 			std::cerr<<" modif="<<(modifVector*modifVector)<<"\n";
 		}
@@ -151,12 +151,13 @@ namespace LanczosPlusPlus {
 
 		//! Gf Related functions:
 		void accModifiedState(std::vector<RealType> &z,
+							  size_t what2,
 		                      const BasisType& newBasis,
 		                      const std::vector<RealType> &gsVector,
 		                      size_t what,
 		                      size_t site,
 		                      size_t spin,
-				      size_t orb,
+							  size_t orb,
 		                      int isign) const
 		{
 			for (size_t ispace=0;ispace<basis_.size();ispace++) {
@@ -177,7 +178,8 @@ namespace LanczosPlusPlus {
 					throw std::runtime_error(s.c_str());
 				}
 				if (temp<0) continue;
-				int mysign = basis_.doSignGf(ket1,ket2,site,spin);
+//				int mysign = basis_.doSignGf(ket1,ket2,site,spin);
+				int mysign = (ProgramGlobals::isFermionic(what2)) ? basis_.doSignGf(ket1,ket2,site,spin) : 1;
 				z[temp] += isign*mysign*gsVector[ispace];
 			}
 		}

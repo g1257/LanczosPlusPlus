@@ -128,11 +128,11 @@ namespace LanczosPlusPlus {
 			RealType sum = 0;
 			for (size_t isite=0;isite<total;isite++) {
 				std::vector<RealType> modifVector1(basisNew.size(),0);
-				model_.accModifiedState(modifVector1,basisNew,gsVector_,BasisType::DESTRUCTOR,
+				model_.accModifiedState(modifVector1,what2,basisNew,gsVector_,BasisType::DESTRUCTOR,
 							isite,spin,orbs.first,isign);
 				for (size_t jsite=0;jsite<total;jsite++) {
 					std::vector<RealType> modifVector2(basisNew.size(),0);
-					model_.accModifiedState(modifVector2,basisNew,gsVector_,BasisType::DESTRUCTOR,
+					model_.accModifiedState(modifVector2,what2,basisNew,gsVector_,BasisType::DESTRUCTOR,
 								jsite,spin,orbs.second,isign);
 					result(isite,jsite) =  modifVector2*modifVector1;
 				}

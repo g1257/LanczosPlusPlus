@@ -120,7 +120,7 @@ namespace LanczosPlusPlus {
 		                   size_t site,
 		                   size_t spin) const
 		{
-			WordType bra;
+			WordType bra = 0;
 			bool b = getBra(bra,ket1,ket2,what,site,spin);
 			if (!b) return -1;
 			return (spin==SPIN_UP) ? perfectIndex(bra,ket2) :

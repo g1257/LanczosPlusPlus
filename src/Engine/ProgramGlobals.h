@@ -1,6 +1,5 @@
-// BEGIN LICENSE BLOCK
 /*
-Copyright (c) 2009, UT-Battelle, LLC
+Copyright (c) 2009-2012, UT-Battelle, LLC
 All rights reserved
 
 [LanczosPlusPlus, Version 1.0.0]
@@ -68,9 +67,7 @@ DISCLOSED WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
 
 *********************************************************
 
-
 */
-// END LICENSE BLOCK
 
 /** \ingroup LanczosPlusPlus */
 /*@{*/
@@ -89,6 +86,13 @@ namespace LanczosPlusPlus {
 		static size_t const LanczosSteps = 300; // max number of external Lanczos steps
 		static double const LanczosTolerance; // tolerance of the Lanczos Algorithm
 		enum {FERMION,BOSON};
+		enum {SPECTRAL_CC,SPECTRAL_SZSZ};
+
+		static bool needsNewBasis(size_t what)
+		{
+			if (what==ProgramGlobals::SPECTRAL_CC) return true;
+			return false;
+		}
 	}; // ProgramGlobals
 
 	double const ProgramGlobals::LanczosTolerance = 1e-12;

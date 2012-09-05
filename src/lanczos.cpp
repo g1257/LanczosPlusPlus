@@ -20,6 +20,7 @@ std::string license = "Copyright (c) 2009-2012, UT-Battelle, LLC\n"
 #include <getopt.h>
 #include "ConcurrencySerial.h"
 #include "Engine.h"
+#include "ProgramGlobals.h"
 
 #include "Tj1Orb.h"
 #include "Immm.h"
@@ -87,8 +88,7 @@ void mainLoop(IoInputType& io,const GeometryType& geometry,bool gf,std::vector<s
 			ContinuedFractionCollectionType;
 
 		ContinuedFractionCollectionType cfCollection;
-		engine.greenFunction(cfCollection,sites[0],sites[1],ModelType::SPIN_UP,std::pair<size_t,size_t>(0,0));
-
+		engine.spectralFunction(cfCollection,ProgramGlobals::SPECTRAL_CC,sites[0],sites[1],ModelType::SPIN_UP,std::pair<size_t,size_t>(0,0));
 
 		PsimagLite::IoSimple::Out ioOut(std::cout);
 		cfCollection.save(ioOut);

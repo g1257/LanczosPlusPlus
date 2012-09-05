@@ -75,33 +75,38 @@ namespace LanczosPlusPlus {
 
 		//! Calc Green function G(isite,jsite)  (still diagonal in spin)
 		template<typename ContinuedFractionCollectionType>
-		void greenFunction(
-				ContinuedFractionCollectionType& cfCollection,
-				int isite,
-				int jsite,
-				int spin,
-				const std::pair<size_t,size_t>& orbs) const
+		void spectralFunction(ContinuedFractionCollectionType& cfCollection,
+							  size_t what,
+							  int isite,
+							  int jsite,
+							  int spin,
+							  const std::pair<size_t,size_t>& orbs) const
 		{
-			typedef typename ContinuedFractionCollectionType::
-					ContinuedFractionType ContinuedFractionType;
+			typedef typename ContinuedFractionCollectionType::ContinuedFractionType ContinuedFractionType;
 			typedef typename ModelType::BasisType BasisType;
+			const BasisType* basisNew = 0;
 
 			for (size_t type=0;type<4;type++) {
 				if (isite==jsite && type>1) continue;
 				//if (type&1) continue;
-				std::pair<size_t,size_t> newParts(0,0);
-				if (!model_.hasNewParts(newParts,type,spin,orbs)) continue;
-				// Create new bases
-				BasisType basisNew(model_.geometry(),newParts.first,newParts.second);
-
+				if (ProgramGlobals::needsNewBasis(what)) {
+					std::pair<size_t,size_t> newParts(0,0);
+					if (!model_.hasNewParts(newParts,what,type,spin,orbs)) continue;
+					// Create new bases
+					basisNew = new BasisType(model_.geometry(),newParts.first,newParts.second);
+				} else {
+					basisNew = &model_.basis();
+				}
 				std::vector<RealType> modifVector;
-				model_.getModifiedState(modifVector,gsVector_,basisNew,type,isite,jsite,spin);
+				model_.getModifiedState(modifVector,what,gsVector_,*basisNew,type,isite,jsite,spin);
 
-				InternalProductType matrix(model_,basisNew);
+				InternalProductType matrix(model_,*basisNew);
 				ContinuedFractionType cf;
 
-				calcGf(cf,modifVector,matrix,type,spin);
+				calcSpectral(cf,modifVector,matrix,type,spin);
 				cfCollection.push(cf);
+
+				if (ProgramGlobals::needsNewBasis(what)) delete basisNew;
 			}
 		}
 
@@ -109,7 +114,7 @@ namespace LanczosPlusPlus {
 		{
 			size_t type = 0;
 			std::pair<size_t,size_t> newParts(0,0);
-			if (!model_.hasNewParts(newParts,type,spin,orbs)) return;
+			if (!model_.hasNewParts(newParts,ProgramGlobals::SPECTRAL_CC,type,spin,orbs)) return;
 
 			BasisType basisNew(model_.geometry(),newParts.first,newParts.second);
 
@@ -199,11 +204,11 @@ namespace LanczosPlusPlus {
 		}
 
 		template<typename ContinuedFractionType>
-		void calcGf(ContinuedFractionType& cf,
-				const std::vector<RealType>& modifVector,
-				const InternalProductType& matrix,
-				size_t type,
-				size_t spin) const
+		void calcSpectral(ContinuedFractionType& cf,
+						  const std::vector<RealType>& modifVector,
+						  const InternalProductType& matrix,
+						  size_t type,
+						  size_t spin) const
 		{
 			typedef typename ContinuedFractionType::TridiagonalMatrixType
 			                                        TridiagonalMatrixType;

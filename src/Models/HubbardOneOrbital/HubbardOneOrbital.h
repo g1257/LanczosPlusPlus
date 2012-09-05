@@ -99,9 +99,10 @@ namespace LanczosPlusPlus {
 		}
 
 		bool hasNewParts(std::pair<size_t,size_t>& newParts,
+						 size_t what2,
 		                 size_t type,
-				 size_t spin,
-				 const std::pair<size_t,size_t>& orbs) const
+						 size_t spin,
+						 const std::pair<size_t,size_t>& orbs) const
 		{
 			int newPart1=basis_.electrons(SPIN_UP);
 			int newPart2=basis_.electrons(SPIN_DOWN);
@@ -119,6 +120,7 @@ namespace LanczosPlusPlus {
 		}
 
 		void getModifiedState(std::vector<RealType>& modifVector,
+							  size_t what2,
 		                      const std::vector<RealType>& gsVector,
 		                      const BasisType& basisNew,
 		                      size_t type,

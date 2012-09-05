@@ -65,23 +65,23 @@ namespace LanczosPlusPlus {
 			setupHamiltonian(matrix,basis_);
 		}
 		
-		bool hasNewParts(
-				std::pair<size_t,size_t>& newParts,
-				size_t type,
-				size_t spin,
-				const std::pair<size_t,size_t>& orbs) const
+		bool hasNewParts(std::pair<size_t,size_t>& newParts,
+						 size_t what2,
+						 size_t type,
+						 size_t spin,
+						 const std::pair<size_t,size_t>& orbs) const
 		{
 			return basis_.hasNewParts(newParts,type,spin,orbs);
 		}
 
-		void getModifiedState(
-				std::vector<RealType>& modifVector,
-				const std::vector<RealType>& gsVector,
-				const BasisType& basisNew,
-				size_t type,
-				size_t isite,
-				size_t jsite,
-				size_t spin) const
+		void getModifiedState(std::vector<RealType>& modifVector,
+							  size_t what2,
+							  const std::vector<RealType>& gsVector,
+							  const BasisType& basisNew,
+							  size_t type,
+							  size_t isite,
+							  size_t jsite,
+							  size_t spin) const
 		{
 			std::string s = "FeBasedSc::getModifiedState(...): unimplemented. ";
 			s+= "This probably means that you can't compute the Green function";

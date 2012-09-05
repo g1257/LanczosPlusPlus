@@ -74,11 +74,11 @@ template<typename RealType_,typename GeometryType_>
 //			rs.transform(matrix,matrix2);
 		}
 
-		bool hasNewParts(
-				std::pair<size_t,size_t>& newParts,
-				size_t type,
-				size_t spin,
-				const std::pair<size_t,size_t>& orbs) const
+		bool hasNewParts(std::pair<size_t,size_t>& newParts,
+						 size_t what2,
+						 size_t type,
+						 size_t spin,
+						 const std::pair<size_t,size_t>& orbs) const
 		{
 			int newPart1=basis_.electrons(SPIN_UP);
 			int newPart2=basis_.electrons(SPIN_DOWN);
@@ -96,6 +96,7 @@ template<typename RealType_,typename GeometryType_>
 		}
 
 		void getModifiedState(std::vector<RealType>& modifVector,
+							  size_t what2,
 		                      const std::vector<RealType>& gsVector,
 		                      const BasisType& basisNew,
 		                      size_t type,

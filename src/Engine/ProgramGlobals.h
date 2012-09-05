@@ -79,6 +79,7 @@ DISCLOSED WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
  */
 #ifndef PROGRAM_LIMITS_H
 #define PROGRAM_LIMITS_H
+#include <string>
 
 namespace LanczosPlusPlus {
 	struct ProgramGlobals {
@@ -86,11 +87,27 @@ namespace LanczosPlusPlus {
 		static size_t const LanczosSteps = 300; // max number of external Lanczos steps
 		static double const LanczosTolerance; // tolerance of the Lanczos Algorithm
 		enum {FERMION,BOSON};
-		enum {SPECTRAL_CC,SPECTRAL_SZSZ};
+		enum {OPERATOR_NIL,OPERATOR_C,OPERATOR_SZ};
 
 		static bool needsNewBasis(size_t what)
 		{
-			if (what==ProgramGlobals::SPECTRAL_CC) return true;
+			if (what==ProgramGlobals::OPERATOR_C) return true;
+			return false;
+		}
+
+		static size_t operator2id(const std::string& s)
+		{
+			if (s=="c") {
+				return OPERATOR_C;
+			} else if (s=="sz") {
+				return OPERATOR_SZ;
+			}
+			return OPERATOR_NIL;
+		}
+
+		static bool isFermionic(size_t what)
+		{
+			if (what==ProgramGlobals::OPERATOR_C) return true;
 			return false;
 		}
 	}; // ProgramGlobals

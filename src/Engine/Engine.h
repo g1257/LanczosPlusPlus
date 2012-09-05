@@ -76,7 +76,7 @@ namespace LanczosPlusPlus {
 		//! Calc Green function G(isite,jsite)  (still diagonal in spin)
 		template<typename ContinuedFractionCollectionType>
 		void spectralFunction(ContinuedFractionCollectionType& cfCollection,
-							  size_t what,
+							  size_t what2,
 							  int isite,
 							  int jsite,
 							  int spin,
@@ -89,32 +89,32 @@ namespace LanczosPlusPlus {
 			for (size_t type=0;type<4;type++) {
 				if (isite==jsite && type>1) continue;
 				//if (type&1) continue;
-				if (ProgramGlobals::needsNewBasis(what)) {
+				if (ProgramGlobals::needsNewBasis(what2)) {
 					std::pair<size_t,size_t> newParts(0,0);
-					if (!model_.hasNewParts(newParts,what,type,spin,orbs)) continue;
+					if (!model_.hasNewParts(newParts,what2,type,spin,orbs)) continue;
 					// Create new bases
 					basisNew = new BasisType(model_.geometry(),newParts.first,newParts.second);
 				} else {
 					basisNew = &model_.basis();
 				}
 				std::vector<RealType> modifVector;
-				model_.getModifiedState(modifVector,what,gsVector_,*basisNew,type,isite,jsite,spin);
+				model_.getModifiedState(modifVector,what2,gsVector_,*basisNew,type,isite,jsite,spin);
 
 				InternalProductType matrix(model_,*basisNew);
 				ContinuedFractionType cf;
 
-				calcSpectral(cf,modifVector,matrix,type,spin);
+				calcSpectral(cf,what2,modifVector,matrix,type,spin);
 				cfCollection.push(cf);
 
-				if (ProgramGlobals::needsNewBasis(what)) delete basisNew;
+				if (ProgramGlobals::needsNewBasis(what2)) delete basisNew;
 			}
 		}
 
-		void ciCj(PsimagLite::Matrix<RealType>& result,size_t spin,const std::pair<size_t,size_t>& orbs) const
+		void ciCj(PsimagLite::Matrix<RealType>& result,size_t what2,size_t spin,const std::pair<size_t,size_t>& orbs) const
 		{
 			size_t type = 0;
 			std::pair<size_t,size_t> newParts(0,0);
-			if (!model_.hasNewParts(newParts,ProgramGlobals::SPECTRAL_CC,type,spin,orbs)) return;
+			if (!model_.hasNewParts(newParts,ProgramGlobals::OPERATOR_C,type,spin,orbs)) return;
 
 			BasisType basisNew(model_.geometry(),newParts.first,newParts.second);
 
@@ -205,6 +205,7 @@ namespace LanczosPlusPlus {
 
 		template<typename ContinuedFractionType>
 		void calcSpectral(ContinuedFractionType& cf,
+						  size_t what2,
 						  const std::vector<RealType>& modifVector,
 						  const InternalProductType& matrix,
 						  size_t type,
@@ -232,6 +233,7 @@ namespace LanczosPlusPlus {
 			//weight = 1.0/weight;
 			int s = (type&1) ? -1 : 1;
 			int s2 = (type>1) ? -1 : 1;
+			if (!ProgramGlobals::isFermionic(what2)) s2 *= s;
 			//for (size_t i=0;i<ab.size();i++) ab.a(i) *= s;
 			cf.set(ab,gsEnergy_,weight*s2,s);
 

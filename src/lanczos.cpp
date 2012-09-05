@@ -49,8 +49,9 @@ void usage(const char *progName)
 	std::cerr<<"Usage: "<<progName<<" [-g -c] -f filename\n";
 }
 
+
 template<typename ModelType>
-void mainLoop(IoInputType& io,const GeometryType& geometry,bool gf,std::vector<size_t>& sites,bool cicj)
+void mainLoop(IoInputType& io,const GeometryType& geometry,size_t gf,std::vector<size_t>& sites,size_t cicj)
 {
 	typedef typename ModelType::ParametersModelType ParametersModelType;
 	typedef typename ModelType::BasisType BasisType;
@@ -76,7 +77,7 @@ void mainLoop(IoInputType& io,const GeometryType& geometry,bool gf,std::vector<s
 	RealType Eg = engine.gsEnergy();
 	std::cout.precision(8);
 	std::cout<<"Energy="<<Eg<<"\n";
-	if (gf) {
+	if (gf!=ProgramGlobals::OPERATOR_NIL) {
 		io.read(sites,"TSPSites");
 		if (sites.size()==0) throw std::runtime_error("No sites in input file!\n");
 		if (sites.size()==1) sites.push_back(sites[0]);
@@ -88,39 +89,40 @@ void mainLoop(IoInputType& io,const GeometryType& geometry,bool gf,std::vector<s
 			ContinuedFractionCollectionType;
 
 		ContinuedFractionCollectionType cfCollection;
-		engine.spectralFunction(cfCollection,ProgramGlobals::SPECTRAL_CC,sites[0],sites[1],ModelType::SPIN_UP,std::pair<size_t,size_t>(0,0));
+		engine.spectralFunction(cfCollection,gf,sites[0],sites[1],ModelType::SPIN_UP,std::pair<size_t,size_t>(0,0));
 
 		PsimagLite::IoSimple::Out ioOut(std::cout);
 		cfCollection.save(ioOut);
 	}
-	if (!cicj) return;
 
-	size_t total = geometry.numberOfSites();
-	PsimagLite::Matrix<RealType> cicjMatrix(total,total);
-	size_t norbitals = model.orbitals();
-	for (size_t i=0;i<norbitals;i++) {
-		engine.ciCj(cicjMatrix,ModelType::SPIN_UP,std::pair<size_t,size_t>(i,i));
-		std::cout<<cicjMatrix;
+	if (cicj!=ProgramGlobals::OPERATOR_NIL) {
+		size_t total = geometry.numberOfSites();
+		PsimagLite::Matrix<RealType> cicjMatrix(total,total);
+		size_t norbitals = model.orbitals();
+		for (size_t i=0;i<norbitals;i++) {
+			engine.ciCj(cicjMatrix,cicj,ModelType::SPIN_UP,std::pair<size_t,size_t>(i,i));
+			std::cout<<cicjMatrix;
+		}
 	}
 }
 
 int main(int argc,char *argv[])
 {
 	int opt = 0;
-	bool gf = false;
+	size_t gf = ProgramGlobals::OPERATOR_NIL;
 	std::string file = "";
 	std::vector<size_t> sites;
-	bool cicj=false;
-	while ((opt = getopt(argc, argv, "gcf:")) != -1) {
+	size_t cicj=ProgramGlobals::OPERATOR_NIL;
+	while ((opt = getopt(argc, argv, "g:c:f:")) != -1) {
 		switch (opt) {
 		case 'g':
-			gf = true;
+			gf = ProgramGlobals::operator2id(optarg);
 			break;
 		case 'f':
 			file = optarg;
 			break;
 		case 'c':
-			cicj = true;
+			cicj = ProgramGlobals::operator2id(optarg);
 			break;
 		default: /* '?' */
 			usage(argv[0]);

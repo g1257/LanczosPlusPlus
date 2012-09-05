@@ -110,35 +110,44 @@ namespace LanczosPlusPlus {
 			}
 		}
 
-		void ciCj(PsimagLite::Matrix<RealType>& result,size_t what2,size_t spin,const std::pair<size_t,size_t>& orbs) const
+		void twoPoint(PsimagLite::Matrix<RealType>& result,size_t what2,size_t spin,const std::pair<size_t,size_t>& orbs) const
 		{
 			size_t type = 0;
-			std::pair<size_t,size_t> newParts(0,0);
-			if (!model_.hasNewParts(newParts,ProgramGlobals::OPERATOR_C,type,spin,orbs)) return;
 
-			BasisType basisNew(model_.geometry(),newParts.first,newParts.second);
+			const BasisType* basisNew = 0;
 
-			std::cerr<<"basisNew.size="<<basisNew.size()<<" ";
-			std::cerr<<"newparts.first="<<newParts.first<<" ";
-			std::cerr<<"newparts.second="<<newParts.second<<"\n";
+			if (ProgramGlobals::needsNewBasis(what2)) {
+				std::pair<size_t,size_t> newParts(0,0);
+				if (!model_.hasNewParts(newParts,ProgramGlobals::OPERATOR_C,type,spin,orbs)) return;
+
+				basisNew = new BasisType(model_.geometry(),newParts.first,newParts.second);
+
+				std::cerr<<"basisNew.size="<<basisNew->size()<<" ";
+				std::cerr<<"newparts.first="<<newParts.first<<" ";
+				std::cerr<<"newparts.second="<<newParts.second<<"\n";
+			} else {
+				basisNew = &model_.basis();
+			}
 
 			size_t isign = 1;
 
 			size_t total =result.n_row();
 			RealType sum = 0;
 			for (size_t isite=0;isite<total;isite++) {
-				std::vector<RealType> modifVector1(basisNew.size(),0);
-				model_.accModifiedState(modifVector1,what2,basisNew,gsVector_,BasisType::DESTRUCTOR,
+				std::vector<RealType> modifVector1(basisNew->size(),0);
+				model_.accModifiedState(modifVector1,what2,*basisNew,gsVector_,BasisType::DESTRUCTOR,
 							isite,spin,orbs.first,isign);
 				for (size_t jsite=0;jsite<total;jsite++) {
-					std::vector<RealType> modifVector2(basisNew.size(),0);
-					model_.accModifiedState(modifVector2,what2,basisNew,gsVector_,BasisType::DESTRUCTOR,
+					std::vector<RealType> modifVector2(basisNew->size(),0);
+					model_.accModifiedState(modifVector2,what2,*basisNew,gsVector_,BasisType::DESTRUCTOR,
 								jsite,spin,orbs.second,isign);
 					result(isite,jsite) =  modifVector2*modifVector1;
 				}
 				sum += result(isite,isite);
 			}
 			std::cout<<"Total Electrons = "<<sum<<"\n";
+
+			if (ProgramGlobals::needsNewBasis(what2)) delete basisNew;
 		}
 
 	private:

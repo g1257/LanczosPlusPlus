@@ -342,7 +342,7 @@ namespace LanczosPlusPlus {
 			return 1;
 		}
 
-		bool getBraSz(WordType& bra,
+		int getBraSz(WordType& bra,
 					const WordType& ket1,
 					const WordType& ket2,
 					size_t site,

@@ -100,7 +100,7 @@ void mainLoop(IoInputType& io,const GeometryType& geometry,size_t gf,std::vector
 		PsimagLite::Matrix<RealType> cicjMatrix(total,total);
 		size_t norbitals = model.orbitals();
 		for (size_t i=0;i<norbitals;i++) {
-			engine.ciCj(cicjMatrix,cicj,ModelType::SPIN_UP,std::pair<size_t,size_t>(i,i));
+			engine.twoPoint(cicjMatrix,cicj,ModelType::SPIN_UP,std::pair<size_t,size_t>(i,i));
 			std::cout<<cicjMatrix;
 		}
 	}

@@ -20,7 +20,7 @@ Please see full open source license included in file LICENSE.
 
 #ifndef BASIS_FEASBASED_SC_H
 #define BASIS_FEASBASED_SC_H
-#include "BasisOneSpin.h"
+#include "BasisOneSpinFeAs.h"
 
 namespace LanczosPlusPlus {
 
@@ -28,7 +28,7 @@ namespace LanczosPlusPlus {
 	class BasisFeAsBasedSc {
 	public:
 		
-		typedef BasisOneSpin BasisType;
+		typedef BasisOneSpinFeAs BasisType;
 		typedef BasisType::WordType WordType;
 		enum {SPIN_UP,SPIN_DOWN};
 		static size_t const ORBITALS  = BasisType::ORBITALS;

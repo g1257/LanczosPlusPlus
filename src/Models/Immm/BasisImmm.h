@@ -20,7 +20,7 @@ Please see full open source license included in file LICENSE.
 
 #ifndef BASIS_IMMM_H
 #define BASIS_IMMM_H
-#include "BasisOneSpin.h"
+#include "BasisOneSpinImmm.h"
 
 namespace LanczosPlusPlus {
 
@@ -28,7 +28,7 @@ namespace LanczosPlusPlus {
 	class BasisImmm {
 	public:
 
-		typedef BasisOneSpin BasisType;
+		typedef BasisOneSpinImmm BasisType;
 		typedef BasisType::WordType WordType;
 
 		class OrbsPerSite : public std::vector<size_t> {

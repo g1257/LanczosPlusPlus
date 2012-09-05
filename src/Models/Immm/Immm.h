@@ -24,24 +24,26 @@ Please see full open source license included in file LICENSE.
 #include "CrsMatrix.h"
 #include "BasisImmm.h"
 #include "SparseRowCached.h"
-#include "ReflectionSymmetry.h"
+#include "ParametersImmm.h"
 
 namespace LanczosPlusPlus {
 
-	template<typename RealType_,typename ParametersType,typename GeometryType>
+template<typename RealType_,typename GeometryType_>
 	class Immm {
 
 		typedef PsimagLite::Matrix<RealType_> MatrixType;
 
 	public:
 
+		typedef GeometryType_ GeometryType;
+		typedef ParametersImmm<RealType_> ParametersModelType;
 		typedef BasisImmm<GeometryType> BasisType;
 		typedef typename BasisType::WordType WordType;
 		typedef RealType_ RealType;
 		typedef PsimagLite::CrsMatrix<RealType> SparseMatrixType;
 		typedef PsimagLite::SparseRowCached<SparseMatrixType> SparseRowType;
 		typedef std::vector<RealType> VectorType;
-		typedef ReflectionSymmetry<GeometryType,BasisType> ReflectionSymmetryType;
+//		typedef ReflectionSymmetry<GeometryType,BasisType> ReflectionSymmetryType;
 
 		enum {SPIN_UP=BasisType::SPIN_UP,SPIN_DOWN=BasisType::SPIN_DOWN};
 
@@ -49,11 +51,16 @@ namespace LanczosPlusPlus {
 
 		static int const FERMION_SIGN = BasisType::FERMION_SIGN;
 
-		Immm(size_t nup,size_t ndown,const ParametersType& mp,GeometryType& geometry)
+		Immm(size_t nup,size_t ndown,const ParametersModelType& mp,const GeometryType& geometry)
 		: mp_(mp),geometry_(geometry),basis_(geometry,nup,ndown)
 		{}
 
 		size_t size() const { return basis_.size(); }
+
+		size_t orbitals() const
+		{
+			throw std::runtime_error("Invalid call to orbitals()\n");
+		}
 
 		void setupHamiltonian(SparseMatrixType &matrix) const
 		{
@@ -67,9 +74,11 @@ namespace LanczosPlusPlus {
 //			rs.transform(matrix,matrix2);
 		}
 
-		bool hasNewParts(std::pair<size_t,size_t>& newParts,
-		                 size_t type,
-		                 size_t spin) const
+		bool hasNewParts(
+				std::pair<size_t,size_t>& newParts,
+				size_t type,
+				size_t spin,
+				const std::pair<size_t,size_t>& orbs) const
 		{
 			int newPart1=basis_.electrons(SPIN_UP);
 			int newPart2=basis_.electrons(SPIN_DOWN);
@@ -168,7 +177,7 @@ namespace LanczosPlusPlus {
 			size_t nsite = geometry_.numberOfSites();
 
 			// Setup CRS matrix
-			matrix.resize(hilbert);
+			matrix.resize(hilbert,hilbert);
 
 			// Calculate off-diagonal elements AND store matrix
 			size_t nCounter=0;
@@ -195,6 +204,39 @@ namespace LanczosPlusPlus {
 				nCounter += sparseRow.finalize(matrix);
 			}
 			matrix.setRow(hilbert,nCounter);
+		}
+
+		//! Gf Related function:
+		void accModifiedState(std::vector<RealType> &z,
+							  const BasisType& newBasis,
+							  const std::vector<RealType> &gsVector,
+							  size_t what,
+							  size_t site,
+							  size_t spin,
+							  size_t orb,
+							  int isign) const
+		{
+			for (size_t ispace=0;ispace<basis_.size();ispace++) {
+				WordType ket1 = basis_(ispace,SPIN_UP);
+				WordType ket2 = basis_(ispace,SPIN_DOWN);
+				int temp = newBasis.getBraIndex(ket1,ket2,ispace,what,site,spin,orb);
+// 				int temp= getBraIndex(mysign,ket1,ket2,newBasis,what,site,spin);
+				if (temp>=0 && size_t(temp)>=z.size()) {
+					std::string s = "old basis=" + ttos(basis_.size());
+					s += " newbasis=" + ttos(newBasis.size());
+					s += "\n";
+					s += "what=" + ttos(what) + " spin=" + ttos(spin);
+					s += " site=" + ttos(site);
+					s += "ket1=" + ttos(ket1) + " and ket2=" + ttos(ket2);
+					s += "\n";
+					s += "getModifiedState: z.size=" + ttos(z.size());
+					s += " but temp=" + ttos(temp) + "\n";
+					throw std::runtime_error(s.c_str());
+				}
+				if (temp<0) continue;
+				int mysign = basis_.doSignGf(ket1,ket2,site,spin,orb);
+				z[temp] += isign*mysign*gsVector[ispace];
+			}
 		}
 
 	private:
@@ -486,40 +528,7 @@ namespace LanczosPlusPlus {
 				accModifiedState(z,newBasis,gsVector,what,site,spin,orb,isign);
 		}
 
-		//! Gf Related function:
-		void accModifiedState(std::vector<RealType> &z,
-		                      const BasisType& newBasis,
-		                      const std::vector<RealType> &gsVector,
-		                      size_t what,
-		                      size_t site,
-		                      size_t spin,
-		                      size_t orb,
-		                      int isign) const
-		{
-			for (size_t ispace=0;ispace<basis_.size();ispace++) {
-				WordType ket1 = basis_(ispace,SPIN_UP);
-				WordType ket2 = basis_(ispace,SPIN_DOWN);
-				int temp = newBasis.getBraIndex(ket1,ket2,ispace,what,site,spin,orb);
-// 				int temp= getBraIndex(mysign,ket1,ket2,newBasis,what,site,spin);
-				if (temp>=0 && size_t(temp)>=z.size()) {
-					std::string s = "old basis=" + ttos(basis_.size());
-					s += " newbasis=" + ttos(newBasis.size());
-					s += "\n";
-					s += "what=" + ttos(what) + " spin=" + ttos(spin);
-					s += " site=" + ttos(site);
-					s += "ket1=" + ttos(ket1) + " and ket2=" + ttos(ket2);
-					s += "\n";
-					s += "getModifiedState: z.size=" + ttos(z.size());
-					s += " but temp=" + ttos(temp) + "\n";
-					throw std::runtime_error(s.c_str());
-				}
-				if (temp<0) continue;
-				int mysign = basis_.doSignGf(ket1,ket2,site,spin,orb);
-				z[temp] += isign*mysign*gsVector[ispace];
-			}
-		}
-
-		const ParametersType& mp_;
+		const ParametersModelType& mp_;
 		const GeometryType& geometry_;
 		BasisType basis_;
 	}; // class Immm

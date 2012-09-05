@@ -18,14 +18,14 @@ Please see full open source license included in file LICENSE.
 
 */
 
-#ifndef BASIS_ONE_SPIN_H
-#define BASIS_ONE_SPIN_H
+#ifndef BASIS_ONE_SPIN_FE_AS_H
+#define BASIS_ONE_SPIN_FE_AS_H
 #include "Matrix.h"
 #include "BitManip.h"
 
 namespace LanczosPlusPlus {
 	
-	class BasisOneSpin {
+	class BasisOneSpinFeAs {
 	public:
 		
 		typedef unsigned int long long WordType;
@@ -36,11 +36,11 @@ namespace LanczosPlusPlus {
 		static PsimagLite::Matrix<size_t> comb_;
 		static std::vector<WordType> bitmask_; 
 		
-		BasisOneSpin(size_t nsite, size_t npart)
+		BasisOneSpinFeAs(size_t nsite, size_t npart)
 				: npart_(npart)
 		{
 			if (nsite_>0 && nsite!=nsite_)
-				throw std::runtime_error("BasisOneSpin: All basis must have same number of sites\n");
+				throw std::runtime_error("BasisOneSpinFeAs: All basis must have same number of sites\n");
 			nsite_ = nsite;
 			doCombinatorial();
 			doBitmask();
@@ -100,7 +100,7 @@ namespace LanczosPlusPlus {
 			s += perfectIndexPartial(ketA)*comb_(nsite_,nb);
 			s += perfectIndexPartial(ketB);
 			if (s>=data_.size())
-				throw std::runtime_error("BasisOneSpin::PerfectIndex>=data_.size()\n");
+				throw std::runtime_error("BasisOneSpinFeAs::PerfectIndex>=data_.size()\n");
 			return s;
 		}
 
@@ -404,18 +404,18 @@ namespace LanczosPlusPlus {
 		size_t npart_;
 		std::vector<WordType> data_;
 
-	}; // class BasisOneSpin
+	}; // class BasisOneSpinFeAs
 
-	std::ostream& operator<<(std::ostream& os,const BasisOneSpin& b)
+	std::ostream& operator<<(std::ostream& os,const BasisOneSpinFeAs& b)
 	{
 		for (size_t i=0;i<b.size();i++)
 			os<<i<<" "<<b[i]<<"\n";
 		return os;
 	}
 
-	size_t BasisOneSpin::nsite_=0;
-	PsimagLite::Matrix<size_t> BasisOneSpin::comb_;
-	std::vector<BasisOneSpin::WordType> BasisOneSpin::bitmask_;
+	size_t BasisOneSpinFeAs::nsite_=0;
+	PsimagLite::Matrix<size_t> BasisOneSpinFeAs::comb_;
+	std::vector<BasisOneSpinFeAs::WordType> BasisOneSpinFeAs::bitmask_;
 
 } // namespace LanczosPlusPlus
 #endif

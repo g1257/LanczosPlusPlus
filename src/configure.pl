@@ -1,12 +1,12 @@
 #!/usr/bin/perl 
 =pod
 // BEGIN LICENSE BLOCK
-Copyright (c) 2009 , UT-Battelle, LLC
+Copyright (c) 2009-2012, UT-Battelle, LLC
 All rights reserved
 
 [Lanczos++, Version 1.0.0]
 
-*********************************************************
+---------------------------------------------------------------
 THE SOFTWARE IS SUPPLIED BY THE COPYRIGHT HOLDERS AND
 CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
 WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -14,10 +14,9 @@ WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
 PARTICULAR PURPOSE ARE DISCLAIMED. 
 
 Please see full open source license included in file LICENSE.
-*********************************************************
-
-
+---------------------------------------------------------------
 // END LICENSE BLOCK
+
 =cut
 use warnings;
 use strict;
@@ -39,41 +38,15 @@ $gslLibs =" " if ($hasGsl=~/n/i);
 
 #welcome();
 
-my $model="";
-my $modelLocation="";
-my $stored="";
-askQuestions();
+#my $model="";
+#my $modelLocation="";
+#my $stored="";
+#askQuestions();
 
 createMakefile();
 
-createDriver();
+#createDriver();
 
-
-sub askQuestions
-{
-	print "Enter model\n";
-	print "Available: HubbardOneOrbital FeBasedSc Tj1Orb\n";
-	print "Default: HubbardOneOrbital (press ENTER): ";
-	$_=<STDIN>;
-	chomp;
-	s/ //g;
-	if ($_ eq "") {
-		$_="HubbardOneOrbital";
-	}
-	$model = $_;
-	$modelLocation = "-IModels/$model";
-
-	print "Do you want matrix-vector to be Stored or OnTheFly?\n";
-	print "Available: Stored OnTheFly\n";
-	print "Default: Stored (press ENTER): ";
-	$_=<STDIN>;
-	chomp;
-	s/ //g;
-	if ($_ eq "") {
-		$_="Stored";
-	}
-	$stored = $_;
-}
 
 sub createMakefile
 {
@@ -82,9 +55,6 @@ sub createMakefile
 	open(FOUT,">Makefile") or die "Cannot open Makefile for writing: $!\n";
 	my $usePthreadsOrNot = " ";
 	$usePthreadsOrNot = " -DUSE_PTHREADS " if ($pthreads);
-	if ($modelLocation=~/extendedhubbard1orb/i) {
-		$modelLocation = $modelLocation." -IModels/HubbardOneBand ";
-	}
 
 print FOUT<<EOF;
 # DO NOT EDIT!!! Changes will be lost. Modify configure.pl instead
@@ -94,7 +64,7 @@ print FOUT<<EOF;
 # MPI: $mpi
 
 LDFLAGS =    $lapack  $gslLibs $pthreadsLib
-CPPFLAGS = -Werror -Wall  -IEngine $modelLocation -I$PsimagLite/Geometry -I$PsimagLite $usePthreadsOrNot
+CPPFLAGS = -Werror -Wall  -IEngine -IModels/Tj1Orb -IModels/Immm -IModels/HubbardOneOrbital -IModels/FeBasedSc -I$PsimagLite/Geometry -I$PsimagLite $usePthreadsOrNot
 EOF
 if ($mpi) {
 	print FOUT "CXX = mpicxx -O3 -DNDEBUG \n";
@@ -123,7 +93,7 @@ Makefile.dep: lanczos.cpp
 	\$(CXX) \$(CPPFLAGS) -MM lanczos.cpp  > Makefile.dep
 
 clean:
-	rm -f core* \$(EXENAME) *.o
+	rm -f core* \$(EXENAME) *.o Makefile.dep
 
 include Makefile.dep
 
@@ -145,172 +115,6 @@ sub computeBackwardMovements
 	return $ret;	
 }
 
-sub createDriver
-{
-	my $driverName = "lanczos";
-	system("cp $driverName.cpp $driverName.bak") if (-r "$driverName.cpp");
-	open(FOUT,">$driverName.cpp") or die "Cannot open file $driverName.cpp for writing: $!\n";
-	my $license=getLicense();
-	my $concurrencyName = "ConcurrencySerial"; #getConcurrencyName();
-	my $parametersName = getParametersName();
-	my $pthreadsName = "NoPthreads.h"; #getPthreadsName();
-	my $operatorsName = getOperatorsName();
-	
-print FOUT<<EOF;
-/* DO NOT EDIT!!! Changes will be lost. Modify configure.pl instead
- * This driver program was written by configure.pl
- * Lanczos++ ($brand) by G.A.*/
-#include <unistd.h>
-#include <cstdlib>
-#include <getopt.h>
-#include "$concurrencyName.h"
-#include "Engine.h"
-#include "$model.h"
-#include "$parametersName.h"
-#include "Geometry.h"
-#include "InternalProduct$stored.h"
-#include "IoSimple.h" // in PsimagLite
-#include "ProgramGlobals.h"
-#include "ContinuedFraction.h" // in PsimagLite 
-#include "ContinuedFractionCollection.h" // in PsimagLite
-#include "ReflectionSymmetry.h"
-#include "Split.h"
-
-using namespace LanczosPlusPlus;
-
-typedef double RealType;
-typedef std::complex<RealType> ComplexType;
-typedef PsimagLite::$concurrencyName<RealType> ConcurrencyType;
-typedef PsimagLite::Geometry<RealType,ProgramGlobals> GeometryType;
-typedef $parametersName<RealType> ParametersModelType;
-typedef PsimagLite::IoSimple::In IoInputType;
-typedef $model<RealType,ParametersModelType,GeometryType> ModelType;
-typedef ModelType::BasisType BasisType;
-typedef ReflectionSymmetry<GeometryType,BasisType> ReflectionSymmetryType;
-typedef InternalProduct$stored<ModelType,ReflectionSymmetryType> InternalProductType;
-typedef Engine<ModelType,InternalProductType,ConcurrencyType> EngineType;
-typedef EngineType::TridiagonalMatrixType TridiagonalMatrixType;
-
-void usage(const char *progName)
-{
-	std::cerr<<"Usage: "<<progName<<" [-g -c] -f filename\\n";
-}
-
-int main(int argc,char *argv[])
-{
-	int opt = 0;
-	bool gf = false;
-	std::string file = "";
-	std::vector<size_t> sites;
-	bool cicj=false;
-	while ((opt = getopt(argc, argv, "gcf:")) != -1) {
-		switch (opt) {
-		case 'g':
-			gf = true;
-			break;
-		case 'f':
-			file = optarg;
-			break;
-		case 'c':
-			cicj = true;
-			break;
-		default: /* '?' */
-			usage(argv[0]);
-			return 1;
-		}
-	}
-	if (file == "") {
-		usage(argv[0]);
-		return 1;
-	}
-	//! setup distributed parallelization
-	ConcurrencyType concurrency(argc,argv);
-
-	//Setup the Geometry
-	IoInputType io(file);
-	GeometryType geometry(io);
-
-	// read model parameters
-	ParametersModelType mp(io);
-
-	// print license
-	std::string license = $license;
-	if (concurrency.root()) std::cerr<<license;
-
-	std::vector<RealType> qns;
-	//io.read(qns,"TargetQuantumNumbers");
-	size_t nup = 0;
-	size_t ndown = 0;
-	io.readline(nup,"TargetElectronsUp=");
-	io.readline(ndown,"TargetElectronsDown=");
-	/* if (qns.size()<2) throw std::runtime_error("HubbardLanczos::ctor(...)\\n");
-	size_t nup=size_t(geometry.numberOfSites()*qns[0]);
-	size_t ndown=size_t(geometry.numberOfSites()*qns[1]);
-	*/
-
-	//! Setup the Model
-	ModelType model(nup,ndown,mp,geometry);
-
-	EngineType engine(model,geometry.numberOfSites(),io);
-
-	//! get the g.s.:
-	RealType Eg = engine.gsEnergy();
-	std::cout.precision(8);
-	std::cout<<"Energy="<<Eg<<"\\n";
-	if (gf) {
-		io.read(sites,"TSPSites");
-		if (sites.size()==0) throw std::runtime_error("No sites in input file!\\n");
-		if (sites.size()==1) sites.push_back(sites[0]);
-
-		std::cout<<"#gf(i="<<sites[0]<<",j="<<sites[1]<<")\\n";
-		typedef PsimagLite::ContinuedFraction<RealType,TridiagonalMatrixType>
-		ContinuedFractionType;
-		typedef PsimagLite::ContinuedFractionCollection<ContinuedFractionType>
-			ContinuedFractionCollectionType;
-
-		ContinuedFractionCollectionType cfCollection;
-		engine.greenFunction(cfCollection,sites[0],sites[1],ModelType::SPIN_UP,std::pair<size_t,size_t>(0,0));
-	
-	
-		PsimagLite::IoSimple::Out ioOut(std::cout);
-		cfCollection.save(ioOut);
-	}
-	if (!cicj) return 0;
-
-	size_t total = geometry.numberOfSites();
-	PsimagLite::Matrix<RealType> cicjMatrix(total,total);
-	size_t norbitals = model.orbitals();
-	for (size_t i=0;i<norbitals;i++) {
-		engine.ciCj(cicjMatrix,ModelType::SPIN_UP,std::pair<size_t,size_t>(i,i));
-		std::cout<<cicjMatrix;
-	}
-}
-
-EOF
-	close(FOUT);
-	print STDERR "File dmrg.cpp has been written\n";
-
-}
-
-
-
-sub getLicense
-{
-	open(THISFILE,"$0") or return " ";
-	while(<THISFILE>) {
-		last if (/BEGIN LICENSE BLOCK/);
-	}
-	my $l="";
-	while(<THISFILE>) {
-		chomp;
-		s/\"/\\\"/g;
-		$l = "$l\"$_\\n\"\n";
-		last if (/END LICENSE BLOCK/);
-	}
-	close(THISFILE);
-	return $l;
-}
-
 
 sub guessPlatform
 {
@@ -328,21 +132,6 @@ sub isAMac
 	return 0;
 }
 
-
-sub getParametersName
-{
-	my $parametersName="Parameters$model";
-	if ($model=~/hubbard/i) {
-		$parametersName = "ParametersModelHubbard";
-	} elsif ($model=~/heisenberg/i) {
-		$parametersName = "ParametersModelHeisenberg";
-	} elsif ($model=~/febasedsc/i) {
-		$parametersName = "ParametersModelFeAs";
-	} elsif ($model=~/tjoneorbital/i) {
-		$parametersName = "ParametersTjOneOrbital";
-	}
-	return $parametersName;
-}
 
 sub getPthreadsName
 {
@@ -365,42 +154,6 @@ sub getConcurrencyName()
 		$concurrencyName="ConcurrencySerial";
 	}
 	return $concurrencyName;
-}
-
-sub getModelName()
-{
-	my $modelName = "UNKNOWN";
-
-	if ($model=~/heisenberg/i) {
-		$modelName="ModelHeisenberg";
-	} elsif ($model=~/febasedsc/i) {
-		$modelName = "ModelFeBasedSc";
-	} elsif ($model=~/tjoneorbital/i) {
-		$modelName = "TjOneOrbital";
-	} elsif ($model=~/extendedhubbard1orb/i) {
-		$modelName = "ExtendedHubbard1Orb";
-	} elsif ($model=~/hubbard/i) {
-		$modelName = "ModelHubbard"; # after extended
-	}
-	return $modelName;
-}
-
-sub getOperatorsName()
-{
-	my $operatorsName = "UNKNOWN";
-
-	if ($model=~/extendedhubbard1orb/i) {
-		$operatorsName = "OpsExtendedHubbard1Orb";
-	} elsif ($model=~/hubbard/i) {
-		$operatorsName = "OperatorsHubbard";
-	} elsif ($model=~/heisenberg/i) {
-		$operatorsName = "OperatorsHeisenberg";
-	} elsif ($model=~/febasedsc/i) {
-		$operatorsName="OperatorsFeAs";
-	} elsif ($model=~/tjoneorbital/i) {
-		$operatorsName="OperatorsTjOneOrbital";
-	}
-	return $operatorsName;
 }
 
 sub compilerName

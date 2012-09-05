@@ -61,9 +61,9 @@ namespace LanczosPlusPlus {
 		}
 
 		size_t isThereAnElectronAt(WordType ket1,
-		                           WordType ket2,
-		                           size_t site,
-		                           size_t spin) const
+								   WordType ket2,
+								   size_t site,
+								   size_t spin) const
 		{
 			if (spin==SPIN_UP)
 				return basis1_.isThereAnElectronAt(ket1,site);
@@ -135,7 +135,7 @@ namespace LanczosPlusPlus {
 		            size_t spin) const
 		{
 			return (spin==SPIN_UP) ? basis1_.getBra(bra,ket1,what,site) :
-			                         basis2_.getBra(bra,ket2,what,site);
+									 basis2_.getBra(bra,ket2,what,site);
 		}
 
 	private:

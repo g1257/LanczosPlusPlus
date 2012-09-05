@@ -71,7 +71,7 @@ namespace LanczosPlusPlus {
 		RealType gsEnergy() const
 		{
 			return gsEnergy_;
-		} 
+		}
 
 		//! Calc Green function G(isite,jsite)  (still diagonal in spin)
 		template<typename ContinuedFractionCollectionType>

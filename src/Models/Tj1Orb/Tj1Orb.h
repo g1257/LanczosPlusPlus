@@ -10,16 +10,18 @@
 #include "BitManip.h"
 #include "TypeToString.h"
 #include "SparseRow.h"
+#include "ParametersTj1Orb.h"
 
 namespace LanczosPlusPlus {
 
-	template<typename RealType_,typename ParametersType,typename GeometryType_>
+	template<typename RealType_,typename GeometryType_>
 	class Tj1Orb {
 
 		typedef PsimagLite::Matrix<RealType_> MatrixType;
 
 	public:
 
+		typedef ParametersTj1Orb<RealType_> ParametersModelType;
 		typedef GeometryType_ GeometryType;
 		typedef PsimagLite::CrsMatrix<RealType_> SparseMatrixType;
 		typedef PsimagLite::SparseRow<SparseMatrixType> SparseRowType;
@@ -36,8 +38,8 @@ namespace LanczosPlusPlus {
 
 		Tj1Orb(size_t nup,
 		                  size_t ndown,
-		                  const ParametersType& mp,
-		                  GeometryType& geometry)
+						  const ParametersModelType& mp,
+						  const GeometryType& geometry)
 		: mp_(mp),
 		  geometry_(geometry),
 		  basis_(geometry,nup,ndown),
@@ -307,7 +309,7 @@ namespace LanczosPlusPlus {
 		int signSplusSminus(size_t i, size_t j,const WordType& bra1, const WordType& bra2) const
 		{
 			size_t n = geometry_.numberOfSites();
-			int s = 1.0;
+			int s = 1;
 			if (j>0) s *= parityFrom(0,j-1,bra2);
 			if (i>0) s *= parityFrom(0,i-1,bra2);
 			if (i<n-1) s *= parityFrom(i+1,n-1,bra1);
@@ -332,7 +334,7 @@ namespace LanczosPlusPlus {
 			return s;
 		}
 
-		const ParametersType& mp_;
+		const ParametersModelType& mp_;
 		const GeometryType& geometry_;
 		BasisType basis_;
 		PsimagLite::Matrix<RealType> hoppings_;

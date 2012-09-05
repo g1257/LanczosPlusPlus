@@ -10,16 +10,18 @@
 #include "BitManip.h"
 #include "TypeToString.h"
 #include "SparseRow.h"
+#include "ParametersModelHubbard.h"
 
 namespace LanczosPlusPlus {
 
-	template<typename RealType_,typename ParametersType,typename GeometryType_>
+	template<typename RealType_,typename GeometryType_>
 	class HubbardOneOrbital {
 
 		typedef PsimagLite::Matrix<RealType_> MatrixType;
 
 	public:
 
+		typedef ParametersModelHubbard<RealType_> ParametersModelType;
 		typedef GeometryType_ GeometryType;
 		typedef PsimagLite::CrsMatrix<RealType_> SparseMatrixType;
 		typedef PsimagLite::SparseRow<SparseMatrixType> SparseRowType;
@@ -36,8 +38,8 @@ namespace LanczosPlusPlus {
 
 		HubbardOneOrbital(size_t nup,
 		                  size_t ndown,
-		                  const ParametersType& mp,
-		                  GeometryType& geometry)
+						  const ParametersModelType& mp,
+						  const GeometryType& geometry)
 		: mp_(mp),
 		  geometry_(geometry),
 		  basis_(geometry,nup,ndown),
@@ -281,7 +283,7 @@ namespace LanczosPlusPlus {
 			}
 		}
 
-		const ParametersType& mp_;
+		const ParametersModelType& mp_;
 		const GeometryType& geometry_;
 		BasisType basis_;
 		PsimagLite::Matrix<RealType> hoppings_;

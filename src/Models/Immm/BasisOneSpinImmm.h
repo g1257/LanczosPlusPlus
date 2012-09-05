@@ -18,15 +18,15 @@ Please see full open source license included in file LICENSE.
 
 */
 
-#ifndef BASIS_ONE_SPIN_H
-#define BASIS_ONE_SPIN_H
+#ifndef BASIS_ONE_SPIN_IMMM_H
+#define BASIS_ONE_SPIN_IMMM_H
 #include "Matrix.h"
 #include "BitManip.h"
 #include <cassert>
 
 namespace LanczosPlusPlus {
 
-	class BasisOneSpin {
+	class BasisOneSpinImmm {
 
 	public:
 		
@@ -40,12 +40,12 @@ namespace LanczosPlusPlus {
 		static PsimagLite::Matrix<size_t> comb_;
 		static std::vector<WordType> bitmask_; 
 
-		BasisOneSpin(const std::vector<size_t>& orbsPerSite, size_t npart)
+		BasisOneSpinImmm(const std::vector<size_t>& orbsPerSite, size_t npart)
 		: orbsPerSite_(orbsPerSite),npart_(npart)
 		{
 			if (nsite_>0 && orbsPerSite.size()!=nsite_) {
 				std::string s =  
-				    "BasisOneSpin: All basis must have same number of sites\n";
+					"BasisOneSpinImmm: All basis must have same number of sites\n";
 				throw std::runtime_error(s.c_str());
 			}
 
@@ -172,7 +172,7 @@ namespace LanczosPlusPlus {
 				std::cerr<<"FATAL: At doSign\n";
 				std::cerr<<"INFO: i="<<i<<" j="<<j<<std::endl;
 				std::cerr<<"AT: "<<__FILE__<<" : "<<__LINE__<<std::endl;
-				throw std::runtime_error("BasisOneSpin::doSign(...)\n");
+				throw std::runtime_error("BasisOneSpinImmm::doSign(...)\n");
 			}
 			size_t x0 = (i+1)*orbs(); // i+1 cannot be the last site, 'cause i<j
 			size_t x1 = j*orbs();
@@ -401,18 +401,18 @@ namespace LanczosPlusPlus {
 		std::vector<WordType> data_;
 		std::vector<WordType> reordering_;
 
-	}; // class BasisOneSpin
+	}; // class BasisOneSpinImmm
 
-	std::ostream& operator<<(std::ostream& os,const BasisOneSpin& b)
+	std::ostream& operator<<(std::ostream& os,const BasisOneSpinImmm& b)
 	{
 		for (size_t i=0;i<b.size();i++)
 			os<<i<<" "<<b[i]<<"\n";
 		return os;
 	}
 
-	size_t BasisOneSpin::nsite_=0;
-	PsimagLite::Matrix<size_t> BasisOneSpin::comb_;
-	std::vector<BasisOneSpin::WordType> BasisOneSpin::bitmask_;
+	size_t BasisOneSpinImmm::nsite_=0;
+	PsimagLite::Matrix<size_t> BasisOneSpinImmm::comb_;
+	std::vector<BasisOneSpinImmm::WordType> BasisOneSpinImmm::bitmask_;
 
 } // namespace LanczosPlusPlus
 #endif

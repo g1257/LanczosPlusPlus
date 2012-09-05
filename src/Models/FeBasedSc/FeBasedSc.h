@@ -24,15 +24,18 @@ Please see full open source license included in file LICENSE.
 #include "CrsMatrix.h"
 #include "BasisFeAsBasedSc.h"
 #include "SparseRow.h"
+#include "ParametersModelFeAs.h"
 
 namespace LanczosPlusPlus {
 	
-	template<typename RealType_,typename ParametersType,typename GeometryType_>
+	template<typename RealType_,typename GeometryType_>
 	class FeBasedSc {
 		
 		typedef PsimagLite::Matrix<RealType_> MatrixType;
+
 	public:
-		
+
+		typedef ParametersModelFeAs<RealType_> ParametersModelType;
 		typedef GeometryType_ GeometryType;
 		typedef BasisFeAsBasedSc<GeometryType> BasisType;
 		typedef typename BasisType::WordType WordType;
@@ -48,7 +51,7 @@ namespace LanczosPlusPlus {
 		static int const FERMION_SIGN = BasisType::FERMION_SIGN;
 		
 		
-		FeBasedSc(size_t nup,size_t ndown,const ParametersType& mp,GeometryType& geometry)
+		FeBasedSc(size_t nup,size_t ndown,const ParametersModelType& mp,const GeometryType& geometry)
 		: mp_(mp),geometry_(geometry),basis_(geometry,nup,ndown)
 		{
 		}
@@ -501,7 +504,7 @@ namespace LanczosPlusPlus {
 			return geometry_(i,0,j,0,TERM_J);
 		}
 
-		const ParametersType& mp_;
+		const ParametersModelType& mp_;
 		const GeometryType& geometry_;
 		BasisType basis_;
 		

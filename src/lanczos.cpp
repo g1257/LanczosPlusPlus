@@ -50,26 +50,13 @@ void usage(const char *progName)
 }
 
 
-template<typename ModelType>
-void mainLoop(IoInputType& io,const GeometryType& geometry,size_t gf,std::vector<size_t>& sites,size_t cicj)
+template<typename ModelType,typename SpecialSymmetryType>
+void mainLoop2(ModelType& model,IoInputType& io,const GeometryType& geometry,size_t gf,std::vector<size_t>& sites,size_t cicj)
 {
-	typedef typename ModelType::ParametersModelType ParametersModelType;
 	typedef typename ModelType::BasisType BasisType;
-	typedef ReflectionSymmetry<GeometryType,BasisType> ReflectionSymmetryType;
-	typedef InternalProductStored<ModelType,ReflectionSymmetryType> InternalProductType;
+	typedef InternalProductStored<ModelType,SpecialSymmetryType> InternalProductType;
 	typedef Engine<ModelType,InternalProductType,ConcurrencyType> EngineType;
 	typedef typename EngineType::TridiagonalMatrixType TridiagonalMatrixType;
-
-	// read model parameters
-	ParametersModelType mp(io);
-
-	size_t nup = 0;
-	size_t ndown = 0;
-	io.readline(nup,"TargetElectronsUp=");
-	io.readline(ndown,"TargetElectronsDown=");
-
-	//! Setup the Model
-	ModelType model(nup,ndown,mp,geometry);
 
 	EngineType engine(model,geometry.numberOfSites(),io);
 
@@ -105,6 +92,31 @@ void mainLoop(IoInputType& io,const GeometryType& geometry,size_t gf,std::vector
 		}
 	}
 }
+
+template<typename ModelType>
+void mainLoop(IoInputType& io,const GeometryType& geometry,size_t gf,std::vector<size_t>& sites,size_t cicj)
+{
+	typedef typename ModelType::ParametersModelType ParametersModelType;
+	typedef typename ModelType::BasisType BasisType;
+
+	// read model parameters
+	ParametersModelType mp(io);
+
+	size_t nup = 0;
+	size_t ndown = 0;
+	io.readline(nup,"TargetElectronsUp=");
+	io.readline(ndown,"TargetElectronsDown=");
+
+	//! Setup the Model
+	ModelType model(nup,ndown,mp,geometry);
+
+//	if (mp.useTranslationSymmetry) {
+//		mainLoop2<ModelType,TranslationSymmetry<GeometryType,BasisType> >(model,io,geometry,gf,sites,cicj);
+//	} else {
+		mainLoop2<ModelType,ReflectionSymmetry<GeometryType,BasisType> >(model,io,geometry,gf,sites,cicj);
+//	}
+}
+
 
 int main(int argc,char *argv[])
 {

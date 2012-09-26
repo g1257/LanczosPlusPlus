@@ -97,8 +97,8 @@ namespace LanczosPlusPlus {
 
 		InternalProductStored(const ModelType& model,
 				      const BasisType& basis,
-				      const ReflectionSymmetryType* rs=0)
-		: matrixStored_(2),pointer_(0)
+					  const ReflectionSymmetryType* rs=0)
+			: matrixStored_((rs==0) ? 1 : rs->sectors()),pointer_(0)
 		{
 			if (!rs) {
 				model.setupHamiltonian(matrixStored_[0],basis);
@@ -107,21 +107,22 @@ namespace LanczosPlusPlus {
 			}
 			SparseMatrixType matrix2;
 			model.setupHamiltonian(matrix2,basis);
-			rs->transform(matrixStored_[0],matrixStored_[1],matrix2);
+			rs->transformMatrix(matrixStored_,matrix2);
 		}
 
 		InternalProductStored(const ModelType& model,
-				      const ReflectionSymmetryType* rs=0)
+					  const ReflectionSymmetryType* rs=0)
 		: matrixStored_(2),pointer_(0)
 		{
 			if (!rs) {
 				model.setupHamiltonian(matrixStored_[0]);
-				if (matrixStored_[0].row()<40) printFullMatrix(matrixStored_[0],"matrix",1);
+				if (matrixStored_[0].row()<40)
+					printFullMatrix(matrixStored_[0],"matrix",1);
 				return;
 			}
 			SparseMatrixType matrix2;
 			model.setupHamiltonian(matrix2);
-			rs->transform(matrixStored_[0],matrixStored_[1],matrix2);
+			rs->transformMatrix(matrixStored_,matrix2);
 		}
 
 		size_t rank() const { return matrixStored_[pointer_].row(); }
@@ -132,9 +133,9 @@ namespace LanczosPlusPlus {
 			 matrixStored_[pointer_].matrixVectorProduct(x,y);
 		}
 
-		size_t reflectionSector() const { return pointer_; }
+		//size_t reflectionSector() const { return pointer_; }
 
-		void reflectionSector(size_t p) { pointer_=p; }
+		void specialSymmetrySector(size_t p) { pointer_=p; }
 
 	private:
 

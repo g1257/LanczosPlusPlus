@@ -66,11 +66,13 @@ namespace LanczosPlusPlus {
 
 	public:
 
-		ReflectionSymmetry(const BasisType& basis,const GeometryType& geometry)
-		: progress_("ReflectionSymmetry",0),
+		ReflectionSymmetry(bool enabled,const BasisType& basis,const GeometryType& geometry)
+		: enabled_(enabled),
+		  progress_("ReflectionSymmetry",0),
 		  transform_(basis.size(),basis.size()),
 		  plusSector_(0)
 		{
+			if (!enabled_) return;
 			size_t hilbert = basis.size();
 			size_t numberOfDofs = basis.dofs();
 			size_t numberOfSites = geometry.numberOfSites();
@@ -114,10 +116,11 @@ namespace LanczosPlusPlus {
 //			checkTransform();
 		}
 
-		void transform(SparseMatrixType& matrixA,
-			       SparseMatrixType& matrixB,
-			       const SparseMatrixType& matrix) const
+		void transformMatrix(std::vector<SparseMatrixType>& matrix1,const SparseMatrixType& matrix) const
 		{
+			if (!enabled_) {
+				throw std::runtime_error("ReflectionSymmetry: transform(...) called on disabled\n");
+			}
 			SparseMatrixType rT;
 			transposeConjugate(rT,transform_);
 			
@@ -128,37 +131,30 @@ namespace LanczosPlusPlus {
 			SparseMatrixType matrix2;
 			multiply(matrix2,transform_,tmp);
 
-			split(matrixA,matrixB,matrix2);
+			assert(matrix1.size()==2);
+			split(matrix1[0],matrix1[1],matrix2);
 		}
 
-		RealType setGroundState(VectorType& gs,
-					const RealType& gsEnergy1,
-					const VectorType& gsVector1,
-					const RealType& gsEnergy2,
-					const VectorType& gsVector2)
+		void transformGs(VectorType& gs,size_t offset)
 		{
-			size_t rank = gsVector1.size() + gsVector2.size();
-			if (gsEnergy1<=gsEnergy2) {
-				setGs(gs,gsVector1,rank,0);
-				return gsEnergy1;
-			}
-			setGs(gs,gsVector2,rank,gsVector1.size());
-			return gsEnergy2;
-		}
+			if (!enabled_) return;
 
-	private:
+			std::vector<RealType> gstmp(transform_.row(),0);
 
-		void setGs(VectorType& gs,const VectorType& v,size_t rank,size_t offset)
-		{
-			std::vector<RealType> gstmp(rank,0);
-
-			for (size_t i=0;i<v.size();i++) {
-				gstmp[i+offset]=v[i];
+			for (size_t i=0;i<gs.size();i++) {
+				assert(i+offset<gstmp.size());
+				gstmp[i+offset]=gs[i];
 			}
 			SparseMatrixType rT;
 			transposeConjugate(rT,transform_);
+			gs.clear();
+			gs.resize(transform_.row());
 			multiply(gs,rT,gstmp);
 		}
+
+		size_t sectors() const { return 2; }
+
+	private:
 
 		void addTo(WordType& yy,size_t what,size_t site) const
 		{
@@ -305,6 +301,7 @@ namespace LanczosPlusPlus {
 			matrixB.setRow(minusSector,counter);
 		}
 
+		bool enabled_;
 		PsimagLite::ProgressIndicator progress_;
 		SparseMatrixType transform_;
 		size_t plusSector_;

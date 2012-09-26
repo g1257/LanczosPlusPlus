@@ -175,40 +175,34 @@ namespace LanczosPlusPlus {
 
 		void computeGroundState()
 		{
-			ReflectionSymmetryType* rs=0;
-			if (params_.useReflectionSymmetry)
-				rs = new ReflectionSymmetryType(model_.basis(),model_.geometry());
-			InternalProductType hamiltonian(model_,rs);
+			ReflectionSymmetryType rs(params_.useReflectionSymmetry,model_.basis(),model_.geometry());
+			InternalProductType hamiltonian(model_,&rs);
 			//if (CHECK_HERMICITY) checkHermicity(h);
 
-			RealType eps= ProgramGlobals::LanczosTolerance;
-			size_t iter= ProgramGlobals::LanczosSteps;
-
 			ParametersForSolverType params;
-			params.steps = iter;
-			params.tolerance = eps;
+			params.steps =  ProgramGlobals::LanczosSteps;
+			params.tolerance = ProgramGlobals::LanczosTolerance;
 			params.lotaMemory = params_.storeLanczosVectors;
 			params.stepsForEnergyConvergence =ProgramGlobals::MaxLanczosSteps;
 
 			LanczosSolverType lanczosSolver(hamiltonian,params);
 
-			VectorType gsVector1(hamiltonian.rank());
-			RealType gsEnergy1 = 0;
-			lanczosSolver.computeGroundState(gsEnergy1,gsVector1);
-
-			if (!params_.useReflectionSymmetry) {
-				gsVector_=gsVector1;
-				gsEnergy_=gsEnergy1;
-				return;
+			RealType gsEnergy = 1e10;
+			size_t offset = model_.basis().size();
+			size_t currentOffset = 0;
+			for (size_t i=0;i<rs.sectors();i++) {
+				hamiltonian.specialSymmetrySector(i);
+				VectorType gsVector1(hamiltonian.rank());
+				RealType gsEnergy1 = 0;
+				lanczosSolver.computeGroundState(gsEnergy1,gsVector1);
+				if (gsEnergy1<gsEnergy) {
+					gsVector_=gsVector1;
+					gsEnergy_=gsEnergy1;
+					offset = currentOffset;
+				}
+				currentOffset +=  gsVector1.size();
 			}
-
-			hamiltonian.reflectionSector(1);
-			VectorType gsVector2(hamiltonian.rank());
-			RealType gsEnergy2 = 0;
-			lanczosSolver.computeGroundState(gsEnergy2,gsVector2);
-
-			gsEnergy_=rs->setGroundState(gsVector_,gsEnergy1,gsVector1,gsEnergy2,gsVector2);
-
+			rs.transformGs(gsVector_,offset);
 			std::cout<<"#GSNorm="<<(gsVector_*gsVector_)<<"\n";
 		}
 

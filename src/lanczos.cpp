@@ -34,6 +34,7 @@ std::string license = "Copyright (c) 2009-2012, UT-Battelle, LLC\n"
 #include "ContinuedFraction.h" // in PsimagLite 
 #include "ContinuedFractionCollection.h" // in PsimagLite
 #include "ReflectionSymmetry.h"
+#include "TranslationSymmetry.h"
 #include "Split.h"
 
 using namespace LanczosPlusPlus;
@@ -110,11 +111,20 @@ void mainLoop(IoInputType& io,const GeometryType& geometry,size_t gf,std::vector
 	//! Setup the Model
 	ModelType model(nup,ndown,mp,geometry);
 
-//	if (mp.useTranslationSymmetry) {
-//		mainLoop2<ModelType,TranslationSymmetry<GeometryType,BasisType> >(model,io,geometry,gf,sites,cicj);
-//	} else {
+	int tmp = 0;
+	try {
+		io.readline(tmp,"UseTranslationSymmetry=");
+	} catch (std::exception& e) {
+		io.rewind();
+	}
+
+	bool useTranslationSymmetry = (tmp==1) ? true : false;
+
+	if (useTranslationSymmetry) {
+		mainLoop2<ModelType,TranslationSymmetry<GeometryType,BasisType> >(model,io,geometry,gf,sites,cicj);
+	} else {
 		mainLoop2<ModelType,ReflectionSymmetry<GeometryType,BasisType> >(model,io,geometry,gf,sites,cicj);
-//	}
+	}
 }
 
 

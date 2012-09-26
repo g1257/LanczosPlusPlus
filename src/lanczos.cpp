@@ -150,7 +150,7 @@ int main(int argc,char *argv[])
 		mainLoop<Tj1Orb<RealType,GeometryType> >(io,geometry,gf,sites,cicj);
 	} else if (model=="Immm") {
 		mainLoop<Immm<RealType,GeometryType> >(io,geometry,gf,sites,cicj);
-	} else if (model=="HubbardOneOrbital") {
+	} else if (model=="HubbardOneBand") {
 		mainLoop<HubbardOneOrbital<RealType,GeometryType> >(io,geometry,gf,sites,cicj);
 	} else if (model=="FeBasedSc") {
 		mainLoop<FeBasedSc<RealType,GeometryType> >(io,geometry,gf,sites,cicj);

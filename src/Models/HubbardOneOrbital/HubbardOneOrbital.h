@@ -274,6 +274,7 @@ namespace LanczosPlusPlus {
 					size_t temp = basis.perfectIndex(bra1,ket2);
 					int extraSign = (s1i==1) ? FERMION_SIGN : 1;
 					RealType cTemp = h*extraSign*basis_.doSign(ket1,ket2,i,j,SPIN_UP);
+					assert(temp<basis_.size());
 					sparseRow.add(temp,cTemp);
 				}
 
@@ -282,6 +283,7 @@ namespace LanczosPlusPlus {
 					size_t temp = basis.perfectIndex(ket1,bra2);
 					int extraSign = (s2i==1) ? FERMION_SIGN : 1;
 					RealType cTemp = h*extraSign*basis_.doSign(ket1,ket2,i,j,SPIN_DOWN);
+					assert(temp<basis_.size());
 					sparseRow.add(temp,cTemp);
 				}
 			}

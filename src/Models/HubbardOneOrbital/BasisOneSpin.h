@@ -75,6 +75,7 @@ namespace LanczosPlusPlus {
 			for (size_t b=0,c=1;state>0;b++,state>>=1)
 				if (state&1) n += comb_(b,c++);
 
+			assert(n<data_.size());
 			return n;
 		} 
 

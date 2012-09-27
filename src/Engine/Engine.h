@@ -28,6 +28,7 @@ Please see full open source license included in file LICENSE.
 #include "ProgramGlobals.h"
 #include "ParametersForSolver.h"
 #include "ParametersEngine.h"
+#include "DefaultSymmetry.h"
 
 namespace LanczosPlusPlus {
 	template<typename ModelType_,typename InternalProductType,typename ConcurrencyType_>
@@ -42,7 +43,7 @@ namespace LanczosPlusPlus {
 		typedef typename ModelType::SparseMatrixType SparseMatrixType;
 		typedef typename VectorType::value_type FieldType;
 		typedef typename ModelType::BasisType BasisType;
-		typedef typename InternalProductType::ReflectionSymmetryType ReflectionSymmetryType;
+		typedef typename InternalProductType::SpecialSymmetryType SpecialSymmetryType;
 		typedef PsimagLite::Random48<RealType> RandomType;
 		typedef PsimagLite::ParametersForSolver<RealType> ParametersForSolverType;
 		typedef PsimagLite::LanczosSolver<ParametersForSolverType,InternalProductType,VectorType>
@@ -175,7 +176,7 @@ namespace LanczosPlusPlus {
 
 		void computeGroundState()
 		{
-			ReflectionSymmetryType rs(params_.useReflectionSymmetry,model_.basis(),model_.geometry());
+			SpecialSymmetryType rs(model_.basis(),model_.geometry());
 			InternalProductType hamiltonian(model_,&rs);
 			//if (CHECK_HERMICITY) checkHermicity(h);
 

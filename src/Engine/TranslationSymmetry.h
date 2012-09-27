@@ -50,6 +50,11 @@ public:
 
 	size_t size() const { return data_.n_row(); }
 
+	const RealType& operator()(size_t i,size_t j) const
+	{
+		return data_(i,j);
+	}
+
 private:
 
 	PsimagLite::Matrix<RealType> data_;
@@ -122,14 +127,11 @@ private:
 
 	public:
 
-		TranslationSymmetry(bool enabled,const BasisType& basis,const GeometryType& geometry)
-		: enabled_(enabled),
-		  progress_("TranslationSymmetry",0),
+		TranslationSymmetry(const BasisType& basis,const GeometryType& geometry)
+		: progress_("TranslationSymmetry",0),
 		  transform_(basis.size(),basis.size()),
 		  plusSector_(0)
 		{
-			if (!enabled_) return;
-
 			size_t termId = 0;
 			KspaceType kspace(geometry.length(1,termId));
 			ClassRepresentativesType classReps(basis,geometry,kspace);
@@ -141,12 +143,11 @@ private:
 				for (size_t i=0;i<kspace.size();i++) {
 					translatedIndices[i]  = classReps.translate(classReps[st],i);
 				}
-				for (size_t i=0;i<kspace.size();i++) {
-					BufferItemType item;
-					item.first = translatedIndices;
-					item.second = i;
-					buffer.push_back(item);
-				}
+				BufferItemType item;
+				item.first = translatedIndices;
+				item.second = st;
+				buffer.push_back(item);
+
 			}
 
 			setTransform(buffer,kspace);
@@ -155,9 +156,6 @@ private:
 
 		void transformMatrix(std::vector<SparseMatrixType>& matrix1,const SparseMatrixType& matrix) const
 		{
-			if (!enabled_) {
-				throw std::runtime_error("TranslationSymmetry: transform(...) called on disabled\n");
-			}
 			SparseMatrixType rT;
 			transposeConjugate(rT,transform_);
 			
@@ -175,8 +173,6 @@ private:
 
 		void transformGs(VectorType& gs,size_t offset)
 		{
-			if (!enabled_) return;
-
 			std::vector<RealType> gstmp(transform_.row(),0);
 
 			for (size_t i=0;i<gs.size();i++) {
@@ -192,6 +188,8 @@ private:
 
 		size_t sectors() const { return 2; }
 
+		std::string name() const { return "translation"; }
+
 	private:
 
 		void addTo(WordType& yy,size_t what,size_t site) const
@@ -205,25 +203,29 @@ private:
 		{
 			throw std::runtime_error("TranslationSymmetry: needs more work\n");
 
-//			assert(buffer.size()==transform_.row());
-//			size_t counter = 0;
+			assert(buffer.size()==transform_.row());
+			size_t counter = 0;
 
-//			size_t row = 0;
+			size_t row = 0;
 
-//			for (size_t k=0;k<kspace.size();k++) {
-//				for (size_t i=0;i<buffer.size();i++) {
-//					if (buffer[i].second==k) continue;
+			for (size_t k=0;k<kspace.size();k++) {
 
-//					transform_.setRow(row++,counter);
+				//add this symmetry
+				for (size_t i=0;i<buffer.size();i++) {
 
-//					transform_.pushCol(buffer[i].first);
-//					transform_.pushValue(kspace(k,i));
-//					counter++;
-//				}
-//			}
+					const std::vector<size_t>& vec = buffer[i].first;
+					transform_.setRow(row++,counter);
 
-//			transform_.setRow(transform_.row(),counter);
-//			transform_.checkValidity();
+					for (size_t kk=0;kk<vec.size();kk++) {
+						transform_.pushCol(vec[kk]);
+						transform_.pushValue(kspace(k,kk));
+						counter++;
+					}
+				}
+			}
+
+			transform_.setRow(transform_.row(),counter);
+			transform_.checkValidity();
 		}
 
 //		void makeUnique(std::vector<ItemType>& dest,const std::vector<ItemType>& src)
@@ -315,7 +317,6 @@ private:
 //			matrixB.setRow(minusSector,counter);
 //		}
 
-		bool enabled_;
 		PsimagLite::ProgressIndicator progress_;
 		SparseMatrixType transform_;
 		size_t plusSector_;

@@ -84,12 +84,12 @@ DISCLOSED WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
 #include <vector>
 
 namespace LanczosPlusPlus {
-	template<typename ModelType,typename ReflectionSymmetryType_>
+	template<typename ModelType,typename SpecialSymmetryType_>
 	class InternalProductStored {
 
 	public:	
 
-		typedef ReflectionSymmetryType_ ReflectionSymmetryType;
+		typedef SpecialSymmetryType_ SpecialSymmetryType;
 		typedef typename ModelType::BasisType BasisType;
 		typedef typename ModelType::SparseMatrixType SparseMatrixType;
 		typedef typename ModelType::RealType RealType;
@@ -97,10 +97,10 @@ namespace LanczosPlusPlus {
 
 		InternalProductStored(const ModelType& model,
 				      const BasisType& basis,
-					  const ReflectionSymmetryType* rs=0)
+					  const SpecialSymmetryType* rs=0)
 			: matrixStored_((rs==0) ? 1 : rs->sectors()),pointer_(0)
 		{
-			if (!rs) {
+			if (!rs || rs->name()=="default") {
 				model.setupHamiltonian(matrixStored_[0],basis);
 				std::cout<<matrixStored_[0];
 				return;
@@ -111,10 +111,10 @@ namespace LanczosPlusPlus {
 		}
 
 		InternalProductStored(const ModelType& model,
-					  const ReflectionSymmetryType* rs=0)
+					  const SpecialSymmetryType* rs=0)
 		: matrixStored_(2),pointer_(0)
 		{
-			if (!rs) {
+			if (!rs || rs->name()=="default") {
 				model.setupHamiltonian(matrixStored_[0]);
 				if (matrixStored_[0].row()<40)
 					printFullMatrix(matrixStored_[0],"matrix",1);

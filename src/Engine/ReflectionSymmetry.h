@@ -66,13 +66,11 @@ namespace LanczosPlusPlus {
 
 	public:
 
-		ReflectionSymmetry(bool enabled,const BasisType& basis,const GeometryType& geometry)
-		: enabled_(enabled),
-		  progress_("ReflectionSymmetry",0),
+		ReflectionSymmetry(const BasisType& basis,const GeometryType& geometry)
+		: progress_("ReflectionSymmetry",0),
 		  transform_(basis.size(),basis.size()),
 		  plusSector_(0)
 		{
-			if (!enabled_) return;
 			size_t hilbert = basis.size();
 			size_t numberOfDofs = basis.dofs();
 			size_t numberOfSites = geometry.numberOfSites();
@@ -118,9 +116,6 @@ namespace LanczosPlusPlus {
 
 		void transformMatrix(std::vector<SparseMatrixType>& matrix1,const SparseMatrixType& matrix) const
 		{
-			if (!enabled_) {
-				throw std::runtime_error("ReflectionSymmetry: transform(...) called on disabled\n");
-			}
 			SparseMatrixType rT;
 			transposeConjugate(rT,transform_);
 			
@@ -137,8 +132,6 @@ namespace LanczosPlusPlus {
 
 		void transformGs(VectorType& gs,size_t offset)
 		{
-			if (!enabled_) return;
-
 			std::vector<RealType> gstmp(transform_.row(),0);
 
 			for (size_t i=0;i<gs.size();i++) {
@@ -153,6 +146,8 @@ namespace LanczosPlusPlus {
 		}
 
 		size_t sectors() const { return 2; }
+
+		std::string name() const { return "reflection"; }
 
 	private:
 
@@ -301,7 +296,6 @@ namespace LanczosPlusPlus {
 			matrixB.setRow(minusSector,counter);
 		}
 
-		bool enabled_;
 		PsimagLite::ProgressIndicator progress_;
 		SparseMatrixType transform_;
 		size_t plusSector_;

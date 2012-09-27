@@ -33,6 +33,7 @@ std::string license = "Copyright (c) 2009-2012, UT-Battelle, LLC\n"
 #include "ProgramGlobals.h"
 #include "ContinuedFraction.h" // in PsimagLite 
 #include "ContinuedFractionCollection.h" // in PsimagLite
+#include "DefaultSymmetry.h"
 #include "ReflectionSymmetry.h"
 #include "TranslationSymmetry.h"
 #include "Split.h"
@@ -114,16 +115,23 @@ void mainLoop(IoInputType& io,const GeometryType& geometry,size_t gf,std::vector
 	int tmp = 0;
 	try {
 		io.readline(tmp,"UseTranslationSymmetry=");
-	} catch (std::exception& e) {
-		io.rewind();
-	}
-
+	} catch(std::exception& e) {}
+	io.rewind();
 	bool useTranslationSymmetry = (tmp==1) ? true : false;
+
+	try {
+		io.readline(tmp,"UseReflectionSymmetry=");
+	} catch(std::exception& e) {}
+	io.rewind();
+	bool useReflectionSymmetry = (tmp==1) ? true : false;
+
 
 	if (useTranslationSymmetry) {
 		mainLoop2<ModelType,TranslationSymmetry<GeometryType,BasisType> >(model,io,geometry,gf,sites,cicj);
-	} else {
+	} else if (useReflectionSymmetry) {
 		mainLoop2<ModelType,ReflectionSymmetry<GeometryType,BasisType> >(model,io,geometry,gf,sites,cicj);
+	} else {
+		mainLoop2<ModelType,DefaultSymmetry<GeometryType,BasisType> >(model,io,geometry,gf,sites,cicj);
 	}
 }
 

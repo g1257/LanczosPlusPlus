@@ -99,18 +99,9 @@ namespace LanczosPlusPlus {
 				io.rewind();
 			}
 			storeLanczosVectors = (tmp==1) ? true : false;
-			tmp = 0;
-			try {
-				io.readline(tmp,"UseReflectionSymmetry=");
-			} catch (std::exception& e) {
-				io.rewind();
-			}
-			useReflectionSymmetry = (tmp==1) ? true : false;
 		}
 		
 		bool storeLanczosVectors;
-		bool useReflectionSymmetry;
-
 	};
 
 	
@@ -119,7 +110,6 @@ namespace LanczosPlusPlus {
 	std::ostream& operator<<(std::ostream &os,const ParametersEngine<FieldType>& parameters)
 	{
 		os<<"parameters.storeLanczosVectors="<<parameters.storeLanczosVectors<<"\n";
-		os<<"parameters.useReflectionSymmetry="<<parameters.useReflectionSymmetry<<"\n";
 		return os;
 	}
 } // namespace LanczosPlusPlus

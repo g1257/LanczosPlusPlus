@@ -91,7 +91,7 @@ public:
 			if (data_[i].type!=0) continue;
 			reps_.push_back(i);
 		}
-		throw std::runtime_error("TranslationSymmetry: more work needed\n");
+		//throw std::runtime_error("TranslationSymmetry: more work needed\n");
 	}
 
 	size_t size() const { return reps_.size(); }
@@ -113,9 +113,12 @@ private:
 	{
 		size_t numberOfDofs = basis_.dofs();
 		std::vector<WordType> y(numberOfDofs);
+
 		for (size_t dof=0;dof<numberOfDofs;dof++) {
-			y[dof] = translateInternal2(state,k);
+			WordType x = basis_(state,dof);
+			y[dof] = translateInternal2(x,k);
 		}
+
 		return y;
 	}
 
@@ -166,17 +169,15 @@ private:
 		TranslationSymmetry(const BasisType& basis,const GeometryType& geometry)
 		: progress_("TranslationSymmetry",0),
 		  transform_(basis.size(),basis.size()),
-		  plusSector_(0)
+		  kspace_(geometry.length(1,0))
 		{
-			size_t termId = 0;
-			KspaceType kspace(geometry.length(1,termId));
-			ClassRepresentativesType classReps(basis,geometry,kspace);
+			ClassRepresentativesType classReps(basis,geometry,kspace_);
 
 			std::vector<BufferItemType> buffer;
 			for (size_t st=0;st<classReps.size();st++) {
 
-				std::vector<size_t> translatedIndices(kspace.size());
-				for (size_t i=0;i<kspace.size();i++) {
+				std::vector<size_t> translatedIndices(kspace_.size());
+				for (size_t i=0;i<kspace_.size();i++) {
 					translatedIndices[i]  = classReps.translate(classReps[st],i);
 				}
 				BufferItemType item;
@@ -186,7 +187,7 @@ private:
 
 			}
 
-			setTransform(buffer,kspace);
+			setTransform(buffer);
 //			checkTransform();
 		}
 
@@ -202,9 +203,9 @@ private:
 			SparseMatrixType matrix2;
 			multiply(matrix2,transform_,tmp);
 
-			assert(matrix1.size()==2);
-			//split(matrix1[0],matrix1[1],matrix2);
-			throw std::runtime_error("TranslationSymmetry: needs more work\n");
+			//assert(matrix1.size()==kspace.size());
+			split(matrix1,matrix2);
+
 		}
 
 		void transformGs(VectorType& gs,size_t offset)
@@ -235,16 +236,13 @@ private:
 			yy |= mask;
 		}
 
-		void setTransform(const std::vector<BufferItemType>& buffer,const KspaceType& kspace)
+		void setTransform(const std::vector<BufferItemType>& buffer)
 		{
-			throw std::runtime_error("TranslationSymmetry: needs more work\n");
-
-			assert(buffer.size()==transform_.row());
 			size_t counter = 0;
 
 			size_t row = 0;
 
-			for (size_t k=0;k<kspace.size();k++) {
+			for (size_t k=0;k<kspace_.size();k++) {
 
 				//add this symmetry
 				for (size_t i=0;i<buffer.size();i++) {
@@ -254,7 +252,7 @@ private:
 
 					for (size_t kk=0;kk<vec.size();kk++) {
 						transform_.pushCol(vec[kk]);
-						transform_.pushValue(kspace(k,kk));
+						transform_.pushValue(kspace_(k,kk));
 						counter++;
 					}
 				}
@@ -304,7 +302,31 @@ private:
 //			return (fabs(x)<1e-6);
 //		}
 
-//		void split(SparseMatrixType& matrixA,SparseMatrixType& matrixB,const SparseMatrixType& matrix) const
+		void split(std::vector<SparseMatrixType>& matrix,const SparseMatrixType& matrix2) const
+		{
+			size_t blockSize = matrix2.row()/kspace_.size();
+			for (size_t i=0;i<kspace_.size();i++) {
+				SparseMatrixType m(blockSize,blockSize);
+				size_t offset = i*blockSize;
+				size_t counter = 0;
+				for (size_t row=0;row<blockSize;row++) {
+					m.setRow(row,counter);
+					size_t globalRow = row + offset;
+					for (int k=matrix2.getRowPtr(globalRow);k<matrix2.getRowPtr(globalRow+1);k++) {
+						size_t globalCol = matrix2.getCol(k);
+						assert(globalCol>=offset);
+						size_t col = globalCol - offset;
+						assert(col<blockSize);
+						m.pushCol(col);
+						m.pushValue(matrix2.getValue(k));
+						counter++;
+					}
+				}
+				m.setRow(blockSize,counter);
+				m.checkValidity();
+				matrix.push_back(m);
+			}
+		}
 //		{
 //			size_t counter = 0;
 //			matrixA.resize(plusSector_,plusSector_);
@@ -355,7 +377,7 @@ private:
 
 		PsimagLite::ProgressIndicator progress_;
 		SparseMatrixType transform_;
-		size_t plusSector_;
+		KspaceType kspace_;
 //		SparseMatrixType s_;
 	}; // class TranslationSymmetry
 } // namespace Dmrg

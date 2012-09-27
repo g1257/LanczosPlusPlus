@@ -69,28 +69,28 @@ class ClassRepresentatives {
 public:
 
 	ClassRepresentatives(const BasisType& basis,const GeometryType& geometry,const KspaceType& kspace)
-		: data_(basis.size())
+		: basis_(basis),geometry_(geometry),data_(basis.size())
 	{
-//		size_t hilbert = basis.size();
-//		std::vector<bool> seen(hilbert,false);
+		size_t hilbert = basis.size();
+		std::vector<bool> seen(hilbert,false);
 
-//		for (size_t ispace=0;ispace<hilbert;ispace++) {
+		for (size_t ispace=0;ispace<hilbert;ispace++) {
 
-//			for (size_t k=0;k<kspace.size();k++) {
-//				std::vector<WordType> y = kspace.translate(ispace,k);
-//				size_t yIndex = basis.perfectIndex(y);
-//				if (!seen[yIndex]) {
-//					seen[yIndex]=true;
-//					data_[yIndex].type = k;
-//					data_[yIndex].i = ispace;
-//				}
-//			}
-//		}
+			for (size_t k=0;k<kspace.size();k++) {
+				std::vector<WordType> y = translateInternal(ispace,k);
+				size_t yIndex = basis.perfectIndex(y);
+				if (!seen[yIndex]) {
+					seen[yIndex]=true;
+					data_[yIndex].type = k;
+					data_[yIndex].i = ispace;
+				}
+			}
+		}
 
-//		for (size_t i=0;i<data_.size();i++) {
-//			if (data_[i].type!=0) continue;
-//			reps_.push_back(i);
-//		}
+		for (size_t i=0;i<data_.size();i++) {
+			if (data_[i].type!=0) continue;
+			reps_.push_back(i);
+		}
 		throw std::runtime_error("TranslationSymmetry: more work needed\n");
 	}
 
@@ -109,6 +109,42 @@ public:
 
 private:
 
+	std::vector<WordType> translateInternal(size_t state,size_t k) const
+	{
+		size_t numberOfDofs = basis_.dofs();
+		std::vector<WordType> y(numberOfDofs);
+		for (size_t dof=0;dof<numberOfDofs;dof++) {
+			y[dof] = translateInternal2(state,k);
+		}
+		return y;
+	}
+
+	WordType translateInternal2(WordType state,size_t k) const
+	{
+		size_t numberOfSites = geometry_.numberOfSites();
+		size_t termId = 0;
+		WordType x = state;
+		WordType y = 0;
+		size_t diry = 1;
+		for (size_t site=0;site<numberOfSites;site++) {
+			size_t tSite = geometry_.translate(site,diry,k,termId);
+			size_t thisSiteContent = x & 1;
+			x >>=1; // go to next site
+			addTo(y,thisSiteContent,tSite);
+			if (!x) break;
+		}
+		return y;
+	}
+
+	void addTo(WordType& yy,size_t what,size_t site) const
+	{
+		if (what==0) return;
+		WordType mask = (1<<site);
+		yy |= mask;
+	}
+
+	const BasisType& basis_;
+	const GeometryType& geometry_;
 	std::vector<TranslationItem> data_;
 	std::vector<size_t> reps_;
 };

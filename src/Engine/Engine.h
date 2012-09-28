@@ -162,27 +162,6 @@ namespace LanczosPlusPlus {
 
 	private:
 
-//		void computeGroundState()
-//		{
-//			InternalProductType hamiltonian(model_);
-//			//if (CHECK_HERMICITY) checkHermicity(h);
-
-//			RealType eps= ProgramGlobals::LanczosTolerance;
-//			size_t iter= ProgramGlobals::LanczosSteps;
-
-//			ParametersForSolverType params;
-//			params.steps = iter;
-//			params.tolerance = eps;
-//			params.lotaMemory = lotaMemory_;
-//			params.stepsForEnergyConvergence =ProgramGlobals::MaxLanczosSteps;
-
-//			LanczosSolverType lanczosSolver(hamiltonian,params);
-
-//			gsVector_.resize(hamiltonian.rank());
-//			lanczosSolver.computeGroundState(gsEnergy_,gsVector_);
-//			std::cout<<"#GSNorm="<<(gsVector_*gsVector_)<<"\n";
-//		}
-
 		void computeGroundState()
 		{
 			SpecialSymmetryType rs(model_.basis(),model_.geometry());
@@ -203,6 +182,7 @@ namespace LanczosPlusPlus {
 			for (size_t i=0;i<rs.sectors();i++) {
 				hamiltonian.specialSymmetrySector(i);
 				VectorType gsVector1(hamiltonian.rank());
+				if (gsVector1.size()==0) continue;
 				RealType gsEnergy1 = 0;
 				lanczosSolver.computeGroundState(gsEnergy1,gsVector1);
 				if (gsEnergy1<gsEnergy_) {

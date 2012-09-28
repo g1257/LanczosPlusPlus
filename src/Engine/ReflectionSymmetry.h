@@ -131,7 +131,7 @@ namespace LanczosPlusPlus {
 			SparseMatrixType rT;
 			transposeConjugate(rT,transform_);
 			
-			printFullMatrix(matrix,"originalHam");
+			if (matrix.row()<40) printFullMatrix(matrix,"originalHam");
 			SparseMatrixType tmp;
 			multiply(tmp,matrix,rT);
 

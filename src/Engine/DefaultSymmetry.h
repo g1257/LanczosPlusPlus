@@ -47,7 +47,7 @@ namespace LanczosPlusPlus {
 		void init(const SomeModelType& model,const BasisType& basis)
 		{
 			model.setupHamiltonian(matrixStored_,basis);
-			std::cout<<matrixStored_;
+//			std::cout<<matrixStored_;
 		}
 
 		void transformMatrix(std::vector<SparseMatrixType>& matrix1,const SparseMatrixType& matrix) const

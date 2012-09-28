@@ -38,7 +38,7 @@ class Kspace {
 
 public:
 
-	Kspace(size_t len) : data_(len,len)
+	Kspace(size_t len) : data_(len,len),blockSizes_(len,0)
 	{
 
 		for (size_t i=0;i<len-1;i++) {
@@ -56,9 +56,29 @@ public:
 		return data_(i,j);
 	}
 
+	void setBlockSize(size_t k,size_t s)
+	{
+		std::cout<<"BLOCKSZIZE["<<k<<"]="<<s<<"\n";
+		blockSizes_[k]=s;
+	}
+
+	size_t blockSizes(size_t k) const
+	{
+		return blockSizes_[k];
+	}
+
+	size_t blockSize() const
+	{
+		size_t sum = 0;
+		for (size_t i=0;i<blockSizes_.size();i++)
+			sum += blockSizes_[i];
+		return sum;
+	}
+
 private:
 
 	PsimagLite::Matrix<RealType> data_;
+	std::vector<size_t> blockSizes_;
 };
 
 template<typename GeometryType,typename BasisType,typename KspaceType>
@@ -88,17 +108,17 @@ public:
 			}
 		}
 
-		for (size_t i=0;i<data_.size();i++) {
-			if (data_[i].type!=0) continue;
-			reps_.push_back(i);
-			std::cout<<"Rep "<<basis(i,0)<<" "<<basis(i,1)<<"\n";
-		}
-		std::cout<<"Total Representatives="<<reps_.size()<<"\n";
+//		for (size_t i=0;i<data_.size();i++) {
+//			if (data_[i].type!=0) continue;
+//			reps_.push_back(i);
+//			std::cout<<"Rep "<<basis(i,0)<<" "<<basis(i,1)<<"\n";
+//		}
+//		std::cout<<"Total Representatives="<<reps_.size()<<"\n";
 	}
 
-	size_t size() const { return reps_.size(); }
+//	size_t size() const { return reps_.size(); }
 
-	const size_t& operator[](size_t i) const { return reps_[i]; }
+//	const size_t& operator[](size_t i) const { return reps_[i]; }
 
 	size_t translate(size_t state,size_t k) const
 	{
@@ -154,7 +174,7 @@ private:
 	const BasisType& basis_;
 	const GeometryType& geometry_;
 	std::vector<TranslationItem> data_;
-	std::vector<size_t> reps_;
+//	std::vector<size_t> reps_;
 };
 
 	template<typename GeometryType,typename BasisType>
@@ -185,6 +205,7 @@ private:
 			size_t hilbert = basis.size();
 			std::vector<SparseVectorType> bag;
 			for (size_t k=0;k<kspace_.size();k++) {
+				size_t blockSize = 0;
 				for (size_t ispace=0;ispace<hilbert;ispace++) {
 					std::vector<ComplexType> v(hilbert);
 					eikrTr(v,ispace,k,reps);
@@ -192,9 +213,15 @@ private:
 					sparseV.sort();
 					if (!checkForOrthogonality(sparseV,bag)) continue;
 					bag.push_back(sparseV);
+					blockSize++;
 				}
+				kspace_.setBlockSize(k,blockSize);
 			}
 
+			if (kspace_.blockSize()!=hilbert) {
+				std::cout<<"Blocksizes summed="<<kspace_.blockSize()<<" but hilbert="<<hilbert<<"\n";
+				throw std::runtime_error("error!\n");
+			}
 			setTransform(bag);
 //			checkTransform();
 		}
@@ -220,7 +247,7 @@ private:
 			SparseMatrixType rT;
 			transposeConjugate(rT,transform_);
 			
-			printFullMatrix(matrix,"originalHam");
+			if (matrix.row()<40) printFullMatrix(matrix,"originalHam");
 			SparseMatrixType tmp;
 			multiply(tmp,matrix,rT);
 
@@ -231,7 +258,7 @@ private:
 				printFullMatrix(matrix2,"HamiltonianTransformed");
 			matrix1.clear();
 			split(matrix1,matrix2);
-			assert(matrix1.size()==kspace_.size());
+//			assert(matrix1.size()==kspace_.size());
 		}
 
 		void transformGs(VectorType& gs,size_t offset)
@@ -285,7 +312,7 @@ private:
 		void eikrTr(std::vector<ComplexType>& v,size_t ispace,size_t k,const ClassRepresentativesType& reps) const
 		{
 			for (size_t r=0;r<kspace_.size();r++) {
-				size_t jspace = reps.translate(ispace,k);
+				size_t jspace = reps.translate(ispace,r);
 				RealType tmp = 2*M_PI*k*r/RealType(kspace_.size());
 				v[jspace] = ComplexType(cos(tmp),sin(tmp));
 			}
@@ -295,59 +322,19 @@ private:
 		{
 			for (size_t i=0;i<bag.size();i++) {
 				ComplexType sp = sparseV.scalarProduct(bag[i]);
-
 				if (std::norm(sp)>1e-8) return false;
 			}
 			return true;
 		}
 
-//		void makeUnique(std::vector<ItemType>& dest,const std::vector<ItemType>& src)
-//		{
-//			size_t zeros=0;
-//			size_t pluses=0;
-//			size_t minuses=0;
-//			for (size_t i=0;i<src.size();i++) {
-//				ItemType item = src[i];
-//				int x =  PsimagLite::isInVector(dest,item);
-//				if (x>=0) continue;
-
-//				if (item.type==ItemType::DIAGONAL) zeros++;
-//				if (item.type==ItemType::PLUS) pluses++;
-//				if (item.type==ItemType::MINUS) minuses++;
-
-//				dest.push_back(item);
-//			}
-//			std::ostringstream msg;
-//			msg<<pluses<<" +, "<<minuses<<" -, "<<zeros<<" zeros.";
-//			progress_.printline(msg,std::cout);
-//			plusSector_ = zeros + pluses;
-//		}
-
-//		void isIdentity(const SparseMatrixType& s,const std::string& label) const
-//		{
-//			std::cerr<<"Checking label="<<label<<"\n";
-//			for (size_t i=0;i<s.rank();i++) {
-//				for (int k=s.getRowPtr(i);k<s.getRowPtr(i+1);k++) {
-//					size_t col = s.getCol(k);
-//					RealType val = s.getValue(k);
-//					if (col==i) assert(isAlmostZero(val-1.0));
-//					else assert(isAlmostZero(val));
-//				}
-//			}
-//		}
-
-//		bool isAlmostZero(const RealType& x) const
-//		{
-//			return (fabs(x)<1e-6);
-//		}
-
 		void split(std::vector<SparseMatrixType>& matrix,const SparseMatrixType& matrix2) const
 		{
-			size_t blockSize = matrix2.row()/kspace_.size();
-			std::cout<<"BLOCKSIZE="<<blockSize<<"\n";
+			size_t offset = 0;
 			for (size_t i=0;i<kspace_.size();i++) {
+				size_t blockSize = kspace_.blockSizes(i);
+				if (blockSize==0) continue;
+				std::cout<<"BLOCKSIZE="<<blockSize<<"\n";
 				SparseMatrixType m(blockSize,blockSize);
-				size_t offset = i*blockSize;
 				size_t counter = 0;
 				for (size_t row=0;row<blockSize;row++) {
 					m.setRow(row,counter);
@@ -369,6 +356,7 @@ private:
 				m.setRow(blockSize,counter);
 				m.checkValidity();
 				matrix.push_back(m);
+				offset += blockSize;
 			}
 		}
 //		{

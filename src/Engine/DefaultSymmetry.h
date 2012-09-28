@@ -33,13 +33,22 @@ namespace LanczosPlusPlus {
 
 		typedef typename GeometryType::RealType RealType;
 		typedef typename BasisType::WordType WordType;
-		typedef PsimagLite::CrsMatrix<RealType> SparseMatrixType;
-		typedef std::vector<RealType> VectorType;
 
 	public:
 
+		typedef PsimagLite::CrsMatrix<RealType> SparseMatrixType;
+		typedef std::vector<RealType> VectorType;
+
 		DefaultSymmetry(const BasisType& basis,const GeometryType& geometry)
-		{}
+		{
+		}
+
+		template<typename SomeModelType>
+		void init(const SomeModelType& model,const BasisType& basis)
+		{
+			model.setupHamiltonian(matrixStored_,basis);
+			std::cout<<matrixStored_;
+		}
 
 		void transformMatrix(std::vector<SparseMatrixType>& matrix1,const SparseMatrixType& matrix) const
 		{
@@ -52,7 +61,21 @@ namespace LanczosPlusPlus {
 
 		size_t sectors() const { return 1; }
 
+		void setPointer(size_t p) { }
+
 		std::string name() const { return "default"; }
+
+		size_t rank() const { return matrixStored_.row(); }
+
+		template<typename SomeVectorType>
+		void matrixVectorProduct(SomeVectorType &x, SomeVectorType const &y) const
+		{
+			return matrixStored_.matrixVectorProduct(x,y);
+		}
+
+	private:
+
+		SparseMatrixType matrixStored_;
 
 	}; // class DefaultSymmetry
 } // namespace Dmrg

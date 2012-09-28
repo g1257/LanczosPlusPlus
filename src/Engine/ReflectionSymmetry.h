@@ -59,17 +59,19 @@ namespace LanczosPlusPlus {
 
 		typedef typename GeometryType::RealType RealType;
 		typedef typename BasisType::WordType WordType;
-		typedef PsimagLite::CrsMatrix<RealType> SparseMatrixType;
-		typedef std::vector<RealType> VectorType;
-
 		typedef ReflectionItem ItemType;
 
 	public:
 
+		typedef PsimagLite::CrsMatrix<RealType> SparseMatrixType;
+		typedef std::vector<RealType> VectorType;
+
 		ReflectionSymmetry(const BasisType& basis,const GeometryType& geometry)
 		: progress_("ReflectionSymmetry",0),
 		  transform_(basis.size(),basis.size()),
-		  plusSector_(0)
+		  plusSector_(0),
+		  matrixStored_(2),
+		  pointer_(0)
 		{
 			size_t hilbert = basis.size();
 			size_t numberOfDofs = basis.dofs();
@@ -114,6 +116,16 @@ namespace LanczosPlusPlus {
 //			checkTransform();
 		}
 
+		template<typename SomeModelType>
+		void init(const SomeModelType& model,const BasisType& basis)
+		{
+			SparseMatrixType matrix2;
+			model.setupHamiltonian(matrix2,basis);
+			transformMatrix(matrixStored_,matrix2);
+		}
+
+		size_t rank() const { return matrixStored_[pointer_].row(); }
+
 		void transformMatrix(std::vector<SparseMatrixType>& matrix1,const SparseMatrixType& matrix) const
 		{
 			SparseMatrixType rT;
@@ -147,7 +159,15 @@ namespace LanczosPlusPlus {
 
 		size_t sectors() const { return 2; }
 
+		void setPointer(size_t p) { pointer_=p; }
+
 		std::string name() const { return "reflection"; }
+
+		template<typename SomeVectorType>
+		void matrixVectorProduct(SomeVectorType &x, SomeVectorType const &y) const
+		{
+			return matrixStored_[pointer_].matrixVectorProduct(x,y);
+		}
 
 	private:
 
@@ -299,7 +319,8 @@ namespace LanczosPlusPlus {
 		PsimagLite::ProgressIndicator progress_;
 		SparseMatrixType transform_;
 		size_t plusSector_;
-//		SparseMatrixType s_;
+		std::vector<SparseMatrixType> matrixStored_;
+		size_t pointer_;
 	}; // class ReflectionSymmetry
 } // namespace Dmrg
 

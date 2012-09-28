@@ -24,6 +24,7 @@ Please see full open source license included in file LICENSE.
 #include "ProgressIndicator.h"
 #include "CrsMatrix.h"
 #include "Vector.h"
+#include "SparseVector.h"
 
 namespace LanczosPlusPlus {
 
@@ -90,8 +91,9 @@ public:
 		for (size_t i=0;i<data_.size();i++) {
 			if (data_[i].type!=0) continue;
 			reps_.push_back(i);
+			std::cout<<"Rep "<<basis(i,0)<<" "<<basis(i,1)<<"\n";
 		}
-		//throw std::runtime_error("TranslationSymmetry: more work needed\n");
+		std::cout<<"Total Representatives="<<reps_.size()<<"\n";
 	}
 
 	size_t size() const { return reps_.size(); }
@@ -103,8 +105,9 @@ public:
 		for (size_t i=0;i<data_.size();i++) {
 			if (data_[i].i == state && data_[i].type == k) return i;
 		}
-		assert(false);
-		throw std::runtime_error("TranslationSymmetry: translate\n");
+//		assert(false);
+//		throw std::runtime_error("TranslationSymmetry: translate\n");
+		return state;
 	}
 
 private:
@@ -118,7 +121,8 @@ private:
 			WordType x = basis_(state,dof);
 			y[dof] = translateInternal2(x,k);
 		}
-
+		std::cout<<"translation of "<<basis_(state,0)<<" "<<basis_(state,1);
+		std::cout<<"is "<<y[0]<<" "<<y[1]<<"\n";
 		return y;
 	}
 
@@ -136,6 +140,7 @@ private:
 			addTo(y,thisSiteContent,tSite);
 			if (!x) break;
 		}
+
 		return y;
 	}
 
@@ -156,42 +161,61 @@ private:
 	class TranslationSymmetry  {
 
 		typedef typename GeometryType::RealType RealType;
+		typedef std::complex<RealType> ComplexType;
 		typedef typename BasisType::WordType WordType;
-		typedef PsimagLite::CrsMatrix<RealType> SparseMatrixType;
-		typedef std::vector<RealType> VectorType;
-
+		typedef PsimagLite::SparseVector<ComplexType> SparseVectorType;
 		typedef Kspace<RealType> KspaceType;
 		typedef ClassRepresentatives<GeometryType,BasisType,KspaceType> ClassRepresentativesType;
 		typedef std::pair<std::vector<size_t> ,size_t> BufferItemType;
 
 	public:
 
+		typedef PsimagLite::CrsMatrix<ComplexType> SparseMatrixType;
+		typedef std::vector<ComplexType> VectorType;
+
 		TranslationSymmetry(const BasisType& basis,const GeometryType& geometry)
 		: progress_("TranslationSymmetry",0),
 		  transform_(basis.size(),basis.size()),
-		  kspace_(geometry.length(1,0))
+		  kspace_(geometry.length(1,0)),
+		  matrixStored_(kspace_.size()),
+		  pointer_(0)
 		{
-			ClassRepresentativesType classReps(basis,geometry,kspace_);
+			ClassRepresentativesType reps(basis,geometry,kspace_);
 
-			std::vector<BufferItemType> buffer;
-			for (size_t st=0;st<classReps.size();st++) {
-
-				std::vector<size_t> translatedIndices(kspace_.size());
-				for (size_t i=0;i<kspace_.size();i++) {
-					translatedIndices[i]  = classReps.translate(classReps[st],i);
+			size_t hilbert = basis.size();
+			std::vector<SparseVectorType> bag;
+			for (size_t k=0;k<kspace_.size();k++) {
+				for (size_t ispace=0;ispace<hilbert;ispace++) {
+					std::vector<ComplexType> v(hilbert);
+					eikrTr(v,ispace,k,reps);
+					SparseVectorType sparseV(v);
+					sparseV.sort();
+					if (!checkForOrthogonality(sparseV,bag)) continue;
+					bag.push_back(sparseV);
 				}
-				BufferItemType item;
-				item.first = translatedIndices;
-				item.second = st;
-				buffer.push_back(item);
-
 			}
 
-			setTransform(buffer);
+			setTransform(bag);
 //			checkTransform();
 		}
 
-		void transformMatrix(std::vector<SparseMatrixType>& matrix1,const SparseMatrixType& matrix) const
+		template<typename SomeModelType>
+		void init(const SomeModelType& model,const BasisType& basis)
+		{
+			PsimagLite::CrsMatrix<RealType> matrix2;
+			model.setupHamiltonian(matrix2,basis);
+			transformMatrix(matrixStored_,matrix2);
+		}
+
+		size_t rank() const { return matrixStored_[pointer_].row(); }
+
+		template<typename SomeVectorType>
+		void matrixVectorProduct(SomeVectorType &x, SomeVectorType const &y) const
+		{
+			return matrixStored_[pointer_].matrixVectorProduct(x,y);
+		}
+
+		void transformMatrix(std::vector<SparseMatrixType>& matrix1,const PsimagLite::CrsMatrix<RealType>& matrix) const
 		{
 			SparseMatrixType rT;
 			transposeConjugate(rT,transform_);
@@ -203,14 +227,16 @@ private:
 			SparseMatrixType matrix2;
 			multiply(matrix2,transform_,tmp);
 
-			//assert(matrix1.size()==kspace.size());
+			if (matrix2.row()<40)
+				printFullMatrix(matrix2,"HamiltonianTransformed");
+			matrix1.clear();
 			split(matrix1,matrix2);
-
+			assert(matrix1.size()==kspace_.size());
 		}
 
 		void transformGs(VectorType& gs,size_t offset)
 		{
-			std::vector<RealType> gstmp(transform_.row(),0);
+			VectorType gstmp(transform_.row(),0);
 
 			for (size_t i=0;i<gs.size();i++) {
 				assert(i+offset<gstmp.size());
@@ -223,7 +249,9 @@ private:
 			multiply(gs,rT,gstmp);
 		}
 
-		size_t sectors() const { return 2; }
+		size_t sectors() const { return kspace_.size(); }
+
+		void setPointer(size_t p) { pointer_=p; }
 
 		std::string name() const { return "translation"; }
 
@@ -236,30 +264,41 @@ private:
 			yy |= mask;
 		}
 
-		void setTransform(const std::vector<BufferItemType>& buffer)
+		void setTransform(const std::vector<SparseVectorType>& bag)
 		{
 			size_t counter = 0;
-
-			size_t row = 0;
-
-			for (size_t k=0;k<kspace_.size();k++) {
-
-				//add this symmetry
-				for (size_t i=0;i<buffer.size();i++) {
-
-					const std::vector<size_t>& vec = buffer[i].first;
-					transform_.setRow(row++,counter);
-
-					for (size_t kk=0;kk<vec.size();kk++) {
-						transform_.pushCol(vec[kk]);
-						transform_.pushValue(kspace_(k,kk));
-						counter++;
-					}
+			for (size_t row=0;row<bag.size();row++) {
+				transform_.setRow(row,counter);
+				for (size_t k=0;k<bag[row].indices();k++) {
+					transform_.pushCol(bag[row].index(k));
+					transform_.pushValue(bag[row].value(k));
+					counter++;
 				}
 			}
 
 			transform_.setRow(transform_.row(),counter);
 			transform_.checkValidity();
+			if (transform_.row()<40)
+				printFullMatrix(transform_,"transform");
+		}
+
+		void eikrTr(std::vector<ComplexType>& v,size_t ispace,size_t k,const ClassRepresentativesType& reps) const
+		{
+			for (size_t r=0;r<kspace_.size();r++) {
+				size_t jspace = reps.translate(ispace,k);
+				RealType tmp = 2*M_PI*k*r/RealType(kspace_.size());
+				v[jspace] = ComplexType(cos(tmp),sin(tmp));
+			}
+		}
+
+		bool checkForOrthogonality(const SparseVectorType& sparseV,const std::vector<SparseVectorType>& bag) const
+		{
+			for (size_t i=0;i<bag.size();i++) {
+				ComplexType sp = sparseV.scalarProduct(bag[i]);
+
+				if (std::norm(sp)>1e-8) return false;
+			}
+			return true;
 		}
 
 //		void makeUnique(std::vector<ItemType>& dest,const std::vector<ItemType>& src)
@@ -305,6 +344,7 @@ private:
 		void split(std::vector<SparseMatrixType>& matrix,const SparseMatrixType& matrix2) const
 		{
 			size_t blockSize = matrix2.row()/kspace_.size();
+			std::cout<<"BLOCKSIZE="<<blockSize<<"\n";
 			for (size_t i=0;i<kspace_.size();i++) {
 				SparseMatrixType m(blockSize,blockSize);
 				size_t offset = i*blockSize;
@@ -313,12 +353,16 @@ private:
 					m.setRow(row,counter);
 					size_t globalRow = row + offset;
 					for (int k=matrix2.getRowPtr(globalRow);k<matrix2.getRowPtr(globalRow+1);k++) {
+						ComplexType val = matrix2.getValue(k);
+						if (std::norm(val)<1e-8) continue;
 						size_t globalCol = matrix2.getCol(k);
+//						if (globalCol<offset) continue; // <<-- FIXME
 						assert(globalCol>=offset);
 						size_t col = globalCol - offset;
+//						if (col>=blockSize) continue; // <<-- FIXME
 						assert(col<blockSize);
 						m.pushCol(col);
-						m.pushValue(matrix2.getValue(k));
+						m.pushValue(val);
 						counter++;
 					}
 				}
@@ -378,6 +422,8 @@ private:
 		PsimagLite::ProgressIndicator progress_;
 		SparseMatrixType transform_;
 		KspaceType kspace_;
+		std::vector<SparseMatrixType> matrixStored_;
+		size_t pointer_;
 //		SparseMatrixType s_;
 	}; // class TranslationSymmetry
 } // namespace Dmrg

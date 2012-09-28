@@ -31,7 +31,10 @@ Please see full open source license included in file LICENSE.
 #include "DefaultSymmetry.h"
 
 namespace LanczosPlusPlus {
-	template<typename ModelType_,typename InternalProductType,typename ConcurrencyType_>
+	template<typename ModelType_,
+			 template<typename,typename> class InternalProductTemplate,
+			 typename SpecialSymmetryType,
+			 typename ConcurrencyType_>
 	class Engine  {
 	public:
 		
@@ -39,15 +42,20 @@ namespace LanczosPlusPlus {
 		typedef ConcurrencyType_ ConcurrencyType;
 		typedef typename ModelType::RealType RealType;
 		typedef typename std::complex<RealType> ComplexType;
-		typedef typename ModelType::VectorType VectorType;
+		typedef typename SpecialSymmetryType::VectorType VectorType;
 		typedef typename ModelType::SparseMatrixType SparseMatrixType;
 		typedef typename VectorType::value_type FieldType;
 		typedef typename ModelType::BasisType BasisType;
-		typedef typename InternalProductType::SpecialSymmetryType SpecialSymmetryType;
+		typedef InternalProductTemplate<ModelType,SpecialSymmetryType> InternalProductType;
+		typedef DefaultSymmetry<typename ModelType::GeometryType,BasisType> DefaultSymmetryType;
+		typedef InternalProductTemplate<ModelType,DefaultSymmetryType> InternalProductDefaultType;
+
 		typedef PsimagLite::Random48<RealType> RandomType;
 		typedef PsimagLite::ParametersForSolver<RealType> ParametersForSolverType;
 		typedef PsimagLite::LanczosSolver<ParametersForSolverType,InternalProductType,VectorType>
 		                    LanczosSolverType;
+		typedef PsimagLite::LanczosSolver<ParametersForSolverType,InternalProductDefaultType,VectorType>
+							LanczosSolverDefaultType;
 		typedef PsimagLite::Matrix<FieldType> MatrixType;
 		typedef typename LanczosSolverType::TridiagonalMatrixType
 				TridiagonalMatrixType;
@@ -98,10 +106,11 @@ namespace LanczosPlusPlus {
 				} else {
 					basisNew = &model_.basis();
 				}
-				std::vector<RealType> modifVector;
+				VectorType modifVector;
 				model_.getModifiedState(modifVector,what2,gsVector_,*basisNew,type,isite,jsite,spin);
 
-				InternalProductType matrix(model_,*basisNew);
+				DefaultSymmetryType symm(*basisNew,model_.geometry());
+				InternalProductTemplate<ModelType,DefaultSymmetryType> matrix(model_,*basisNew,symm);
 				ContinuedFractionType cf;
 
 				calcSpectral(cf,what2,modifVector,matrix,type,spin);
@@ -111,7 +120,7 @@ namespace LanczosPlusPlus {
 			}
 		}
 
-		void twoPoint(PsimagLite::Matrix<RealType>& result,size_t what2,size_t spin,const std::pair<size_t,size_t>& orbs) const
+		void twoPoint(PsimagLite::Matrix<typename VectorType::value_type>& result,size_t what2,size_t spin,const std::pair<size_t,size_t>& orbs) const
 		{
 			size_t type = 0;
 
@@ -133,13 +142,13 @@ namespace LanczosPlusPlus {
 			size_t isign = 1;
 
 			size_t total =result.n_row();
-			RealType sum = 0;
+			typename VectorType::value_type sum = 0;
 			for (size_t isite=0;isite<total;isite++) {
-				std::vector<RealType> modifVector1(basisNew->size(),0);
+				VectorType modifVector1(basisNew->size(),0);
 				model_.accModifiedState(modifVector1,what2,*basisNew,gsVector_,BasisType::DESTRUCTOR,
 							isite,spin,orbs.first,isign);
 				for (size_t jsite=0;jsite<total;jsite++) {
-					std::vector<RealType> modifVector2(basisNew->size(),0);
+					VectorType modifVector2(basisNew->size(),0);
 					model_.accModifiedState(modifVector2,what2,*basisNew,gsVector_,BasisType::DESTRUCTOR,
 								jsite,spin,orbs.second,isign);
 					result(isite,jsite) =  modifVector2*modifVector1;
@@ -177,7 +186,7 @@ namespace LanczosPlusPlus {
 		void computeGroundState()
 		{
 			SpecialSymmetryType rs(model_.basis(),model_.geometry());
-			InternalProductType hamiltonian(model_,&rs);
+			InternalProductType hamiltonian(model_,rs);
 			//if (CHECK_HERMICITY) checkHermicity(h);
 
 			ParametersForSolverType params;
@@ -188,7 +197,7 @@ namespace LanczosPlusPlus {
 
 			LanczosSolverType lanczosSolver(hamiltonian,params);
 
-			RealType gsEnergy = 1e10;
+			gsEnergy_ = 1e10;
 			size_t offset = model_.basis().size();
 			size_t currentOffset = 0;
 			for (size_t i=0;i<rs.sectors();i++) {
@@ -196,7 +205,7 @@ namespace LanczosPlusPlus {
 				VectorType gsVector1(hamiltonian.rank());
 				RealType gsEnergy1 = 0;
 				lanczosSolver.computeGroundState(gsEnergy1,gsVector1);
-				if (gsEnergy1<gsEnergy) {
+				if (gsEnergy1<gsEnergy_) {
 					gsVector_=gsVector1;
 					gsEnergy_=gsEnergy1;
 					offset = currentOffset;
@@ -210,8 +219,8 @@ namespace LanczosPlusPlus {
 		template<typename ContinuedFractionType>
 		void calcSpectral(ContinuedFractionType& cf,
 						  size_t what2,
-						  const std::vector<RealType>& modifVector,
-						  const InternalProductType& matrix,
+						  const VectorType& modifVector,
+						  const InternalProductDefaultType& matrix,
 						  size_t type,
 						  size_t spin) const
 		{
@@ -228,18 +237,18 @@ namespace LanczosPlusPlus {
 			params.lotaMemory = params_.storeLanczosVectors;
 			params.stepsForEnergyConvergence =ProgramGlobals::MaxLanczosSteps;
 
-			LanczosSolverType lanczosSolver(matrix,params);
+			LanczosSolverDefaultType lanczosSolver(matrix,params);
 
 			TridiagonalMatrixType ab;
 
 			lanczosSolver.decomposition(modifVector,ab);
-			RealType weight = modifVector*modifVector;
+			typename VectorType::value_type weight = modifVector*modifVector;
 			//weight = 1.0/weight;
 			int s = (type&1) ? -1 : 1;
-			int s2 = (type>1) ? -1 : 1;
+			double s2 = (type>1) ? -1 : 1;
 			if (!ProgramGlobals::isFermionic(what2)) s2 *= s;
 			//for (size_t i=0;i<ab.size();i++) ab.a(i) *= s;
-			cf.set(ab,gsEnergy_,weight*s2,s);
+			cf.set(ab,gsEnergy_,std::real(weight*s2),s);
 
 		}
 		

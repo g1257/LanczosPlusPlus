@@ -91,56 +91,40 @@ namespace LanczosPlusPlus {
 
 		typedef SpecialSymmetryType_ SpecialSymmetryType;
 		typedef typename ModelType::BasisType BasisType;
-		typedef typename ModelType::SparseMatrixType SparseMatrixType;
+		typedef typename SpecialSymmetryType::SparseMatrixType SparseMatrixType;
 		typedef typename ModelType::RealType RealType;
 		typedef typename ModelType::GeometryType GeometryType;
 
 		InternalProductStored(const ModelType& model,
 				      const BasisType& basis,
-					  const SpecialSymmetryType* rs=0)
-			: matrixStored_((rs==0) ? 1 : rs->sectors()),pointer_(0)
+					  SpecialSymmetryType& rs)
+		: rs_(rs)
 		{
-			if (!rs || rs->name()=="default") {
-				model.setupHamiltonian(matrixStored_[0],basis);
-				std::cout<<matrixStored_[0];
-				return;
-			}
-			SparseMatrixType matrix2;
-			model.setupHamiltonian(matrix2,basis);
-			rs->transformMatrix(matrixStored_,matrix2);
+			rs_.init(model,basis);
 		}
 
 		InternalProductStored(const ModelType& model,
-					  const SpecialSymmetryType* rs=0)
-		: matrixStored_(2),pointer_(0)
+							  SpecialSymmetryType& rs)
+		: rs_(rs)
 		{
-			if (!rs || rs->name()=="default") {
-				model.setupHamiltonian(matrixStored_[0]);
-				if (matrixStored_[0].row()<40)
-					printFullMatrix(matrixStored_[0],"matrix",1);
-				return;
-			}
-			SparseMatrixType matrix2;
-			model.setupHamiltonian(matrix2);
-			rs->transformMatrix(matrixStored_,matrix2);
+			rs_.init(model,model.basis());
 		}
 
-		size_t rank() const { return matrixStored_[pointer_].row(); }
+		size_t rank() const { return rs_.rank(); }
 
 		template<typename SomeVectorType>
 		void matrixVectorProduct(SomeVectorType &x, SomeVectorType const &y) const
 		{
-			 matrixStored_[pointer_].matrixVectorProduct(x,y);
+			rs_.matrixVectorProduct(x,y);
 		}
 
 		//size_t reflectionSector() const { return pointer_; }
 
-		void specialSymmetrySector(size_t p) { pointer_=p; }
+		void specialSymmetrySector(size_t p) { rs_.setPointer(p); }
 
 	private:
 
-		std::vector<SparseMatrixType> matrixStored_;
-		size_t pointer_;
+		SpecialSymmetryType& rs_;
 	}; // class InternalProductStored
 } // namespace LanczosPlusPlus
 

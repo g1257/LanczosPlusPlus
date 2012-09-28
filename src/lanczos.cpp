@@ -56,8 +56,7 @@ template<typename ModelType,typename SpecialSymmetryType>
 void mainLoop2(ModelType& model,IoInputType& io,const GeometryType& geometry,size_t gf,std::vector<size_t>& sites,size_t cicj)
 {
 	typedef typename ModelType::BasisType BasisType;
-	typedef InternalProductStored<ModelType,SpecialSymmetryType> InternalProductType;
-	typedef Engine<ModelType,InternalProductType,ConcurrencyType> EngineType;
+	typedef Engine<ModelType,InternalProductStored,SpecialSymmetryType,ConcurrencyType> EngineType;
 	typedef typename EngineType::TridiagonalMatrixType TridiagonalMatrixType;
 
 	EngineType engine(model,geometry.numberOfSites(),io);
@@ -86,7 +85,7 @@ void mainLoop2(ModelType& model,IoInputType& io,const GeometryType& geometry,siz
 
 	if (cicj!=ProgramGlobals::OPERATOR_NIL) {
 		size_t total = geometry.numberOfSites();
-		PsimagLite::Matrix<RealType> cicjMatrix(total,total);
+		PsimagLite::Matrix<typename SpecialSymmetryType::VectorType::value_type> cicjMatrix(total,total);
 		size_t norbitals = model.orbitals();
 		for (size_t i=0;i<norbitals;i++) {
 			engine.twoPoint(cicjMatrix,cicj,ModelType::SPIN_UP,std::pair<size_t,size_t>(i,i));

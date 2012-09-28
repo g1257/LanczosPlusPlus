@@ -123,9 +123,10 @@ namespace LanczosPlusPlus {
 			return true;
 		}
 
-		void getModifiedState(std::vector<RealType>& modifVector,
+		template<typename SomeVectorType>
+		void getModifiedState(SomeVectorType& modifVector,
 							  size_t what2,
-		                      const std::vector<RealType>& gsVector,
+							  const SomeVectorType& gsVector,
 		                      const BasisType& basisNew,
 		                      size_t type,
 		                      size_t isite,
@@ -155,10 +156,11 @@ namespace LanczosPlusPlus {
 		const BasisType& basis() const { return basis_; }
 
 		//! Gf Related functions:
-		void accModifiedState(std::vector<RealType> &z,
+		template<typename SomeVectorType>
+		void accModifiedState(SomeVectorType &z,
 							  size_t what2,
 							  const BasisType& newBasis,
-							  const std::vector<RealType> &gsVector,
+							  const SomeVectorType& gsVector,
 							  size_t what,
 							  size_t site,
 							  size_t spin,

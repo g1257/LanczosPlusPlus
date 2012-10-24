@@ -103,6 +103,7 @@ void mainLoop(IoInputType& io,const GeometryType& geometry,size_t gf,std::vector
 	// read model parameters
 	ParametersModelType mp(io);
 
+	std::cout<<mp;
 	size_t nup = 0;
 	size_t ndown = 0;
 	io.readline(nup,"TargetElectronsUp=");

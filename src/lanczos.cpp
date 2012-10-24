@@ -124,7 +124,6 @@ void mainLoop(IoInputType& io,const GeometryType& geometry,size_t gf,std::vector
 	io.rewind();
 	bool useReflectionSymmetry = (tmp==1) ? true : false;
 
-
 	if (useTranslationSymmetry) {
 		mainLoop2<ModelType,TranslationSymmetry<GeometryType,BasisType> >(model,io,geometry,gf,sites,cicj);
 	} else if (useReflectionSymmetry) {
@@ -181,8 +180,11 @@ int main(int argc,char *argv[])
 		mainLoop<Immm<RealType,GeometryType> >(io,geometry,gf,sites,cicj);
 	} else if (model=="HubbardOneBand") {
 		mainLoop<HubbardOneOrbital<RealType,GeometryType> >(io,geometry,gf,sites,cicj);
-	} else if (model=="FeBasedSc") {
+	} else if (model=="FeAsBasedSc") {
 		mainLoop<FeBasedSc<RealType,GeometryType> >(io,geometry,gf,sites,cicj);
+	} else {
+		std::cerr<<"No known model "<<model<<"\n";
+		return 1;
 	}
 }
 

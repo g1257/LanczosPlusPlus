@@ -235,27 +235,19 @@ namespace LanczosPlusPlus {
 
 		size_t electrons() const { return npart_; }
 
-		bool getBra(WordType& bra,
-		            const WordType& ket,
-		            size_t what,
-		            size_t site,
-		            size_t orb) const
+		bool getBra(WordType& bra,const WordType& myword,size_t what,size_t site,size_t orb) const
 		{
-			size_t ii = site*orbs()+orb;
-			WordType si=(ket & bitmask_[ii]);
-			if (what==DESTRUCTOR) {
-				if (si>0) {
-					bra = (ket ^ bitmask_[ii]);
-				} else {
-					return false; // cannot destroy, there's nothing
-				}
+			WordType ketA=0,ketB=0;
+			uncollateKet(ketA,ketB,myword);
+			WordType braA = ketA;
+			WordType braB = ketB;
+
+			if (orb==0) {
+				if (!getBra(braA,ketA,what,site)) return false;
 			} else {
-				if (si==0) {
-					bra = (ket ^ bitmask_[ii]);
-				} else {
-					return false; // cannot construct, there's already one
-				}
+				if (!getBra(braB,ketB,what,site)) return false;
 			}
+			bra = getCollatedKet(braA,braB);
 			return true;
 		}
 
@@ -274,6 +266,26 @@ namespace LanczosPlusPlus {
 		}
 
 	private:
+
+		bool getBra(WordType& bra, const WordType& ket,size_t what,size_t i) const
+		{
+
+			WordType si=(ket & bitmask_[i]);
+			if (what==DESTRUCTOR) {
+				if (si>0) {
+					bra = (ket ^ bitmask_[i]);
+				} else {
+					return false; // cannot destroy, there's nothing
+				}
+			} else {
+				if (si==0) {
+					bra = (ket ^ bitmask_[i]);
+				} else {
+					return false; // cannot construct, there's already one
+				}
+			}
+			return true;
+		}
 
 		int doSignGf(WordType b,size_t ind) const
 		{

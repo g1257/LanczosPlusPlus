@@ -94,6 +94,11 @@ namespace LanczosPlusPlus {
 			return oldIndex2 + basis2_.perfectIndex(newKet) * basis2_.size();
 		}
 
+		size_t perfectIndex(WordType ket1,WordType ket2) const
+		{
+			return basis1_.perfectIndex(ket1) + basis2_.perfectIndex(ket2)*basis1_.size();
+		}
+
 		size_t getN(size_t i,size_t spin,size_t orb) const
 		{
 			size_t y = i/basis1_.size();
@@ -117,8 +122,7 @@ namespace LanczosPlusPlus {
 			WordType bra = 0;
 			bool b = getBra(bra,ket1,ket2,what,site,spin,orb);
 			if (!b) return -1;
-			return (spin==SPIN_UP) ? perfectIndex(bra,ispace,spin) :
-			                         perfectIndex(bra,ispace,spin);
+			return (spin==SPIN_UP) ? perfectIndex(bra,ket2) : perfectIndex(ket1,bra);
 		}
 
 // 		size_t getBraIndex(WordType ket,
@@ -134,18 +138,6 @@ namespace LanczosPlusPlus {
 // 			return (spin==SPIN_UP) ? perfectIndex(bra,oldIndex,spin) :
 // 			                         perfectIndex(bra,oldIndex,spin);
 // 		}
-
-		bool getBra(WordType& bra,
-		            const WordType& ket1,
-		            const WordType& ket2,
-		            size_t what,
-		            size_t site,
-		            size_t spin,
-		            size_t orb) const
-		{
-			return (spin==SPIN_UP) ? basis1_.getBra(bra,ket1,what,site,orb) :
-			                         basis2_.getBra(bra,ket2,what,site,orb);
-		}
 
 		int doSign(size_t i,size_t site,size_t sector) const
 		{
@@ -231,6 +223,18 @@ namespace LanczosPlusPlus {
 		}
 
 	private:
+
+		bool getBra(WordType& bra,
+					const WordType& ket1,
+					const WordType& ket2,
+					size_t what,
+					size_t site,
+					size_t spin,
+					size_t orb) const
+		{
+			return (spin==SPIN_UP) ? basis1_.getBra(bra,ket1,what,site,orb) :
+									 basis2_.getBra(bra,ket2,what,site,orb);
+		}
 
 		OrbsPerSite orbsPerSite_;
 		BasisType basis1_,basis2_;

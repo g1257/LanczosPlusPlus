@@ -139,21 +139,29 @@ namespace LanczosPlusPlus {
 				basisNew = &model_.basis();
 			}
 
+			size_t total =result.n_row();
+
+			for (size_t isite=0;isite<total;isite++)
+				for (size_t jsite=0;jsite<total;jsite++)
+					result(isite,jsite) = -100;
+
 			size_t isign = 1;
 
-			size_t total =result.n_row();
 			typename VectorType::value_type sum = 0;
+			std::cout<<"orbs="<<orbs.first<<" "<<orbs.second<<"\n";
 			for (size_t isite=0;isite<total;isite++) {
 				VectorType modifVector1(basisNew->size(),0);
+				if (orbs.first>=model_.orbitals(isite)) continue;
 				model_.accModifiedState(modifVector1,what2,*basisNew,gsVector_,BasisType::DESTRUCTOR,
 							isite,spin,orbs.first,isign);
 				for (size_t jsite=0;jsite<total;jsite++) {
 					VectorType modifVector2(basisNew->size(),0);
+					if (orbs.second>=model_.orbitals(jsite)) continue;
 					model_.accModifiedState(modifVector2,what2,*basisNew,gsVector_,BasisType::DESTRUCTOR,
 								jsite,spin,orbs.second,isign);
 					result(isite,jsite) =  modifVector2*modifVector1;
+					if (isite==jsite) sum += result(isite,isite);
 				}
-				sum += result(isite,isite);
 			}
 			std::cout<<"Total Electrons = "<<sum<<"\n";
 

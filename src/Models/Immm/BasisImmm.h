@@ -211,6 +211,25 @@ namespace LanczosPlusPlus {
 			return (what==SPIN_UP) ? basis1_.electrons() : basis2_.electrons();
 		}
 
+		bool hasNewParts(std::pair<size_t,size_t>& newParts,
+				size_t type,
+				size_t spin,
+				const std::pair<size_t,size_t>& orbs) const
+		{
+			int newPart1=basis1_.electrons();
+			int newPart2=basis2_.electrons();
+
+			if (spin==SPIN_UP) newPart1 = basis1_.newPart(type,orbs.first);
+			else newPart2 = basis2_.newPart(type,orbs.second);
+
+			if (newPart1<0 || newPart2<0) return false;
+
+			if (newPart1==0 && newPart2==0) return false;
+			newParts.first = size_t(newPart1);
+			newParts.second = size_t(newPart2);
+			return true;
+		}
+
 	private:
 
 		OrbsPerSite orbsPerSite_;

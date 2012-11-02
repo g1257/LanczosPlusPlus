@@ -204,15 +204,16 @@ namespace LanczosPlusPlus {
 			return (sum & 1) ? FERMION_SIGN : 1;
 		}
 		
-		int doSignGf(WordType ket,size_t site,size_t orb) const
+		int doSignGf(WordType a,size_t ind,size_t orb) const
 		{
 			WordType ketA=0,ketB=0;
-			uncollateKet(ketA,ketB,ket);
-			if (orb==0) return doSign(ketA,site);
 
-			size_t c = PsimagLite::BitManip::count(ketA);
-			int ret = (c&1) ? FERMION_SIGN : 1;
-			return ret * doSign(ketB,site);
+			uncollateKet(ketA,ketB,a);
+
+			if (orb==0) return doSignGf(ketA,ind);
+			int s=(PsimagLite::BitManip::count(ketA) & 1) ? -1 : 1; // Parity of a
+
+			return s * doSignGf(ketB,ind);
 		}
 
 		size_t getNbyKet(size_t ket) const
@@ -258,7 +259,44 @@ namespace LanczosPlusPlus {
 			return true;
 		}
 
+		int newPart(size_t type,size_t orb) const
+		{
+			int newPart1=npart_;
+
+			int c = (type&1) ? 1 : -1;
+			newPart1 += c;
+
+			if (newPart1<0) return -1;
+
+			if (size_t(newPart1)>maxElectrons()) return -1;
+
+			return newPart1;
+		}
+
 	private:
+
+		int doSignGf(WordType b,size_t ind) const
+		{
+			if (ind==0) return 1;
+
+			// ind>0 from now on
+			size_t i = 0;
+			size_t j = ind;
+			WordType mask = b;
+			mask &= ((1 << (i+1)) - 1) ^ ((1 << j) - 1);
+			int s=(PsimagLite::BitManip::count(mask) & 1) ? -1 : 1; // Parity of up between i and j
+			// Is there a down at i?
+			if (bitmask_[i] & b) s = -s;
+			return s;
+		}
+
+		size_t maxElectrons() const
+		{
+			size_t sum = 0;
+			for (size_t i=0;i<orbsPerSite_.size();i++)
+				sum += orbsPerSite_[i];
+			return sum;
+		}
 
 		size_t orbs() const { return orbsPerSite_[0]; }
 
@@ -408,7 +446,7 @@ namespace LanczosPlusPlus {
 			return sum;
 		}
 
-		const std::vector<size_t> orbsPerSite_;
+		const std::vector<size_t>& orbsPerSite_;
 		size_t npart_;
 		std::vector<WordType> data_;
 		std::vector<WordType> reordering_;

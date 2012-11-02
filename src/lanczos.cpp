@@ -51,6 +51,15 @@ void usage(const char *progName)
 	std::cerr<<"Usage: "<<progName<<" [-g -c] -f filename\n";
 }
 
+template<typename ModelType>
+size_t maxOrbitals(const ModelType& model)
+{
+	size_t res=0;
+	for (size_t i=0;i<model.geometry().numberOfSites();i++) {
+		if (res<model.orbitals(i)) res=model.orbitals(i);
+	}
+	return res;
+}
 
 template<typename ModelType,typename SpecialSymmetryType>
 void mainLoop2(ModelType& model,IoInputType& io,const GeometryType& geometry,size_t gf,std::vector<size_t>& sites,size_t cicj)
@@ -86,10 +95,12 @@ void mainLoop2(ModelType& model,IoInputType& io,const GeometryType& geometry,siz
 	if (cicj!=ProgramGlobals::OPERATOR_NIL) {
 		size_t total = geometry.numberOfSites();
 		PsimagLite::Matrix<typename SpecialSymmetryType::VectorType::value_type> cicjMatrix(total,total);
-		size_t norbitals = model.orbitals();
-		for (size_t i=0;i<norbitals;i++) {
-			engine.twoPoint(cicjMatrix,cicj,ModelType::SPIN_UP,std::pair<size_t,size_t>(i,i));
-			std::cout<<cicjMatrix;
+		size_t norbitals = maxOrbitals(model);
+		for (size_t orb1=0;orb1<norbitals;orb1++) {
+			for (size_t orb2=0;orb2<norbitals;orb2++) {
+				engine.twoPoint(cicjMatrix,cicj,ModelType::SPIN_UP,std::pair<size_t,size_t>(orb1,orb2));
+				std::cout<<cicjMatrix;
+			}
 		}
 	}
 }

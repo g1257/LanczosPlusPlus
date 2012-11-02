@@ -57,8 +57,11 @@ namespace LanczosPlusPlus {
 		}
 		
 		size_t size() const { return basis_.size(); }
-		
-		size_t orbitals() const { return ORBITALS; }
+
+		size_t orbitals(size_t site) const
+		{
+			return ORBITALS;
+		}
 
 		void setupHamiltonian(SparseMatrixType &matrix) const
 		{

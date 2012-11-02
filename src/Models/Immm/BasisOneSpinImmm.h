@@ -126,6 +126,18 @@ namespace LanczosPlusPlus {
 // 			return reordering_[s];
 		}
 
+		size_t getN(WordType ket,size_t site,size_t orb) const
+		{
+			WordType ketA=0,ketB=0;
+			uncollateKet(ketA,ketB,ket);
+			if (orb==0) {
+				   WordType res = (ketA & bitmask_[site]);
+				   return (res>0) ? 1 : 0;
+			}
+			WordType res2 = ketB & bitmask_[site];
+			return (res2>0) ? 1 : 0;
+		}
+
 		size_t getN(size_t i,size_t orb) const
 		{
 			WordType ketA=0,ketB=0;

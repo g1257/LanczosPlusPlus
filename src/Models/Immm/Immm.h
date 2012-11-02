@@ -268,8 +268,7 @@ template<typename RealType_,typename GeometryType_>
 			size_t nsite = geometry_.numberOfSites();
 
 			// Hopping term
-			for (size_t j=0;j<nsite;j++) {
-				if (j<i) continue;
+			for (size_t j=i;j<nsite;j++) {
 				for (size_t orb2=0;orb2<basis.orbsPerSite(j);orb2++) {
 					size_t jj = j*basis.orbs()+orb2;
 					RealType h = hoppings(i,orb,j,orb2);
@@ -411,39 +410,14 @@ template<typename RealType_,typename GeometryType_>
 					for (size_t orb=0;orb<basis.orbsPerSite(i);orb++) {
 
 						// Hubbard term U0
-						s += mp_.hubbardU[0] * basis.isThereAnElectronAt(ket1,ket2,
+						s += mp_.hubbardU[i] * basis.isThereAnElectronAt(ket1,ket2,
 								i,SPIN_UP,orb) * basis.isThereAnElectronAt(ket1,ket2,
 								i,SPIN_DOWN,orb);
-						
-						// Hubbard term U1
-						if (orb==0) {
-							s += mp_.hubbardU[1] * nix(ket1,ket2,i,orb,basis) *
-									nix(ket1,ket2,i,1-orb,basis);
-						}
-
-						// Diagonal U2 term
-// 						if (orb==0 && mp_.hubbardU[2]!=0) {
-// 							s+= mp_.hubbardU[2]*
-// 								szTerm(ket1,ket2,i,orb,basis)*
-// 								szTerm(ket1,ket2,i,1-orb,basis);
-// 						}
-
-// 						// JNN and JNNN diagonal part
-// 						for (size_t j=0;j<nsite;j++) {
-// 							for (size_t orb2=0;orb2<ORBITALS;orb2++) {
-// 								RealType value = jCoupling(i,j);
-// 								if (value==0) continue;
-// 								s += value*0.5* // double counting i,j
-// 									szTerm(ket1,ket2,i,orb,basis)*
-// 									szTerm(ket1,ket2,j,orb2,basis);
-// 							}
-// 						}
 
 						// Potential term
-						if (mp_.potentialV[i]!=0)
-							s += mp_.potentialV[i]*
-								(basis.getN(ispace,SPIN_UP,orb) +
-								basis.getN(ispace,SPIN_DOWN,orb));
+						s += mp_.potentialV[i]*
+								(basis.getN(ket1,i,SPIN_UP,orb) +
+								 basis.getN(ket2,i,SPIN_DOWN,orb));
 					}
 				}
 				diag[ispace]=s;

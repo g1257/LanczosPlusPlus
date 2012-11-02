@@ -101,6 +101,11 @@ namespace LanczosPlusPlus {
 			return (spin==SPIN_UP) ? basis1_.getN(x,orb) : basis2_.getN(y,orb);
 		}
 
+		size_t getN(WordType ket,size_t site,size_t spin,size_t orb) const
+		{
+			return (spin==SPIN_UP) ? basis1_.getN(ket,site,orb) : basis2_.getN(ket,site,orb);
+		}
+
 		size_t getBraIndex(const WordType& ket1,
 		                   const WordType& ket2,
 		                   size_t ispace,

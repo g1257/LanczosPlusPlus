@@ -239,6 +239,11 @@ template<typename RealType_,typename GeometryType_>
 			return geometry_(i,orb1,j,orb2,0);
 		}
 
+		RealType Upd(size_t i,size_t j) const
+		{
+			return geometry_(i,0,j,0,1);
+		}
+
 		void setHoppingTerm(SparseRowType &sparseRow,
 		                    const WordType& ket1,
 		                    const WordType& ket2,
@@ -286,103 +291,6 @@ template<typename RealType_,typename GeometryType_>
 			}
 		}
 
-// 		void setU2OffDiagonalTerm(
-// 				SparseRowType &sparseRow,
-// 				const WordType& ket1,
-// 				const WordType& ket2,
-// 				size_t i,
-// 				size_t orb,
-// 				const BasisType &basis) const
-// 		{
-// 			RealType val = FERMION_SIGN * mp_.hubbardU[2]*0.5;
-// 			setSplusSminus(sparseRow,ket1,ket2,i,orb,i,1-orb,val,basis);
-// 			setSplusSminus(sparseRow,ket1,ket2,i,1-orb,i,orb,val,basis);
-// 		}
-// 
-// 		// N.B.: orb1!=orb2 here
-// 		void setSplusSminus(
-// 				SparseRowType &sparseRow,
-// 				const WordType& ket1,
-// 				const WordType& ket2,
-// 				size_t i,
-// 				size_t orb1,
-// 				size_t j,
-// 				size_t orb2,
-// 				RealType value,
-// 				const BasisType &basis) const
-// 		{
-// 			if (splusSminusNonZero(ket1,ket2,i,orb1,j,orb2,basis)==0) return;
-// 
-// 			size_t ii = i*ORBITALS + orb1;
-// 			size_t jj = j*ORBITALS + orb2;
-// 			assert(ii!=jj);
-// 			WordType bra1 = ket1 ^ (BasisType::bitmask(ii)|BasisType::bitmask(jj));
-// 			WordType bra2 = ket2 ^ (BasisType::bitmask(ii)|BasisType::bitmask(jj));
-// 			size_t temp = basis.perfectIndex(bra1,bra2);
-// 			sparseRow.add(temp,value);
-// 		}
-// 
-// 		// N.B.: orb1!=orb2 here
-// 		void setU3Term(
-// 				SparseRowType &sparseRow,
-// 				const WordType& ket1,
-// 				const WordType& ket2,
-// 				size_t i,
-// 				size_t orb1,
-// 				size_t orb2,
-// 				const BasisType &basis) const
-// 		{
-// 			assert(orb1!=orb2);
-// 			if (u3TermNonZero(ket1,ket2,i,orb1,orb2,basis)==0) return;
-// 
-// 			size_t ii = i*ORBITALS + orb1;
-// 			size_t jj = i*ORBITALS + orb2;
-// 			WordType bra1 = ket1 ^ (BasisType::bitmask(ii)|BasisType::bitmask(jj));
-// 			WordType bra2 = ket2 ^ (BasisType::bitmask(ii)|BasisType::bitmask(jj));
-// 			size_t temp = basis.perfectIndex(bra1,bra2);
-// 			sparseRow.add(temp,FERMION_SIGN * mp_.hubbardU[3]);
-// 		}
-
-// 		void setJTermOffDiagonal(
-// 				SparseRowType &sparseRow,
-// 				const WordType& ket1,
-// 				const WordType& ket2,
-// 				size_t i,
-// 				size_t orb,
-// 				const BasisType &basis) const
-// 		{
-// 			for (size_t j=0;j<geometry_.numberOfSites();j++) {
-// 				RealType value = jCoupling(i,j)*0.5;
-// 				if (value==0) continue;
-// 				value *= 0.5; // double counting i,j
-// 				assert(i!=j);
-// 				for (size_t orb2=0;orb2<ORBITALS;orb2++) {
-// 					//if (orb2!=orb) continue; // testing only!!
-// 					int sign = jTermSign(ket1,ket2,i,orb,j,orb2,basis);
-// 					setSplusSminus(sparseRow,ket1,ket2,
-// 							i,orb,j,orb2,value*sign,basis);
-// 					setSplusSminus(sparseRow,ket1,ket2,
-// 							j,orb2,i,orb,value*sign,basis);
-// 				}
-// 			}
-// 
-// 		}
-
-// 		int jTermSign(
-// 				const WordType& ket1,
-// 				const WordType& ket2,
-// 				size_t i,
-// 				size_t orb1,
-// 				size_t j,
-// 				size_t orb2,
-// 				const BasisType &basis) const
-// 		{
-// 			if (i>j) return jTermSign(ket1,ket2,j,orb2,i,orb1,basis);
-// 			int x = basis.doSign(ket1,ket2,i,orb1,j,orb2,SPIN_UP);
-// 			x *= basis.doSign(ket1,ket2,i,orb1,j,orb2,SPIN_DOWN);
-// 			return x;
-// 		}
-
 		void calcDiagonalElements(std::vector<RealType>& diag,
 		                          const BasisType &basis) const
 		{
@@ -397,90 +305,32 @@ template<typename RealType_,typename GeometryType_>
 				for (size_t i=0;i<nsite;i++) {
 					for (size_t orb=0;orb<basis.orbsPerSite(i);orb++) {
 
+						size_t totalCharge = basis.getN(ket1,i,SPIN_UP,orb) +
+								basis.getN(ket2,i,SPIN_DOWN,orb);
+
 						// Hubbard term U0
 						s += mp_.hubbardU[i] * basis.isThereAnElectronAt(ket1,ket2,
 								i,SPIN_UP,orb) * basis.isThereAnElectronAt(ket1,ket2,
 								i,SPIN_DOWN,orb);
 
 						// Potential term
-						s += mp_.potentialV[i]*
-								(basis.getN(ket1,i,SPIN_UP,orb) +
-								 basis.getN(ket2,i,SPIN_DOWN,orb));
+						s += mp_.potentialV[i]*totalCharge;
+
+						// Upd n_O n_Cu
+						if (basis.orbsPerSite(i)==1) continue;
+						// i is an Oxygen site now
+						for (size_t j=0;j<nsite;j++) {
+							if (basis.orbsPerSite(j)==2) continue;
+							// j is a Copper site now
+							size_t totalCharge2 = basis.getN(ket1,j,SPIN_UP,0) +
+									basis.getN(ket2,j,SPIN_DOWN,0);
+							s += totalCharge * totalCharge2 * Upd(i,j);
+						}
 					}
 				}
 				diag[ispace]=s;
 			}
 		}
-
-		size_t splusSminusNonZero(
-						const WordType& ket1,
-						const WordType& ket2,
-						size_t i,
-						size_t orb1,
-						size_t j,
-						size_t orb2,
-						const BasisType &basis) const
-		{
-			if (basis.isThereAnElectronAt(ket1,ket2,
-					j,SPIN_UP,orb2)==0) return 0;
-			if (basis.isThereAnElectronAt(ket1,ket2,
-					i,SPIN_UP,orb1)==1) return 0;
-			if (basis.isThereAnElectronAt(ket1,ket2,
-					i,SPIN_DOWN,orb1)==0) return 0;
-			if (basis.isThereAnElectronAt(ket1,ket2,
-					j,SPIN_DOWN,orb2)==1) return 0;
-			return 1;
-		}
-
-		size_t u3TermNonZero(
-				const WordType& ket1,
-				const WordType& ket2,
-				size_t i,
-				size_t orb1,
-				size_t orb2,
-				const BasisType &basis) const
-		{
-			if (basis.isThereAnElectronAt(ket1,ket2,
-					i,SPIN_UP,orb2)==0) return 0;
-			if (basis.isThereAnElectronAt(ket1,ket2,
-					i,SPIN_UP,orb1)==1) return 0;
-			if (basis.isThereAnElectronAt(ket1,ket2,
-					i,SPIN_DOWN,orb1)==1) return 0;
-			if (basis.isThereAnElectronAt(ket1,ket2,
-					i,SPIN_DOWN,orb2)==0) return 0;
-			return 1;
-		}
-
-		size_t nix(
-				const WordType& ket1,
-				const WordType& ket2,
-				size_t i,
-				size_t orb,
-				const BasisType &basis) const
-		{
-			size_t sum = 0;
-			for (size_t spin=0;spin<2;spin++)
-				sum += basis.isThereAnElectronAt(ket1,ket2,i,spin,orb);
-			return sum;
-		}
-
-// 		RealType szTerm(
-// 				const WordType& ket1,
-// 				const WordType& ket2,
-// 				size_t i,
-// 				size_t orb,
-// 				const BasisType &basis) const
-// 		{
-// 			RealType sz = basis.isThereAnElectronAt(ket1,ket2,i,SPIN_UP,orb);
-// 			sz -= basis.isThereAnElectronAt(ket1,ket2,i,SPIN_DOWN,orb);
-// 			return 0.5*sz;
-// 		}
-		
-// 		RealType jCoupling(size_t i,size_t j) const
-// 		{
-// 			if (geometry_.terms()==1) return 0;
-// 			return geometry_(i,0,j,0,TERM_J);
-// 		}
 
 		//! Gf Related function:
 		template<typename SomeVectorType>

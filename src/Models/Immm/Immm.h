@@ -324,7 +324,7 @@ template<typename RealType_,typename GeometryType_>
 							// j is a Copper site now
 							size_t totalCharge2 = basis.getN(ket1,j,SPIN_UP,0) +
 									basis.getN(ket2,j,SPIN_DOWN,0);
-							s += totalCharge * totalCharge2 * Upd(i,j);
+							s += (2.0-totalCharge) * (2.0-totalCharge2) * Upd(i,j);
 						}
 					}
 				}

@@ -22,25 +22,30 @@ Please see full open source license included in file LICENSE.
 #define BASIS_ONE_SPIN_FE_AS_H
 #include "Matrix.h"
 #include "BitManip.h"
+#include "Partitions.h"
 
 namespace LanczosPlusPlus {
 	
 	class BasisOneSpinFeAs {
+
+		typedef Partitions PartitionsType;
+
 	public:
 		
 		typedef unsigned int long long WordType;
 		enum {DESTRUCTOR,CONSTRUCTOR};
-		static size_t const ORBITALS  = 2;
+		static size_t orbitals_;
 		static int const FERMION_SIGN  = -1;
 		static size_t nsite_;
 		static PsimagLite::Matrix<size_t> comb_;
 		static std::vector<WordType> bitmask_; 
 		
-		BasisOneSpinFeAs(size_t nsite, size_t npart)
+		BasisOneSpinFeAs(size_t nsite, size_t npart,size_t orbitals)
 				: npart_(npart)
 		{
 			if (nsite_>0 && nsite!=nsite_)
 				throw std::runtime_error("BasisOneSpinFeAs: All basis must have same number of sites\n");
+			orbitals_=orbitals;
 			nsite_ = nsite;
 			doCombinatorial();
 			doBitmask();
@@ -61,12 +66,14 @@ namespace LanczosPlusPlus {
 
 			// compute basis:
 			size_t counter = 0;
-			for (size_t na=0;na<=npart;na++) {
-				size_t nb = npart - na;
-				std::vector<WordType> basisA, basisB;
-				fillPartialBasis(basisA,na);
-				fillPartialBasis(basisB,nb);
-				collateBasis(counter,basisA,basisB);
+			PartitionsType partitions(npart,orbitals_);
+			for (size_t i=0;i<partitions.size();i++) {
+				const std::vector<size_t>& na = partitions(i);
+				std::vector<std::vector<WordType> > basisA(orbitals_);
+				for (size_t orb=0;orb<orbitals_;orb++) {
+					fillPartialBasis(basisA[orb],na[orb]);
+				}
+				collateBasis(counter,basisA);
 			}
 		}
 
@@ -79,72 +86,66 @@ namespace LanczosPlusPlus {
 
 		size_t perfectIndex(WordType ket) const
 		{
-		//	for (size_t i=0;i<data_.size();i++)
-		//		if (data_[i]==ket) return i;
-		//	throw std::runtime_error("perfectindex\n");
-
-			WordType ketA=0,ketB=0;
-			uncollateKet(ketA,ketB,ket);
-			// p(ket) = \sum_{na'=0}^{na'<na} S_na' * S_nb'
-			//			+ p_A(ket_A)*S_nb + p_B(ket_B)
-			// where S_x = C^n_x
-			size_t na = PsimagLite::BitManip::count(ketA);
-			// note nb = PsimagLite::BitManip::count(ketB)
-			// or nb  = npart -na
-			size_t s = 0;
-			for (size_t nap=0;nap<na;nap++) {
-				size_t nbp = npart_ - nap;
-				s += comb_(nsite_,nap) * comb_(nsite_,nbp);
-			}
-			size_t nb = npart_ - na;
-			s += perfectIndexPartial(ketA)*comb_(nsite_,nb);
-			s += perfectIndexPartial(ketB);
-			if (s>=data_.size())
-				throw std::runtime_error("BasisOneSpinFeAs::PerfectIndex>=data_.size()\n");
-			return s;
+			for (size_t i=0;i<data_.size();i++)
+				if (data_[i]==ket) return i;
+			throw std::runtime_error("perfectindex\n");
 		}
+
+//			WordType ketA=0,ketB=0;
+//			uncollateKet(ketA,ketB,ket);
+//			// p(ket) = \sum_{na'=0}^{na'<na} S_na' * S_nb'
+//			//			+ p_A(ket_A)*S_nb + p_B(ket_B)
+//			// where S_x = C^n_x
+//			size_t na = PsimagLite::BitManip::count(ketA);
+//			// note nb = PsimagLite::BitManip::count(ketB)
+//			// or nb  = npart -na
+//			size_t s = 0;
+//			for (size_t nap=0;nap<na;nap++) {
+//				size_t nbp = npart_ - nap;
+//				s += comb_(nsite_,nap) * comb_(nsite_,nbp);
+//			}
+//			size_t nb = npart_ - na;
+//			s += perfectIndexPartial(ketA)*comb_(nsite_,nb);
+//			s += perfectIndexPartial(ketB);
+//			if (s>=data_.size())
+//				throw std::runtime_error("BasisOneSpinFeAs::PerfectIndex>=data_.size()\n");
+//			return s;
+//		}
 
 		size_t getN(WordType ket,size_t site,size_t orb) const
 		{
-			WordType ketA=0,ketB=0;
-			uncollateKet(ketA,ketB,ket);
-			if (orb==0) {
-			       WordType res = (ketA & bitmask_[site]);
-			       return (res>0) ? 1 : 0;
-			}
-			WordType res2 = ketB & bitmask_[site];
-			return (res2>0) ? 1 : 0;
+			std::vector<WordType> kets(orbitals_,0);
+			uncollateKet(kets,ket);
+
+			WordType res = (kets[orb] & bitmask_[site]);
+			return (res>0) ? 1 : 0;
 		}
 
 		size_t getN(size_t i,size_t orb) const
 		{
-			WordType ketA=0,ketB=0;
-			uncollateKet(ketA,ketB,data_[i]);
-			if (orb==0) return PsimagLite::BitManip::count(ketA);
-			return PsimagLite::BitManip::count(ketB);
+			std::vector<WordType> kets(orbitals_,0);
+			uncollateKet(kets,data_[i]);
+			return PsimagLite::BitManip::count(kets[orb]);
 		}
 
 		size_t getN(size_t i) const
 		{
 			size_t c = 0;
-			for (size_t orb=0;orb<ORBITALS;orb++)
+			for (size_t orb=0;orb<orbitals_;orb++)
 				c += getN(i,orb);
 			return c;
 		}
 
 		bool getBra(WordType& bra,const WordType& myword,size_t what,size_t site,size_t orb) const
 		{
-			WordType ketA=0,ketB=0;
-			uncollateKet(ketA,ketB,myword);
-			WordType braA = ketA;
-			WordType braB = ketB;
+			std::vector<WordType> kets(orbitals_,0);
+			uncollateKet(kets,myword);
 
-			if (orb==0) {
-				if (!getBra(braA,ketA,what,site)) return false;
-			} else {
-				if (!getBra(braB,ketB,what,site)) return false;
-			}
-			bra = getCollatedKet(braA,braB);
+			WordType braA = kets[orb];
+			if (!getBra(braA,kets[orb],what,site)) return false;
+
+			kets[orb] = braA;
+			bra = getCollatedKet(kets);
 			return true;
 		}
 
@@ -155,15 +156,16 @@ namespace LanczosPlusPlus {
 
 		int doSign(size_t i,size_t site,size_t orb) const
 		{
-			WordType ketA=0,ketB=0;
-			uncollateKet(ketA,ketB,data_[i]);
-			if (orb==0) {
-				return doSign(ketA,site);
+			std::vector<WordType> kets(orbitals_,0);
+			uncollateKet(kets,data_[i]);
+
+			size_t c = 0;
+			for (size_t orb1=0;orb1<orb;orb1++) {
+				c += PsimagLite::BitManip::count(kets[orb1]);
 			}
 
-			size_t c = PsimagLite::BitManip::count(ketA);
 			int ret = (c&1) ? FERMION_SIGN : 1;
-			return ret * doSign(ketB,site);
+			return ret * doSign(kets[orb],site);
 		}
 
 		int doSign(
@@ -179,19 +181,19 @@ namespace LanczosPlusPlus {
 				std::cerr<<"AT: "<<__FILE__<<" : "<<__LINE__<<std::endl;
 				throw std::runtime_error("FeBasedSc::doSign(...)\n");
 			}
-			size_t x0 = (i+1)*ORBITALS; // i+1 cannot be the last site, 'cause i<j
-			size_t x1 = j*ORBITALS;
+			size_t x0 = (i+1)*orbitals_; // i+1 cannot be the last site, 'cause i<j
+			size_t x1 = j*orbitals_;
 
 			size_t sum = getNbyKet(ket,x0,x1);
 
 			// at site i we need to be carefull
-			x0 = i*ORBITALS+orb1;
-			x1 = (i+1)*ORBITALS;
+			x0 = i*orbitals_+orb1;
+			x1 = (i+1)*orbitals_;
 			sum += getNbyKet(ket,x0,x1);
 
 			// same at site j
-			x0 = j*ORBITALS;
-			x1 = j*ORBITALS+orb2;
+			x0 = j*orbitals_;
+			x1 = j*orbitals_+orb2;
 			sum += getNbyKet(ket,x0,x1);
 
 			return (sum & 1) ? FERMION_SIGN : 1;
@@ -210,7 +212,7 @@ namespace LanczosPlusPlus {
 
 		size_t isThereAnElectronAt(size_t ket,size_t site,size_t orb) const
 		{
-			size_t x = site*ORBITALS + orb;
+			size_t x = site*orbitals_ + orb;
 			return (ket & bitmask_[x]) ? 1 : 0;
 		}
 
@@ -225,21 +227,23 @@ namespace LanczosPlusPlus {
 
 			if (newPart1<0) return -1;
 
-			if (size_t(newPart1)>ORBITALS*nsite_) return -1;
+			if (size_t(newPart1)>orbitals_*nsite_) return -1;
 
 			return newPart1;
 		}
 
 		int doSignGf(WordType a,size_t ind,size_t orb) const
 		{
-			WordType ketA=0,ketB=0;
+			std::vector<WordType> kets(orbitals_,0);
+			uncollateKet(kets,a);
 
-			uncollateKet(ketA,ketB,a);
+			size_t c = 0;
+			for (size_t orb1=0;orb1<orb;orb1++) {
+				c += PsimagLite::BitManip::count(kets[orb1]);
+			}
+			int ret = (c&1) ? FERMION_SIGN : 1;
 
-			if (orb==0) return doSignGf(ketA,ind);
-			int s=(PsimagLite::BitManip::count(ketA) & 1) ? -1 : 1; // Parity of a
-
-			return s * doSignGf(ketB,ind);
+			return ret * doSignGf(kets[orb],ind);
 		}
 
 	private:
@@ -289,23 +293,43 @@ namespace LanczosPlusPlus {
 			}
 		}
 
-		void collateBasis(
-				size_t& counter,
-				const std::vector<WordType>& basisA,
-				const std::vector<WordType>& basisB)
+		void collateBasis(size_t& counter,const std::vector<std::vector<WordType> >& basisA)
 		{
-			for (size_t i=0;i<basisA.size();i++) {
-				for (size_t j=0;j<basisB.size();j++) {
-					WordType ket = getCollatedKet(basisA[i],basisB[j]);
-					data_[counter++] = ket;
-				}
+			size_t total = 1;
+			for (size_t orb=0;orb<orbitals_;orb++) {
+				total *= basisA[orb].size();
 			}
+
+			for (size_t i=0;i<total;i++) {
+				std::vector<WordType> kets(orbitals_);
+				getKets(kets,basisA,i);
+				WordType ket = getCollatedKet(kets);
+				data_[counter++] = ket;
+			}
+		}
+
+		void getKets(std::vector<WordType>& kets,const std::vector<std::vector<WordType> >& basisA,size_t ind) const
+		{
+			// ind = i0 + i1 * size0 + i2 * size0 * size1 + ...
+			size_t tmp = ind;
+
+			size_t sizes = 1;
+			for (size_t orb=0;orb<orbitals_-1;orb++)
+				sizes *= basisA[orb].size();
+
+			for (size_t orb=1;orb<orbitals_;orb++) {
+				size_t ix = size_t(tmp / sizes);
+				tmp = ind % sizes;
+				kets[orbitals_-orb] = basisA[orbitals_-orb][ix];
+				sizes /= basisA[orbitals_-orb-1].size();
+			}
+			kets[0] = basisA[0][tmp];
 		}
 
 		void doCombinatorial()
 		{
 			/* look-up table for binomial coefficients */
-			comb_.reset(ORBITALS*nsite_+1,ORBITALS*nsite_+1);
+			comb_.reset(orbitals_*nsite_+1,orbitals_*nsite_+1);
 
 			for (size_t n=0;n<comb_.n_row();n++)
 				for (size_t i=0;i<comb_.n_col();i++)
@@ -323,7 +347,7 @@ namespace LanczosPlusPlus {
 
 		void doBitmask()
 		{
-			bitmask_.resize(nsite_*4+1);
+			bitmask_.resize(nsite_*orbitals_*orbitals_+1);
 			bitmask_[0]=1ul;
 			for (size_t i=1;i<bitmask_.size();i++)
 				bitmask_[i] = bitmask_[i-1]<<1;
@@ -338,36 +362,47 @@ namespace LanczosPlusPlus {
 			return n;
 		}
 
-		WordType getCollatedKet(WordType ketA,WordType ketB) const
+		WordType getCollatedKet(const std::vector<WordType>& kets) const
 		{
-			WordType remA = ketA;
-			WordType remB = ketB;
 			size_t counter = 0;
 			WordType ket = 0;
 
-			while(remA || remB) {
-				size_t bitA = (remA & 1);
-				size_t bitB = (remB & 1);
-				if (bitA) ket |=bitmask_[counter];
-				if (bitB)  ket |=bitmask_[counter+1];
-				counter += 2;
-				if (remA) remA >>= 1;
-				if (remB) remB >>= 1;
+			size_t b = orAll(kets);
+
+			std::vector<WordType> remA = kets;
+
+			while(b) {
+				for (size_t orb=0;orb<kets.size();orb++) {
+					size_t bitA = (remA[orb] & 1);
+					if (bitA) ket |=bitmask_[counter+orb];
+					counter++;
+					if (remA[orb]) remA[orb] >>= 1;
+				}
 			}
 			return ket;
 		}
 
-		void uncollateKet(WordType& ketA,WordType& ketB,WordType ket) const
+		size_t orAll(const std::vector<WordType>& kets) const
+		{
+			size_t b = 0;
+			for (size_t orb=0;orb<kets.size();orb++) b |= kets[orb];
+			return b;
+		}
+
+		//! kets must be all zero here
+		void uncollateKet(std::vector<WordType>& kets,WordType ket) const
 		{
 			size_t counter = 0;
-			ketA = ketB = 0;
+
 			while(ket) {
-				size_t bitA = (ket & 1);
-				size_t bitB = (ket & 2);
-				if (bitA) ketA |= bitmask_[counter];
-				if (bitB) ketB |= bitmask_[counter];
+				for (size_t orb=0;orb<kets.size();orb++) {
+					size_t mask = (1<<orb);
+					size_t bitA = (ket & mask);
+
+					if (bitA) kets[orb] |= bitmask_[counter];
+				}
 				counter++;
-				ket >>= 2;
+				ket >>= orbitals_;
 			}
 		}
 
@@ -425,6 +460,7 @@ namespace LanczosPlusPlus {
 		return os;
 	}
 
+	size_t BasisOneSpinFeAs::orbitals_=2;
 	size_t BasisOneSpinFeAs::nsite_=0;
 	PsimagLite::Matrix<size_t> BasisOneSpinFeAs::comb_;
 	std::vector<BasisOneSpinFeAs::WordType> BasisOneSpinFeAs::bitmask_;

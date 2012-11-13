@@ -46,13 +46,11 @@ namespace LanczosPlusPlus {
 		enum {SPIN_UP=BasisType::SPIN_UP,SPIN_DOWN=BasisType::SPIN_DOWN};
 		enum {DESTRUCTOR=BasisType::DESTRUCTOR,CONSTRUCTOR=BasisType::CONSTRUCTOR};
 		enum {TERM_HOPPINGS=0,TERM_J=1};
-		static size_t const ORBITALS  = BasisType::ORBITALS;
-		static size_t const DEGREES_OF_FREEDOM = 2*ORBITALS;
 		static int const FERMION_SIGN = BasisType::FERMION_SIGN;
 		
 		
 		FeBasedSc(size_t nup,size_t ndown,const ParametersModelType& mp,const GeometryType& geometry)
-		: mp_(mp),geometry_(geometry),basis_(geometry,nup,ndown)
+		: mp_(mp),geometry_(geometry),basis_(geometry,nup,ndown,mp_.orbitals)
 		{
 		}
 		
@@ -60,7 +58,7 @@ namespace LanczosPlusPlus {
 
 		size_t orbitals(size_t site) const
 		{
-			return ORBITALS;
+			return mp_.orbitals;
 		}
 
 		void setupHamiltonian(SparseMatrixType &matrix) const
@@ -118,7 +116,7 @@ namespace LanczosPlusPlus {
 				// Save diagonal
 				sparseRow.add(ispace,diag[ispace]);
 				for (size_t i=0;i<nsite;i++) {
-					for (size_t orb=0;orb<ORBITALS;orb++) {
+					for (size_t orb=0;orb<mp_.orbitals;orb++) {
 						setHoppingTerm(sparseRow,ket1,ket2,
 								i,orb,basis);
 						if (orb==0) {
@@ -161,15 +159,17 @@ namespace LanczosPlusPlus {
 
 				//x[ispace] += diag[ispace]*y[ispace];
 				for (size_t i=0;i<nsite;i++) {
-					for (size_t orb=0;orb<ORBITALS;orb++) {
+					for (size_t orb=0;orb<mp_.orbitals;orb++) {
 						setHoppingTerm(sparseRow,ket1,ket2,
 								i,orb,*basis);
-						if (orb==0) {
-							setU2OffDiagonalTerm(sparseRow,ket1,ket2,
+
+						setU2OffDiagonalTerm(sparseRow,ket1,ket2,
 								i,orb,*basis);
+
+						for (size_t orb2=orb+1;orb2<mp_.orbitals;orb2++) {
+							setU3Term(sparseRow,ket1,ket2,
+								i,orb,orb2,*basis);
 						}
-						setU3Term(sparseRow,ket1,ket2,
-								i,orb,1-orb,*basis);
 						setJTermOffDiagonal(sparseRow,ket1,ket2,
 								i,orb,*basis);
 					}
@@ -230,7 +230,7 @@ namespace LanczosPlusPlus {
 				size_t orb,
 				const BasisType &basis) const
 		{
-			size_t ii = i*ORBITALS+orb;
+			size_t ii = i*mp_.orbitals+orb;
 			WordType s1i=(ket1 & BasisType::bitmask(ii));
 			if (s1i>0) s1i=1;
 			WordType s2i=(ket2 & BasisType::bitmask(ii));
@@ -241,8 +241,8 @@ namespace LanczosPlusPlus {
 			// Hopping term
 			for (size_t j=0;j<nsite;j++) {
 				if (j<i) continue;
-				for (size_t orb2=0;orb2<ORBITALS;orb2++) {
-					size_t jj = j*ORBITALS+orb2;
+				for (size_t orb2=0;orb2<mp_.orbitals;orb2++) {
+					size_t jj = j*mp_.orbitals+orb2;
 					RealType h = hoppings(i,orb,j,orb2);
 					if (h==0) continue;
 					WordType s1j= (ket1 & BasisType::bitmask(jj));
@@ -276,12 +276,16 @@ namespace LanczosPlusPlus {
 				const WordType& ket1,
 				const WordType& ket2,
 				size_t i,
-				size_t orb,
+				size_t orb1,
 				const BasisType &basis) const
 		{
 			RealType val = FERMION_SIGN * mp_.hubbardU[2]*0.5;
-			setSplusSminus(sparseRow,ket1,ket2,i,orb,i,1-orb,val,basis);
-			setSplusSminus(sparseRow,ket1,ket2,i,1-orb,i,orb,val,basis);
+
+			for (size_t orb2=orb1+1;orb2<mp_.orbitals;orb2++) {
+				setSplusSminus(sparseRow,ket1,ket2,i,orb1,i,orb2,val,basis);
+				setSplusSminus(sparseRow,ket1,ket2,i,orb2,i,orb1,val,basis);
+			}
+
 		}
 
 		// N.B.: orb1!=orb2 here
@@ -298,8 +302,8 @@ namespace LanczosPlusPlus {
 		{
 			if (splusSminusNonZero(ket1,ket2,i,orb1,j,orb2,basis)==0) return;
 
-			size_t ii = i*ORBITALS + orb1;
-			size_t jj = j*ORBITALS + orb2;
+			size_t ii = i*mp_.orbitals + orb1;
+			size_t jj = j*mp_.orbitals + orb2;
 			assert(ii!=jj);
 			WordType bra1 = ket1 ^ (BasisType::bitmask(ii)|BasisType::bitmask(jj));
 			WordType bra2 = ket2 ^ (BasisType::bitmask(ii)|BasisType::bitmask(jj));
@@ -320,8 +324,8 @@ namespace LanczosPlusPlus {
 			assert(orb1!=orb2);
 			if (u3TermNonZero(ket1,ket2,i,orb1,orb2,basis)==0) return;
 
-			size_t ii = i*ORBITALS + orb1;
-			size_t jj = i*ORBITALS + orb2;
+			size_t ii = i*mp_.orbitals + orb1;
+			size_t jj = i*mp_.orbitals + orb2;
 			WordType bra1 = ket1 ^ (BasisType::bitmask(ii)|BasisType::bitmask(jj));
 			WordType bra2 = ket2 ^ (BasisType::bitmask(ii)|BasisType::bitmask(jj));
 			size_t temp = basis.perfectIndex(bra1,bra2);
@@ -341,7 +345,7 @@ namespace LanczosPlusPlus {
 				if (value==0) continue;
 				value *= 0.5; // double counting i,j
 				assert(i!=j);
-				for (size_t orb2=0;orb2<ORBITALS;orb2++) {
+				for (size_t orb2=0;orb2<mp_.orbitals;orb2++) {
 					//if (orb2!=orb) continue; // testing only!!
 					int sign = jTermSign(ket1,ket2,i,orb,j,orb2,basis);
 					setSplusSminus(sparseRow,ket1,ket2,
@@ -350,7 +354,6 @@ namespace LanczosPlusPlus {
 							j,orb2,i,orb,value*sign,basis);
 				}
 			}
-
 		}
 
 		int jTermSign(
@@ -400,29 +403,28 @@ namespace LanczosPlusPlus {
 		{
 			RealType s = 0;
 			for (size_t i=0;i<nsite;i++) {
-				for (size_t orb=0;orb<ORBITALS;orb++) {
+				for (size_t orb=0;orb<mp_.orbitals;orb++) {
 
 					// Hubbard term U0
 					s += mp_.hubbardU[0] * basis.isThereAnElectronAt(ket1,ket2,
 											 i,SPIN_UP,orb) * basis.isThereAnElectronAt(ket1,ket2,
 																    i,SPIN_DOWN,orb);
 
-					// Hubbard term U1
-					if (orb==0) {
-						s += mp_.hubbardU[1] * nix(ket1,ket2,i,orb,basis) *
-								nix(ket1,ket2,i,1-orb,basis);
-					}
 
-					// Diagonal U2 term
-					if (orb==0 && mp_.hubbardU[2]!=0) {
+					for (size_t orb2=orb+1;orb2<mp_.orbitals;orb2++) {
+						// Hubbard term U1
+						s += mp_.hubbardU[1] * nix(ket1,ket2,i,orb,basis) *
+								nix(ket1,ket2,i,orb2,basis);
+
+						// Diagonal U2 term
 						s+= mp_.hubbardU[2]*
 								szTerm(ket1,ket2,i,orb,basis)*
-								szTerm(ket1,ket2,i,1-orb,basis);
+								szTerm(ket1,ket2,i,orb2,basis);
 					}
 
 					// JNN and JNNN diagonal part
 					for (size_t j=0;j<nsite;j++) {
-						for (size_t orb2=0;orb2<ORBITALS;orb2++) {
+						for (size_t orb2=0;orb2<mp_.orbitals;orb2++) {
 							RealType value = jCoupling(i,j);
 							if (value==0) continue;
 							s += value*0.5* // double counting i,j

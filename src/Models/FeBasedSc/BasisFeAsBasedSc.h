@@ -26,30 +26,35 @@ namespace LanczosPlusPlus {
 
 	template<typename GeometryType>
 	class BasisFeAsBasedSc {
+
+		static size_t orbitals_;
+
 	public:
 		
 		typedef BasisOneSpinFeAs BasisType;
 		typedef BasisType::WordType WordType;
 		enum {SPIN_UP,SPIN_DOWN};
-		static size_t const ORBITALS  = BasisType::ORBITALS;
+//		static size_t const orbitals_  = BasisType::orbitals_;
 		static int const FERMION_SIGN = BasisType::FERMION_SIGN;
 		enum {DESTRUCTOR=BasisType::DESTRUCTOR,CONSTRUCTOR=BasisType::CONSTRUCTOR};
 		
 		
-		BasisFeAsBasedSc(const GeometryType& geometry, size_t nup,size_t ndown)
-		: basis1_(geometry.numberOfSites(),nup),
-		  basis2_(geometry.numberOfSites(),ndown)
+		BasisFeAsBasedSc(const GeometryType& geometry, size_t nup,size_t ndown,size_t orbitals)
+		: basis1_(geometry.numberOfSites(),nup,orbitals),
+		  basis2_(geometry.numberOfSites(),ndown,orbitals)
 		{
+			orbitals_ = orbitals;
 //			std::cout<<"Basis1\n";
 //			std::cout<<basis1_;
 //			std::cout<<"Basis2\n";
 //			std::cout<<basis2_;
 		}
 		
-		BasisFeAsBasedSc(const GeometryType& geometry, size_t nup)
-		: basis1_(geometry.numberOfSites(),nup),
-		  basis2_(geometry.numberOfSites(),nup)
+		BasisFeAsBasedSc(const GeometryType& geometry, size_t nup,size_t orbitals)
+		: basis1_(geometry.numberOfSites(),nup,orbitals),
+		  basis2_(geometry.numberOfSites(),nup,orbitals)
 		{
+			orbitals_ = orbitals;
 			std::string s = "BasisFeBasedSc::ctor(...): obsolete. ";
 			s+= "This probably means that you can't compute the Green function";
 			s+= " with this model (sorry). It might be added in the future.\n";
@@ -62,7 +67,7 @@ namespace LanczosPlusPlus {
 			return BasisType::bitmask(i);
 		}
 		
-		size_t dofs() const { return 2*ORBITALS; }
+		size_t dofs() const { return 2*orbitals_; }
 
 		size_t size() const { return basis1_.size()*basis2_.size(); }
 		
@@ -106,30 +111,12 @@ namespace LanczosPlusPlus {
 						 perfectIndex(ket1,bra);
 		}
 
-//		int getBraIndex(size_t i,size_t what,size_t site,size_t spin,size_t orb) const
-//		{
-//			size_t y = i/basis1_.size();
-//			size_t x = i%basis1_.size();
-//			int i1 = basis1_.perfectIndex(basis1_[x]);
-//			int i2 = basis2_.perfectIndex(basis2_[y]);
-
-//			if (spin==SPIN_UP) {
-//				i1 = basis1_.getBraIndex(x,what,site,orb);
-//				if (i1<0) return -1;
-//			} else {
-//				i2 =  basis2_.getBraIndex(y,what,site,orb);
-//				if (i2<0) return -1;
-//			}
-
-//			return i1 + i2*basis1_.size();
-//		}
-
 		int doSign(size_t i,size_t site,size_t sector) const
 		{
 			size_t y = i/basis1_.size();
 			size_t x = i%basis1_.size();
-			size_t spin = sector/2;
-			size_t orb = (sector & 1);
+			size_t spin = sector/orbitals_;
+			size_t orb = (sector % orbitals_);
 			if (spin==SPIN_UP) {
 				return basis1_.doSign(x,site,orb);
 			}
@@ -221,9 +208,11 @@ namespace LanczosPlusPlus {
 		}
 
 		BasisType basis1_,basis2_;
-		
 	}; // class BasisFeAsBasedSc
-	
+
+	template<typename GeometryType>
+	size_t BasisFeAsBasedSc<GeometryType>::orbitals_=2;
+
 } // namespace LanczosPlusPlus
 #endif
 

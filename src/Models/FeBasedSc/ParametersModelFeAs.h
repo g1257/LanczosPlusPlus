@@ -92,26 +92,25 @@ namespace LanczosPlusPlus {
 		template<typename IoInputType>
 		ParametersModelFeAs(IoInputType& io) 
 		{
+			io.readline(orbitals,"Orbitals=");
 			io.read(hubbardU,"hubbardU");
 			io.read(potentialV,"potentialV");
-			//io.readline(density,"density=");
 		}
 		
+		size_t orbitals;
 		// Hubbard U values (one for each site)
 		std::vector<Field> hubbardU; 
 		// Onsite potential values, one for each site
 		std::vector<Field> potentialV;
 		// target number of electrons  in the system
 		int nOfElectrons;
-		// target density
-		//Field density;
 	}; //struct ParametersModelFeAs
 	
 	//! Function that prints model parameters to stream os
 	template<typename FieldType>
 	std::ostream& operator<<(std::ostream &os,const ParametersModelFeAs<FieldType>& parameters)
 	{
-		//os<<"parameters.density="<<parameters.density<<"\n";
+		os<<"orbitals="<<parameters.orbitals<<"\n";
 		os<<"hubbardU\n";
 		os<<parameters.hubbardU;
 		os<<"potentialV\n";

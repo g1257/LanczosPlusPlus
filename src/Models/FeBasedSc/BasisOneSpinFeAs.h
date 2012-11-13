@@ -58,15 +58,19 @@ namespace LanczosPlusPlus {
 				return;
 			}
 			size_ = 0;
-			for (size_t na=0;na<=npart;na++) {
-					size_t nb = npart - na;
-					size_ += comb_(nsite_,na) * comb_(nsite_,nb);
+			PartitionsType partitions(npart,orbitals_);
+			for (size_t i=0;i<partitions.size();i++) {
+					const std::vector<size_t>& na = partitions(i);
+					size_t tmp = 1;
+					for (size_t j=0;j<na.size();j++)
+						tmp *= comb_(nsite_,na[j]);
+					size_ += tmp;
 			}
 			data_.resize(size_);
 
 			// compute basis:
 			size_t counter = 0;
-			PartitionsType partitions(npart,orbitals_);
+
 			for (size_t i=0;i<partitions.size();i++) {
 				const std::vector<size_t>& na = partitions(i);
 				std::vector<std::vector<WordType> > basisA(orbitals_);
@@ -367,14 +371,12 @@ namespace LanczosPlusPlus {
 			size_t counter = 0;
 			WordType ket = 0;
 
-			size_t b = orAll(kets);
-
 			std::vector<WordType> remA = kets;
 
-			while(b) {
+			while( orAll(remA) ) {
 				for (size_t orb=0;orb<kets.size();orb++) {
 					size_t bitA = (remA[orb] & 1);
-					if (bitA) ket |=bitmask_[counter+orb];
+					if (bitA) ket |=bitmask_[counter];
 					counter++;
 					if (remA[orb]) remA[orb] >>= 1;
 				}

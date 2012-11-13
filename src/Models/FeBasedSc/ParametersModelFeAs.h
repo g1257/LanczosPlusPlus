@@ -92,7 +92,6 @@ namespace LanczosPlusPlus {
 		template<typename IoInputType>
 		ParametersModelFeAs(IoInputType& io) 
 		{
-	
 			io.read(hubbardU,"hubbardU");
 			io.read(potentialV,"potentialV");
 			//io.readline(density,"density=");

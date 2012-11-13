@@ -220,10 +220,15 @@ namespace LanczosPlusPlus {
 				WordType ket2 = basis(ispace,SPIN_DOWN);
 				RealType s=0;
 				for (size_t i=0;i<nsite;i++) {
+
+					int niup = basis.isThereAnElectronAt(ket1,ket2,i,SPIN_UP);
+
+					int nidown = basis.isThereAnElectronAt(ket1,ket2,i,SPIN_DOWN);
+
+					s += mp_.potentialV[i]*niup;
+					s += mp_.potentialV[i]*nidown;
 					for (size_t j=i+1;j<nsite;j++) {
 
-						int niup = basis.isThereAnElectronAt(ket1,ket2,i,SPIN_UP);
-						int nidown = basis.isThereAnElectronAt(ket1,ket2,i,SPIN_DOWN);
 						int njup = basis.isThereAnElectronAt(ket1,ket2,j,SPIN_UP);
 						int njdown = basis.isThereAnElectronAt(ket1,ket2,j,SPIN_DOWN);
 

@@ -90,12 +90,14 @@ namespace LanczosPlusPlus {
 
 		ParametersTj1Orb(PsimagLite::IoSimple::In& io)
 		{
+			io.read(potentialV,"potentialV");
 			nOfElectrons=0;
 			//io.readline(density,"density=");
 		}
 		
 		// Do not include here connection parameters
 		// those are handled by the Geometry
+		std::vector<Field> potentialV;
 
 		// target number of electrons  in the system
 		int nOfElectrons;

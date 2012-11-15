@@ -119,12 +119,16 @@ namespace LanczosPlusPlus {
 					for (size_t orb=0;orb<mp_.orbitals;orb++) {
 						setHoppingTerm(sparseRow,ket1,ket2,
 								i,orb,basis);
-						if (orb==0) {
-							setU2OffDiagonalTerm(sparseRow,ket1,ket2,
-								i,orb,basis);
+
+						setU2OffDiagonalTerm(sparseRow,ket1,ket2,
+							i,orb,basis);
+						for (size_t orb2=0;orb2<mp_.orbitals;orb2++) {
+							if (orb==orb2) continue;
+
+							setU3Term(sparseRow,ket1,ket2,
+									  i,orb,orb2,basis);
 						}
-						setU3Term(sparseRow,ket1,ket2,
-								i,orb,1-orb,basis);
+
 						setJTermOffDiagonal(sparseRow,ket1,ket2,
 								i,orb,basis);
 					}

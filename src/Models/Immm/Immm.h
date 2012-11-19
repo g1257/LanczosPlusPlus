@@ -309,9 +309,9 @@ template<typename RealType_,typename GeometryType_>
 								basis.getN(ket2,i,SPIN_DOWN,orb);
 
 						// Hubbard term U0
-						s += mp_.hubbardU[i] * basis.isThereAnElectronAt(ket1,ket2,
-								i,SPIN_UP,orb) * basis.isThereAnElectronAt(ket1,ket2,
-								i,SPIN_DOWN,orb);
+						s += mp_.hubbardU[i] * (1.0-basis.isThereAnElectronAt(ket1,ket2,
+								i,SPIN_UP,orb)) * (1.0-basis.isThereAnElectronAt(ket1,ket2,
+								i,SPIN_DOWN,orb));
 
 						// Potential term
 						s += mp_.potentialV[i]*totalCharge;

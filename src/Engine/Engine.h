@@ -96,7 +96,7 @@ namespace LanczosPlusPlus {
 			const BasisType* basisNew = 0;
 
 			for (size_t type=0;type<4;type++) {
-				if (isite==jsite && type>1) continue;
+				if (isite==jsite && orbs.first==orbs.second && type>1) continue;
 				//if (type&1) continue;
 				if (ProgramGlobals::needsNewBasis(what2)) {
 					std::pair<size_t,size_t> newParts(0,0);

@@ -50,16 +50,10 @@ namespace LanczosPlusPlus {
 //			std::cout<<basis2_;
 		}
 		
-		BasisFeAsBasedSc(const GeometryType& geometry, size_t nup,size_t orbitals)
-		: basis1_(geometry.numberOfSites(),nup,orbitals),
-		  basis2_(geometry.numberOfSites(),nup,orbitals)
-		{
-			orbitals_ = orbitals;
-			std::string s = "BasisFeBasedSc::ctor(...): obsolete. ";
-			s+= "This probably means that you can't compute the Green function";
-			s+= " with this model (sorry). It might be added in the future.\n";
-			throw std::runtime_error(s.c_str());
-		}
+		BasisFeAsBasedSc(const GeometryType& geometry, size_t nup,size_t ndown)
+		: basis1_(geometry.numberOfSites(),nup,orbitals_),
+		  basis2_(geometry.numberOfSites(),ndown,orbitals_)
+		{}
 		
 
 		static const WordType& bitmask(size_t i)

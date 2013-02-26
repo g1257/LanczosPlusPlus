@@ -107,7 +107,7 @@ namespace LanczosPlusPlus {
 					basisNew = &model_.basis();
 				}
 				VectorType modifVector;
-				model_.getModifiedState(modifVector,what2,gsVector_,*basisNew,type,isite,jsite,spin);
+				model_.getModifiedState(modifVector,what2,gsVector_,*basisNew,type,isite,jsite,spin,orbs);
 
 				DefaultSymmetryType symm(*basisNew,model_.geometry());
 				InternalProductTemplate<ModelType,DefaultSymmetryType> matrix(model_,*basisNew,symm);

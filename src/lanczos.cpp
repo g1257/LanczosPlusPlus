@@ -62,7 +62,7 @@ size_t maxOrbitals(const ModelType& model)
 }
 
 template<typename ModelType,typename SpecialSymmetryType>
-void mainLoop2(ModelType& model,IoInputType& io,const GeometryType& geometry,size_t gf,std::vector<size_t>& sites,size_t cicj)
+void mainLoop2(ModelType& model,IoInputType& io,const GeometryType& geometry,size_t gf,std::vector<size_t>& sites,size_t cicj,size_t orbital)
 {
 	typedef typename ModelType::BasisType BasisType;
 	typedef Engine<ModelType,InternalProductStored,SpecialSymmetryType,ConcurrencyType> EngineType;
@@ -86,7 +86,7 @@ void mainLoop2(ModelType& model,IoInputType& io,const GeometryType& geometry,siz
 			ContinuedFractionCollectionType;
 
 		ContinuedFractionCollectionType cfCollection;
-		engine.spectralFunction(cfCollection,gf,sites[0],sites[1],ModelType::SPIN_UP,std::pair<size_t,size_t>(0,0));
+		engine.spectralFunction(cfCollection,gf,sites[0],sites[1],ModelType::SPIN_UP,std::pair<size_t,size_t>(orbital,orbital));
 
 		PsimagLite::IoSimple::Out ioOut(std::cout);
 		cfCollection.save(ioOut);
@@ -106,7 +106,7 @@ void mainLoop2(ModelType& model,IoInputType& io,const GeometryType& geometry,siz
 }
 
 template<typename ModelType>
-void mainLoop(IoInputType& io,const GeometryType& geometry,size_t gf,std::vector<size_t>& sites,size_t cicj)
+void mainLoop(IoInputType& io,const GeometryType& geometry,size_t gf,std::vector<size_t>& sites,size_t cicj,size_t orbital=0)
 {
 	typedef typename ModelType::ParametersModelType ParametersModelType;
 	typedef typename ModelType::BasisType BasisType;
@@ -137,11 +137,11 @@ void mainLoop(IoInputType& io,const GeometryType& geometry,size_t gf,std::vector
 	bool useReflectionSymmetry = (tmp==1) ? true : false;
 
 	if (useTranslationSymmetry) {
-		mainLoop2<ModelType,TranslationSymmetry<GeometryType,BasisType> >(model,io,geometry,gf,sites,cicj);
+		mainLoop2<ModelType,TranslationSymmetry<GeometryType,BasisType> >(model,io,geometry,gf,sites,cicj,orbital);
 	} else if (useReflectionSymmetry) {
-		mainLoop2<ModelType,ReflectionSymmetry<GeometryType,BasisType> >(model,io,geometry,gf,sites,cicj);
+		mainLoop2<ModelType,ReflectionSymmetry<GeometryType,BasisType> >(model,io,geometry,gf,sites,cicj,orbital);
 	} else {
-		mainLoop2<ModelType,DefaultSymmetry<GeometryType,BasisType> >(model,io,geometry,gf,sites,cicj);
+		mainLoop2<ModelType,DefaultSymmetry<GeometryType,BasisType> >(model,io,geometry,gf,sites,cicj,orbital);
 	}
 }
 
@@ -153,7 +153,8 @@ int main(int argc,char *argv[])
 	std::string file = "";
 	std::vector<size_t> sites;
 	size_t cicj=ProgramGlobals::OPERATOR_NIL;
-	while ((opt = getopt(argc, argv, "g:c:f:")) != -1) {
+	size_t orbital=0;
+	while ((opt = getopt(argc, argv, "g:c:f:o:")) != -1) {
 		switch (opt) {
 		case 'g':
 			gf = ProgramGlobals::operator2id(optarg);
@@ -163,6 +164,9 @@ int main(int argc,char *argv[])
 			break;
 		case 'c':
 			cicj = ProgramGlobals::operator2id(optarg);
+			break;
+		case 'o':
+			orbital = atoi(optarg);
 			break;
 		default: /* '?' */
 			usage(argv[0]);
@@ -193,7 +197,7 @@ int main(int argc,char *argv[])
 	} else if (model=="HubbardOneBand") {
 		mainLoop<HubbardOneOrbital<RealType,GeometryType> >(io,geometry,gf,sites,cicj);
 	} else if (model=="FeAsBasedSc") {
-		mainLoop<FeBasedSc<RealType,GeometryType> >(io,geometry,gf,sites,cicj);
+		mainLoop<FeBasedSc<RealType,GeometryType> >(io,geometry,gf,sites,cicj,orbital);
 	} else {
 		std::cerr<<"No known model "<<model<<"\n";
 		return 1;

@@ -134,7 +134,8 @@ namespace LanczosPlusPlus {
 		                      size_t type,
 		                      size_t isite,
 		                      size_t jsite,
-		                      size_t spin) const
+							  size_t spin,
+							  const std::pair<size_t,size_t>& orbs) const
 		{
 			size_t what= (type&1) ? CONSTRUCTOR : DESTRUCTOR;
 

@@ -83,12 +83,23 @@ namespace LanczosPlusPlus {
 							  size_t type,
 							  size_t isite,
 							  size_t jsite,
-							  size_t spin) const
+							  size_t spin,
+							  const std::pair<size_t,size_t>& orbs) const
 		{
-			std::string s = "FeBasedSc::getModifiedState(...): unimplemented. ";
-			s+= "This probably means that you can't compute the Green function";
-			s+= " with this model (sorry). It might be added in the future.\n";
-			throw std::runtime_error(s.c_str());
+			size_t what= (type&1) ?  DESTRUCTOR : CONSTRUCTOR;
+
+			modifVector.resize(basisNew.size());
+			for (size_t temp=0;temp<modifVector.size();temp++)
+				modifVector[temp]=0.0;
+
+			accModifiedState(modifVector,what2,basisNew,gsVector,what,isite,spin,orbs.first,1);
+			std::cerr<<"isite="<<isite<<" type="<<type;
+			std::cerr<<" modif="<<(modifVector*modifVector)<<"\n";
+
+			int isign= (type>1) ? -1 : 1;
+			accModifiedState(modifVector,what2,basisNew,gsVector,what,jsite,spin,orbs.second,isign);
+			std::cerr<<"jsite="<<jsite<<" type="<<type;
+			std::cerr<<" modif="<<(modifVector*modifVector)<<"\n";
 		}
 
 		const GeometryType& geometry() const { return geometry_; }

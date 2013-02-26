@@ -37,6 +37,7 @@ std::string license = "Copyright (c) 2009-2012, UT-Battelle, LLC\n"
 #include "ReflectionSymmetry.h"
 #include "TranslationSymmetry.h"
 #include "Split.h"
+#include "Tokenizer.h"
 
 using namespace LanczosPlusPlus;
 
@@ -62,7 +63,13 @@ size_t maxOrbitals(const ModelType& model)
 }
 
 template<typename ModelType,typename SpecialSymmetryType>
-void mainLoop2(ModelType& model,IoInputType& io,const GeometryType& geometry,size_t gf,std::vector<size_t>& sites,size_t cicj,size_t orbital)
+void mainLoop2(ModelType& model,
+			   IoInputType& io,
+			   const GeometryType& geometry,
+			   size_t gf,
+			   std::vector<size_t>& sites,
+			   size_t cicj,
+			   const std::pair<size_t,size_t>& orbs)
 {
 	typedef typename ModelType::BasisType BasisType;
 	typedef Engine<ModelType,InternalProductStored,SpecialSymmetryType,ConcurrencyType> EngineType;
@@ -86,7 +93,7 @@ void mainLoop2(ModelType& model,IoInputType& io,const GeometryType& geometry,siz
 			ContinuedFractionCollectionType;
 
 		ContinuedFractionCollectionType cfCollection;
-		engine.spectralFunction(cfCollection,gf,sites[0],sites[1],ModelType::SPIN_UP,std::pair<size_t,size_t>(orbital,orbital));
+		engine.spectralFunction(cfCollection,gf,sites[0],sites[1],ModelType::SPIN_UP,orbs);
 
 		PsimagLite::IoSimple::Out ioOut(std::cout);
 		cfCollection.save(ioOut);
@@ -106,7 +113,12 @@ void mainLoop2(ModelType& model,IoInputType& io,const GeometryType& geometry,siz
 }
 
 template<typename ModelType>
-void mainLoop(IoInputType& io,const GeometryType& geometry,size_t gf,std::vector<size_t>& sites,size_t cicj,size_t orbital=0)
+void mainLoop(IoInputType& io,
+			  const GeometryType& geometry,
+			  size_t gf,
+			  std::vector<size_t>& sites,
+			  size_t cicj,
+			  const std::pair<size_t,size_t>& orbs)
 {
 	typedef typename ModelType::ParametersModelType ParametersModelType;
 	typedef typename ModelType::BasisType BasisType;
@@ -137,11 +149,11 @@ void mainLoop(IoInputType& io,const GeometryType& geometry,size_t gf,std::vector
 	bool useReflectionSymmetry = (tmp==1) ? true : false;
 
 	if (useTranslationSymmetry) {
-		mainLoop2<ModelType,TranslationSymmetry<GeometryType,BasisType> >(model,io,geometry,gf,sites,cicj,orbital);
+		mainLoop2<ModelType,TranslationSymmetry<GeometryType,BasisType> >(model,io,geometry,gf,sites,cicj,orbs);
 	} else if (useReflectionSymmetry) {
-		mainLoop2<ModelType,ReflectionSymmetry<GeometryType,BasisType> >(model,io,geometry,gf,sites,cicj,orbital);
+		mainLoop2<ModelType,ReflectionSymmetry<GeometryType,BasisType> >(model,io,geometry,gf,sites,cicj,orbs);
 	} else {
-		mainLoop2<ModelType,DefaultSymmetry<GeometryType,BasisType> >(model,io,geometry,gf,sites,cicj,orbital);
+		mainLoop2<ModelType,DefaultSymmetry<GeometryType,BasisType> >(model,io,geometry,gf,sites,cicj,orbs);
 	}
 }
 
@@ -153,7 +165,8 @@ int main(int argc,char *argv[])
 	std::string file = "";
 	std::vector<size_t> sites;
 	size_t cicj=ProgramGlobals::OPERATOR_NIL;
-	size_t orbital=0;
+	std::pair<size_t,size_t> orbs(0,0);
+	std::vector<std::string> str;
 	while ((opt = getopt(argc, argv, "g:c:f:o:")) != -1) {
 		switch (opt) {
 		case 'g':
@@ -166,7 +179,12 @@ int main(int argc,char *argv[])
 			cicj = ProgramGlobals::operator2id(optarg);
 			break;
 		case 'o':
-			orbital = atoi(optarg);
+			PsimagLite::tokenizer(optarg,str,",");
+			if (str.size()!=2)
+				throw std::runtime_error("-o needs two orbitals\n");
+			orbs.first = atoi(str[0].c_str());
+			orbs.second = atoi(str[1].c_str());
+			str.clear();
 			break;
 		default: /* '?' */
 			usage(argv[0]);
@@ -191,13 +209,13 @@ int main(int argc,char *argv[])
 	io.readline(model,"Model=");
 
 	if (model=="Tj1Orb") {
-		mainLoop<Tj1Orb<RealType,GeometryType> >(io,geometry,gf,sites,cicj);
+		mainLoop<Tj1Orb<RealType,GeometryType> >(io,geometry,gf,sites,cicj,orbs);
 	} else if (model=="Immm") {
-		mainLoop<Immm<RealType,GeometryType> >(io,geometry,gf,sites,cicj);
+		mainLoop<Immm<RealType,GeometryType> >(io,geometry,gf,sites,cicj,orbs);
 	} else if (model=="HubbardOneBand") {
-		mainLoop<HubbardOneOrbital<RealType,GeometryType> >(io,geometry,gf,sites,cicj);
+		mainLoop<HubbardOneOrbital<RealType,GeometryType> >(io,geometry,gf,sites,cicj,orbs);
 	} else if (model=="FeAsBasedSc") {
-		mainLoop<FeBasedSc<RealType,GeometryType> >(io,geometry,gf,sites,cicj,orbital);
+		mainLoop<FeBasedSc<RealType,GeometryType> >(io,geometry,gf,sites,cicj,orbs);
 	} else {
 		std::cerr<<"No known model "<<model<<"\n";
 		return 1;

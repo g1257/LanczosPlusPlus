@@ -449,9 +449,10 @@ namespace LanczosPlusPlus {
 					}
 
 					// Potential term
-					s += mp_.potentialV[i+orb*nsite]*
-							(basis.getN(ket1,i,SPIN_UP,orb) +
-							 basis.getN(ket2,i,SPIN_DOWN,orb));
+					s += mp_.potentialV[i+(orb+mp_.orbitals*0)*nsite]*
+							basis.getN(ket1,i,SPIN_UP,orb) +
+						mp_.potentialV[i+(orb+mp_.orbitals*1)*nsite]*
+							 basis.getN(ket2,i,SPIN_DOWN,orb);
 
 				}
 			}

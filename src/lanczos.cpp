@@ -47,6 +47,49 @@ typedef PsimagLite::ConcurrencySerial<RealType> ConcurrencyType;
 typedef PsimagLite::Geometry<RealType,ProgramGlobals> GeometryType;
 typedef PsimagLite::IoSimple::In IoInputType;
 
+std::pair<size_t,size_t> readElectrons(PsimagLite::IoSimple::In& io,size_t nsites)
+{
+	int nup = -1;
+	int ndown = -1;
+	try {
+		io.readline(nup,"TargetElectronsUp=");
+		io.readline(ndown,"TargetElectronsDown=");
+	} catch (std::exception& e)
+	{
+		nup = ndown = -1;
+		io.rewind();
+	}
+
+	std::vector<RealType> v;
+	try {
+		io.read(v,"TargetQuantumNumbers");
+	} catch (std::exception& e)
+	{
+		v.resize(0);
+		io.rewind();
+	}
+
+	if (nup<0 && v.size()==0) {
+		std::string str("Either TargetElectronsUp/Down or TargetQuantumNumbers is need\n");
+		throw std::runtime_error(str.c_str());
+	}
+
+	if (nup>=0 && v.size()>0) {
+		std::string str("Having both TargetElectronsUp/Down and TargetQuantumNumbers is an error\n");
+		throw std::runtime_error(str.c_str());
+	}
+
+	if (nup>=0) return std::pair<size_t,size_t>(nup,ndown);
+
+	if (v.size()<2) {
+		std::string str("Incorrect TargetQuantumNumbers line\n");
+		throw std::runtime_error(str.c_str());
+	}
+	nup = size_t(v[0]*nsites);
+	ndown = size_t(v[1]*nsites);
+	return std::pair<size_t,size_t>(nup,ndown);
+}
+
 void usage(const char *progName)
 {
 	std::cerr<<"Usage: "<<progName<<" [-g -c] -f filename\n";
@@ -127,13 +170,10 @@ void mainLoop(IoInputType& io,
 	ParametersModelType mp(io);
 
 	std::cout<<mp;
-	size_t nup = 0;
-	size_t ndown = 0;
-	io.readline(nup,"TargetElectronsUp=");
-	io.readline(ndown,"TargetElectronsDown=");
+	std::pair<size_t,size_t> nupndown = readElectrons(io,geometry.numberOfSites());
 
 	//! Setup the Model
-	ModelType model(nup,ndown,mp,geometry);
+	ModelType model(nupndown.first,nupndown.second,mp,geometry);
 
 	int tmp = 0;
 	try {

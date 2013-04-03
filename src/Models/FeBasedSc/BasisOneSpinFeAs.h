@@ -412,7 +412,7 @@ namespace LanczosPlusPlus {
 		{
 
 			WordType si=(ket & bitmask_[i]);
-			if (what==DESTRUCTOR) {
+			if (what==CONSTRUCTOR) {
 				if (si>0) {
 					bra = (ket ^ bitmask_[i]);
 				} else {

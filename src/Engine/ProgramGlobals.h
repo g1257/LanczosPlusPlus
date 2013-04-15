@@ -87,6 +87,7 @@ namespace LanczosPlusPlus {
 		static size_t const LanczosSteps = 300; // max number of external Lanczos steps
 		static double const LanczosTolerance; // tolerance of the Lanczos Algorithm
 		enum {FERMION,BOSON};
+		enum {DESTRUCTOR,CONSTRUCTOR};
 		enum {OPERATOR_NIL,OPERATOR_C,OPERATOR_SZ};
 
 		static bool needsNewBasis(size_t what)
@@ -107,7 +108,7 @@ namespace LanczosPlusPlus {
 
 		static bool isFermionic(size_t what)
 		{
-			if (what==ProgramGlobals::OPERATOR_C) return true;
+			if (what==OPERATOR_C) return true;
 			return false;
 		}
 	}; // ProgramGlobals

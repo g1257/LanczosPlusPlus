@@ -32,7 +32,8 @@ namespace LanczosPlusPlus {
 		
 		typedef unsigned int long long WordType;
 		
-		enum {DESTRUCTOR,CONSTRUCTOR};
+		enum {DESTRUCTOR=ProgramGlobals::DESTRUCTOR,
+		      CONSTRUCTOR=ProgramGlobals::CONSTRUCTOR};
 
 		// 		static size_t const ORBITALS  = 2;
 		static int const FERMION_SIGN  = -1;

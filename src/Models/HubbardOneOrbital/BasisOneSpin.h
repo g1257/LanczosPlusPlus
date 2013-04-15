@@ -19,7 +19,8 @@ namespace LanczosPlusPlus {
 		static PsimagLite::Matrix<size_t> comb_;
 		static std::vector<WordType> bitmask_; 
 
-		enum {DESTRUCTOR,CONSTRUCTOR};
+		enum {DESTRUCTOR=ProgramGlobals::DESTRUCTOR,
+		      CONSTRUCTOR=ProgramGlobals::CONSTRUCTOR};
 
 		BasisOneSpin(size_t nsite, size_t npart) 
 		: npart_(npart)

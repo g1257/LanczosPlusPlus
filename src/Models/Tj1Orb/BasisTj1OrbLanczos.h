@@ -21,7 +21,8 @@ namespace LanczosPlusPlus {
 
 		enum {SPIN_UP,SPIN_DOWN};
 
-		enum {DESTRUCTOR,CONSTRUCTOR};
+		enum {DESTRUCTOR=ProgramGlobals::DESTRUCTOR,
+		      CONSTRUCTOR=ProgramGlobals::CONSTRUCTOR};
 
 		static int const FERMION_SIGN = -1;
 

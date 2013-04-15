@@ -33,7 +33,8 @@ namespace LanczosPlusPlus {
 	public:
 		
 		typedef unsigned int long long WordType;
-		enum {DESTRUCTOR,CONSTRUCTOR};
+		enum {DESTRUCTOR=ProgramGlobals::DESTRUCTOR,
+		      CONSTRUCTOR=ProgramGlobals::CONSTRUCTOR};
 		static size_t orbitals_;
 		static int const FERMION_SIGN  = -1;
 		static size_t nsite_;
@@ -412,7 +413,7 @@ namespace LanczosPlusPlus {
 		{
 
 			WordType si=(ket & bitmask_[i]);
-			if (what==CONSTRUCTOR) {
+			if (what==DESTRUCTOR) {
 				if (si>0) {
 					bra = (ket ^ bitmask_[i]);
 				} else {

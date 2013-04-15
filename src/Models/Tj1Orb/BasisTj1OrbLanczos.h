@@ -194,7 +194,8 @@ namespace LanczosPlusPlus {
 			case ProgramGlobals::OPERATOR_CDAGGER:
 				return getBraC(bra,ket1,ket2,operatorLabel,site,spin);
 			case ProgramGlobals::OPERATOR_SZ:
-				return getBraSz(bra,ket1,ket2,site,spin);
+			case ProgramGlobals::OPERATOR_N:
+				return getBraSzOrN(bra,ket1,ket2,operatorLabel,site,spin);
 			}
 			assert(false);
 			return 0;
@@ -346,11 +347,12 @@ namespace LanczosPlusPlus {
 			return 1;
 		}
 
-		int getBraSz(WordType& bra,
-					const WordType& ket1,
-					const WordType& ket2,
-					size_t site,
-					size_t spin) const
+		int getBraSzOrN(WordType& bra,
+		                const WordType& ket1,
+		                const WordType& ket2,
+		                size_t operatorLabel,
+		                size_t site,
+		                size_t spin) const
 		{
 			assert(spin==SPIN_UP); // spin index is bogus here
 			if (spin==SPIN_UP) bra = ket1;
@@ -359,7 +361,8 @@ namespace LanczosPlusPlus {
 			WordType sidown=(ket2 & bitmask_[site]);
 			if (siup>0) siup=1;
 			if (sidown>0) sidown=1;
-			return (siup-sidown);
+			int isign = (operatorLabel == OPERATOR_SZ) ? -1 : 1;
+			return (siup + isign * sidown);
 		}
 
 		const GeometryType& geometry_;

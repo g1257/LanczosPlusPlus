@@ -47,8 +47,6 @@ template<typename RealType_,typename GeometryType_>
 
 		enum {SPIN_UP=BasisType::SPIN_UP,SPIN_DOWN=BasisType::SPIN_DOWN};
 
-		enum {DESTRUCTOR=BasisType::DESTRUCTOR,CONSTRUCTOR=BasisType::CONSTRUCTOR};
-
 		static int const FERMION_SIGN = BasisType::FERMION_SIGN;
 
 		Immm(size_t nup,size_t ndown,const ParametersModelType& mp,const GeometryType& geometry)
@@ -85,7 +83,7 @@ template<typename RealType_,typename GeometryType_>
 
 		template<typename SomeVectorType>
 		void getModifiedState(SomeVectorType& modifVector,
-							  size_t what2,
+							  size_t operatorLabel,
 							  const SomeVectorType& gsVector,
 		                      const BasisType& basisNew,
 		                      size_t type,
@@ -94,18 +92,18 @@ template<typename RealType_,typename GeometryType_>
 							  size_t spin,
 							  const std::pair<size_t,size_t>& orbs) const
 		{
-			size_t what= (type&1) ?  DESTRUCTOR : CONSTRUCTOR;
+			size_t operatorLabel2= (type&1) ?  operatorLabel : ProgramGlobals::transposeConjugate(operatorLabel);
 
 			modifVector.resize(basisNew.size());
 			for (size_t temp=0;temp<modifVector.size();temp++)
 				modifVector[temp]=0.0;
 
-			accModifiedState(modifVector,what2,basisNew,gsVector,what,isite,spin,1);
+			accModifiedState(modifVector,operatorLabel2,basisNew,gsVector,isite,spin,1);
 			std::cerr<<"isite="<<isite<<" type="<<type;
 			std::cerr<<" modif="<<(modifVector*modifVector)<<"\n";
 
 			int isign= (type>1) ? -1 : 1;
-			accModifiedState(modifVector,what2,basisNew,gsVector,what,jsite,spin,isign);
+			accModifiedState(modifVector,operatorLabel2,basisNew,gsVector,jsite,spin,isign);
 			std::cerr<<"jsite="<<jsite<<" type="<<type;
 			std::cerr<<" modif="<<(modifVector*modifVector)<<"\n";
 		}
@@ -200,10 +198,9 @@ template<typename RealType_,typename GeometryType_>
 		//! Gf Related function:
 		template<typename SomeVectorType>
 		void accModifiedState(SomeVectorType& z,
-							  size_t what2,
+							  size_t operatorLabel,
 							  const BasisType& newBasis,
 							  const SomeVectorType& gsVector,
-							  size_t what,
 							  size_t site,
 							  size_t spin,
 							  size_t orb,
@@ -212,13 +209,13 @@ template<typename RealType_,typename GeometryType_>
 			for (size_t ispace=0;ispace<basis_.size();ispace++) {
 				WordType ket1 = basis_(ispace,SPIN_UP);
 				WordType ket2 = basis_(ispace,SPIN_DOWN);
-				int temp = newBasis.getBraIndex(ket1,ket2,ispace,what,site,spin,orb);
+				int temp = newBasis.getBraIndex(ket1,ket2,ispace,operatorLabel,site,spin,orb);
 // 				int temp= getBraIndex(mysign,ket1,ket2,newBasis,what,site,spin);
 				if (temp>=0 && size_t(temp)>=z.size()) {
 					std::string s = "old basis=" + ttos(basis_.size());
 					s += " newbasis=" + ttos(newBasis.size());
 					s += "\n";
-					s += "what=" + ttos(what) + " spin=" + ttos(spin);
+					s += "operatorLabel=" + ttos(operatorLabel) + " spin=" + ttos(spin);
 					s += " site=" + ttos(site);
 					s += "ket1=" + ttos(ket1) + " and ket2=" + ttos(ket2);
 					s += "\n";
@@ -228,7 +225,7 @@ template<typename RealType_,typename GeometryType_>
 				}
 				if (temp<0) continue;
 //				int mysign = basis_.doSignGf(ket1,ket2,site,spin,orb);
-				int mysign = (ProgramGlobals::isFermionic(what2)) ? basis_.doSignGf(ket1,ket2,site,spin,orb) : 1;
+				int mysign = (ProgramGlobals::isFermionic(operatorLabel)) ? basis_.doSignGf(ket1,ket2,site,spin,orb) : 1;
 				z[temp] += isign*mysign*gsVector[ispace];
 			}
 		}
@@ -336,16 +333,15 @@ template<typename RealType_,typename GeometryType_>
 		//! Gf Related function:
 		template<typename SomeVectorType>
 		void accModifiedState(SomeVectorType& z,
-							  size_t what2,
+							  size_t operatorLabel,
 		                      const BasisType& newBasis,
 							  const SomeVectorType& gsVector,
-		                      size_t what,
 		                      size_t site,
 		                      size_t spin,
 		                      int isign) const
 		{
 			for (size_t orb=0;orb<newBasis.orbsPerSite(site);orb++)
-				accModifiedState(z,what2,newBasis,gsVector,what,site,spin,orb,isign);
+				accModifiedState(z,operatorLabel,newBasis,gsVector,site,spin,orb,isign);
 		}
 
 		const ParametersModelType& mp_;

@@ -87,12 +87,13 @@ namespace LanczosPlusPlus {
 		static size_t const LanczosSteps = 300; // max number of external Lanczos steps
 		static double const LanczosTolerance; // tolerance of the Lanczos Algorithm
 		enum {FERMION,BOSON};
-		enum {DESTRUCTOR,CONSTRUCTOR};
-		enum {OPERATOR_NIL,OPERATOR_C,OPERATOR_SZ};
+//		enum {DESTRUCTOR,CONSTRUCTOR};
+		enum {OPERATOR_NIL,OPERATOR_C,OPERATOR_SZ,OPERATOR_CDAGGER};
 
 		static bool needsNewBasis(size_t what)
 		{
 			if (what==ProgramGlobals::OPERATOR_C) return true;
+			if (what==ProgramGlobals::OPERATOR_CDAGGER) return true;
 			return false;
 		}
 
@@ -100,6 +101,8 @@ namespace LanczosPlusPlus {
 		{
 			if (s=="c") {
 				return OPERATOR_C;
+			} else if (s=="cdagger") {
+				return OPERATOR_CDAGGER;
 			} else if (s=="sz") {
 				return OPERATOR_SZ;
 			}
@@ -110,6 +113,15 @@ namespace LanczosPlusPlus {
 		{
 			if (what==OPERATOR_C) return true;
 			return false;
+		}
+
+		static size_t transposeConjugate(size_t operatorLabel)
+		{
+			if (operatorLabel==OPERATOR_C)
+				return OPERATOR_CDAGGER;
+			if (operatorLabel==OPERATOR_CDAGGER)
+				return OPERATOR_C;
+			return operatorLabel;
 		}
 	}; // ProgramGlobals
 

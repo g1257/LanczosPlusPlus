@@ -17,8 +17,6 @@ namespace LanczosPlusPlus {
 
 		enum {SPIN_UP,SPIN_DOWN};
 
-		enum {DESTRUCTOR=BasisType::DESTRUCTOR,CONSTRUCTOR=BasisType::CONSTRUCTOR};
-
 		static int const FERMION_SIGN = BasisType::FERMION_SIGN;
 
 		BasisHubbardLanczos(const GeometryType& geometry, size_t nup,size_t ndown) 

@@ -52,8 +52,6 @@ namespace LanczosPlusPlus {
 
 		enum {SPIN_UP,SPIN_DOWN};
 
-		enum {DESTRUCTOR=BasisType::DESTRUCTOR,CONSTRUCTOR=BasisType::CONSTRUCTOR};
-
 		BasisImmm(const GeometryType& geometry, size_t nup,size_t ndown)
 		: orbsPerSite_(geometry),
 		  basis1_(orbsPerSite_,nup),

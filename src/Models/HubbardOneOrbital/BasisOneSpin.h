@@ -19,8 +19,10 @@ namespace LanczosPlusPlus {
 		static PsimagLite::Matrix<size_t> comb_;
 		static std::vector<WordType> bitmask_; 
 
-		enum {DESTRUCTOR=ProgramGlobals::DESTRUCTOR,
-		      CONSTRUCTOR=ProgramGlobals::CONSTRUCTOR};
+		enum {OPERATOR_NIL=ProgramGlobals::OPERATOR_NIL,
+		      OPERATOR_C=ProgramGlobals::OPERATOR_C,
+		      OPERATOR_SZ=ProgramGlobals::OPERATOR_SZ,
+		      OPERATOR_CDAGGER=ProgramGlobals::OPERATOR_CDAGGER};
 
 		BasisOneSpin(size_t nsite, size_t npart) 
 		: npart_(npart)
@@ -132,7 +134,7 @@ namespace LanczosPlusPlus {
 		{
 
 			WordType si=(ket & bitmask_[site]);
-			if (what==DESTRUCTOR) {
+			if (what==OPERATOR_C) {
 				if (si>0) {
 					bra = (ket ^ bitmask_[site]);
 				} else {

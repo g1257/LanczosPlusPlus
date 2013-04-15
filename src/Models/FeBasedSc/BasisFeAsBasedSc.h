@@ -34,10 +34,7 @@ namespace LanczosPlusPlus {
 		typedef BasisOneSpinFeAs BasisType;
 		typedef BasisType::WordType WordType;
 		enum {SPIN_UP,SPIN_DOWN};
-//		static size_t const orbitals_  = BasisType::orbitals_;
-		static int const FERMION_SIGN = BasisType::FERMION_SIGN;
-		enum {DESTRUCTOR=BasisType::DESTRUCTOR,CONSTRUCTOR=BasisType::CONSTRUCTOR};
-		
+		static int const FERMION_SIGN = BasisType::FERMION_SIGN;	
 		
 		BasisFeAsBasedSc(const GeometryType& geometry, size_t nup,size_t ndown,size_t orbitals)
 		: basis1_(geometry.numberOfSites(),nup,orbitals),

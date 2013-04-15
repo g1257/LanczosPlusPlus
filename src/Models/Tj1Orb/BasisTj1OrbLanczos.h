@@ -21,8 +21,10 @@ namespace LanczosPlusPlus {
 
 		enum {SPIN_UP,SPIN_DOWN};
 
-		enum {DESTRUCTOR=ProgramGlobals::DESTRUCTOR,
-		      CONSTRUCTOR=ProgramGlobals::CONSTRUCTOR};
+		enum {OPERATOR_NIL=ProgramGlobals::OPERATOR_NIL,
+		      OPERATOR_C=ProgramGlobals::OPERATOR_C,
+		      OPERATOR_SZ=ProgramGlobals::OPERATOR_SZ,
+		      OPERATOR_CDAGGER=ProgramGlobals::OPERATOR_CDAGGER};
 
 		static int const FERMION_SIGN = -1;
 
@@ -180,16 +182,17 @@ namespace LanczosPlusPlus {
 //		}
 		
 		int getBra(WordType& bra,
-					size_t what2,
+					size_t operatorLabel,
 		            const WordType& ket1,
 		            const WordType& ket2,
-		            size_t what,
+//		            size_t what,
 		            size_t site,
 		            size_t spin) const
 		{
-			switch(what2) {
+			switch(operatorLabel) {
 			case ProgramGlobals::OPERATOR_C:
-				return getBraC(bra,ket1,ket2,what,site,spin);
+			case ProgramGlobals::OPERATOR_CDAGGER:
+				return getBraC(bra,ket1,ket2,operatorLabel,site,spin);
 			case ProgramGlobals::OPERATOR_SZ:
 				return getBraSz(bra,ket1,ket2,site,spin);
 			}
@@ -327,7 +330,7 @@ namespace LanczosPlusPlus {
 		int getBraC(WordType& bra,const WordType& ket,size_t what,size_t site) const
 		{
 			WordType si=(ket & bitmask_[site]);
-			if (what==DESTRUCTOR) {
+			if (what==OPERATOR_C) {
 				if (si>0) {
 					bra = (ket ^ bitmask_[site]);
 				} else {

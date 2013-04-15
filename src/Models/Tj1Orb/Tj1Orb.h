@@ -32,8 +32,6 @@ namespace LanczosPlusPlus {
 
 		enum {SPIN_UP=BasisType::SPIN_UP,SPIN_DOWN=BasisType::SPIN_DOWN};
 
-		enum {DESTRUCTOR=BasisType::DESTRUCTOR,CONSTRUCTOR=BasisType::CONSTRUCTOR};
-
 		static int const FERMION_SIGN = BasisType::FERMION_SIGN;
 
 		Tj1Orb(size_t nup,
@@ -128,7 +126,7 @@ namespace LanczosPlusPlus {
 
 		template<typename SomeVectorType>
 		void getModifiedState(SomeVectorType& modifVector,
-							  size_t what2,
+							  size_t operatorLabel,
 							  const SomeVectorType& gsVector,
 		                      const BasisType& basisNew,
 		                      size_t type,
@@ -137,20 +135,20 @@ namespace LanczosPlusPlus {
 							  size_t spin,
 							  const std::pair<size_t,size_t>& orbs) const
 		{
-			size_t what= (type&1) ? CONSTRUCTOR : DESTRUCTOR;
+			size_t operatorLabel2 = (type&1) ? operatorLabel : ProgramGlobals::transposeConjugate(operatorLabel);
 
 			modifVector.resize(basisNew.size());
 			for (size_t temp=0;temp<modifVector.size();temp++)
 				modifVector[temp]=0.0;
 
 			size_t orb = 0; // bogus orbital index, no orbitals in this model
-			accModifiedState(modifVector,what2,basisNew,gsVector,what,isite,spin,orb,1);
+			accModifiedState(modifVector,operatorLabel2,basisNew,gsVector,isite,spin,orb,1);
 			std::cerr<<"isite="<<isite<<" type="<<type;
 			std::cerr<<" modif="<<(modifVector*modifVector)<<"\n";
 			if (isite==jsite) return;
 
 			int isign= (type>1) ? -1 : 1;
-			accModifiedState(modifVector,what2,basisNew,gsVector,what,jsite,spin,orb,isign);
+			accModifiedState(modifVector,operatorLabel2,basisNew,gsVector,jsite,spin,orb,isign);
 			std::cerr<<"jsite="<<jsite<<" type="<<type;
 			std::cerr<<" modif="<<(modifVector*modifVector)<<"\n";
 		}
@@ -162,10 +160,9 @@ namespace LanczosPlusPlus {
 		//! Gf Related functions:
 		template<typename SomeVectorType>
 		void accModifiedState(SomeVectorType &z,
-							  size_t what2,
+							  size_t operatorLabel,
 							  const BasisType& newBasis,
 							  const SomeVectorType& gsVector,
-							  size_t what,
 							  size_t site,
 							  size_t spin,
 							  size_t orb,
@@ -176,7 +173,7 @@ namespace LanczosPlusPlus {
 				WordType ket2 = basis_(ispace,SPIN_DOWN);
 				WordType bra1 = ket1;
 				WordType bra2 = ket2;
-				int value = newBasis.getBra(bra1,what2,ket1,ket2,what,site,spin);
+				int value = newBasis.getBra(bra1,operatorLabel,ket1,ket2,site,spin);
 				if (value==0) continue;
 				if (spin!=SPIN_UP) {
 					bra2 = bra1;
@@ -188,7 +185,7 @@ namespace LanczosPlusPlus {
 					std::string s = "old basis=" + ttos(basis_.size());
 					s += " newbasis=" + ttos(newBasis.size());
 					s += "\n";
-					s += "what=" + ttos(what) + " spin=" + ttos(spin);
+					s += "operatorLabel=" + ttos(operatorLabel) + " spin=" + ttos(spin);
 					s += " site=" + ttos(site);
 					s += "ket1=" + ttos(ket1) + " and ket2=" + ttos(ket2);
 					s += "\n";
@@ -197,7 +194,7 @@ namespace LanczosPlusPlus {
 					throw std::runtime_error(s.c_str());
 				}
 				if (temp<0) continue;
-				int mysign = (ProgramGlobals::isFermionic(what2)) ? basis_.doSignGf(ket1,ket2,site,spin) : 1;
+				int mysign = (ProgramGlobals::isFermionic(operatorLabel)) ? basis_.doSignGf(ket1,ket2,site,spin) : 1;
 				z[temp] += isign*mysign*value*gsVector[ispace];
 			}
 		}

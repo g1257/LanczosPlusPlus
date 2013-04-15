@@ -31,11 +31,12 @@ namespace LanczosPlusPlus {
 	public:
 		
 		typedef unsigned int long long WordType;
-		
-		enum {DESTRUCTOR=ProgramGlobals::DESTRUCTOR,
-		      CONSTRUCTOR=ProgramGlobals::CONSTRUCTOR};
 
-		// 		static size_t const ORBITALS  = 2;
+		enum {OPERATOR_NIL=ProgramGlobals::OPERATOR_NIL,
+		      OPERATOR_C=ProgramGlobals::OPERATOR_C,
+		      OPERATOR_SZ=ProgramGlobals::OPERATOR_SZ,
+		      OPERATOR_CDAGGER=ProgramGlobals::OPERATOR_CDAGGER};
+
 		static int const FERMION_SIGN  = -1;
 		static size_t nsite_;
 		static PsimagLite::Matrix<size_t> comb_;
@@ -272,7 +273,7 @@ namespace LanczosPlusPlus {
 		{
 
 			WordType si=(ket & bitmask_[i]);
-			if (what==DESTRUCTOR) {
+			if (what==OPERATOR_C) {
 				if (si>0) {
 					bra = (ket ^ bitmask_[i]);
 				} else {

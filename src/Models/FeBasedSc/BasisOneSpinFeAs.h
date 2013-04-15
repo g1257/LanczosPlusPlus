@@ -419,17 +419,24 @@ namespace LanczosPlusPlus {
 			if (what==OPERATOR_C) {
 				if (si>0) {
 					bra = (ket ^ bitmask_[i]);
+					return true;
 				} else {
 					return false; // cannot destroy, there's nothing
 				}
-			} else {
+			} else if (what==OPERATOR_CDAGGER) {
 				if (si==0) {
 					bra = (ket ^ bitmask_[i]);
+					return true;
 				} else {
 					return false; // cannot construct, there's already one
 				}
+			} else if (what==ProgramGlobals::OPERATOR_N) {
+				if (si==0) return false;
+				bra = ket;
+				return true;
 			}
-			return true;
+			std::string str = ProgramGlobals::unknownOperator(ttos(what));
+			throw std::runtime_error(str.c_str());
 		}
 
 		int doSign(WordType a, size_t i) const

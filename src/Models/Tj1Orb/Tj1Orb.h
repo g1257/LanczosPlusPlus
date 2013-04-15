@@ -157,9 +157,39 @@ namespace LanczosPlusPlus {
 
 		const BasisType& basis() const { return basis_; }
 
+		void printBasis(std::ostream& os) const
+		{
+			os<<basis_;
+		}
+
+		template<typename SomeVectorType>
+		void accModifiedState(SomeVectorType& z,
+							  size_t operatorLabel,
+							  const BasisType& newBasis,
+							  const SomeVectorType& gsVector,
+//							  size_t what,
+							  size_t site,
+							  size_t spin,
+							  size_t orb,
+							  int isign) const
+		{
+			if (operatorLabel==ProgramGlobals::OPERATOR_N) {
+				accModifiedState_(z,operatorLabel,newBasis,gsVector,site,SPIN_UP,orb,isign);
+				accModifiedState_(z,operatorLabel,newBasis,gsVector,site,SPIN_DOWN,orb,isign);
+				return;
+			} else if (operatorLabel==ProgramGlobals::OPERATOR_SZ) {
+				accModifiedState_(z,ProgramGlobals::OPERATOR_N,newBasis,gsVector,site,SPIN_UP,orb,isign);
+				accModifiedState_(z,ProgramGlobals::OPERATOR_N,newBasis,gsVector,site,SPIN_DOWN,orb,-isign);
+				return;
+			}
+			accModifiedState_(z,operatorLabel,newBasis,gsVector,site,spin,orb,isign);
+		}
+
+	private:
+
 		//! Gf Related functions:
 		template<typename SomeVectorType>
-		void accModifiedState(SomeVectorType &z,
+		void accModifiedState_(SomeVectorType &z,
 							  size_t operatorLabel,
 							  const BasisType& newBasis,
 							  const SomeVectorType& gsVector,
@@ -198,13 +228,6 @@ namespace LanczosPlusPlus {
 				z[temp] += isign*mysign*value*gsVector[ispace];
 			}
 		}
-
-		void printBasis(std::ostream& os) const
-		{
-			os<<basis_;
-		}
-
-	private:
 
 		void calcDiagonalElements(std::vector<RealType>& diag,
 		                          const BasisType &basis) const

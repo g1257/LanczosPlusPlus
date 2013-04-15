@@ -80,6 +80,7 @@ DISCLOSED WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
 #ifndef PROGRAM_LIMITS_H
 #define PROGRAM_LIMITS_H
 #include <string>
+#include "TypeToString.h"
 
 namespace LanczosPlusPlus {
 	struct ProgramGlobals {
@@ -88,12 +89,12 @@ namespace LanczosPlusPlus {
 		static double const LanczosTolerance; // tolerance of the Lanczos Algorithm
 		enum {FERMION,BOSON};
 //		enum {DESTRUCTOR,CONSTRUCTOR};
-		enum {OPERATOR_NIL,OPERATOR_C,OPERATOR_SZ,OPERATOR_CDAGGER};
+		enum {OPERATOR_NIL,OPERATOR_C,OPERATOR_SZ,OPERATOR_CDAGGER,OPERATOR_N};
 
 		static bool needsNewBasis(size_t what)
 		{
-			if (what==ProgramGlobals::OPERATOR_C) return true;
-			if (what==ProgramGlobals::OPERATOR_CDAGGER) return true;
+			if (what==OPERATOR_C) return true;
+			if (what==OPERATOR_CDAGGER) return true;
 			return false;
 		}
 
@@ -105,13 +106,27 @@ namespace LanczosPlusPlus {
 				return OPERATOR_CDAGGER;
 			} else if (s=="sz") {
 				return OPERATOR_SZ;
+			} else if (s=="nil") {
+				return OPERATOR_NIL;
+			} else if (s=="n") {
+				return OPERATOR_N;
 			}
-			return OPERATOR_NIL;
+			std::string str = unknownOperator(s);
+			throw std::runtime_error(str.c_str());
+		}
+
+		static std::string unknownOperator(const std::string& s)
+		{
+			std::string str(__FILE__);
+			str += " " + ttos(__LINE__) + "\n";
+			str += "Unknown operator " + s + "\n";
+			return str;
 		}
 
 		static bool isFermionic(size_t what)
 		{
 			if (what==OPERATOR_C) return true;
+			if (what==OPERATOR_CDAGGER) return true;
 			return false;
 		}
 

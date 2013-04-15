@@ -195,9 +195,34 @@ template<typename RealType_,typename GeometryType_>
 			matrix.setRow(hilbert,nCounter);
 		}
 
-		//! Gf Related function:
 		template<typename SomeVectorType>
 		void accModifiedState(SomeVectorType& z,
+							  size_t operatorLabel,
+							  const BasisType& newBasis,
+							  const SomeVectorType& gsVector,
+//							  size_t what,
+							  size_t site,
+							  size_t spin,
+							  size_t orb,
+							  int isign) const
+		{
+			if (operatorLabel==ProgramGlobals::OPERATOR_N) {
+				accModifiedState_(z,operatorLabel,newBasis,gsVector,site,SPIN_UP,orb,isign);
+				accModifiedState_(z,operatorLabel,newBasis,gsVector,site,SPIN_DOWN,orb,isign);
+				return;
+			} else if (operatorLabel==ProgramGlobals::OPERATOR_SZ) {
+				accModifiedState_(z,ProgramGlobals::OPERATOR_N,newBasis,gsVector,site,SPIN_UP,orb,isign);
+				accModifiedState_(z,ProgramGlobals::OPERATOR_N,newBasis,gsVector,site,SPIN_DOWN,orb,-isign);
+				return;
+			}
+			accModifiedState_(z,operatorLabel,newBasis,gsVector,site,spin,orb,isign);
+		}
+
+	private:
+
+		//! Gf Related function:
+		template<typename SomeVectorType>
+		void accModifiedState_(SomeVectorType& z,
 							  size_t operatorLabel,
 							  const BasisType& newBasis,
 							  const SomeVectorType& gsVector,
@@ -229,8 +254,6 @@ template<typename RealType_,typename GeometryType_>
 				z[temp] += isign*mysign*gsVector[ispace];
 			}
 		}
-
-	private:
 
 		RealType hoppings(size_t i,size_t orb1,size_t j,size_t orb2) const
 		{

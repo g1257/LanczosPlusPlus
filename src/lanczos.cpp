@@ -109,9 +109,9 @@ template<typename ModelType,typename SpecialSymmetryType>
 void mainLoop2(ModelType& model,
 			   IoInputType& io,
 			   const GeometryType& geometry,
-			   size_t gf,
+			   const std::vector<size_t>& gfV,
 			   std::vector<size_t>& sites,
-			   size_t cicj,
+			   const std::vector<size_t>& cicjV,
 			   const std::pair<size_t,size_t>& orbs)
 {
 	typedef typename ModelType::BasisType BasisType;
@@ -124,7 +124,8 @@ void mainLoop2(ModelType& model,
 	RealType Eg = engine.gsEnergy();
 	std::cout.precision(8);
 	std::cout<<"Energy="<<Eg<<"\n";
-	if (gf!=ProgramGlobals::OPERATOR_NIL) {
+	for (size_t gfi=0;gfi<gfV.size();gfi++) {
+		size_t gf = gfV[gfi];
 		io.read(sites,"TSPSites");
 		if (sites.size()==0) throw std::runtime_error("No sites in input file!\n");
 		if (sites.size()==1) sites.push_back(sites[0]);
@@ -142,7 +143,8 @@ void mainLoop2(ModelType& model,
 		cfCollection.save(ioOut);
 	}
 
-	if (cicj!=ProgramGlobals::OPERATOR_NIL) {
+	for (size_t cicji=0;cicji<cicjV.size();cicji++) {
+		size_t cicj = cicjV[cicji];
 		size_t total = geometry.numberOfSites();
 		PsimagLite::Matrix<typename SpecialSymmetryType::VectorType::value_type> cicjMatrix(total,total);
 		size_t norbitals = maxOrbitals(model);
@@ -158,9 +160,9 @@ void mainLoop2(ModelType& model,
 template<typename ModelType>
 void mainLoop(IoInputType& io,
 			  const GeometryType& geometry,
-			  size_t gf,
+			  const std::vector<size_t>& gf,
 			  std::vector<size_t>& sites,
-			  size_t cicj,
+			  const std::vector<size_t>& cicj,
 			  const std::pair<size_t,size_t>& orbs)
 {
 	typedef typename ModelType::ParametersModelType ParametersModelType;
@@ -201,22 +203,21 @@ void mainLoop(IoInputType& io,
 int main(int argc,char *argv[])
 {
 	int opt = 0;
-	size_t gf = ProgramGlobals::OPERATOR_NIL;
+	std::vector<size_t> cicj,gf;
 	std::string file = "";
 	std::vector<size_t> sites;
-	size_t cicj=ProgramGlobals::OPERATOR_NIL;
 	std::pair<size_t,size_t> orbs(0,0);
 	std::vector<std::string> str;
 	while ((opt = getopt(argc, argv, "g:c:f:o:")) != -1) {
 		switch (opt) {
 		case 'g':
-			gf = ProgramGlobals::operator2id(optarg);
+			gf.push_back(ProgramGlobals::operator2id(optarg));
 			break;
 		case 'f':
 			file = optarg;
 			break;
 		case 'c':
-			cicj = ProgramGlobals::operator2id(optarg);
+			cicj.push_back(ProgramGlobals::operator2id(optarg));
 			break;
 		case 'o':
 			PsimagLite::tokenizer(optarg,str,",");

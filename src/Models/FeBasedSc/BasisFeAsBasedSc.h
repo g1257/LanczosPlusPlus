@@ -95,8 +95,10 @@ namespace LanczosPlusPlus {
 
 		int getBraIndex(WordType ket1, WordType ket2,size_t what,size_t site,size_t spin,size_t orb) const
 		{
-			if (what==ProgramGlobals::OPERATOR_C || what==ProgramGlobals::OPERATOR_CDAGGER)
-				return getBraIndexCorCdagger(ket1,ket2,what,site,spin,orb);
+			if (what==ProgramGlobals::OPERATOR_C ||
+			    what==ProgramGlobals::OPERATOR_CDAGGER ||
+			    what==ProgramGlobals::OPERATOR_N)
+				return getBraIndexCorCdaggerOrN(ket1,ket2,what,site,spin,orb);
 			if (what==ProgramGlobals::OPERATOR_SPLUS || what==ProgramGlobals::OPERATOR_SMINUS)
 				return getBraIndexSplusOrSminus(ket1,ket2,what,site,orb);
 			std::string str(__FILE__);
@@ -182,7 +184,7 @@ namespace LanczosPlusPlus {
 
 	private:
 
-		int getBraIndexCorCdagger(WordType ket1, WordType ket2,size_t what,size_t site,size_t spin,size_t orb) const
+		int getBraIndexCorCdaggerOrN(WordType ket1, WordType ket2,size_t what,size_t site,size_t spin,size_t orb) const
 		{
 
 			WordType bra  =0;

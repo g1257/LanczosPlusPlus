@@ -120,11 +120,12 @@ namespace LanczosPlusPlus {
 
 			for (size_t type=0;type<4;type++) {
 				if (isite==jsite && orbs.first==orbs.second && type>1) continue;
-				//if (type&1) continue;
+
 				if (ProgramGlobals::needsNewBasis(what2)) {
 					assert(spins.first==spins.second);
 					std::pair<size_t,size_t> newParts(0,0);
-					if (!model_.hasNewParts(newParts,what2,type,spins.first,orbs)) continue;
+					size_t what3 = ProgramGlobals::operatorWithType(what2,type);
+					if (!model_.hasNewParts(newParts,what3,spins.first,orbs)) continue;
 					// Create new bases
 					basisNew = new BasisType(model_.geometry(),newParts.first,newParts.second);
 				} else {
@@ -161,14 +162,12 @@ namespace LanczosPlusPlus {
 		              const PairType& spins,
 		              const PairType& orbs) const
 		{
-			size_t type = 0;
-
 			const BasisType* basisNew = 0;
 
 			if (ProgramGlobals::needsNewBasis(what2)) {
 				assert(spins.first==spins.second);
 				std::pair<size_t,size_t> newParts(0,0);
-				if (!model_.hasNewParts(newParts,ProgramGlobals::OPERATOR_C,type,spins.first,orbs)) return;
+				if (!model_.hasNewParts(newParts,what2,spins.first,orbs)) return;
 
 				basisNew = new BasisType(model_.geometry(),newParts.first,newParts.second);
 

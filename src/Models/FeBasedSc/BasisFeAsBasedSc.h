@@ -159,22 +159,33 @@ namespace LanczosPlusPlus {
 				return basis1_.isThereAnElectronAt(ket1,site,orb);
 			return basis2_.isThereAnElectronAt(ket2,site,orb);
 		}
-		
-//		size_t electrons(size_t what) const
-//		{
-//			return (what==SPIN_UP) ? basis1_.electrons() : basis2_.electrons();
-//		}
 
 		bool hasNewParts(std::pair<size_t,size_t>& newParts,
-				size_t type,
-				size_t spin,
-				const std::pair<size_t,size_t>& orbs) const
+		                 size_t what,
+		                 size_t spin,
+		                 const std::pair<size_t,size_t>& orbs) const
+		{
+			if (what==ProgramGlobals::OPERATOR_C || what==ProgramGlobals::OPERATOR_CDAGGER)
+				return hasNewPartsCorCdagger(newParts,what,spin,orbs);
+			std::string str(__FILE__);
+			str += " " + ttos(__LINE__) +  "\n";
+			str += std::string("hasNewParts: unsupported operator ");
+			str += ProgramGlobals::id2Operator(what) + "\n";
+			throw std::runtime_error(str.c_str());
+		}
+
+	private:
+
+		bool hasNewPartsCorCdagger(std::pair<size_t,size_t>& newParts,
+		                           size_t what,
+		                           size_t spin,
+		                           const std::pair<size_t,size_t>& orbs) const
 		{
 			int newPart1=basis1_.electrons();
 			int newPart2=basis2_.electrons();
 
-			if (spin==SPIN_UP) newPart1 = basis1_.newPart(type,orbs.first);
-			else newPart2 = basis2_.newPart(type,orbs.second);
+			if (spin==SPIN_UP) newPart1 = basis1_.newPartCorCdagger(what,orbs.first);
+			else newPart2 = basis2_.newPartCorCdagger(what,orbs.second);
 
 			if (newPart1<0 || newPart2<0) return false;
 
@@ -183,8 +194,6 @@ namespace LanczosPlusPlus {
 			newParts.second = size_t(newPart2);
 			return true;
 		}
-		
-	private:
 		
 		bool getBra(WordType& bra,
 			    const WordType& ket1,

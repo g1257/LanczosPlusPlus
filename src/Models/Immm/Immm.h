@@ -73,12 +73,11 @@ template<typename RealType_,typename GeometryType_>
 		}
 
 		bool hasNewParts(std::pair<size_t,size_t>& newParts,
-						 size_t what2,
-						 size_t type,
+						 size_t what,
 						 size_t spin,
 						 const std::pair<size_t,size_t>& orbs) const
 		{
-			return basis_.hasNewParts(newParts,type,spin,orbs);
+			return basis_.hasNewParts(newParts,what,spin,orbs);
 		}
 
 		template<typename SomeVectorType>

@@ -83,62 +83,102 @@ DISCLOSED WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
 #include "TypeToString.h"
 
 namespace LanczosPlusPlus {
-	struct ProgramGlobals {
-		static size_t const MaxLanczosSteps = 1000000; // max number of internal Lanczos steps
-		static size_t const LanczosSteps = 300; // max number of external Lanczos steps
-		static double const LanczosTolerance; // tolerance of the Lanczos Algorithm
-		enum {FERMION,BOSON};
-//		enum {DESTRUCTOR,CONSTRUCTOR};
-		enum {OPERATOR_NIL,OPERATOR_C,OPERATOR_SZ,OPERATOR_CDAGGER,OPERATOR_N};
+struct ProgramGlobals {
+	static size_t const MaxLanczosSteps = 1000000; // max number of internal Lanczos steps
+	static size_t const LanczosSteps = 300; // max number of external Lanczos steps
+	static double const LanczosTolerance; // tolerance of the Lanczos Algorithm
 
-		static bool needsNewBasis(size_t what)
-		{
-			if (what==OPERATOR_C) return true;
-			if (what==OPERATOR_CDAGGER) return true;
-			return false;
-		}
+	enum {FERMION,BOSON};
 
-		static size_t operator2id(const std::string& s)
-		{
-			if (s=="c") {
-				return OPERATOR_C;
-			} else if (s=="cdagger") {
-				return OPERATOR_CDAGGER;
-			} else if (s=="sz") {
-				return OPERATOR_SZ;
-			} else if (s=="nil") {
-				return OPERATOR_NIL;
-			} else if (s=="n") {
-				return OPERATOR_N;
-			}
-			std::string str = unknownOperator(s);
-			throw std::runtime_error(str.c_str());
-		}
+	enum {OPERATOR_NIL,
+	      OPERATOR_C,
+	      OPERATOR_SZ,
+	      OPERATOR_CDAGGER,
+	      OPERATOR_N,
+	      OPERATOR_SPLUS,
+	      OPERATOR_SMINUS};
 
-		static std::string unknownOperator(const std::string& s)
-		{
-			std::string str(__FILE__);
-			str += " " + ttos(__LINE__) + "\n";
-			str += "Unknown operator " + s + "\n";
-			return str;
-		}
+	static bool needsNewBasis(size_t what)
+	{
+		if (what==OPERATOR_C) return true;
+		if (what==OPERATOR_CDAGGER) return true;
+		return false;
+	}
 
-		static bool isFermionic(size_t what)
-		{
-			if (what==OPERATOR_C) return true;
-			if (what==OPERATOR_CDAGGER) return true;
-			return false;
+	static size_t operator2id(const std::string& s)
+	{
+		if (s=="c") {
+			return OPERATOR_C;
+		} else if (s=="cdagger") {
+			return OPERATOR_CDAGGER;
+		} else if (s=="sz") {
+			return OPERATOR_SZ;
+		} else if (s=="nil") {
+			return OPERATOR_NIL;
+		} else if (s=="n") {
+			return OPERATOR_N;
+		} else if (s=="splus") {
+			return OPERATOR_SPLUS;
+		} else if (s=="sminus") {
+			return OPERATOR_SMINUS;
 		}
+		std::string str = unknownOperator(s);
+		throw std::runtime_error(str.c_str());
+	}
 
-		static size_t transposeConjugate(size_t operatorLabel)
-		{
-			if (operatorLabel==OPERATOR_C)
-				return OPERATOR_CDAGGER;
-			if (operatorLabel==OPERATOR_CDAGGER)
-				return OPERATOR_C;
-			return operatorLabel;
+	static std::string id2Operator(size_t id)
+	{
+		std::vector<std::string> labels;
+		labels.push_back("cdagger");
+		labels.push_back("c");
+		labels.push_back("n");
+		labels.push_back("sz");
+		labels.push_back("splus");
+		labels.push_back("sminus");
+		labels.push_back("nil");
+		for (size_t i=0;i<labels.size();i++) {
+			if (operator2id(labels[i])==id) return labels[i];
 		}
-	}; // ProgramGlobals
+		return "UNKNOWN";
+	}
+
+	static size_t operatorWithType(size_t op,size_t type)
+	{
+		if (op==OPERATOR_C || op==OPERATOR_CDAGGER) {
+			if (type&1) return transposeConjugate(op);
+			return op;
+		}
+		std::string str(__FILE__);
+		str += " " + ttos(__LINE__) +  "\n";
+		str += "operatorWithType: unsupported operator " + id2Operator(op) + "\n";
+		throw std::runtime_error(str.c_str());
+
+	}
+
+	static std::string unknownOperator(const std::string& s)
+	{
+		std::string str(__FILE__);
+		str += " " + ttos(__LINE__) + "\n";
+		str += "Unknown operator " + s + "\n";
+		return str;
+	}
+
+	static bool isFermionic(size_t what)
+	{
+		if (what==OPERATOR_C) return true;
+		if (what==OPERATOR_CDAGGER) return true;
+		return false;
+	}
+
+	static size_t transposeConjugate(size_t operatorLabel)
+	{
+		if (operatorLabel==OPERATOR_C)
+			return OPERATOR_CDAGGER;
+		if (operatorLabel==OPERATOR_CDAGGER)
+			return OPERATOR_C;
+		return operatorLabel;
+	}
+}; // ProgramGlobals
 
 	double const ProgramGlobals::LanczosTolerance = 1e-12;
 }; // namespace LanczosPlusPlus

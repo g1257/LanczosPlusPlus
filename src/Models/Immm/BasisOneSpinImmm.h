@@ -23,6 +23,7 @@ Please see full open source license included in file LICENSE.
 #include "Matrix.h"
 #include "BitManip.h"
 #include <cassert>
+#include "ProgramGlobals.h"
 
 namespace LanczosPlusPlus {
 
@@ -253,11 +254,11 @@ namespace LanczosPlusPlus {
 			return true;
 		}
 
-		int newPart(size_t type,size_t orb) const
+		int newPartCorCdagger(size_t what,size_t orb) const
 		{
 			int newPart1=npart_;
 
-			int c = (type&1) ? 1 : -1;
+			int c = (what==ProgramGlobals::OPERATOR_CDAGGER) ? 1 : -1;
 			newPart1 += c;
 
 			if (newPart1<0) return -1;

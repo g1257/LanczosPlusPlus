@@ -48,16 +48,6 @@ namespace LanczosPlusPlus {
 			for (size_t i=0;i<n;i++)
 				for (size_t j=0;j<n;j++)
 					hoppings_(i,j) = geometry_(i,0,j,0,0);
-
-//			std::cerr<<"#HOPPINGS\n";
-//			std::cerr<<hoppings_;
-//			std::cerr<<"#HUBBARDU\n";
-//			std::cerr<<mp_.hubbardU;
-//			std::cerr<<"#POTENTIALV\n";
-//			std::cerr<<mp_.potentialV;
-//			std::cerr<<"#POTENTIALT\n";
-//			std::cerr<<mp_.potentialT;
-//			std::cerr<<"timeFactor="<<mp_.timeFactor<<"\n";
 		}
 
 		size_t size() const { return basis_.size(); }
@@ -101,24 +91,17 @@ namespace LanczosPlusPlus {
 		}
 
 		bool hasNewParts(std::pair<size_t,size_t>& newParts,
-						 size_t what2,
-		                 size_t type,
-						 size_t spin,
-						 const std::pair<size_t,size_t>& orbs) const
+		                 size_t what,
+		                 size_t spin,
+		                 const std::pair<size_t,size_t>& orbs) const
 		{
-			int newPart1=basis_.electrons(SPIN_UP);
-			int newPart2=basis_.electrons(SPIN_DOWN);
-			int c = (type&1) ? -1 : 1;
-			if (spin==SPIN_UP) newPart1 += c;
-			else newPart2 += c;
-
-			if (newPart1<0 || newPart2<0) return false;
-			size_t nsite = geometry_.numberOfSites();
-			if (size_t(newPart1)>nsite || size_t(newPart2)>nsite) return false;
-			if (newPart1==0 && newPart2==0) return false;
-			newParts.first = size_t(newPart1);
-			newParts.second = size_t(newPart2);
-			return true;
+			if (what==ProgramGlobals::OPERATOR_C || what==ProgramGlobals::OPERATOR_CDAGGER)
+				return hasNewPartsCorCdagger(newParts,what,spin,orbs);
+			std::string str(__FILE__);
+			str += " " + ttos(__LINE__) +  "\n";
+			str += std::string("hasNewParts: unsupported operator ");
+			str += ProgramGlobals::id2Operator(what) + "\n";
+			throw std::runtime_error(str.c_str());
 		}
 
 		template<typename SomeVectorType>
@@ -177,6 +160,26 @@ namespace LanczosPlusPlus {
 		}
 
 	private:
+
+		bool hasNewPartsCorCdagger(std::pair<size_t,size_t>& newParts,
+		                           size_t what,
+		                           size_t spin,
+		                           const std::pair<size_t,size_t>& orbs) const
+		{
+			int newPart1=basis_.electrons(SPIN_UP);
+			int newPart2=basis_.electrons(SPIN_DOWN);
+			int c = (what==ProgramGlobals::OPERATOR_C) ? -1 : 1;
+			if (spin==SPIN_UP) newPart1 += c;
+			else newPart2 += c;
+
+			if (newPart1<0 || newPart2<0) return false;
+			size_t nsite = geometry_.numberOfSites();
+			if (size_t(newPart1)>nsite || size_t(newPart2)>nsite) return false;
+			if (newPart1==0 && newPart2==0) return false;
+			newParts.first = size_t(newPart1);
+			newParts.second = size_t(newPart2);
+			return true;
+		}
 
 		//! Gf Related functions:
 		template<typename SomeVectorType>

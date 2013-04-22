@@ -104,25 +104,17 @@ namespace LanczosPlusPlus {
 		}
 
 		bool hasNewParts(std::pair<size_t,size_t>& newParts,
-						 size_t what,
-		                 size_t type,
-						 size_t spin,
-						 const PairType& orbs) const
+		                 size_t what,
+		                 size_t spin,
+		                 const PairType& orbs) const
 		{
-			int newPart1=basis_.electrons(SPIN_UP);
-			int newPart2=basis_.electrons(SPIN_DOWN);
-			int c = (type&1) ? 1 : -1;
-			if (spin==SPIN_UP) newPart1 += c;
-			else newPart2 += c;
-
-			if (newPart1<0 || newPart2<0) return false;
-			size_t nsite = geometry_.numberOfSites();
-			if (size_t(newPart1)>nsite || size_t(newPart2)>nsite) return false;
-			if (newPart1==0 && newPart2==0) return false;
-			if (size_t(newPart1+newPart2)>nsite) return false; // no double occupancy
-			newParts.first = size_t(newPart1);
-			newParts.second = size_t(newPart2);
-			return true;
+			if (what==ProgramGlobals::OPERATOR_C || what==ProgramGlobals::OPERATOR_CDAGGER)
+				return hasNewPartsCorCdagger(newParts,what,spin,orbs);
+			std::string str(__FILE__);
+			str += " " + ttos(__LINE__) +  "\n";
+			str += std::string("hasNewParts: unsupported operator ");
+			str += ProgramGlobals::id2Operator(what) + "\n";
+			throw std::runtime_error(str.c_str());
 		}
 
 		template<typename SomeVectorType>
@@ -206,6 +198,27 @@ namespace LanczosPlusPlus {
 		}
 
 	private:
+
+		bool hasNewPartsCorCdagger(std::pair<size_t,size_t>& newParts,
+		                 size_t what,
+		                 size_t spin,
+		                 const PairType& orbs) const
+		{
+			int newPart1=basis_.electrons(SPIN_UP);
+			int newPart2=basis_.electrons(SPIN_DOWN);
+			int c = (what==ProgramGlobals::OPERATOR_CDAGGER) ? 1 : -1;
+			if (spin==SPIN_UP) newPart1 += c;
+			else newPart2 += c;
+
+			if (newPart1<0 || newPart2<0) return false;
+			size_t nsite = geometry_.numberOfSites();
+			if (size_t(newPart1)>nsite || size_t(newPart2)>nsite) return false;
+			if (newPart1==0 && newPart2==0) return false;
+			if (size_t(newPart1+newPart2)>nsite) return false; // no double occupancy
+			newParts.first = size_t(newPart1);
+			newParts.second = size_t(newPart2);
+			return true;
+		}
 
 		void calcDiagonalElements(std::vector<RealType>& diag,
 		                          const BasisType &basis) const

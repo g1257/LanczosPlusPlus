@@ -151,7 +151,7 @@ namespace LanczosPlusPlus {
 			uncollateKet(kets,myword);
 
 			WordType braA = kets[orb];
-			if (!getBra(braA,kets[orb],what,site)) return false;
+			if (!getBraCorCdagger(braA,kets[orb],what,site)) return false;
 
 			kets[orb] = braA;
 			bra = getCollatedKet(kets);
@@ -232,6 +232,19 @@ namespace LanczosPlusPlus {
 			int newPart1=npart_;
 
 			int c = (what==ProgramGlobals::OPERATOR_C) ? -1 : 1;
+			newPart1 += c;
+
+			if (newPart1<0) return -1;
+
+			if (size_t(newPart1)>orbitals_*nsite_) return -1;
+
+			return newPart1;
+		}
+
+		int hasNewPartsSplusOrSminus(int c,size_t orb) const
+		{
+			int newPart1=npart_;
+
 			newPart1 += c;
 
 			if (newPart1<0) return -1;
@@ -413,7 +426,7 @@ namespace LanczosPlusPlus {
 			}
 		}
 
-		bool getBra(WordType& bra, const WordType& ket,size_t what,size_t i) const
+		bool getBraCorCdagger(WordType& bra, const WordType& ket,size_t what,size_t i) const
 		{
 
 			WordType si=(ket & bitmask_[i]);
@@ -436,7 +449,10 @@ namespace LanczosPlusPlus {
 				bra = ket;
 				return true;
 			}
-			std::string str = ProgramGlobals::unknownOperator(ttos(what));
+//			else if (what==ProgramGlobals::OPERATOR_SPLUS) {
+
+//			}
+			std::string str = ProgramGlobals::unknownOperator(what);
 			throw std::runtime_error(str.c_str());
 		}
 

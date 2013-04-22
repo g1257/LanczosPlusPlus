@@ -150,7 +150,7 @@ namespace LanczosPlusPlus {
 				bra = ket;
 				return true;
 			}
-			std::string str = ProgramGlobals::unknownOperator(ttos(what));
+			std::string str = ProgramGlobals::unknownOperator(what);
 			throw std::runtime_error(str.c_str());
 		}
 	

@@ -95,11 +95,15 @@ namespace LanczosPlusPlus {
 
 		int getBraIndex(WordType ket1, WordType ket2,size_t what,size_t site,size_t spin,size_t orb) const
 		{
-			WordType bra  =0;
-			bool b = getBra(bra,ket1,ket2,what,site,spin,orb);
-			if (!b) return -1;
-			return (spin==SPIN_UP) ? perfectIndex(bra,ket2) :
-						 perfectIndex(ket1,bra);
+			if (what==ProgramGlobals::OPERATOR_C || what==ProgramGlobals::OPERATOR_CDAGGER)
+				return getBraIndexCorCdagger(ket1,ket2,what,site,spin,orb);
+			if (what==ProgramGlobals::OPERATOR_SPLUS || what==ProgramGlobals::OPERATOR_SMINUS)
+				return getBraIndexSplusOrSminus(ket1,ket2,what,site,orb);
+			std::string str(__FILE__);
+			str += " " + ttos(__LINE__) +  "\n";
+			str += std::string("getBraIndex: unsupported operator ");
+			str += ProgramGlobals::id2Operator(what) + "\n";
+			throw std::runtime_error(str.c_str());
 		}
 
 		int doSign(size_t i,size_t site,size_t sector) const
@@ -167,6 +171,8 @@ namespace LanczosPlusPlus {
 		{
 			if (what==ProgramGlobals::OPERATOR_C || what==ProgramGlobals::OPERATOR_CDAGGER)
 				return hasNewPartsCorCdagger(newParts,what,spin,orbs);
+			if (what==ProgramGlobals::OPERATOR_SPLUS || what==ProgramGlobals::OPERATOR_SMINUS)
+				return hasNewPartsSplusOrSminus(newParts,what,orbs);
 			std::string str(__FILE__);
 			str += " " + ttos(__LINE__) +  "\n";
 			str += std::string("hasNewParts: unsupported operator ");
@@ -175,6 +181,26 @@ namespace LanczosPlusPlus {
 		}
 
 	private:
+
+		int getBraIndexCorCdagger(WordType ket1, WordType ket2,size_t what,size_t site,size_t spin,size_t orb) const
+		{
+
+			WordType bra  =0;
+			bool b = getBraCorCdaggerOrN(bra,ket1,ket2,what,site,spin,orb);
+			if (!b) return -1;
+			return (spin==SPIN_UP) ? perfectIndex(bra,ket2) :
+			                         perfectIndex(ket1,bra);
+		}
+
+		int getBraIndexSplusOrSminus(WordType ket1, WordType ket2,size_t what,size_t site,size_t orb) const
+		{
+
+			WordType bra1  =0;
+			WordType bra2  =0;
+			bool b = getBraSplusOrSminus(bra1,bra2,ket1,ket2,what,site,orb);
+			if (!b) return -1;
+			return perfectIndex(bra1,bra2);
+		}
 
 		bool hasNewPartsCorCdagger(std::pair<size_t,size_t>& newParts,
 		                           size_t what,
@@ -194,17 +220,50 @@ namespace LanczosPlusPlus {
 			newParts.second = size_t(newPart2);
 			return true;
 		}
+
+		bool hasNewPartsSplusOrSminus(std::pair<size_t,size_t>& newParts,
+		                              size_t what,
+		                              const std::pair<size_t,size_t>& orbs) const
+		{
+			int c1 = (what==ProgramGlobals::OPERATOR_SPLUS) ? 1 : -1;
+			int c2 = (what==ProgramGlobals::OPERATOR_SPLUS) ? -1 : 1;
+
+			int newPart1 = basis1_.hasNewPartsSplusOrSminus(c1,orbs.first);
+			int newPart2 = basis2_.hasNewPartsSplusOrSminus(c2,orbs.second);
+
+			if (newPart1<0 || newPart2<0) return false;
+
+			if (newPart1==0 && newPart2==0) return false;
+			newParts.first = size_t(newPart1);
+			newParts.second = size_t(newPart2);
+			return true;
+		}
 		
-		bool getBra(WordType& bra,
-			    const WordType& ket1,
-			    const WordType& ket2,
-			    size_t what,
-			    size_t site,
-			    size_t spin,
-			    size_t orb) const
+		bool getBraCorCdaggerOrN(WordType& bra,
+		                         const WordType& ket1,
+		                         const WordType& ket2,
+		                         size_t what,
+		                         size_t site,
+		                         size_t spin,
+		                         size_t orb) const
 		{
 			return (spin==SPIN_UP) ? basis1_.getBra(bra,ket1,what,site,orb) :
-						 basis2_.getBra(bra,ket2,what,site,orb);
+			                         basis2_.getBra(bra,ket2,what,site,orb);
+		}
+
+		bool getBraSplusOrSminus(WordType& bra1,
+		                        WordType& bra2,
+		                        const WordType& ket1,
+		                        const WordType& ket2,
+		                        size_t what,
+		                        size_t site,
+		                        size_t orb) const
+		{
+			size_t what1 = (what==ProgramGlobals::OPERATOR_SPLUS) ? ProgramGlobals::OPERATOR_CDAGGER : ProgramGlobals::OPERATOR_C;
+			size_t what2 = (what==ProgramGlobals::OPERATOR_SPLUS) ? ProgramGlobals::OPERATOR_C : ProgramGlobals::OPERATOR_CDAGGER;
+			bool b1 = basis1_.getBra(bra1,ket1,what1,site,orb);
+			bool b2 = basis2_.getBra(bra2,ket2,what2,site,orb);
+			return (b1 & b2);
 		}
 
 		BasisType basis1_,basis2_;

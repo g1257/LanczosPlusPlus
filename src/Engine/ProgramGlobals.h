@@ -100,8 +100,8 @@ struct ProgramGlobals {
 
 	static bool needsNewBasis(size_t what)
 	{
-		if (what==OPERATOR_C) return true;
-		if (what==OPERATOR_CDAGGER) return true;
+		if (what==OPERATOR_C || what==OPERATOR_CDAGGER) return true;
+		if (what==OPERATOR_SPLUS || what==OPERATOR_SMINUS) return true;
 		return false;
 	}
 
@@ -122,7 +122,9 @@ struct ProgramGlobals {
 		} else if (s=="sminus") {
 			return OPERATOR_SMINUS;
 		}
-		std::string str = unknownOperator(s);
+		std::string str(__FILE__);
+		str += " " + ttos(__LINE__) +  "\n";
+		str += "operatorWithType: unsupported operator " + s + "\n";
 		throw std::runtime_error(str.c_str());
 	}
 
@@ -155,11 +157,11 @@ struct ProgramGlobals {
 
 	}
 
-	static std::string unknownOperator(const std::string& s)
+	static std::string unknownOperator(size_t id)
 	{
 		std::string str(__FILE__);
 		str += " " + ttos(__LINE__) + "\n";
-		str += "Unknown operator " + s + "\n";
+		str += "Unknown operator " + id2Operator(id) + "\n";
 		return str;
 	}
 
@@ -176,6 +178,10 @@ struct ProgramGlobals {
 			return OPERATOR_CDAGGER;
 		if (operatorLabel==OPERATOR_CDAGGER)
 			return OPERATOR_C;
+		if (operatorLabel==OPERATOR_SPLUS)
+			return OPERATOR_SMINUS;
+		if (operatorLabel==OPERATOR_SMINUS)
+			return OPERATOR_SPLUS;
 		return operatorLabel;
 	}
 }; // ProgramGlobals

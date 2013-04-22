@@ -46,6 +46,21 @@ typedef std::complex<RealType> ComplexType;
 typedef PsimagLite::ConcurrencySerial<RealType> ConcurrencyType;
 typedef PsimagLite::Geometry<RealType,ProgramGlobals> GeometryType;
 typedef PsimagLite::IoSimple::In IoInputType;
+typedef std::pair<size_t,size_t> PairType;
+
+void fillOrbsOrSpin(std::vector<PairType>& spinV,const std::vector<std::string>& strV)
+{
+	for (size_t i=0;i<strV.size();i++) {
+		std::vector<std::string> strV2;
+		PsimagLite::tokenizer(strV[i],strV2,",");
+		if (strV2.size()!=2)
+			throw std::runtime_error("-o needs pairs\n");
+		PairType spins;
+		spins.first = atoi(strV2[0].c_str());
+		spins.second = atoi(strV2[1].c_str());
+		spinV.push_back(spins);
+	}
+}
 
 std::pair<size_t,size_t> readElectrons(PsimagLite::IoSimple::In& io,size_t nsites)
 {
@@ -112,7 +127,8 @@ void mainLoop2(ModelType& model,
 			   const std::vector<size_t>& gfV,
 			   std::vector<size_t>& sites,
 			   const std::vector<size_t>& cicjV,
-			   const std::pair<size_t,size_t>& orbs)
+			   const PairType& orbs,
+               const std::vector<PairType>& spins)
 {
 	typedef typename ModelType::BasisType BasisType;
 	typedef Engine<ModelType,InternalProductStored,SpecialSymmetryType,ConcurrencyType> EngineType;
@@ -137,7 +153,7 @@ void mainLoop2(ModelType& model,
 			ContinuedFractionCollectionType;
 
 		ContinuedFractionCollectionType cfCollection;
-		engine.spectralFunction(cfCollection,gf,sites[0],sites[1],ModelType::SPIN_UP,orbs);
+		engine.spectralFunction(cfCollection,gf,sites[0],sites[1],spins,orbs);
 
 		PsimagLite::IoSimple::Out ioOut(std::cout);
 		cfCollection.save(ioOut);
@@ -150,7 +166,7 @@ void mainLoop2(ModelType& model,
 		size_t norbitals = maxOrbitals(model);
 		for (size_t orb1=0;orb1<norbitals;orb1++) {
 			for (size_t orb2=0;orb2<norbitals;orb2++) {
-				engine.twoPoint(cicjMatrix,cicj,ModelType::SPIN_UP,std::pair<size_t,size_t>(orb1,orb2));
+				engine.twoPoint(cicjMatrix,cicj,spins,std::pair<size_t,size_t>(orb1,orb2));
 				std::cout<<cicjMatrix;
 			}
 		}
@@ -163,7 +179,8 @@ void mainLoop(IoInputType& io,
 			  const std::vector<size_t>& gf,
 			  std::vector<size_t>& sites,
 			  const std::vector<size_t>& cicj,
-			  const std::pair<size_t,size_t>& orbs)
+			  const PairType& orbs,
+              const std::vector<PairType>& spins)
 {
 	typedef typename ModelType::ParametersModelType ParametersModelType;
 	typedef typename ModelType::BasisType BasisType;
@@ -191,11 +208,11 @@ void mainLoop(IoInputType& io,
 	bool useReflectionSymmetry = (tmp==1) ? true : false;
 
 	if (useTranslationSymmetry) {
-		mainLoop2<ModelType,TranslationSymmetry<GeometryType,BasisType> >(model,io,geometry,gf,sites,cicj,orbs);
+		mainLoop2<ModelType,TranslationSymmetry<GeometryType,BasisType> >(model,io,geometry,gf,sites,cicj,orbs,spins);
 	} else if (useReflectionSymmetry) {
-		mainLoop2<ModelType,ReflectionSymmetry<GeometryType,BasisType> >(model,io,geometry,gf,sites,cicj,orbs);
+		mainLoop2<ModelType,ReflectionSymmetry<GeometryType,BasisType> >(model,io,geometry,gf,sites,cicj,orbs,spins);
 	} else {
-		mainLoop2<ModelType,DefaultSymmetry<GeometryType,BasisType> >(model,io,geometry,gf,sites,cicj,orbs);
+		mainLoop2<ModelType,DefaultSymmetry<GeometryType,BasisType> >(model,io,geometry,gf,sites,cicj,orbs,spins);
 	}
 }
 
@@ -206,9 +223,11 @@ int main(int argc,char *argv[])
 	std::vector<size_t> cicj,gf;
 	std::string file = "";
 	std::vector<size_t> sites;
-	std::pair<size_t,size_t> orbs(0,0);
+	PairType orbs = PairType(0,0);
+	std::vector<PairType> spins(1,PairType(0,0));
 	std::vector<std::string> str;
-	while ((opt = getopt(argc, argv, "g:c:f:o:")) != -1) {
+
+	while ((opt = getopt(argc, argv, "g:c:f:o:s:")) != -1) {
 		switch (opt) {
 		case 'g':
 			gf.push_back(ProgramGlobals::operator2id(optarg));
@@ -220,11 +239,16 @@ int main(int argc,char *argv[])
 			cicj.push_back(ProgramGlobals::operator2id(optarg));
 			break;
 		case 'o':
-			PsimagLite::tokenizer(optarg,str,",");
+			PsimagLite::tokenizer(optarg,str,";");
 			if (str.size()!=2)
-				throw std::runtime_error("-o needs two orbitals\n");
+				throw std::runtime_error("-o needs pairs\n");
 			orbs.first = atoi(str[0].c_str());
 			orbs.second = atoi(str[1].c_str());
+			str.clear();
+			break;
+		case 's':
+			PsimagLite::tokenizer(optarg,str,";");
+			fillOrbsOrSpin(spins,str);
 			str.clear();
 			break;
 		default: /* '?' */
@@ -236,6 +260,7 @@ int main(int argc,char *argv[])
 		usage(argv[0]);
 		return 1;
 	}
+
 	//! setup distributed parallelization
 	ConcurrencyType concurrency(argc,argv);
 
@@ -250,13 +275,13 @@ int main(int argc,char *argv[])
 	io.readline(model,"Model=");
 
 	if (model=="Tj1Orb") {
-		mainLoop<Tj1Orb<RealType,GeometryType> >(io,geometry,gf,sites,cicj,orbs);
+		mainLoop<Tj1Orb<RealType,GeometryType> >(io,geometry,gf,sites,cicj,orbs,spins);
 	} else if (model=="Immm") {
-		mainLoop<Immm<RealType,GeometryType> >(io,geometry,gf,sites,cicj,orbs);
+		mainLoop<Immm<RealType,GeometryType> >(io,geometry,gf,sites,cicj,orbs,spins);
 	} else if (model=="HubbardOneBand") {
-		mainLoop<HubbardOneOrbital<RealType,GeometryType> >(io,geometry,gf,sites,cicj,orbs);
+		mainLoop<HubbardOneOrbital<RealType,GeometryType> >(io,geometry,gf,sites,cicj,orbs,spins);
 	} else if (model=="FeAsBasedSc") {
-		mainLoop<FeBasedSc<RealType,GeometryType> >(io,geometry,gf,sites,cicj,orbs);
+		mainLoop<FeBasedSc<RealType,GeometryType> >(io,geometry,gf,sites,cicj,orbs,spins);
 	} else {
 		std::cerr<<"No known model "<<model<<"\n";
 		return 1;

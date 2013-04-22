@@ -18,6 +18,7 @@ namespace LanczosPlusPlus {
 	class Tj1Orb {
 
 		typedef PsimagLite::Matrix<RealType_> MatrixType;
+		typedef std::pair<size_t,size_t> PairType;
 
 	public:
 
@@ -106,7 +107,7 @@ namespace LanczosPlusPlus {
 						 size_t what,
 		                 size_t type,
 						 size_t spin,
-						 const std::pair<size_t,size_t>& orbs) const
+						 const PairType& orbs) const
 		{
 			int newPart1=basis_.electrons(SPIN_UP);
 			int newPart2=basis_.electrons(SPIN_DOWN);

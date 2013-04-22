@@ -59,6 +59,7 @@ namespace LanczosPlusPlus {
 		typedef PsimagLite::Matrix<FieldType> MatrixType;
 		typedef typename LanczosSolverType::TridiagonalMatrixType
 				TridiagonalMatrixType;
+		typedef std::pair<size_t,size_t> PairType;
 
 		// ContF needs to support concurrency FIXME
 		static const size_t parallelRank_ = 0;
@@ -88,9 +89,31 @@ namespace LanczosPlusPlus {
 							  size_t what2,
 							  int isite,
 							  int jsite,
-							  int spin,
-							  const std::pair<size_t,size_t>& orbs) const
+							  const std::vector<PairType>& spins,
+							  const PairType& orbs) const
 		{
+			for (size_t i=0;i<spins.size();i++) {
+				std::cout<<"spins="<<spins[i].first<<" "<<spins[i].second<<"\n";
+				spectralFunction(cfCollection,what2,isite,jsite,spins[i],orbs);
+			}
+		}
+
+		//! Calc Green function G(isite,jsite)  (still diagonal in spin)
+		template<typename ContinuedFractionCollectionType>
+		void spectralFunction(ContinuedFractionCollectionType& cfCollection,
+							  size_t what2,
+							  int isite,
+							  int jsite,
+							  const PairType& spins,
+							  const PairType& orbs) const
+		{
+			if (spins.first!=spins.second) {
+				std::string str(__FILE__);
+				str += " " + ttos(__LINE__) + "\n";
+				str += "spectralFunction: no support yet for off-diagonal spin\n";
+				throw std::runtime_error(str.c_str());
+			}
+
 			typedef typename ContinuedFractionCollectionType::ContinuedFractionType ContinuedFractionType;
 			typedef typename ModelType::BasisType BasisType;
 			const BasisType* basisNew = 0;
@@ -99,36 +122,53 @@ namespace LanczosPlusPlus {
 				if (isite==jsite && orbs.first==orbs.second && type>1) continue;
 				//if (type&1) continue;
 				if (ProgramGlobals::needsNewBasis(what2)) {
+					assert(spins.first==spins.second);
 					std::pair<size_t,size_t> newParts(0,0);
-					if (!model_.hasNewParts(newParts,what2,type,spin,orbs)) continue;
+					if (!model_.hasNewParts(newParts,what2,type,spins.first,orbs)) continue;
 					// Create new bases
 					basisNew = new BasisType(model_.geometry(),newParts.first,newParts.second);
 				} else {
 					basisNew = &model_.basis();
 				}
 				VectorType modifVector;
-				model_.getModifiedState(modifVector,what2,gsVector_,*basisNew,type,isite,jsite,spin,orbs);
+				model_.getModifiedState(modifVector,what2,gsVector_,*basisNew,type,isite,jsite,spins.first,orbs);
 
 				DefaultSymmetryType symm(*basisNew,model_.geometry());
 				InternalProductTemplate<ModelType,DefaultSymmetryType> matrix(model_,*basisNew,symm);
 				ContinuedFractionType cf;
 
-				calcSpectral(cf,what2,modifVector,matrix,type,spin);
+				calcSpectral(cf,what2,modifVector,matrix,type,spins.first);
 				cfCollection.push(cf);
 
 				if (ProgramGlobals::needsNewBasis(what2)) delete basisNew;
 			}
 		}
 
-		void twoPoint(PsimagLite::Matrix<typename VectorType::value_type>& result,size_t what2,size_t spin,const std::pair<size_t,size_t>& orbs) const
+		void twoPoint(PsimagLite::Matrix<typename VectorType::value_type>& result,
+		              size_t what2,
+		              const std::vector<PairType>& spins,
+		              const PairType& orbs) const
+		{
+			for (size_t i=0;i<spins.size();i++) {
+				std::cout<<"spins="<<spins[i].first<<" "<<spins[i].second<<"\n";
+				twoPoint(result,what2,spins[i],orbs);
+			}
+
+		}
+
+		void twoPoint(PsimagLite::Matrix<typename VectorType::value_type>& result,
+		              size_t what2,
+		              const PairType& spins,
+		              const PairType& orbs) const
 		{
 			size_t type = 0;
 
 			const BasisType* basisNew = 0;
 
 			if (ProgramGlobals::needsNewBasis(what2)) {
+				assert(spins.first==spins.second);
 				std::pair<size_t,size_t> newParts(0,0);
-				if (!model_.hasNewParts(newParts,ProgramGlobals::OPERATOR_C,type,spin,orbs)) return;
+				if (!model_.hasNewParts(newParts,ProgramGlobals::OPERATOR_C,type,spins.first,orbs)) return;
 
 				basisNew = new BasisType(model_.geometry(),newParts.first,newParts.second);
 
@@ -153,12 +193,12 @@ namespace LanczosPlusPlus {
 				VectorType modifVector1(basisNew->size(),0);
 				if (orbs.first>=model_.orbitals(isite)) continue;
 				model_.accModifiedState(modifVector1,what2,*basisNew,gsVector_,
-							isite,spin,orbs.first,isign);
+							isite,spins.first,orbs.first,isign);
 				for (size_t jsite=0;jsite<total;jsite++) {
 					VectorType modifVector2(basisNew->size(),0);
 					if (orbs.second>=model_.orbitals(jsite)) continue;
 					model_.accModifiedState(modifVector2,what2,*basisNew,gsVector_,
-								jsite,spin,orbs.second,isign);
+								jsite,spins.second,orbs.second,isign);
 					result(isite,jsite) =  modifVector2*modifVector1;
 					if (isite==jsite) sum += result(isite,isite);
 				}

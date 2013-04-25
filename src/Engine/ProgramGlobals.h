@@ -144,19 +144,6 @@ struct ProgramGlobals {
 		return "UNKNOWN";
 	}
 
-	static size_t operatorWithType(size_t op,size_t type)
-	{
-		if (op==OPERATOR_C || op==OPERATOR_CDAGGER) {
-			if (type&1) return transposeConjugate(op);
-			return op;
-		}
-		std::string str(__FILE__);
-		str += " " + ttos(__LINE__) +  "\n";
-		str += "operatorWithType: unsupported operator " + id2Operator(op) + "\n";
-		throw std::runtime_error(str.c_str());
-
-	}
-
 	static std::string unknownOperator(size_t id)
 	{
 		std::string str(__FILE__);

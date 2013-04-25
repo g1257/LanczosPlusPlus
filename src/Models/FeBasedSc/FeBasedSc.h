@@ -84,18 +84,16 @@ namespace LanczosPlusPlus {
 							  size_t spin,
 							  const std::pair<size_t,size_t>& orbs) const
 		{
-			size_t operatorLabel2= (type&1) ?  operatorLabel : ProgramGlobals::transposeConjugate(operatorLabel);
-
 			modifVector.resize(basisNew.size());
 			for (size_t temp=0;temp<modifVector.size();temp++)
 				modifVector[temp]=0.0;
 
-			accModifiedState(modifVector,operatorLabel2,basisNew,gsVector,isite,spin,orbs.first,1);
+			accModifiedState(modifVector,operatorLabel,basisNew,gsVector,isite,spin,orbs.first,1);
 			std::cerr<<"isite="<<isite<<" type="<<type;
 			std::cerr<<" modif="<<(modifVector*modifVector)<<"\n";
 
 			int isign= (type>1) ? -1 : 1;
-			accModifiedState(modifVector,operatorLabel2,basisNew,gsVector,jsite,spin,orbs.second,isign);
+			accModifiedState(modifVector,operatorLabel,basisNew,gsVector,jsite,spin,orbs.second,isign);
 			std::cerr<<"jsite="<<jsite<<" type="<<type;
 			std::cerr<<" modif="<<(modifVector*modifVector)<<"\n";
 		}

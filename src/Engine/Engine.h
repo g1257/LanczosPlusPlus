@@ -121,27 +121,27 @@ namespace LanczosPlusPlus {
 			for (size_t type=0;type<4;type++) {
 				if (isite==jsite && orbs.first==orbs.second && type>1) continue;
 
-				if (ProgramGlobals::needsNewBasis(what2)) {
+				size_t operatorLabel= (type&1) ?  what2 : ProgramGlobals::transposeConjugate(what2);
+				if (ProgramGlobals::needsNewBasis(operatorLabel)) {
 					assert(spins.first==spins.second);
 					std::pair<size_t,size_t> newParts(0,0);
-					size_t what3 = ProgramGlobals::operatorWithType(what2,type);
-					if (!model_.hasNewParts(newParts,what3,spins.first,orbs)) continue;
+					if (!model_.hasNewParts(newParts,operatorLabel,spins.first,orbs)) continue;
 					// Create new bases
 					basisNew = new BasisType(model_.geometry(),newParts.first,newParts.second);
 				} else {
 					basisNew = &model_.basis();
 				}
 				VectorType modifVector;
-				model_.getModifiedState(modifVector,what2,gsVector_,*basisNew,type,isite,jsite,spins.first,orbs);
+				model_.getModifiedState(modifVector,operatorLabel,gsVector_,*basisNew,type,isite,jsite,spins.first,orbs);
 
 				DefaultSymmetryType symm(*basisNew,model_.geometry());
 				InternalProductTemplate<ModelType,DefaultSymmetryType> matrix(model_,*basisNew,symm);
 				ContinuedFractionType cf;
 
-				calcSpectral(cf,what2,modifVector,matrix,type,spins.first);
+				calcSpectral(cf,operatorLabel,modifVector,matrix,type,spins.first);
 				cfCollection.push(cf);
 
-				if (ProgramGlobals::needsNewBasis(what2)) delete basisNew;
+				if (ProgramGlobals::needsNewBasis(operatorLabel)) delete basisNew;
 			}
 		}
 

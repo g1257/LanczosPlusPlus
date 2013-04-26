@@ -277,12 +277,14 @@ namespace LanczosPlusPlus {
 			if (what==OPERATOR_C) {
 				if (si>0) {
 					bra = (ket ^ bitmask_[i]);
+					return true;
 				} else {
 					return false; // cannot destroy, there's nothing
 				}
 			} else if (what==OPERATOR_CDAGGER) {
 				if (si==0) {
 					bra = (ket ^ bitmask_[i]);
+					return true;
 				} else {
 					return false; // cannot construct, there's already one
 				}

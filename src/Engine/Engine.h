@@ -216,8 +216,8 @@ namespace LanczosPlusPlus {
 			//if (CHECK_HERMICITY) checkHermicity(h);
 
 			ParametersForSolverType params;
-			params.steps =  ProgramGlobals::LanczosSteps;
-			params.tolerance = ProgramGlobals::LanczosTolerance;
+			params.steps =  params_.gsSteps;
+			params.tolerance = params_.gsEps;
 			params.lotaMemory = params_.storeLanczosVectors;
 			params.stepsForEnergyConvergence =ProgramGlobals::MaxLanczosSteps;
 
@@ -254,13 +254,9 @@ namespace LanczosPlusPlus {
 			typedef typename ContinuedFractionType::TridiagonalMatrixType
 			                                        TridiagonalMatrixType;
 			
-
-			RealType eps= ProgramGlobals::LanczosTolerance;
-			size_t iter= ProgramGlobals::LanczosSteps;
-
 			ParametersForSolverType params;
-			params.steps = iter;
-			params.tolerance = eps;
+			params.steps = params_.spectralSteps;
+			params.tolerance = params_.spectralEps;
 			params.lotaMemory = params_.storeLanczosVectors;
 			params.stepsForEnergyConvergence =ProgramGlobals::MaxLanczosSteps;
 

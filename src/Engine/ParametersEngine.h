@@ -119,13 +119,13 @@ namespace LanczosPlusPlus {
 			}
 
 			try {
-				io.readline(spectralSteps,"LanczosStepsSpectral=");
+				io.readline(spectralSteps,"DynamicDmrgSteps=");
 			} catch (std::exception& e) {
 				io.rewind();
 			}
 
 			try {
-				io.readline(spectralEps,"LanczosEpsSpectral=");
+				io.readline(spectralEps,"DynamicDmrgEps=");
 			} catch (std::exception& e) {
 				io.rewind();
 			}

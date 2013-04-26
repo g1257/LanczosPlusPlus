@@ -90,6 +90,8 @@ struct ProgramGlobals {
 
 	enum {FERMION,BOSON};
 
+	enum {SPIN_UP,SPIN_DOWN};
+
 	enum {OPERATOR_NIL,
 	      OPERATOR_C,
 	      OPERATOR_SZ,

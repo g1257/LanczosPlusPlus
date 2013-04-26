@@ -117,33 +117,6 @@ namespace LanczosPlusPlus {
 			throw std::runtime_error(str.c_str());
 		}
 
-		template<typename SomeVectorType>
-		void getModifiedState(SomeVectorType& modifVector,
-							  size_t operatorLabel,
-							  const SomeVectorType& gsVector,
-		                      const BasisType& basisNew,
-		                      size_t type,
-		                      size_t isite,
-		                      size_t jsite,
-							  size_t spin,
-							  const std::pair<size_t,size_t>& orbs) const
-		{
-			modifVector.resize(basisNew.size());
-			for (size_t temp=0;temp<modifVector.size();temp++)
-				modifVector[temp]=0.0;
-
-			size_t orb = 0; // bogus orbital index, no orbitals in this model
-			accModifiedState(modifVector,operatorLabel,basisNew,gsVector,isite,spin,orb,1);
-			std::cerr<<"isite="<<isite<<" type="<<type;
-			std::cerr<<" modif="<<(modifVector*modifVector)<<"\n";
-			if (isite==jsite) return;
-
-			int isign= (type>1) ? -1 : 1;
-			accModifiedState(modifVector,operatorLabel,basisNew,gsVector,jsite,spin,orb,isign);
-			std::cerr<<"jsite="<<jsite<<" type="<<type;
-			std::cerr<<" modif="<<(modifVector*modifVector)<<"\n";
-		}
-
 		const GeometryType& geometry() const { return geometry_; }
 
 		const BasisType& basis() const { return basis_; }
@@ -194,6 +167,8 @@ namespace LanczosPlusPlus {
 				z[temp] += isign*mysign*value*gsVector[ispace];
 			}
 		}
+
+		std::string name() const { return __FILE__; }
 
 	private:
 

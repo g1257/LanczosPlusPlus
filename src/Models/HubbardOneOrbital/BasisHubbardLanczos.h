@@ -15,8 +15,6 @@ namespace LanczosPlusPlus {
 		typedef BasisOneSpin BasisType;
 		typedef typename BasisType::WordType WordType;
 
-		enum {SPIN_UP,SPIN_DOWN};
-
 		static int const FERMION_SIGN = BasisType::FERMION_SIGN;
 
 		BasisHubbardLanczos(const GeometryType& geometry, size_t nup,size_t ndown) 
@@ -48,14 +46,14 @@ namespace LanczosPlusPlus {
 
 		size_t electrons(size_t what) const
 		{
-			return (what==SPIN_UP) ? basis1_.electrons() : basis2_.electrons();
+			return (what==ProgramGlobals::SPIN_UP) ? basis1_.electrons() : basis2_.electrons();
 		}
 
 		const WordType& operator()(size_t i,size_t spin) const
 		{
 			size_t y = i/basis1_.size();
 			size_t x = i%basis1_.size();
-			return (spin==SPIN_UP) ? basis1_[x] : basis2_[y];
+			return (spin==ProgramGlobals::SPIN_UP) ? basis1_[x] : basis2_[y];
 		}
 
 		size_t isThereAnElectronAt(WordType ket1,
@@ -63,19 +61,19 @@ namespace LanczosPlusPlus {
 								   size_t site,
 								   size_t spin) const
 		{
-			if (spin==SPIN_UP)
+			if (spin==ProgramGlobals::SPIN_UP)
 				return basis1_.isThereAnElectronAt(ket1,site);
 			return basis2_.isThereAnElectronAt(ket2,site);
 		}
 
 		size_t getN(WordType ket1,WordType ket2, size_t site,size_t spin) const
 		{
-			return (spin==SPIN_UP) ? basis1_.getN(ket1,site) : basis2_.getN(ket2,site);
+			return (spin==ProgramGlobals::SPIN_UP) ? basis1_.getN(ket1,site) : basis2_.getN(ket2,site);
 		}
 		
 		int doSignGf(WordType a, WordType b,size_t ind,size_t sector) const
 		{
-			if (sector==SPIN_UP) {
+			if (sector==ProgramGlobals::SPIN_UP) {
 				if (ind==0) return 1;
 
 				// ind>0 from now on
@@ -109,7 +107,7 @@ namespace LanczosPlusPlus {
 		           size_t spin) const
 		{
 			assert(i <= j);
-			return (spin==SPIN_UP) ? basis1_.doSign(ket1,i,j): basis2_.doSign(ket2,i,j);
+			return (spin==ProgramGlobals::SPIN_UP) ? basis1_.doSign(ket1,i,j): basis2_.doSign(ket2,i,j);
 		}
 
 		int getBraIndex(const WordType& ket1,
@@ -121,7 +119,7 @@ namespace LanczosPlusPlus {
 			WordType bra = 0;
 			bool b = getBra(bra,ket1,ket2,what,site,spin);
 			if (!b) return -1;
-			return (spin==SPIN_UP) ? perfectIndex(bra,ket2) :
+			return (spin==ProgramGlobals::SPIN_UP) ? perfectIndex(bra,ket2) :
 			                         perfectIndex(ket1,bra);
 		}
 		
@@ -132,7 +130,7 @@ namespace LanczosPlusPlus {
 		            size_t site,
 		            size_t spin) const
 		{
-			return (spin==SPIN_UP) ? basis1_.getBra(bra,ket1,what,site) :
+			return (spin==ProgramGlobals::SPIN_UP) ? basis1_.getBra(bra,ket1,what,site) :
 									 basis2_.getBra(bra,ket2,what,site);
 		}
 

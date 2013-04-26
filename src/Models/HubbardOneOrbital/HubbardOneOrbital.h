@@ -31,8 +31,6 @@ namespace LanczosPlusPlus {
 		typedef RealType_ RealType;
 		typedef std::vector<RealType> VectorType;
 
-		enum {SPIN_UP=BasisType::SPIN_UP,SPIN_DOWN=BasisType::SPIN_DOWN};
-
 		static int const FERMION_SIGN = BasisType::FERMION_SIGN;
 
 		HubbardOneOrbital(size_t nup,
@@ -78,8 +76,8 @@ namespace LanczosPlusPlus {
 			for (size_t ispace=0;ispace<hilbert;ispace++) {
 				SparseRowType sparseRow;
 				matrix.setRow(ispace,nCounter);
-				WordType ket1 = basis(ispace,SPIN_UP);
-				WordType ket2 = basis(ispace,SPIN_DOWN);
+				WordType ket1 = basis(ispace,ProgramGlobals::SPIN_UP);
+				WordType ket2 = basis(ispace,ProgramGlobals::SPIN_DOWN);
 				// Save diagonal
 				sparseRow.add(ispace,diag[ispace]);
 				for (size_t i=0;i<nsite;i++) {
@@ -104,98 +102,25 @@ namespace LanczosPlusPlus {
 			throw std::runtime_error(str.c_str());
 		}
 
-		template<typename SomeVectorType>
-		void getModifiedState(SomeVectorType& modifVector,
-							  size_t operatorLabel,
-							  const SomeVectorType& gsVector,
-		                      const BasisType& basisNew,
-		                      size_t type,
-		                      size_t isite,
-		                      size_t jsite,
-							  size_t spin,
-							  const std::pair<size_t,size_t>& orbs) const
-		{
-			modifVector.resize(basisNew.size());
-			for (size_t temp=0;temp<modifVector.size();temp++)
-				modifVector[temp]=0.0;
-
-			size_t orb = 0; // bogus orbital index, no orbitals in this model
-			accModifiedState(modifVector,operatorLabel,basisNew,gsVector,isite,spin,orb,1);
-			std::cerr<<"isite="<<isite<<" type="<<type;
-			std::cerr<<" modif="<<(modifVector*modifVector)<<"\n";
-
-			int isign= (type>1) ? -1 : 1;
-			accModifiedState(modifVector,operatorLabel,basisNew,gsVector,jsite,spin,orb,isign);
-			std::cerr<<"jsite="<<jsite<<" type="<<type;
-			std::cerr<<" modif="<<(modifVector*modifVector)<<"\n";
-		}
-
 		const GeometryType& geometry() const { return geometry_; }
 
 		const BasisType& basis() const { return basis_; }
 
-		template<typename SomeVectorType>
-		void accModifiedState(SomeVectorType& z,
-							  size_t operatorLabel,
-							  const BasisType& newBasis,
-							  const SomeVectorType& gsVector,
-//							  size_t what,
-							  size_t site,
-							  size_t spin,
-							  size_t orb,
-							  int isign) const
-		{
-			if (operatorLabel==ProgramGlobals::OPERATOR_N) {
-				accModifiedState_(z,operatorLabel,newBasis,gsVector,site,SPIN_UP,orb,isign);
-				accModifiedState_(z,operatorLabel,newBasis,gsVector,site,SPIN_DOWN,orb,isign);
-				return;
-			} else if (operatorLabel==ProgramGlobals::OPERATOR_SZ) {
-				accModifiedState_(z,ProgramGlobals::OPERATOR_N,newBasis,gsVector,site,SPIN_UP,orb,isign);
-				accModifiedState_(z,ProgramGlobals::OPERATOR_N,newBasis,gsVector,site,SPIN_DOWN,orb,-isign);
-				return;
-			}
-			accModifiedState_(z,operatorLabel,newBasis,gsVector,site,spin,orb,isign);
-		}
-
-	private:
-
-		bool hasNewPartsCorCdagger(std::pair<size_t,size_t>& newParts,
-		                           size_t what,
-		                           size_t spin,
-		                           const std::pair<size_t,size_t>& orbs) const
-		{
-			int newPart1=basis_.electrons(SPIN_UP);
-			int newPart2=basis_.electrons(SPIN_DOWN);
-			int c = (what==ProgramGlobals::OPERATOR_C) ? -1 : 1;
-			if (spin==SPIN_UP) newPart1 += c;
-			else newPart2 += c;
-
-			if (newPart1<0 || newPart2<0) return false;
-			size_t nsite = geometry_.numberOfSites();
-			if (size_t(newPart1)>nsite || size_t(newPart2)>nsite) return false;
-			if (newPart1==0 && newPart2==0) return false;
-			newParts.first = size_t(newPart1);
-			newParts.second = size_t(newPart2);
-			return true;
-		}
-
 		//! Gf Related functions:
 		template<typename SomeVectorType>
-		void accModifiedState_(SomeVectorType &z,
-							  size_t operatorLabel,
+		void accModifiedState(SomeVectorType &z,
+		                      size_t operatorLabel,
 		                      const BasisType& newBasis,
-							  const SomeVectorType& gsVector,
-//		                      size_t what,
+		                      const SomeVectorType& gsVector,
 		                      size_t site,
 		                      size_t spin,
-							  size_t orb,
+		                      size_t orb,
 		                      int isign) const
 		{
 			for (size_t ispace=0;ispace<basis_.size();ispace++) {
-				WordType ket1 = basis_(ispace,SPIN_UP);
-				WordType ket2 = basis_(ispace,SPIN_DOWN);
+				WordType ket1 = basis_(ispace,ProgramGlobals::SPIN_UP);
+				WordType ket2 = basis_(ispace,ProgramGlobals::SPIN_DOWN);
 				int temp = newBasis.getBraIndex(ket1,ket2,operatorLabel,site,spin);
-// 				int temp= getBraIndex(mysign,ket1,ket2,newBasis,what,site,spin);
 				if (temp>=0 && size_t(temp)>=z.size()) {
 					std::string s = "old basis=" + ttos(basis_.size());
 					s += " newbasis=" + ttos(newBasis.size());
@@ -209,10 +134,33 @@ namespace LanczosPlusPlus {
 					throw std::runtime_error(s.c_str());
 				}
 				if (temp<0) continue;
-//				int mysign = basis_.doSignGf(ket1,ket2,site,spin);
 				int mysign = (ProgramGlobals::isFermionic(operatorLabel)) ? basis_.doSignGf(ket1,ket2,site,spin) : 1;
 				z[temp] += isign*mysign*gsVector[ispace];
 			}
+		}
+
+		std::string name() const { return __FILE__; }
+
+	private:
+
+		bool hasNewPartsCorCdagger(std::pair<size_t,size_t>& newParts,
+		                           size_t what,
+		                           size_t spin,
+		                           const std::pair<size_t,size_t>& orbs) const
+		{
+			int newPart1=basis_.electrons(ProgramGlobals::SPIN_UP);
+			int newPart2=basis_.electrons(ProgramGlobals::SPIN_DOWN);
+			int c = (what==ProgramGlobals::OPERATOR_C) ? -1 : 1;
+			if (spin==ProgramGlobals::SPIN_UP) newPart1 += c;
+			else newPart2 += c;
+
+			if (newPart1<0 || newPart2<0) return false;
+			size_t nsite = geometry_.numberOfSites();
+			if (size_t(newPart1)>nsite || size_t(newPart2)>nsite) return false;
+			if (newPart1==0 && newPart2==0) return false;
+			newParts.first = size_t(newPart1);
+			newParts.second = size_t(newPart2);
+			return true;
 		}
 
 		void calcDiagonalElements(std::vector<RealType>& diag,
@@ -223,23 +171,23 @@ namespace LanczosPlusPlus {
 
 			// Calculate diagonal elements
 			for (size_t ispace=0;ispace<hilbert;ispace++) {
-				WordType ket1 = basis(ispace,SPIN_UP);
-				WordType ket2 = basis(ispace,SPIN_DOWN);
+				WordType ket1 = basis(ispace,ProgramGlobals::SPIN_UP);
+				WordType ket2 = basis(ispace,ProgramGlobals::SPIN_DOWN);
 				RealType s=0;
 				for (size_t i=0;i<nsite;i++) {
 
 					// Hubbard term U0
 					s += mp_.hubbardU[i] *
-							basis.isThereAnElectronAt(ket1,ket2,i,SPIN_UP) *
-							basis.isThereAnElectronAt(ket1,ket2,i,SPIN_DOWN);
+							basis.isThereAnElectronAt(ket1,ket2,i,ProgramGlobals::SPIN_UP) *
+							basis.isThereAnElectronAt(ket1,ket2,i,ProgramGlobals::SPIN_DOWN);
 
 					// Potential term
 					RealType tmp = mp_.potentialV[i];
 					if (mp_.potentialT.size()>0) tmp += mp_.potentialT[i]*mp_.timeFactor;
 					if (tmp!=0)
 						s += tmp*
-								(basis.getN(ket1,ket2,i,SPIN_UP) +
-								 basis.getN(ket1,ket2,i,SPIN_DOWN));
+								(basis.getN(ket1,ket2,i,ProgramGlobals::SPIN_UP) +
+								 basis.getN(ket1,ket2,i,ProgramGlobals::SPIN_DOWN));
 				}
 				diag[ispace]=s;
 			}
@@ -272,7 +220,7 @@ namespace LanczosPlusPlus {
 					WordType bra1= ket1 ^(BasisType::bitmask(i)|BasisType::bitmask(j));
 					size_t temp = basis.perfectIndex(bra1,ket2);
 					int extraSign = (s1i==1) ? FERMION_SIGN : 1;
-					RealType cTemp = h*extraSign*basis_.doSign(ket1,ket2,i,j,SPIN_UP);
+					RealType cTemp = h*extraSign*basis_.doSign(ket1,ket2,i,j,ProgramGlobals::SPIN_UP);
 					assert(temp<basis_.size());
 					sparseRow.add(temp,cTemp);
 				}
@@ -281,7 +229,7 @@ namespace LanczosPlusPlus {
 					WordType bra2= ket2 ^(BasisType::bitmask(i)|BasisType::bitmask(j));
 					size_t temp = basis.perfectIndex(ket1,bra2);
 					int extraSign = (s2i==1) ? FERMION_SIGN : 1;
-					RealType cTemp = h*extraSign*basis_.doSign(ket1,ket2,i,j,SPIN_DOWN);
+					RealType cTemp = h*extraSign*basis_.doSign(ket1,ket2,i,j,ProgramGlobals::SPIN_DOWN);
 					assert(temp<basis_.size());
 					sparseRow.add(temp,cTemp);
 				}

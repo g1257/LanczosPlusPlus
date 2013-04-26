@@ -133,7 +133,7 @@ namespace LanczosPlusPlus {
 					basisNew = &model_.basis();
 				}
 				VectorType modifVector;
-				model_.getModifiedState(modifVector,operatorLabel,gsVector_,*basisNew,type,isite,jsite,spins.first,orbs);
+				getModifiedState(modifVector,operatorLabel,gsVector_,*basisNew,type,isite,jsite,spins.first,orbs);
 
 				DefaultSymmetryType symm(*basisNew,model_.geometry());
 				InternalProductTemplate<ModelType,DefaultSymmetryType> matrix(model_,*basisNew,symm);
@@ -192,12 +192,12 @@ namespace LanczosPlusPlus {
 			for (size_t isite=0;isite<total;isite++) {
 				VectorType modifVector1(basisNew->size(),0);
 				if (orbs.first>=model_.orbitals(isite)) continue;
-				model_.accModifiedState(modifVector1,what2,*basisNew,gsVector_,
+				accModifiedState(modifVector1,what2,*basisNew,gsVector_,
 							isite,spins.first,orbs.first,isign);
 				for (size_t jsite=0;jsite<total;jsite++) {
 					VectorType modifVector2(basisNew->size(),0);
 					if (orbs.second>=model_.orbitals(jsite)) continue;
-					model_.accModifiedState(modifVector2,what2,*basisNew,gsVector_,
+					accModifiedState(modifVector2,what2,*basisNew,gsVector_,
 								jsite,spins.second,orbs.second,isign);
 					result(isite,jsite) =  modifVector2*modifVector1;
 					if (isite==jsite) sum += result(isite,isite);
@@ -209,6 +209,52 @@ namespace LanczosPlusPlus {
 		}
 
 	private:
+
+		void getModifiedState(VectorType& modifVector,
+		                      size_t operatorLabel,
+		                      const VectorType& gsVector,
+		                      const BasisType& basisNew,
+		                      size_t type,
+		                      size_t isite,
+		                      size_t jsite,
+		                      size_t spin,
+		                      const std::pair<size_t,size_t>& orbs) const
+		{
+			modifVector.resize(basisNew.size());
+			for (size_t temp=0;temp<modifVector.size();temp++)
+				modifVector[temp]=0.0;
+
+			model_.accModifiedState(modifVector,operatorLabel,basisNew,gsVector,isite,spin,orbs.first,1);
+			std::cerr<<"isite="<<isite<<" type="<<type;
+			std::cerr<<" modif="<<(modifVector*modifVector)<<"\n";
+			if (model_.name()=="Tj1Orb.h" && isite==jsite) return;
+
+			int isign= (type>1) ? -1 : 1;
+			model_.accModifiedState(modifVector,operatorLabel,basisNew,gsVector,jsite,spin,orbs.second,isign);
+			std::cerr<<"jsite="<<jsite<<" type="<<type;
+			std::cerr<<" modif="<<(modifVector*modifVector)<<"\n";
+		}
+
+		void accModifiedState(VectorType& z,
+		                      size_t operatorLabel,
+		                      const BasisType& newBasis,
+		                      const VectorType& gsVector,
+		                      size_t site,
+		                      size_t spin,
+		                      size_t orb,
+		                      int isign) const
+		{
+			if (operatorLabel==ProgramGlobals::OPERATOR_N) {
+				model_.accModifiedState(z,operatorLabel,newBasis,gsVector,site,ProgramGlobals::SPIN_UP,orb,isign);
+				model_.accModifiedState(z,operatorLabel,newBasis,gsVector,site,ProgramGlobals::SPIN_DOWN,orb,isign);
+				return;
+			} else if (operatorLabel==ProgramGlobals::OPERATOR_SZ) {
+				model_.accModifiedState(z,ProgramGlobals::OPERATOR_N,newBasis,gsVector,site,ProgramGlobals::SPIN_UP,orb,isign);
+				model_.accModifiedState(z,ProgramGlobals::OPERATOR_N,newBasis,gsVector,site,ProgramGlobals::SPIN_DOWN,orb,-isign);
+				return;
+			}
+			model_.accModifiedState(z,operatorLabel,newBasis,gsVector,site,spin,orb,isign);
+		}
 
 		void computeGroundState()
 		{

@@ -43,7 +43,6 @@ namespace LanczosPlusPlus {
 		typedef PsimagLite::CrsMatrix<RealType> SparseMatrixType;
 		typedef PsimagLite::SparseRow<SparseMatrixType> SparseRowType;
 		typedef std::vector<RealType> VectorType;
-		enum {SPIN_UP=BasisType::SPIN_UP,SPIN_DOWN=BasisType::SPIN_DOWN};
 		enum {TERM_HOPPINGS=0,TERM_J=1};
 		static int const FERMION_SIGN = BasisType::FERMION_SIGN;
 		
@@ -73,31 +72,6 @@ namespace LanczosPlusPlus {
 			return basis_.hasNewParts(newParts,what,spin,orbs);
 		}
 
-		template<typename SomeVectorType>
-		void getModifiedState(SomeVectorType& modifVector,
-							  size_t operatorLabel,
-							  const SomeVectorType& gsVector,
-							  const BasisType& basisNew,
-							  size_t type,
-							  size_t isite,
-							  size_t jsite,
-							  size_t spin,
-							  const std::pair<size_t,size_t>& orbs) const
-		{
-			modifVector.resize(basisNew.size());
-			for (size_t temp=0;temp<modifVector.size();temp++)
-				modifVector[temp]=0.0;
-
-			accModifiedState(modifVector,operatorLabel,basisNew,gsVector,isite,spin,orbs.first,1);
-			std::cerr<<"isite="<<isite<<" type="<<type;
-			std::cerr<<" modif="<<(modifVector*modifVector)<<"\n";
-
-			int isign= (type>1) ? -1 : 1;
-			accModifiedState(modifVector,operatorLabel,basisNew,gsVector,jsite,spin,orbs.second,isign);
-			std::cerr<<"jsite="<<jsite<<" type="<<type;
-			std::cerr<<" modif="<<(modifVector*modifVector)<<"\n";
-		}
-
 		const GeometryType& geometry() const { return geometry_; }
 
 		void setupHamiltonian(SparseMatrixType &matrix,
@@ -118,8 +92,8 @@ namespace LanczosPlusPlus {
 			for (size_t ispace=0;ispace<hilbert;ispace++) {
 				SparseRowType sparseRow;
 				matrix.setRow(ispace,nCounter);
-				WordType ket1 = basis(ispace,SPIN_UP);
-				WordType ket2 = basis(ispace,SPIN_DOWN);
+				WordType ket1 = basis(ispace,ProgramGlobals::SPIN_UP);
+				WordType ket2 = basis(ispace,ProgramGlobals::SPIN_DOWN);
 				// Save diagonal
 				sparseRow.add(ispace,diag[ispace]);
 				for (size_t i=0;i<nsite;i++) {
@@ -165,8 +139,8 @@ namespace LanczosPlusPlus {
 			for (size_t ispace=0;ispace<hilbert;ispace++) {
 				SparseRowType sparseRow;
 
-				WordType ket1 = basis->operator ()(ispace,SPIN_UP);
-				WordType ket2 = basis->operator ()(ispace,SPIN_DOWN);
+				WordType ket1 = basis->operator ()(ispace,ProgramGlobals::SPIN_UP);
+				WordType ket2 = basis->operator ()(ispace,ProgramGlobals::SPIN_DOWN);
 
 				//x[ispace] += diag[ispace]*y[ispace];
 				for (size_t i=0;i<nsite;i++) {
@@ -193,44 +167,17 @@ namespace LanczosPlusPlus {
 
 		template<typename SomeVectorType>
 		void accModifiedState(SomeVectorType& z,
-							  size_t operatorLabel,
-							  const BasisType& newBasis,
-							  const SomeVectorType& gsVector,
-//							  size_t what,
-							  size_t site,
-							  size_t spin,
-							  size_t orb,
-							  int isign) const
-		{
-			if (operatorLabel==ProgramGlobals::OPERATOR_N) {
-				accModifiedState_(z,operatorLabel,newBasis,gsVector,site,SPIN_UP,orb,isign);
-				accModifiedState_(z,operatorLabel,newBasis,gsVector,site,SPIN_DOWN,orb,isign);
-				return;
-			} else if (operatorLabel==ProgramGlobals::OPERATOR_SZ) {
-				accModifiedState_(z,ProgramGlobals::OPERATOR_N,newBasis,gsVector,site,SPIN_UP,orb,isign);
-				accModifiedState_(z,ProgramGlobals::OPERATOR_N,newBasis,gsVector,site,SPIN_DOWN,orb,-isign);
-				return;
-			}
-			accModifiedState_(z,operatorLabel,newBasis,gsVector,site,spin,orb,isign);
-		}
-
-
-	private:
-
-		template<typename SomeVectorType>
-		void accModifiedState_(SomeVectorType& z,
-							  size_t operatorLabel,
-							  const BasisType& newBasis,
-							  const SomeVectorType& gsVector,
-//							  size_t what,
-							  size_t site,
-							  size_t spin,
-							  size_t orb,
-							  int isign) const
+		                      size_t operatorLabel,
+		                      const BasisType& newBasis,
+		                      const SomeVectorType& gsVector,
+		                      size_t site,
+		                      size_t spin,
+		                      size_t orb,
+		                      int isign) const
 		{
 			for (size_t ispace=0;ispace<basis_.size();ispace++) {
-				WordType ket1 = basis_(ispace,SPIN_UP);
-				WordType ket2 = basis_(ispace,SPIN_DOWN);
+				WordType ket1 = basis_(ispace,ProgramGlobals::SPIN_UP);
+				WordType ket2 = basis_(ispace,ProgramGlobals::SPIN_DOWN);
 				int temp = newBasis.getBraIndex(ket1,ket2,operatorLabel,site,spin,orb);
 				// 				int temp= getBraIndex(mysign,ket1,ket2,newBasis,what,site,spin);
 				if (temp>=0 && size_t(temp)>=z.size()) {
@@ -251,6 +198,10 @@ namespace LanczosPlusPlus {
 				z[temp] += isign*mysign*gsVector[ispace];
 			}
 		}
+
+		std::string name() const { return __FILE__; }
+
+	private:
 
 		RealType hoppings(size_t i,size_t orb1,size_t j,size_t orb2) const
 		{
@@ -290,7 +241,7 @@ namespace LanczosPlusPlus {
 						size_t temp = basis.perfectIndex(bra1,ket2);
 						int extraSign = (s1i==1) ? FERMION_SIGN : 1;
 						RealType cTemp = h*extraSign*basis_.doSign(
-							ket1,ket2,i,orb,j,orb2,SPIN_UP);
+							ket1,ket2,i,orb,j,orb2,ProgramGlobals::SPIN_UP);
 						sparseRow.add(temp,cTemp);
 
 					}
@@ -299,7 +250,7 @@ namespace LanczosPlusPlus {
 						size_t temp = basis.perfectIndex(ket1,bra2);
 						int extraSign = (s2i==1) ? FERMION_SIGN : 1;
 						RealType cTemp = h*extraSign*basis_.doSign(
-							ket1,ket2,i,orb,j,orb2,SPIN_DOWN);
+							ket1,ket2,i,orb,j,orb2,ProgramGlobals::SPIN_DOWN);
 						sparseRow.add(temp,cTemp);
 					}
 				}
@@ -401,8 +352,8 @@ namespace LanczosPlusPlus {
 				const BasisType &basis) const
 		{
 			if (i>j) return jTermSign(ket1,ket2,j,orb2,i,orb1,basis);
-			int x = basis.doSign(ket1,ket2,i,orb1,j,orb2,SPIN_UP);
-			x *= basis.doSign(ket1,ket2,i,orb1,j,orb2,SPIN_DOWN);
+			int x = basis.doSign(ket1,ket2,i,orb1,j,orb2,ProgramGlobals::SPIN_UP);
+			x *= basis.doSign(ket1,ket2,i,orb1,j,orb2,ProgramGlobals::SPIN_DOWN);
 			return x;
 		}
 
@@ -414,8 +365,8 @@ namespace LanczosPlusPlus {
 
 			// Calculate diagonal elements
 			for (size_t ispace=0;ispace<hilbert;ispace++) {
-				WordType ket1 = basis(ispace,SPIN_UP);
-				WordType ket2 = basis(ispace,SPIN_DOWN);
+				WordType ket1 = basis(ispace,ProgramGlobals::SPIN_UP);
+				WordType ket2 = basis(ispace,ProgramGlobals::SPIN_DOWN);
 				diag[ispace]=findS(nsite,ket1,ket2,ispace,basis);
 			}
 		}
@@ -428,8 +379,8 @@ namespace LanczosPlusPlus {
 			size_t nsite = geometry_.numberOfSites();
 
 			for (size_t ispace=0;ispace<hilbert;ispace++) {
-				WordType ket1 = basis->operator()(ispace,SPIN_UP);
-				WordType ket2 = basis->operator()(ispace,SPIN_DOWN);
+				WordType ket1 = basis->operator()(ispace,ProgramGlobals::SPIN_UP);
+				WordType ket2 = basis->operator()(ispace,ProgramGlobals::SPIN_DOWN);
 				x[ispace] += findS(nsite,ket1,ket2,ispace,*basis)*y[ispace];
 			}
 		}
@@ -442,8 +393,8 @@ namespace LanczosPlusPlus {
 
 					// Hubbard term U0
 					s += mp_.hubbardU[0] * basis.isThereAnElectronAt(ket1,ket2,
-											 i,SPIN_UP,orb) * basis.isThereAnElectronAt(ket1,ket2,
-																    i,SPIN_DOWN,orb);
+											 i,ProgramGlobals::SPIN_UP,orb) * basis.isThereAnElectronAt(ket1,ket2,
+																    i,ProgramGlobals::SPIN_DOWN,orb);
 
 
 					for (size_t orb2=orb+1;orb2<mp_.orbitals;orb2++) {
@@ -470,9 +421,9 @@ namespace LanczosPlusPlus {
 
 					// Potential term
 					s += mp_.potentialV[i+(orb+mp_.orbitals*0)*nsite]*
-							basis.getN(ket1,i,SPIN_UP,orb) +
+							basis.getN(ket1,i,ProgramGlobals::SPIN_UP,orb) +
 						mp_.potentialV[i+(orb+mp_.orbitals*1)*nsite]*
-							 basis.getN(ket2,i,SPIN_DOWN,orb);
+							 basis.getN(ket2,i,ProgramGlobals::SPIN_DOWN,orb);
 
 				}
 			}
@@ -489,13 +440,13 @@ namespace LanczosPlusPlus {
 						const BasisType &basis) const
 		{
 			if (basis.isThereAnElectronAt(ket1,ket2,
-					j,SPIN_UP,orb2)==0) return 0;
+					j,ProgramGlobals::SPIN_UP,orb2)==0) return 0;
 			if (basis.isThereAnElectronAt(ket1,ket2,
-					i,SPIN_UP,orb1)==1) return 0;
+					i,ProgramGlobals::SPIN_UP,orb1)==1) return 0;
 			if (basis.isThereAnElectronAt(ket1,ket2,
-					i,SPIN_DOWN,orb1)==0) return 0;
+					i,ProgramGlobals::SPIN_DOWN,orb1)==0) return 0;
 			if (basis.isThereAnElectronAt(ket1,ket2,
-					j,SPIN_DOWN,orb2)==1) return 0;
+					j,ProgramGlobals::SPIN_DOWN,orb2)==1) return 0;
 			return 1;
 		}
 
@@ -508,13 +459,13 @@ namespace LanczosPlusPlus {
 				const BasisType &basis) const
 		{
 			if (basis.isThereAnElectronAt(ket1,ket2,
-					i,SPIN_UP,orb2)==0) return 0;
+					i,ProgramGlobals::SPIN_UP,orb2)==0) return 0;
 			if (basis.isThereAnElectronAt(ket1,ket2,
-					i,SPIN_UP,orb1)==1) return 0;
+					i,ProgramGlobals::SPIN_UP,orb1)==1) return 0;
 			if (basis.isThereAnElectronAt(ket1,ket2,
-					i,SPIN_DOWN,orb1)==1) return 0;
+					i,ProgramGlobals::SPIN_DOWN,orb1)==1) return 0;
 			if (basis.isThereAnElectronAt(ket1,ket2,
-					i,SPIN_DOWN,orb2)==0) return 0;
+					i,ProgramGlobals::SPIN_DOWN,orb2)==0) return 0;
 			return 1;
 		}
 
@@ -538,8 +489,8 @@ namespace LanczosPlusPlus {
 				size_t orb,
 				const BasisType &basis) const
 		{
-			RealType sz = basis.isThereAnElectronAt(ket1,ket2,i,SPIN_UP,orb);
-			sz -= basis.isThereAnElectronAt(ket1,ket2,i,SPIN_DOWN,orb);
+			RealType sz = basis.isThereAnElectronAt(ket1,ket2,i,ProgramGlobals::SPIN_UP,orb);
+			sz -= basis.isThereAnElectronAt(ket1,ket2,i,ProgramGlobals::SPIN_DOWN,orb);
 			return 0.5*sz;
 		}
 		

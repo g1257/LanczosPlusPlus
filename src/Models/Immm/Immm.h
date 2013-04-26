@@ -43,9 +43,6 @@ template<typename RealType_,typename GeometryType_>
 		typedef PsimagLite::CrsMatrix<RealType> SparseMatrixType;
 		typedef PsimagLite::SparseRowCached<SparseMatrixType> SparseRowType;
 		typedef std::vector<RealType> VectorType;
-//		typedef ReflectionSymmetry<GeometryType,BasisType> ReflectionSymmetryType;
-
-		enum {SPIN_UP=BasisType::SPIN_UP,SPIN_DOWN=BasisType::SPIN_DOWN};
 
 		static int const FERMION_SIGN = BasisType::FERMION_SIGN;
 
@@ -80,31 +77,6 @@ template<typename RealType_,typename GeometryType_>
 			return basis_.hasNewParts(newParts,what,spin,orbs);
 		}
 
-		template<typename SomeVectorType>
-		void getModifiedState(SomeVectorType& modifVector,
-							  size_t operatorLabel,
-							  const SomeVectorType& gsVector,
-		                      const BasisType& basisNew,
-		                      size_t type,
-		                      size_t isite,
-		                      size_t jsite,
-							  size_t spin,
-							  const std::pair<size_t,size_t>& orbs) const
-		{
-			modifVector.resize(basisNew.size());
-			for (size_t temp=0;temp<modifVector.size();temp++)
-				modifVector[temp]=0.0;
-
-			accModifiedState(modifVector,operatorLabel,basisNew,gsVector,isite,spin,1);
-			std::cerr<<"isite="<<isite<<" type="<<type;
-			std::cerr<<" modif="<<(modifVector*modifVector)<<"\n";
-
-			int isign= (type>1) ? -1 : 1;
-			accModifiedState(modifVector,operatorLabel,basisNew,gsVector,jsite,spin,isign);
-			std::cerr<<"jsite="<<jsite<<" type="<<type;
-			std::cerr<<" modif="<<(modifVector*modifVector)<<"\n";
-		}
-
 		void matrixVectorProduct(VectorType &x,const VectorType& y) const
 		{
 			matrixVectorProduct(x,y,&basis_);
@@ -126,8 +98,8 @@ template<typename RealType_,typename GeometryType_>
 			if (cacheSize<100) cacheSize=100;
 			SparseRowType sparseRow(cacheSize);
 			for (size_t ispace=0;ispace<hilbert;ispace++) {
-				WordType ket1 = basis->operator()(ispace,SPIN_UP);
-				WordType ket2 = basis->operator()(ispace,SPIN_DOWN);
+				WordType ket1 = basis->operator()(ispace,ProgramGlobals::SPIN_UP);
+				WordType ket2 = basis->operator()(ispace,ProgramGlobals::SPIN_DOWN);
 				// Save diagonal
 				sparseRow.add(ispace,diag[ispace]);
 				for (size_t i=0;i<nsite;i++) {
@@ -170,8 +142,8 @@ template<typename RealType_,typename GeometryType_>
 			SparseRowType sparseRow(100);
 			for (size_t ispace=0;ispace<hilbert;ispace++) {
 				matrix.setRow(ispace,nCounter);
-				WordType ket1 = basis(ispace,SPIN_UP);
-				WordType ket2 = basis(ispace,SPIN_DOWN);
+				WordType ket1 = basis(ispace,ProgramGlobals::SPIN_UP);
+				WordType ket2 = basis(ispace,ProgramGlobals::SPIN_DOWN);
 				// Save diagonal
 				sparseRow.add(ispace,diag[ispace]);
 				for (size_t i=0;i<nsite;i++) {
@@ -192,34 +164,9 @@ template<typename RealType_,typename GeometryType_>
 			matrix.setRow(hilbert,nCounter);
 		}
 
-		template<typename SomeVectorType>
-		void accModifiedState(SomeVectorType& z,
-							  size_t operatorLabel,
-							  const BasisType& newBasis,
-							  const SomeVectorType& gsVector,
-//							  size_t what,
-							  size_t site,
-							  size_t spin,
-							  size_t orb,
-							  int isign) const
-		{
-			if (operatorLabel==ProgramGlobals::OPERATOR_N) {
-				accModifiedState_(z,operatorLabel,newBasis,gsVector,site,SPIN_UP,orb,isign);
-				accModifiedState_(z,operatorLabel,newBasis,gsVector,site,SPIN_DOWN,orb,isign);
-				return;
-			} else if (operatorLabel==ProgramGlobals::OPERATOR_SZ) {
-				accModifiedState_(z,ProgramGlobals::OPERATOR_N,newBasis,gsVector,site,SPIN_UP,orb,isign);
-				accModifiedState_(z,ProgramGlobals::OPERATOR_N,newBasis,gsVector,site,SPIN_DOWN,orb,-isign);
-				return;
-			}
-			accModifiedState_(z,operatorLabel,newBasis,gsVector,site,spin,orb,isign);
-		}
-
-	private:
-
 		//! Gf Related function:
 		template<typename SomeVectorType>
-		void accModifiedState_(SomeVectorType& z,
+		void accModifiedState(SomeVectorType& z,
 							  size_t operatorLabel,
 							  const BasisType& newBasis,
 							  const SomeVectorType& gsVector,
@@ -229,8 +176,8 @@ template<typename RealType_,typename GeometryType_>
 							  int isign) const
 		{
 			for (size_t ispace=0;ispace<basis_.size();ispace++) {
-				WordType ket1 = basis_(ispace,SPIN_UP);
-				WordType ket2 = basis_(ispace,SPIN_DOWN);
+				WordType ket1 = basis_(ispace,ProgramGlobals::SPIN_UP);
+				WordType ket2 = basis_(ispace,ProgramGlobals::SPIN_DOWN);
 				int temp = newBasis.getBraIndex(ket1,ket2,ispace,operatorLabel,site,spin,orb);
 // 				int temp= getBraIndex(mysign,ket1,ket2,newBasis,what,site,spin);
 				if (temp>=0 && size_t(temp)>=z.size()) {
@@ -251,6 +198,10 @@ template<typename RealType_,typename GeometryType_>
 				z[temp] += isign*mysign*gsVector[ispace];
 			}
 		}
+
+		std::string name() const { return __FILE__; }
+
+	private:
 
 		RealType hoppings(size_t i,size_t orb1,size_t j,size_t orb2) const
 		{
@@ -291,18 +242,18 @@ template<typename RealType_,typename GeometryType_>
 
 					if (s1i+s1j==1) {
 						WordType bra1= ket1 ^(BasisType::bitmask(ii)|BasisType::bitmask(jj));
-						size_t temp = basis.perfectIndex(bra1,ispace,SPIN_UP);
+						size_t temp = basis.perfectIndex(bra1,ispace,ProgramGlobals::SPIN_UP);
 						int extraSign = (s1i==1) ? FERMION_SIGN : 1;
-						RealType cTemp = h*extraSign*basis.doSign(ket1,ket2,i,orb,j,orb2,SPIN_UP);
+						RealType cTemp = h*extraSign*basis.doSign(ket1,ket2,i,orb,j,orb2,ProgramGlobals::SPIN_UP);
 						sparseRow.add(temp,cTemp);
 					}
 
 					if (s2i+s2j==1) {
 						WordType bra2= ket2 ^(BasisType::bitmask(ii)|BasisType::bitmask(jj));
-						size_t temp = basis.perfectIndex(bra2,ispace,SPIN_DOWN);
+						size_t temp = basis.perfectIndex(bra2,ispace,ProgramGlobals::SPIN_DOWN);
 						int extraSign = (s2i==1) ? FERMION_SIGN : 1;
 						RealType cTemp = h*extraSign*basis.doSign(
-							ket1,ket2,i,orb,j,orb2,SPIN_DOWN);
+							ket1,ket2,i,orb,j,orb2,ProgramGlobals::SPIN_DOWN);
 						sparseRow.add(temp,cTemp);
 					}
 				}
@@ -317,19 +268,19 @@ template<typename RealType_,typename GeometryType_>
 
 			// Calculate diagonal elements
 			for (size_t ispace=0;ispace<hilbert;ispace++) {
-				WordType ket1 = basis(ispace,SPIN_UP);
-				WordType ket2 = basis(ispace,SPIN_DOWN);
+				WordType ket1 = basis(ispace,ProgramGlobals::SPIN_UP);
+				WordType ket2 = basis(ispace,ProgramGlobals::SPIN_DOWN);
 				RealType s=0;
 				for (size_t i=0;i<nsite;i++) {
 					for (size_t orb=0;orb<basis.orbsPerSite(i);orb++) {
 
-						size_t totalCharge = basis.getN(ket1,i,SPIN_UP,orb) +
-								basis.getN(ket2,i,SPIN_DOWN,orb);
+						size_t totalCharge = basis.getN(ket1,i,ProgramGlobals::SPIN_UP,orb) +
+								basis.getN(ket2,i,ProgramGlobals::SPIN_DOWN,orb);
 
 						// Hubbard term U0
 						s += mp_.hubbardU[i] * (1.0-basis.isThereAnElectronAt(ket1,ket2,
-								i,SPIN_UP,orb)) * (1.0-basis.isThereAnElectronAt(ket1,ket2,
-								i,SPIN_DOWN,orb));
+								i,ProgramGlobals::SPIN_UP,orb)) * (1.0-basis.isThereAnElectronAt(ket1,ket2,
+								i,ProgramGlobals::SPIN_DOWN,orb));
 
 						// Potential term
 						s += mp_.potentialV[i]*totalCharge;
@@ -340,8 +291,8 @@ template<typename RealType_,typename GeometryType_>
 						for (size_t j=0;j<nsite;j++) {
 							if (basis.orbsPerSite(j)==2) continue;
 							// j is a Copper site now
-							size_t totalCharge2 = basis.getN(ket1,j,SPIN_UP,0) +
-									basis.getN(ket2,j,SPIN_DOWN,0);
+							size_t totalCharge2 = basis.getN(ket1,j,ProgramGlobals::SPIN_UP,0) +
+									basis.getN(ket2,j,ProgramGlobals::SPIN_DOWN,0);
 							s += (2.0-totalCharge) * (2.0-totalCharge2) * Upd(i,j);
 						}
 					}

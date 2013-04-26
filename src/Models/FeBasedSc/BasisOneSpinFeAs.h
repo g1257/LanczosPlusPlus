@@ -100,27 +100,6 @@ namespace LanczosPlusPlus {
 			throw std::runtime_error("perfectindex\n");
 		}
 
-//			WordType ketA=0,ketB=0;
-//			uncollateKet(ketA,ketB,ket);
-//			// p(ket) = \sum_{na'=0}^{na'<na} S_na' * S_nb'
-//			//			+ p_A(ket_A)*S_nb + p_B(ket_B)
-//			// where S_x = C^n_x
-//			size_t na = PsimagLite::BitManip::count(ketA);
-//			// note nb = PsimagLite::BitManip::count(ketB)
-//			// or nb  = npart -na
-//			size_t s = 0;
-//			for (size_t nap=0;nap<na;nap++) {
-//				size_t nbp = npart_ - nap;
-//				s += comb_(nsite_,nap) * comb_(nsite_,nbp);
-//			}
-//			size_t nb = npart_ - na;
-//			s += perfectIndexPartial(ketA)*comb_(nsite_,nb);
-//			s += perfectIndexPartial(ketB);
-//			if (s>=data_.size())
-//				throw std::runtime_error("BasisOneSpinFeAs::PerfectIndex>=data_.size()\n");
-//			return s;
-//		}
-
 		size_t getN(WordType ket,size_t site,size_t orb) const
 		{
 			std::vector<WordType> kets(orbitals_,0);
@@ -161,20 +140,6 @@ namespace LanczosPlusPlus {
 		static const WordType& bitmask(size_t i)
 		{
 			return bitmask_[i];
-		}
-
-		int doSign(size_t i,size_t site,size_t orb) const
-		{
-			std::vector<WordType> kets(orbitals_,0);
-			uncollateKet(kets,data_[i]);
-
-			size_t c = 0;
-			for (size_t orb1=0;orb1<orb;orb1++) {
-				c += PsimagLite::BitManip::count(kets[orb1]);
-			}
-
-			int ret = (c&1) ? FERMION_SIGN : 1;
-			return ret * doSign(kets[orb],site);
 		}
 
 		int doSign(
@@ -256,34 +221,19 @@ namespace LanczosPlusPlus {
 
 		int doSignGf(WordType a,size_t ind,size_t orb) const
 		{
-			std::vector<WordType> kets(orbitals_,0);
-			uncollateKet(kets,a);
+			size_t x0 = 0;
+			size_t x1 = ind*orbitals_;
+			size_t sum = getNbyKet(a,x0,x1);
 
-			size_t c = 0;
-			for (size_t orb1=0;orb1<orb;orb1++) {
-				c += PsimagLite::BitManip::count(kets[orb1]);
-			}
-			int ret = (c&1) ? FERMION_SIGN : 1;
+			// at site ind we need to be carefull
+			x0 = ind*orbitals_;
+			x1 = ind*orbitals_+orb;
+			sum += getNbyKet(a,x0,x1);
 
-			return ret * doSignGf(kets[orb],ind);
+			return (sum & 1) ? FERMION_SIGN : 1;
 		}
 
 	private:
-
-		int doSignGf(WordType b,size_t ind) const
-		{
-			if (ind==0) return 1;
-
-			// ind>0 from now on
-			size_t i = 0;
-			size_t j = ind;
-			WordType mask = b;
-			mask &= ((1 << (i+1)) - 1) ^ ((1 << j) - 1);
-			int s=(PsimagLite::BitManip::count(mask) & 1) ? -1 : 1; // Parity of up between i and j
-			// Is there a down at i?
-			if (bitmask_[i] & b) s = -s;
-			return s;
-		}
 
 		void fillPartialBasis(std::vector<WordType>& partialBasis,size_t npart)
 		{
@@ -449,21 +399,8 @@ namespace LanczosPlusPlus {
 				bra = ket;
 				return true;
 			}
-//			else if (what==ProgramGlobals::OPERATOR_SPLUS) {
-
-//			}
 			std::string str = ProgramGlobals::unknownOperator(what);
 			throw std::runtime_error(str.c_str());
-		}
-
-		int doSign(WordType a, size_t i) const
-		{
-			if (i==nsite_-1) return 1;
-
-			a &= ((1 << (i+1)) - 1) ^ ((1 << nsite_) - 1);
-			// Parity of single occupied between i and nsite-1
-			int s=(PsimagLite::BitManip::count(a) & 1) ? FERMION_SIGN : 1;
-			return s;
 		}
 
 		size_t getNbyKet(size_t ket,size_t from,size_t upto) const

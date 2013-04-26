@@ -108,22 +108,6 @@ namespace LanczosPlusPlus {
 			throw std::runtime_error(str.c_str());
 		}
 
-		int doSign(size_t i,size_t site,size_t sector) const
-		{
-			size_t y = i/basis1_.size();
-			size_t x = i%basis1_.size();
-			size_t spin = sector/orbitals_;
-			size_t orb = (sector % orbitals_);
-			if (spin==SPIN_UP) {
-				return basis1_.doSign(x,site,orb);
-			}
-			size_t c = basis1_.getN(x);
-			int ret = 1;
-			if (c&1) ret = FERMION_SIGN;
-			return ret * basis2_.doSign(y,site,orb);
-		}
-		
-
 		int doSign(WordType ket1,
 			   WordType ket2,
 			   size_t i,

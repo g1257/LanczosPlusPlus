@@ -178,7 +178,7 @@ template<typename RealType_,typename GeometryType_>
 			for (size_t ispace=0;ispace<basis_.size();ispace++) {
 				WordType ket1 = basis_(ispace,ProgramGlobals::SPIN_UP);
 				WordType ket2 = basis_(ispace,ProgramGlobals::SPIN_DOWN);
-				int temp = newBasis.getBraIndex(ket1,ket2,ispace,operatorLabel,site,spin,orb);
+				int temp = newBasis.getBraIndex(ket1,ket2,operatorLabel,site,spin,orb);
 // 				int temp= getBraIndex(mysign,ket1,ket2,newBasis,what,site,spin);
 				if (temp>=0 && size_t(temp)>=z.size()) {
 					std::string s = "old basis=" + ttos(basis_.size());

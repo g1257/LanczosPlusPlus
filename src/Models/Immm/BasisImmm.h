@@ -110,7 +110,6 @@ namespace LanczosPlusPlus {
 
 		size_t getBraIndex(const WordType& ket1,
 		                   const WordType& ket2,
-		                   size_t ispace,
 		                   size_t what,
 		                   size_t site,
 		                   size_t spin,

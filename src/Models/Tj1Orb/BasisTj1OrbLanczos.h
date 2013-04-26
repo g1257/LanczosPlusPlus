@@ -19,8 +19,6 @@ namespace LanczosPlusPlus {
 
 		static std::vector<WordType> bitmask_;
 
-		enum {SPIN_UP,SPIN_DOWN};
-
 		enum {OPERATOR_NIL=ProgramGlobals::OPERATOR_NIL,
 		      OPERATOR_C=ProgramGlobals::OPERATOR_C,
 		      OPERATOR_SZ=ProgramGlobals::OPERATOR_SZ,
@@ -96,7 +94,7 @@ namespace LanczosPlusPlus {
 
 		size_t electrons(size_t what) const
 		{
-			return (what==SPIN_UP) ? nup_ : ndown_;
+			return (what==ProgramGlobals::SPIN_UP) ? nup_ : ndown_;
 		}
 
 		WordType operator()(size_t i,size_t spin) const
@@ -105,7 +103,7 @@ namespace LanczosPlusPlus {
 			WordType w = data_[i];
 			WordType mask = (1<<n);
 			mask--;
-			if (spin==SPIN_UP) {
+			if (spin==ProgramGlobals::SPIN_UP) {
 				return (w & mask);
 			}
 
@@ -120,17 +118,17 @@ namespace LanczosPlusPlus {
 		                           size_t site,
 		                           size_t spin) const
 		{
-			return (spin==SPIN_UP) ? isThereAnElectronAt(ket1,site) : isThereAnElectronAt(ket2,site);
+			return (spin==ProgramGlobals::SPIN_UP) ? isThereAnElectronAt(ket1,site) : isThereAnElectronAt(ket2,site);
 		}
 
 		size_t getN(WordType ket1,WordType ket2, size_t site,size_t spin) const
 		{
-			return (spin==SPIN_UP) ? getN(ket1,site) : getN(ket2,site);
+			return (spin==ProgramGlobals::SPIN_UP) ? getN(ket1,site) : getN(ket2,site);
 		}
 		
 		int doSignGf(WordType a, WordType b,size_t ind,size_t sector) const
 		{
-			if (sector==SPIN_UP) {
+			if (sector==ProgramGlobals::SPIN_UP) {
 				if (ind==0) return 1;
 
 				// ind>0 from now on
@@ -164,22 +162,8 @@ namespace LanczosPlusPlus {
 		           size_t spin) const
 		{
 			assert(i <= j);
-			return (spin==SPIN_UP) ? doSign(ket1,i,j): doSign(ket2,i,j);
+			return (spin==ProgramGlobals::SPIN_UP) ? doSign(ket1,i,j): doSign(ket2,i,j);
 		}
-
-//		int getBraIndex(size_t what2,
-//						const WordType& ket1,
-//						const WordType& ket2,
-//						size_t what,
-//						size_t site,
-//						size_t spin) const
-//		{
-//			WordType bra = 0;
-//			int b = getBra(bra,what2,ket1,ket2,what,site,spin);
-//			if (!b) return -1;
-//			return (spin==SPIN_UP) ? perfectIndex(bra,ket2) :
-//			                         perfectIndex(ket1,bra);
-//		}
 		
 		int getBra(WordType& bra,
 					size_t operatorLabel,
@@ -317,7 +301,7 @@ namespace LanczosPlusPlus {
 					size_t site,
 					size_t spin) const
 		{
-			if (spin==SPIN_UP) {
+			if (spin==ProgramGlobals::SPIN_UP) {
 				int b1 = getBraC(bra,ket1,what,site);
 				if (b1==0) return 0;
 				return (isDoublyOccupied(bra,ket2)) ? 0 : 1;
@@ -354,8 +338,8 @@ namespace LanczosPlusPlus {
 		                size_t site,
 		                size_t spin) const
 		{
-			assert(spin==SPIN_UP); // spin index is bogus here
-			if (spin==SPIN_UP) bra = ket1;
+			assert(spin==ProgramGlobals::SPIN_UP); // spin index is bogus here
+			if (spin==ProgramGlobals::SPIN_UP) bra = ket1;
 			else bra = ket2;
 			WordType siup=(ket1 & bitmask_[site]);
 			WordType sidown=(ket2 & bitmask_[site]);

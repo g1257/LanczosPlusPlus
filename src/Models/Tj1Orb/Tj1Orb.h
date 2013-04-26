@@ -31,8 +31,6 @@ namespace LanczosPlusPlus {
 		typedef RealType_ RealType;
 		typedef std::vector<RealType> VectorType;
 
-		enum {SPIN_UP=BasisType::SPIN_UP,SPIN_DOWN=BasisType::SPIN_DOWN};
-
 		static int const FERMION_SIGN = BasisType::FERMION_SIGN;
 
 		Tj1Orb(size_t nup,
@@ -84,8 +82,8 @@ namespace LanczosPlusPlus {
 			for (size_t ispace=0;ispace<hilbert;ispace++) {
 				SparseRowType sparseRow;
 				matrix.setRow(ispace,nCounter);
-				WordType ket1 = basis(ispace,SPIN_UP);
-				WordType ket2 = basis(ispace,SPIN_DOWN);
+				WordType ket1 = basis(ispace,ProgramGlobals::SPIN_UP);
+				WordType ket2 = basis(ispace,ProgramGlobals::SPIN_DOWN);
 //				std::cout<<"ket1="<<ket1<<" ket2="<<ket2<<"\n";
 				// Save diagonal
 				sparseRow.add(ispace,diag[ispace]);
@@ -138,13 +136,13 @@ namespace LanczosPlusPlus {
 							  int isign) const
 		{
 			for (size_t ispace=0;ispace<basis_.size();ispace++) {
-				WordType ket1 = basis_(ispace,SPIN_UP);
-				WordType ket2 = basis_(ispace,SPIN_DOWN);
+				WordType ket1 = basis_(ispace,ProgramGlobals::SPIN_UP);
+				WordType ket2 = basis_(ispace,ProgramGlobals::SPIN_DOWN);
 				WordType bra1 = ket1;
 				WordType bra2 = ket2;
 				int value = newBasis.getBra(bra1,operatorLabel,ket1,ket2,site,spin);
 				if (value==0) continue;
-				if (spin!=SPIN_UP) {
+				if (spin!=ProgramGlobals::SPIN_UP) {
 					bra2 = bra1;
 					bra1 = ket1;
 				}
@@ -177,10 +175,10 @@ namespace LanczosPlusPlus {
 		                 size_t spin,
 		                 const PairType& orbs) const
 		{
-			int newPart1=basis_.electrons(SPIN_UP);
-			int newPart2=basis_.electrons(SPIN_DOWN);
+			int newPart1=basis_.electrons(ProgramGlobals::SPIN_UP);
+			int newPart2=basis_.electrons(ProgramGlobals::SPIN_DOWN);
 			int c = (what==ProgramGlobals::OPERATOR_CDAGGER) ? 1 : -1;
-			if (spin==SPIN_UP) newPart1 += c;
+			if (spin==ProgramGlobals::SPIN_UP) newPart1 += c;
 			else newPart2 += c;
 
 			if (newPart1<0 || newPart2<0) return false;
@@ -201,21 +199,21 @@ namespace LanczosPlusPlus {
 
 			// Calculate diagonal elements
 			for (size_t ispace=0;ispace<hilbert;ispace++) {
-				WordType ket1 = basis(ispace,SPIN_UP);
-				WordType ket2 = basis(ispace,SPIN_DOWN);
+				WordType ket1 = basis(ispace,ProgramGlobals::SPIN_UP);
+				WordType ket2 = basis(ispace,ProgramGlobals::SPIN_DOWN);
 				RealType s=0;
 				for (size_t i=0;i<nsite;i++) {
 
-					int niup = basis.isThereAnElectronAt(ket1,ket2,i,SPIN_UP);
+					int niup = basis.isThereAnElectronAt(ket1,ket2,i,ProgramGlobals::SPIN_UP);
 
-					int nidown = basis.isThereAnElectronAt(ket1,ket2,i,SPIN_DOWN);
+					int nidown = basis.isThereAnElectronAt(ket1,ket2,i,ProgramGlobals::SPIN_DOWN);
 
 					s += mp_.potentialV[i]*niup;
 					s += mp_.potentialV[i]*nidown;
 					for (size_t j=i+1;j<nsite;j++) {
 
-						int njup = basis.isThereAnElectronAt(ket1,ket2,j,SPIN_UP);
-						int njdown = basis.isThereAnElectronAt(ket1,ket2,j,SPIN_DOWN);
+						int njup = basis.isThereAnElectronAt(ket1,ket2,j,ProgramGlobals::SPIN_UP);
+						int njdown = basis.isThereAnElectronAt(ket1,ket2,j,ProgramGlobals::SPIN_DOWN);
 
 						// Sz Sz term:
 						s += (niup-nidown) * (njup - njdown)  * j_(i,j)*0.25;
@@ -255,7 +253,7 @@ namespace LanczosPlusPlus {
 					WordType bra1= ket1 ^(BasisType::bitmask(i)|BasisType::bitmask(j));
 					size_t temp = basis.perfectIndex(bra1,ket2);
 					int extraSign = (s1i==1) ? FERMION_SIGN : 1;
-					RealType cTemp = h*extraSign*basis_.doSign(ket1,ket2,i,j,SPIN_UP);
+					RealType cTemp = h*extraSign*basis_.doSign(ket1,ket2,i,j,ProgramGlobals::SPIN_UP);
 					sparseRow.add(temp,cTemp);
 				}
 
@@ -263,7 +261,7 @@ namespace LanczosPlusPlus {
 					WordType bra2= ket2 ^(BasisType::bitmask(i)|BasisType::bitmask(j));
 					size_t temp = basis.perfectIndex(ket1,bra2);
 					int extraSign = (s2i==1) ? FERMION_SIGN : 1;
-					RealType cTemp = h*extraSign*basis_.doSign(ket1,ket2,i,j,SPIN_DOWN);
+					RealType cTemp = h*extraSign*basis_.doSign(ket1,ket2,i,j,ProgramGlobals::SPIN_DOWN);
 					sparseRow.add(temp,cTemp);
 				}
 			}

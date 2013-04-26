@@ -127,7 +127,6 @@ void mainLoop2(ModelType& model,
 			   const std::vector<size_t>& gfV,
 			   std::vector<size_t>& sites,
 			   const std::vector<size_t>& cicjV,
-			   const PairType& orbs,
                const std::vector<PairType>& spins)
 {
 	typedef typename ModelType::BasisType BasisType;
@@ -152,10 +151,14 @@ void mainLoop2(ModelType& model,
 		typedef PsimagLite::ContinuedFractionCollection<ContinuedFractionType>
 			ContinuedFractionCollectionType;
 
-		ContinuedFractionCollectionType cfCollection;
-		engine.spectralFunction(cfCollection,gf,sites[0],sites[1],spins,orbs);
-
 		PsimagLite::IoSimple::Out ioOut(std::cout);
+		ContinuedFractionCollectionType cfCollection;
+		size_t norbitals = maxOrbitals(model);
+		for (size_t orb1=0;orb1<norbitals;orb1++) {
+			for (size_t orb2=0;orb2<norbitals;orb2++) {
+				engine.spectralFunction(cfCollection,gf,sites[0],sites[1],spins,std::pair<size_t,size_t>(orb1,orb2));
+			}
+		}
 		cfCollection.save(ioOut);
 	}
 
@@ -179,7 +182,6 @@ void mainLoop(IoInputType& io,
 			  const std::vector<size_t>& gf,
 			  std::vector<size_t>& sites,
 			  const std::vector<size_t>& cicj,
-			  const PairType& orbs,
               const std::vector<PairType>& spins)
 {
 	typedef typename ModelType::ParametersModelType ParametersModelType;
@@ -208,11 +210,11 @@ void mainLoop(IoInputType& io,
 	bool useReflectionSymmetry = (tmp==1) ? true : false;
 
 	if (useTranslationSymmetry) {
-		mainLoop2<ModelType,TranslationSymmetry<GeometryType,BasisType> >(model,io,geometry,gf,sites,cicj,orbs,spins);
+		mainLoop2<ModelType,TranslationSymmetry<GeometryType,BasisType> >(model,io,geometry,gf,sites,cicj,spins);
 	} else if (useReflectionSymmetry) {
-		mainLoop2<ModelType,ReflectionSymmetry<GeometryType,BasisType> >(model,io,geometry,gf,sites,cicj,orbs,spins);
+		mainLoop2<ModelType,ReflectionSymmetry<GeometryType,BasisType> >(model,io,geometry,gf,sites,cicj,spins);
 	} else {
-		mainLoop2<ModelType,DefaultSymmetry<GeometryType,BasisType> >(model,io,geometry,gf,sites,cicj,orbs,spins);
+		mainLoop2<ModelType,DefaultSymmetry<GeometryType,BasisType> >(model,io,geometry,gf,sites,cicj,spins);
 	}
 }
 
@@ -223,11 +225,10 @@ int main(int argc,char *argv[])
 	std::vector<size_t> cicj,gf;
 	std::string file = "";
 	std::vector<size_t> sites;
-	PairType orbs = PairType(0,0);
 	std::vector<PairType> spins(1,PairType(0,0));
 	std::vector<std::string> str;
 
-	while ((opt = getopt(argc, argv, "g:c:f:o:s:")) != -1) {
+	while ((opt = getopt(argc, argv, "g:c:f:s:")) != -1) {
 		switch (opt) {
 		case 'g':
 			gf.push_back(ProgramGlobals::operator2id(optarg));
@@ -237,14 +238,6 @@ int main(int argc,char *argv[])
 			break;
 		case 'c':
 			cicj.push_back(ProgramGlobals::operator2id(optarg));
-			break;
-		case 'o':
-			PsimagLite::tokenizer(optarg,str,";");
-			if (str.size()!=2)
-				throw std::runtime_error("-o needs pairs\n");
-			orbs.first = atoi(str[0].c_str());
-			orbs.second = atoi(str[1].c_str());
-			str.clear();
 			break;
 		case 's':
 			PsimagLite::tokenizer(optarg,str,";");
@@ -275,13 +268,13 @@ int main(int argc,char *argv[])
 	io.readline(model,"Model=");
 
 	if (model=="Tj1Orb") {
-		mainLoop<Tj1Orb<RealType,GeometryType> >(io,geometry,gf,sites,cicj,orbs,spins);
+		mainLoop<Tj1Orb<RealType,GeometryType> >(io,geometry,gf,sites,cicj,spins);
 	} else if (model=="Immm") {
-		mainLoop<Immm<RealType,GeometryType> >(io,geometry,gf,sites,cicj,orbs,spins);
+		mainLoop<Immm<RealType,GeometryType> >(io,geometry,gf,sites,cicj,spins);
 	} else if (model=="HubbardOneBand") {
-		mainLoop<HubbardOneOrbital<RealType,GeometryType> >(io,geometry,gf,sites,cicj,orbs,spins);
+		mainLoop<HubbardOneOrbital<RealType,GeometryType> >(io,geometry,gf,sites,cicj,spins);
 	} else if (model=="FeAsBasedSc") {
-		mainLoop<FeBasedSc<RealType,GeometryType> >(io,geometry,gf,sites,cicj,orbs,spins);
+		mainLoop<FeBasedSc<RealType,GeometryType> >(io,geometry,gf,sites,cicj,spins);
 	} else {
 		std::cerr<<"No known model "<<model<<"\n";
 		return 1;

@@ -117,9 +117,10 @@ namespace LanczosPlusPlus {
 			typedef typename ContinuedFractionCollectionType::ContinuedFractionType ContinuedFractionType;
 			typedef typename ModelType::BasisType BasisType;
 			const BasisType* basisNew = 0;
+			bool isDiagonal = (isite==jsite && orbs.first==orbs.second);
 
 			for (size_t type=0;type<4;type++) {
-				if (isite==jsite && orbs.first==orbs.second && type>1) continue;
+				if (isDiagonal && type>1) continue;
 
 				size_t operatorLabel= (type&1) ?  what2 : ProgramGlobals::transposeConjugate(what2);
 				if (ProgramGlobals::needsNewBasis(operatorLabel)) {
@@ -138,7 +139,7 @@ namespace LanczosPlusPlus {
 				InternalProductTemplate<ModelType,DefaultSymmetryType> matrix(model_,*basisNew,symm);
 				ContinuedFractionType cf;
 
-				calcSpectral(cf,operatorLabel,modifVector,matrix,type,spins.first);
+				calcSpectral(cf,operatorLabel,modifVector,matrix,type,spins.first,isDiagonal);
 				cfCollection.push(cf);
 
 				if (ProgramGlobals::needsNewBasis(operatorLabel)) delete basisNew;
@@ -245,11 +246,12 @@ namespace LanczosPlusPlus {
 
 		template<typename ContinuedFractionType>
 		void calcSpectral(ContinuedFractionType& cf,
-						  size_t what2,
-						  const VectorType& modifVector,
-						  const InternalProductDefaultType& matrix,
-						  size_t type,
-						  size_t spin) const
+		                  size_t what2,
+		                  const VectorType& modifVector,
+		                  const InternalProductDefaultType& matrix,
+		                  size_t type,
+		                  size_t spin,
+		                  bool isDiagonal) const
 		{
 			typedef typename ContinuedFractionType::TridiagonalMatrixType
 			                                        TridiagonalMatrixType;
@@ -270,7 +272,8 @@ namespace LanczosPlusPlus {
 			int s = (type&1) ? -1 : 1;
 			double s2 = (type>1) ? -1 : 1;
 			if (!ProgramGlobals::isFermionic(what2)) s2 *= s;
-			//for (size_t i=0;i<ab.size();i++) ab.a(i) *= s;
+			double diagonalFactor = (isDiagonal) ? 1 : 0.5;
+			s2 *= diagonalFactor;
 			cf.set(ab,gsEnergy_,std::real(weight*s2),s);
 
 		}

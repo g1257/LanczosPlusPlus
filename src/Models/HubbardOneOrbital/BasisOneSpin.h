@@ -6,6 +6,7 @@
 #define BASIS_ONE_SPIN_H
 #include "Matrix.h"
 #include "BitManip.h"
+#include "ProgramGlobals.h"
 
 namespace LanczosPlusPlus {
 	
@@ -14,7 +15,7 @@ namespace LanczosPlusPlus {
 	public:
 		
 		static int const FERMION_SIGN  = -1;
-		typedef unsigned int long long WordType;
+		typedef ProgramGlobals::WordType WordType;
 		static size_t nsite_;
 		static PsimagLite::Matrix<size_t> comb_;
 		static std::vector<WordType> bitmask_; 

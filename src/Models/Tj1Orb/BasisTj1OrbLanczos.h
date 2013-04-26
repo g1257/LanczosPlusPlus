@@ -13,9 +13,11 @@ namespace LanczosPlusPlus {
 	template<typename GeometryType>
 	class BasisTj1OrbLanczos {
 
+		typedef ProgramGlobals::PairIntType PairIntType;
+
 	public:		
 
-		typedef unsigned int long long WordType;
+		typedef ProgramGlobals::WordType WordType;
 
 		static std::vector<WordType> bitmask_;
 
@@ -126,7 +128,7 @@ namespace LanczosPlusPlus {
 			return (spin==ProgramGlobals::SPIN_UP) ? getN(ket1,site) : getN(ket2,site);
 		}
 		
-		int doSignGf(WordType a, WordType b,size_t ind,size_t sector) const
+		int doSignGf(WordType a, WordType b,size_t ind,size_t sector,size_t orb) const
 		{
 			if (sector==ProgramGlobals::SPIN_UP) {
 				if (ind==0) return 1;
@@ -183,6 +185,25 @@ namespace LanczosPlusPlus {
 			}
 			assert(false);
 			return 0;
+		}
+
+		PairIntType getBraIndex(const WordType& ket1,
+		                        const WordType& ket2,
+		                        size_t operatorLabel,
+		                        size_t site,
+		                        size_t spin,
+		                        size_t orb) const
+		{
+			WordType bra1 = ket1;
+			WordType bra2 = ket2;
+			int value = getBra(bra1,operatorLabel,ket1,ket2,site,spin);
+			if (value==0) return PairIntType(-1,value);
+			if (spin!=ProgramGlobals::SPIN_UP) {
+				bra2 = bra1;
+				bra1 = ket1;
+			}
+			int tmp = perfectIndex(bra1,bra2);
+			return PairIntType(tmp,value);
 		}
 
 		template<typename GeometryType2>

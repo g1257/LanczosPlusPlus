@@ -38,7 +38,7 @@ namespace LanczosPlusPlus {
 
 	public:
 		
-		typedef unsigned int long long WordType;
+		typedef ProgramGlobals::WordType WordType;
 		static size_t orbitals_;
 		static int const FERMION_SIGN  = -1;
 		static size_t nsite_;

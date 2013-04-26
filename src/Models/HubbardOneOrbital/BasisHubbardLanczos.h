@@ -10,6 +10,9 @@ namespace LanczosPlusPlus {
 	
 	template<typename GeometryType>
 	class BasisHubbardLanczos {
+
+		typedef ProgramGlobals::PairIntType PairIntType;
+
 	public:
 		
 		typedef BasisOneSpin BasisType;
@@ -71,7 +74,7 @@ namespace LanczosPlusPlus {
 			return (spin==ProgramGlobals::SPIN_UP) ? basis1_.getN(ket1,site) : basis2_.getN(ket2,site);
 		}
 		
-		int doSignGf(WordType a, WordType b,size_t ind,size_t sector) const
+		int doSignGf(WordType a, WordType b,size_t ind,size_t sector,size_t orb) const
 		{
 			if (sector==ProgramGlobals::SPIN_UP) {
 				if (ind==0) return 1;
@@ -110,17 +113,19 @@ namespace LanczosPlusPlus {
 			return (spin==ProgramGlobals::SPIN_UP) ? basis1_.doSign(ket1,i,j): basis2_.doSign(ket2,i,j);
 		}
 
-		int getBraIndex(const WordType& ket1,
-		                   const WordType& ket2,
-		                   size_t what,
-		                   size_t site,
-		                   size_t spin) const
+		PairIntType getBraIndex(const WordType& ket1,
+		                        const WordType& ket2,
+		                        size_t what,
+		                        size_t site,
+		                        size_t spin,
+		                        size_t orb) const
 		{
 			WordType bra = 0;
 			bool b = getBra(bra,ket1,ket2,what,site,spin);
-			if (!b) return -1;
-			return (spin==ProgramGlobals::SPIN_UP) ? perfectIndex(bra,ket2) :
+			if (!b) return PairIntType(-1,1);
+			int tmp = (spin==ProgramGlobals::SPIN_UP) ? perfectIndex(bra,ket2) :
 			                         perfectIndex(ket1,bra);
+			return PairIntType(tmp,1);
 		}
 		
 		bool getBra(WordType& bra,

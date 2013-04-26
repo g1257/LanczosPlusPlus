@@ -31,7 +31,7 @@ namespace LanczosPlusPlus {
 
 	public:
 		
-		typedef unsigned int long long WordType;
+		typedef ProgramGlobals::WordType WordType;
 
 		enum {OPERATOR_NIL=ProgramGlobals::OPERATOR_NIL,
 		      OPERATOR_C=ProgramGlobals::OPERATOR_C,

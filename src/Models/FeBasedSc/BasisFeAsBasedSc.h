@@ -27,6 +27,8 @@ namespace LanczosPlusPlus {
 	template<typename GeometryType>
 	class BasisFeAsBasedSc {
 
+		typedef ProgramGlobals::PairIntType PairIntType;
+
 		static size_t orbitals_;
 
 	public:
@@ -92,14 +94,14 @@ namespace LanczosPlusPlus {
 			return (spin==ProgramGlobals::SPIN_UP) ? basis1_.getN(ket,site,orb) : basis2_.getN(ket,site,orb);
 		}
 
-		int getBraIndex(WordType ket1, WordType ket2,size_t what,size_t site,size_t spin,size_t orb) const
+		PairIntType getBraIndex(WordType ket1, WordType ket2,size_t what,size_t site,size_t spin,size_t orb) const
 		{
 			if (what==ProgramGlobals::OPERATOR_C ||
 			    what==ProgramGlobals::OPERATOR_CDAGGER ||
 			    what==ProgramGlobals::OPERATOR_N)
-				return getBraIndexCorCdaggerOrN(ket1,ket2,what,site,spin,orb);
+				return PairIntType(getBraIndexCorCdaggerOrN(ket1,ket2,what,site,spin,orb),1);
 			if (what==ProgramGlobals::OPERATOR_SPLUS || what==ProgramGlobals::OPERATOR_SMINUS)
-				return getBraIndexSplusOrSminus(ket1,ket2,what,site,orb);
+				return PairIntType(getBraIndexSplusOrSminus(ket1,ket2,what,site,orb),1);
 			std::string str(__FILE__);
 			str += " " + ttos(__LINE__) +  "\n";
 			str += std::string("getBraIndex: unsupported operator ");

@@ -210,6 +210,39 @@ namespace LanczosPlusPlus {
 
 	private:
 
+		void accModifiedState_(VectorType &z,
+		                       size_t operatorLabel,
+		                       const BasisType& newBasis,
+		                       const VectorType& gsVector,
+		                       size_t site,
+		                       size_t spin,
+		                       size_t orb,
+		                       int isign) const
+		{
+			for (size_t ispace=0;ispace<model_.basis().size();ispace++) {
+				ProgramGlobals::WordType ket1 = model_.basis()(ispace,ProgramGlobals::SPIN_UP);
+				ProgramGlobals::WordType ket2 = model_.basis()(ispace,ProgramGlobals::SPIN_DOWN);
+				ProgramGlobals::PairIntType tempValue = newBasis.getBraIndex(ket1,ket2,operatorLabel,site,spin,orb);
+				int temp = tempValue.first;
+				int value = tempValue.second;
+				if (temp>=0 && size_t(temp)>=z.size()) {
+					std::string s = "old basis=" + ttos(model_.basis().size());
+					s += " newbasis=" + ttos(newBasis.size());
+					s += "\n";
+					s += "operatorLabel=" + ttos(operatorLabel) + " spin=" + ttos(spin);
+					s += " site=" + ttos(site);
+					s += "ket1=" + ttos(ket1) + " and ket2=" + ttos(ket2);
+					s += "\n";
+					s += "getModifiedState: z.size=" + ttos(z.size());
+					s += " but temp=" + ttos(temp) + "\n";
+					throw std::runtime_error(s.c_str());
+				}
+				if (temp<0) continue;
+				int mysign = (ProgramGlobals::isFermionic(operatorLabel)) ? model_.basis().doSignGf(ket1,ket2,site,spin,orb) : 1;
+				z[temp] += isign*mysign*value*gsVector[ispace];
+			}
+		}
+
 		void getModifiedState(VectorType& modifVector,
 		                      size_t operatorLabel,
 		                      const VectorType& gsVector,
@@ -224,13 +257,13 @@ namespace LanczosPlusPlus {
 			for (size_t temp=0;temp<modifVector.size();temp++)
 				modifVector[temp]=0.0;
 
-			model_.accModifiedState(modifVector,operatorLabel,basisNew,gsVector,isite,spin,orbs.first,1);
+			accModifiedState_(modifVector,operatorLabel,basisNew,gsVector,isite,spin,orbs.first,1);
 			std::cerr<<"isite="<<isite<<" type="<<type;
 			std::cerr<<" modif="<<(modifVector*modifVector)<<"\n";
 			if (model_.name()=="Tj1Orb.h" && isite==jsite) return;
 
 			int isign= (type>1) ? -1 : 1;
-			model_.accModifiedState(modifVector,operatorLabel,basisNew,gsVector,jsite,spin,orbs.second,isign);
+			accModifiedState_(modifVector,operatorLabel,basisNew,gsVector,jsite,spin,orbs.second,isign);
 			std::cerr<<"jsite="<<jsite<<" type="<<type;
 			std::cerr<<" modif="<<(modifVector*modifVector)<<"\n";
 		}
@@ -244,16 +277,19 @@ namespace LanczosPlusPlus {
 		                      size_t orb,
 		                      int isign) const
 		{
+			if (model_.name()=="Tj1Orb.h")
+				accModifiedState_(z,operatorLabel,newBasis,gsVector,site,spin,orb,isign);
+
 			if (operatorLabel==ProgramGlobals::OPERATOR_N) {
-				model_.accModifiedState(z,operatorLabel,newBasis,gsVector,site,ProgramGlobals::SPIN_UP,orb,isign);
-				model_.accModifiedState(z,operatorLabel,newBasis,gsVector,site,ProgramGlobals::SPIN_DOWN,orb,isign);
+				accModifiedState_(z,operatorLabel,newBasis,gsVector,site,ProgramGlobals::SPIN_UP,orb,isign);
+				accModifiedState_(z,operatorLabel,newBasis,gsVector,site,ProgramGlobals::SPIN_DOWN,orb,isign);
 				return;
 			} else if (operatorLabel==ProgramGlobals::OPERATOR_SZ) {
-				model_.accModifiedState(z,ProgramGlobals::OPERATOR_N,newBasis,gsVector,site,ProgramGlobals::SPIN_UP,orb,isign);
-				model_.accModifiedState(z,ProgramGlobals::OPERATOR_N,newBasis,gsVector,site,ProgramGlobals::SPIN_DOWN,orb,-isign);
+				accModifiedState_(z,ProgramGlobals::OPERATOR_N,newBasis,gsVector,site,ProgramGlobals::SPIN_UP,orb,isign);
+				accModifiedState_(z,ProgramGlobals::OPERATOR_N,newBasis,gsVector,site,ProgramGlobals::SPIN_DOWN,orb,-isign);
 				return;
 			}
-			model_.accModifiedState(z,operatorLabel,newBasis,gsVector,site,spin,orb,isign);
+			accModifiedState_(z,operatorLabel,newBasis,gsVector,site,spin,orb,isign);
 		}
 
 		void computeGroundState()

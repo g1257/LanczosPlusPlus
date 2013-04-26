@@ -106,39 +106,6 @@ namespace LanczosPlusPlus {
 
 		const BasisType& basis() const { return basis_; }
 
-		//! Gf Related functions:
-		template<typename SomeVectorType>
-		void accModifiedState(SomeVectorType &z,
-		                      size_t operatorLabel,
-		                      const BasisType& newBasis,
-		                      const SomeVectorType& gsVector,
-		                      size_t site,
-		                      size_t spin,
-		                      size_t orb,
-		                      int isign) const
-		{
-			for (size_t ispace=0;ispace<basis_.size();ispace++) {
-				WordType ket1 = basis_(ispace,ProgramGlobals::SPIN_UP);
-				WordType ket2 = basis_(ispace,ProgramGlobals::SPIN_DOWN);
-				int temp = newBasis.getBraIndex(ket1,ket2,operatorLabel,site,spin);
-				if (temp>=0 && size_t(temp)>=z.size()) {
-					std::string s = "old basis=" + ttos(basis_.size());
-					s += " newbasis=" + ttos(newBasis.size());
-					s += "\n";
-					s += "operatorLabel=" + ttos(operatorLabel) + " spin=" + ttos(spin);
-					s += " site=" + ttos(site);
-					s += "ket1=" + ttos(ket1) + " and ket2=" + ttos(ket2);
-					s += "\n";
-					s += "getModifiedState: z.size=" + ttos(z.size());
-					s += " but temp=" + ttos(temp) + "\n";
-					throw std::runtime_error(s.c_str());
-				}
-				if (temp<0) continue;
-				int mysign = (ProgramGlobals::isFermionic(operatorLabel)) ? basis_.doSignGf(ket1,ket2,site,spin) : 1;
-				z[temp] += isign*mysign*gsVector[ispace];
-			}
-		}
-
 		std::string name() const { return __FILE__; }
 
 	private:

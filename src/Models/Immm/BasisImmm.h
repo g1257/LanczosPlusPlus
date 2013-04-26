@@ -27,6 +27,9 @@ namespace LanczosPlusPlus {
 
 	template<typename GeometryType>
 	class BasisImmm {
+
+		typedef ProgramGlobals::PairIntType PairIntType;
+
 	public:
 
 		typedef BasisOneSpinImmm BasisType;
@@ -108,17 +111,18 @@ namespace LanczosPlusPlus {
 			return (spin==ProgramGlobals::SPIN_UP) ? basis1_.getN(ket,site,orb) : basis2_.getN(ket,site,orb);
 		}
 
-		size_t getBraIndex(const WordType& ket1,
-		                   const WordType& ket2,
-		                   size_t what,
-		                   size_t site,
-		                   size_t spin,
-		                   size_t orb) const
+		PairIntType getBraIndex(const WordType& ket1,
+		                        const WordType& ket2,
+		                        size_t what,
+		                        size_t site,
+		                        size_t spin,
+		                        size_t orb) const
 		{
 			WordType bra = 0;
 			bool b = getBra(bra,ket1,ket2,what,site,spin,orb);
-			if (!b) return -1;
-			return (spin==ProgramGlobals::SPIN_UP) ? perfectIndex(bra,ket2) : perfectIndex(ket1,bra);
+			if (!b) return PairIntType(-1,1);
+			int tmp = (spin==ProgramGlobals::SPIN_UP) ? perfectIndex(bra,ket2) : perfectIndex(ket1,bra);
+			return PairIntType(tmp,1);
 		}
 
 		int doSign(size_t i,size_t site,size_t sector) const

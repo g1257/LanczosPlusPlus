@@ -84,6 +84,10 @@ DISCLOSED WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
 
 namespace LanczosPlusPlus {
 struct ProgramGlobals {
+
+	typedef std::pair<int,int> PairIntType;
+	typedef unsigned int long long WordType;
+
 	static size_t const MaxLanczosSteps = 1000000; // max number of internal Lanczos steps
 	static size_t const LanczosSteps = 300; // max number of external Lanczos steps
 	static double const LanczosTolerance; // tolerance of the Lanczos Algorithm

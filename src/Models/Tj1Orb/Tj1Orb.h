@@ -124,48 +124,6 @@ namespace LanczosPlusPlus {
 			os<<basis_;
 		}
 
-		//! Gf Related functions:
-		template<typename SomeVectorType>
-		void accModifiedState(SomeVectorType &z,
-							  size_t operatorLabel,
-							  const BasisType& newBasis,
-							  const SomeVectorType& gsVector,
-							  size_t site,
-							  size_t spin,
-							  size_t orb,
-							  int isign) const
-		{
-			for (size_t ispace=0;ispace<basis_.size();ispace++) {
-				WordType ket1 = basis_(ispace,ProgramGlobals::SPIN_UP);
-				WordType ket2 = basis_(ispace,ProgramGlobals::SPIN_DOWN);
-				WordType bra1 = ket1;
-				WordType bra2 = ket2;
-				int value = newBasis.getBra(bra1,operatorLabel,ket1,ket2,site,spin);
-				if (value==0) continue;
-				if (spin!=ProgramGlobals::SPIN_UP) {
-					bra2 = bra1;
-					bra1 = ket1;
-				}
-				int temp = newBasis.perfectIndex(bra1,bra2);
-// 				int temp= getBraIndex(mysign,ket1,ket2,newBasis,what,site,spin);
-				if (temp>=0 && size_t(temp)>=z.size()) {
-					std::string s = "old basis=" + ttos(basis_.size());
-					s += " newbasis=" + ttos(newBasis.size());
-					s += "\n";
-					s += "operatorLabel=" + ttos(operatorLabel) + " spin=" + ttos(spin);
-					s += " site=" + ttos(site);
-					s += "ket1=" + ttos(ket1) + " and ket2=" + ttos(ket2);
-					s += "\n";
-					s += "getModifiedState: z.size=" + ttos(z.size());
-					s += " but temp=" + ttos(temp) + "\n";
-					throw std::runtime_error(s.c_str());
-				}
-				if (temp<0) continue;
-				int mysign = (ProgramGlobals::isFermionic(operatorLabel)) ? basis_.doSignGf(ket1,ket2,site,spin) : 1;
-				z[temp] += isign*mysign*value*gsVector[ispace];
-			}
-		}
-
 		std::string name() const { return __FILE__; }
 
 	private:

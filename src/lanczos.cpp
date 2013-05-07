@@ -36,7 +36,6 @@ std::string license = "Copyright (c) 2009-2012, UT-Battelle, LLC\n"
 #include "DefaultSymmetry.h"
 #include "ReflectionSymmetry.h"
 #include "TranslationSymmetry.h"
-#include "Split.h"
 #include "Tokenizer.h"
 
 using namespace LanczosPlusPlus;

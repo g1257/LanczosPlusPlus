@@ -37,7 +37,7 @@ namespace LanczosPlusPlus {
 	public:
 
 		typedef PsimagLite::CrsMatrix<RealType> SparseMatrixType;
-		typedef std::vector<RealType> VectorType;
+		typedef typename PsimagLite::Vector<RealType>::Type VectorType;
 
 		DefaultSymmetry(const BasisType& basis,const GeometryType& geometry)
 		{
@@ -50,7 +50,8 @@ namespace LanczosPlusPlus {
 //			std::cout<<matrixStored_;
 		}
 
-		void transformMatrix(std::vector<SparseMatrixType>& matrix1,const SparseMatrixType& matrix) const
+		void transformMatrix(typename PsimagLite::Vector<SparseMatrixType>::Type& matrix1,
+		                     const SparseMatrixType& matrix) const
 		{
 			throw std::runtime_error("DefaultSymmetry: cannot call transformMatrix\n");
 		}

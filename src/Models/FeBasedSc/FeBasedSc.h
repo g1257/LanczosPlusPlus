@@ -42,7 +42,7 @@ namespace LanczosPlusPlus {
 		typedef RealType_ RealType;
 		typedef PsimagLite::CrsMatrix<RealType> SparseMatrixType;
 		typedef PsimagLite::SparseRow<SparseMatrixType> SparseRowType;
-		typedef std::vector<RealType> VectorType;
+		typedef typename PsimagLite::Vector<RealType>::Type VectorType;
 		enum {TERM_HOPPINGS=0,TERM_J=1};
 		static int const FERMION_SIGN = BasisType::FERMION_SIGN;
 		
@@ -79,7 +79,7 @@ namespace LanczosPlusPlus {
 		{
 			// Calculate diagonal elements AND count non-zero matrix elements
 			size_t hilbert=basis.size();
-			std::vector<RealType> diag(hilbert);
+			typename PsimagLite::Vector<RealType>::Type diag(hilbert);
 			calcDiagonalElements(diag,basis);
 
 			size_t nsite = geometry_.numberOfSites();
@@ -323,8 +323,8 @@ namespace LanczosPlusPlus {
 			return x;
 		}
 
-		void calcDiagonalElements(std::vector<RealType>& diag,
-					  const BasisType &basis) const
+		void calcDiagonalElements(typename PsimagLite::Vector<RealType>::Type& diag,
+		                          const BasisType &basis) const
 		{
 			size_t hilbert=basis.size();
 			size_t nsite = geometry_.numberOfSites();

@@ -32,7 +32,7 @@ public:
 	Partitions(size_t length,size_t parts)
 		: length_(length)
 	{
-		std::vector<size_t> values(parts,0);
+		PsimagLite::Vector<size_t>::Type values(parts,0);
 
 		while(true) {
 			if (sumOf(values)==length_)
@@ -47,14 +47,14 @@ public:
 
 	size_t size() const { return partitions_.size(); }
 
-	const std::vector<size_t>& operator()(size_t i) const
+	const PsimagLite::Vector<size_t>::Type& operator()(size_t i) const
 	{
 		return partitions_[i];
 	}
 
 private:
 
-	size_t sumOf(const std::vector<size_t>& values) const
+	size_t sumOf(const PsimagLite::Vector<size_t>::Type& values) const
 	{
 		size_t sum = 0;
 		for (size_t i=0;i<values.size();i++)
@@ -62,7 +62,7 @@ private:
 		return sum;
 	}
 
-	int increaseNextIndices(std::vector<size_t>& values) const
+	int increaseNextIndices(PsimagLite::Vector<size_t>::Type& values) const
 	{
 		if (0==values.size()-1) return -1;
 		values[0]=0;
@@ -77,7 +77,7 @@ private:
 	}
 
 	size_t length_;
-	std::vector<std::vector<size_t> > partitions_;
+	PsimagLite::Vector<PsimagLite::Vector<size_t>::Type>::Type partitions_;
 
 }; // class Partitions
 

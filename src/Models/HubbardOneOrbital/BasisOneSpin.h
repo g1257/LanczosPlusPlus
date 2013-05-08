@@ -18,7 +18,7 @@ namespace LanczosPlusPlus {
 		typedef ProgramGlobals::WordType WordType;
 		static size_t nsite_;
 		static PsimagLite::Matrix<size_t> comb_;
-		static std::vector<WordType> bitmask_; 
+		static PsimagLite::Vector<WordType>::Type bitmask_; 
 
 		enum {OPERATOR_NIL=ProgramGlobals::OPERATOR_NIL,
 		      OPERATOR_C=ProgramGlobals::OPERATOR_C,
@@ -211,7 +211,7 @@ namespace LanczosPlusPlus {
 		
 		size_t size_;
 		size_t npart_;
-		std::vector<WordType> data_;
+		PsimagLite::Vector<WordType>::Type data_;
 		
 	}; // class BasisOneSpin
 
@@ -219,7 +219,7 @@ namespace LanczosPlusPlus {
 
 	PsimagLite::Matrix<size_t> BasisOneSpin::comb_;
 
-	std::vector<BasisOneSpin::WordType> BasisOneSpin::bitmask_; 
+	PsimagLite::Vector<BasisOneSpin::WordType>::Type BasisOneSpin::bitmask_; 
 
 } // namespace LanczosPlusPlus
 #endif // BASIS_ONE_SPIN_H

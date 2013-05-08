@@ -106,9 +106,9 @@ namespace LanczosPlusPlus {
 		}
 
 		// Hubbard U values (one for each site)
-		std::vector<Field> hubbardU; 
+		typename PsimagLite::Vector<Field>::Type hubbardU;
 		// Onsite potential values, one for each site
-		std::vector<Field> potentialV;
+		typename PsimagLite::Vector<Field>::Type potentialV;
 		// use reflection symmetry if set to 1
 		size_t useReflectionSymmetry;
 		// target number of electrons  in the system

@@ -89,7 +89,7 @@ namespace LanczosPlusPlus {
 							  size_t what2,
 							  int isite,
 							  int jsite,
-							  const std::vector<PairType>& spins,
+							  const PsimagLite::Vector<PairType>::Type& spins,
 							  const PairType& orbs) const
 		{
 			for (size_t i=0;i<spins.size();i++) {
@@ -148,7 +148,7 @@ namespace LanczosPlusPlus {
 
 		void twoPoint(PsimagLite::Matrix<typename VectorType::value_type>& result,
 		              size_t what2,
-		              const std::vector<PairType>& spins,
+		              const PsimagLite::Vector<PairType>::Type& spins,
 		              const PairType& orbs) const
 		{
 			for (size_t i=0;i<spins.size();i++) {
@@ -363,7 +363,7 @@ namespace LanczosPlusPlus {
 		//! For debugging purpose only:
 		void fullDiag(MatrixType& fm) const
 		{
-			std::vector<RealType> e(fm.n_row());
+			typename PsimagLite::Vector<RealType>::Type e(fm.n_row());
 			diag(fm,e,'N');
 			for (size_t i=0;i<e.size();i++)
 				std::cout<<e[i]<<"\n";

@@ -35,12 +35,12 @@ namespace LanczosPlusPlus {
 		typedef BasisOneSpinImmm BasisType;
 		typedef BasisType::WordType WordType;
 
-		class OrbsPerSite : public std::vector<size_t> {
+		class OrbsPerSite : public PsimagLite::Vector<size_t>::Type {
 
 		public:
 
 			OrbsPerSite(const GeometryType& geometry)
-			: std::vector<size_t>(geometry.numberOfSites())
+			: PsimagLite::Vector<size_t>::Type(geometry.numberOfSites())
 			{
 				typename GeometryType::AdditionalDataType additional;
 				additional.type1 = 0;
@@ -79,7 +79,7 @@ namespace LanczosPlusPlus {
 			return (spin==ProgramGlobals::SPIN_UP) ? basis1_[x] : basis2_[y];
 		}
 
-		size_t perfectIndex(const std::vector<WordType>& ket1) const
+		size_t perfectIndex(const PsimagLite::Vector<WordType>::Type& ket1) const
 		{
 			throw std::runtime_error("Wrong way!\n");
 		}

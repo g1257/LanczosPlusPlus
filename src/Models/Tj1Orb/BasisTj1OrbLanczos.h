@@ -19,7 +19,7 @@ namespace LanczosPlusPlus {
 
 		typedef ProgramGlobals::WordType WordType;
 
-		static std::vector<WordType> bitmask_;
+		static PsimagLite::Vector<WordType>::Type bitmask_;
 
 		enum {OPERATOR_NIL=ProgramGlobals::OPERATOR_NIL,
 		      OPERATOR_C=ProgramGlobals::OPERATOR_C,
@@ -33,9 +33,9 @@ namespace LanczosPlusPlus {
 		{
 			assert(bitmask_.size()==0 || bitmask_.size()==geometry_.numberOfSites());
 			if (bitmask_.size()==0) doBitmask();
-			std::vector<WordType> data1;
+			PsimagLite::Vector<WordType>::Type data1;
 			fillOneSector(data1,nup);
-			std::vector<WordType> data2;
+			PsimagLite::Vector<WordType>::Type data2;
 			fillOneSector(data2,ndown);
 			combineAndFilter(data1,data2);
 			std::sort(data_.begin(),data_.end());
@@ -53,7 +53,7 @@ namespace LanczosPlusPlus {
 		//! Spin up and spin down
 		size_t dofs() const { return 2; }
 
-		size_t perfectIndex(std::vector<WordType>& kets) const
+		size_t perfectIndex(PsimagLite::Vector<WordType>::Type& kets) const
 		{
 			assert(kets.size()==2);
 			return perfectIndex(kets[0],kets[1]);
@@ -217,7 +217,7 @@ namespace LanczosPlusPlus {
 			return (tmp>0);
 		}
 
-		void fillOneSector(std::vector<WordType>& data1,size_t npart) const
+		void fillOneSector(PsimagLite::Vector<WordType>::Type& data1,size_t npart) const
 		{
 			/* compute size of basis */
 			size_t hilbert=1;
@@ -248,7 +248,7 @@ namespace LanczosPlusPlus {
 			}
 		}
 
-		void combineAndFilter(const std::vector<WordType>& data1,const std::vector<WordType>& data2)
+		void combineAndFilter(const PsimagLite::Vector<WordType>::Type& data1,const PsimagLite::Vector<WordType>::Type& data2)
 		{
 			WordType tmp = 0;
 			WordType tmp2 = 0;
@@ -373,7 +373,7 @@ namespace LanczosPlusPlus {
 		const GeometryType& geometry_;
 		size_t nup_;
 		size_t ndown_;
-		std::vector<WordType> data_;
+		PsimagLite::Vector<WordType>::Type data_;
 	}; // class BasisTj1OrbLanczos
 	
 	template<typename GeometryType>
@@ -385,7 +385,8 @@ namespace LanczosPlusPlus {
 	}
 
 	template<typename GeometryType>
-	std::vector<typename BasisTj1OrbLanczos<GeometryType>::WordType> BasisTj1OrbLanczos<GeometryType>::bitmask_;
+	typename PsimagLite::Vector<typename BasisTj1OrbLanczos<GeometryType>::WordType>::Type
+	BasisTj1OrbLanczos<GeometryType>::bitmask_;
 
 
 } // namespace LanczosPlusPlus

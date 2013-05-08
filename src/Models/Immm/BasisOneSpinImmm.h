@@ -41,9 +41,9 @@ namespace LanczosPlusPlus {
 		static int const FERMION_SIGN  = -1;
 		static size_t nsite_;
 		static PsimagLite::Matrix<size_t> comb_;
-		static std::vector<WordType> bitmask_; 
+		static PsimagLite::Vector<WordType>::Type bitmask_; 
 
-		BasisOneSpinImmm(const std::vector<size_t>& orbsPerSite, size_t npart)
+		BasisOneSpinImmm(const PsimagLite::Vector<size_t>::Type& orbsPerSite, size_t npart)
 		: orbsPerSite_(orbsPerSite),npart_(npart)
 		{
 			if (nsite_>0 && orbsPerSite.size()!=nsite_) {
@@ -77,7 +77,7 @@ namespace LanczosPlusPlus {
 			size_t counter2 = 0;
 			for (size_t na=0;na<=npart;na++) {
 				size_t nb = npart - na;
-				std::vector<WordType> basisA, basisB;
+				PsimagLite::Vector<WordType>::Type basisA, basisB;
 				fillPartialBasis(basisA,na);
 				fillPartialBasis(basisB,nb);
 				collateBasis(counter,counter2,basisA,basisB);
@@ -323,7 +323,7 @@ namespace LanczosPlusPlus {
 
 		size_t orbs() const { return orbsPerSite_[0]; }
 
-		void fillPartialBasis(std::vector<WordType>& partialBasis,size_t npart)
+		void fillPartialBasis(PsimagLite::Vector<WordType>::Type& partialBasis,size_t npart)
 		{
 			/* compute size of basis */
 			size_t hilbert=1;
@@ -355,8 +355,8 @@ namespace LanczosPlusPlus {
 
 		void collateBasis(size_t& counter,
 		                  size_t& counter2,
-		                  const std::vector<WordType>& basisA,
-		                  const std::vector<WordType>& basisB)
+		                  const PsimagLite::Vector<WordType>::Type& basisA,
+		                  const PsimagLite::Vector<WordType>::Type& basisB)
 		{
 			for (size_t i=0;i<basisA.size();i++) {
 				for (size_t j=0;j<basisB.size();j++) {
@@ -469,10 +469,10 @@ namespace LanczosPlusPlus {
 			return sum;
 		}
 
-		const std::vector<size_t>& orbsPerSite_;
+		const PsimagLite::Vector<size_t>::Type& orbsPerSite_;
 		size_t npart_;
-		std::vector<WordType> data_;
-		std::vector<WordType> reordering_;
+		PsimagLite::Vector<WordType>::Type data_;
+		PsimagLite::Vector<WordType>::Type reordering_;
 
 	}; // class BasisOneSpinImmm
 
@@ -485,7 +485,7 @@ namespace LanczosPlusPlus {
 
 	size_t BasisOneSpinImmm::nsite_=0;
 	PsimagLite::Matrix<size_t> BasisOneSpinImmm::comb_;
-	std::vector<BasisOneSpinImmm::WordType> BasisOneSpinImmm::bitmask_;
+	PsimagLite::Vector<BasisOneSpinImmm::WordType>::Type BasisOneSpinImmm::bitmask_;
 
 } // namespace LanczosPlusPlus
 #endif

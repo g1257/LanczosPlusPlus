@@ -47,10 +47,10 @@ typedef PsimagLite::Geometry<RealType,ProgramGlobals> GeometryType;
 typedef PsimagLite::IoSimple::In IoInputType;
 typedef std::pair<size_t,size_t> PairType;
 
-void fillOrbsOrSpin(std::vector<PairType>& spinV,const std::vector<std::string>& strV)
+void fillOrbsOrSpin(PsimagLite::Vector<PairType>::Type& spinV,const PsimagLite::Vector<std::string>::Type& strV)
 {
 	for (size_t i=0;i<strV.size();i++) {
-		std::vector<std::string> strV2;
+		PsimagLite::Vector<std::string>::Type strV2;
 		PsimagLite::tokenizer(strV[i],strV2,",");
 		if (strV2.size()!=2)
 			throw std::runtime_error("-o needs pairs\n");
@@ -74,7 +74,7 @@ std::pair<size_t,size_t> readElectrons(PsimagLite::IoSimple::In& io,size_t nsite
 		io.rewind();
 	}
 
-	std::vector<RealType> v;
+	PsimagLite::Vector<RealType>::Type v;
 	try {
 		io.read(v,"TargetQuantumNumbers");
 	} catch (std::exception& e)
@@ -123,10 +123,10 @@ template<typename ModelType,typename SpecialSymmetryType>
 void mainLoop2(ModelType& model,
 			   IoInputType& io,
 			   const GeometryType& geometry,
-			   const std::vector<size_t>& gfV,
-			   std::vector<size_t>& sites,
-			   const std::vector<size_t>& cicjV,
-               const std::vector<PairType>& spins)
+			   const PsimagLite::Vector<size_t>::Type& gfV,
+			   PsimagLite::Vector<size_t>::Type& sites,
+			   const PsimagLite::Vector<size_t>::Type& cicjV,
+               const PsimagLite::Vector<PairType>::Type& spins)
 {
 	typedef typename ModelType::BasisType BasisType;
 	typedef Engine<ModelType,InternalProductStored,SpecialSymmetryType,ConcurrencyType> EngineType;
@@ -178,10 +178,10 @@ void mainLoop2(ModelType& model,
 template<typename ModelType>
 void mainLoop(IoInputType& io,
 			  const GeometryType& geometry,
-			  const std::vector<size_t>& gf,
-			  std::vector<size_t>& sites,
-			  const std::vector<size_t>& cicj,
-              const std::vector<PairType>& spins)
+			  const PsimagLite::Vector<size_t>::Type& gf,
+			  PsimagLite::Vector<size_t>::Type& sites,
+			  const PsimagLite::Vector<size_t>::Type& cicj,
+              const PsimagLite::Vector<PairType>::Type& spins)
 {
 	typedef typename ModelType::ParametersModelType ParametersModelType;
 	typedef typename ModelType::BasisType BasisType;
@@ -221,11 +221,11 @@ void mainLoop(IoInputType& io,
 int main(int argc,char *argv[])
 {
 	int opt = 0;
-	std::vector<size_t> cicj,gf;
+	PsimagLite::Vector<size_t>::Type cicj,gf;
 	std::string file = "";
-	std::vector<size_t> sites;
-	std::vector<PairType> spins(1,PairType(0,0));
-	std::vector<std::string> str;
+	PsimagLite::Vector<size_t>::Type sites;
+	PsimagLite::Vector<PairType>::Type spins(1,PairType(0,0));
+	PsimagLite::Vector<std::string>::Type str;
 
 	while ((opt = getopt(argc, argv, "g:c:f:s:")) != -1) {
 		switch (opt) {

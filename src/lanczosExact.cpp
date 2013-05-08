@@ -36,7 +36,7 @@ void usage(const char *progName)
 	std::cerr<<"Usage: "<<progName<<" [-g -i i -j j] -f filename\n";
 }
 
-ComplexType proc(std::vector<ComplexType>& psi,
+ComplexType proc(PsimagLite::Vector<ComplexType>::Type& psi,
 		 const SparseMatrixType& hmat,
 		 const SparseMatrixType& hIntegral,
 		 const RealType& tau)
@@ -52,14 +52,14 @@ ComplexType proc(std::vector<ComplexType>& psi,
 
 	exp(fhIntegral);
 
-	std::vector<ComplexType> psiNew(n);
+	PsimagLite::Vector<ComplexType>::Type psiNew(n);
 	for (size_t i=0;i<n;i++) {
 		ComplexType sum = 0;
 		for (size_t j=0;j<n;j++)  sum += fhIntegral(i,j) * psi[j];
 		psiNew[i] = sum;
 	}
 
-	std::vector<ComplexType> v = fhmat * psiNew;
+	PsimagLite::Vector<ComplexType>::Type v = fhmat * psiNew;
 
 	//std::cout<<"<psi(0)|S S lambda_i | psi(0)>="<<sum2<<" "<<(2.0*sum2)<<" time="<<time<<"\n";
 	psi = psiNew;
@@ -99,7 +99,7 @@ int main(int argc,char *argv[])
 	ParametersModelType mp(io);
 
 
-	std::vector<RealType> qns;
+	PsimagLite::Vector<RealType>::Type qns;
 	io.read(qns,"TargetQuantumNumbers");
 	if (qns.size()<2) throw std::runtime_error("HubbardLanczos::ctor(...)\n");
 	size_t nup=size_t(geometry.numberOfSites()*qns[0]);
@@ -115,16 +115,16 @@ int main(int argc,char *argv[])
 
 	PsimagLite::Matrix<RealType> fpsi;
 	crsMatrixToFullMatrix(fpsi,psiM);
-	std::vector<RealType> eigs2(fpsi.n_row());
+	PsimagLite::Vector<RealType>::Type eigs2(fpsi.n_row());
 	diag(fpsi,eigs2,'V');
-	std::vector<ComplexType> psi(eigs2.size());
+	PsimagLite::Vector<ComplexType>::Type psi(eigs2.size());
 	for (size_t i=0;i<psi.size();i++) psi[i] = fpsi(i,0);
 
 	//! Setup the Models
 	size_t numberOfTimes = 510;
 	RealType deltaTime = 0.01;
 	RealType omega = 0.8;
-	std::vector<ComplexType> v(numberOfTimes);
+	PsimagLite::Vector<ComplexType>::Type v(numberOfTimes);
 	for (size_t i=0;i<numberOfTimes;i++) {
 		RealType time = i*deltaTime;
 

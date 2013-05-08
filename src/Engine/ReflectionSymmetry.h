@@ -64,7 +64,7 @@ namespace LanczosPlusPlus {
 	public:
 
 		typedef PsimagLite::CrsMatrix<RealType> SparseMatrixType;
-		typedef std::vector<RealType> VectorType;
+		typedef typename PsimagLite::Vector<RealType>::Type VectorType;
 
 		ReflectionSymmetry(const BasisType& basis,const GeometryType& geometry)
 		: progress_("ReflectionSymmetry",0),
@@ -78,9 +78,9 @@ namespace LanczosPlusPlus {
 			size_t numberOfSites = geometry.numberOfSites();
 			size_t termId = 0;
 //			size_t counter=0;
-			std::vector<ItemType> buffer;
+			PsimagLite::Vector<ItemType>::Type buffer;
 			for (size_t ispace=0;ispace<hilbert;ispace++) {
-				std::vector<WordType> y(numberOfDofs,0);
+				typename PsimagLite::Vector<WordType>::Type y(numberOfDofs,0);
 				for (size_t dof=0;dof<numberOfDofs;dof++) {
 					WordType x = basis(ispace,dof);
 					for (size_t site=0;site<numberOfSites;site++) {
@@ -126,7 +126,8 @@ namespace LanczosPlusPlus {
 
 		size_t rank() const { return matrixStored_[pointer_].row(); }
 
-		void transformMatrix(std::vector<SparseMatrixType>& matrix1,const SparseMatrixType& matrix) const
+		void transformMatrix(typename PsimagLite::Vector<SparseMatrixType>::Type& matrix1,
+		                     const SparseMatrixType& matrix) const
 		{
 			SparseMatrixType rT;
 			transposeConjugate(rT,transform_);
@@ -144,7 +145,7 @@ namespace LanczosPlusPlus {
 
 		void transformGs(VectorType& gs,size_t offset)
 		{
-			std::vector<RealType> gstmp(transform_.row(),0);
+			typename PsimagLite::Vector<RealType>::Type gstmp(transform_.row(),0);
 
 			for (size_t i=0;i<gs.size();i++) {
 				assert(i+offset<gstmp.size());
@@ -178,9 +179,9 @@ namespace LanczosPlusPlus {
 			yy |= mask;
 		}
 
-		void setTransform(const std::vector<ItemType>& buffer2)
+		void setTransform(const PsimagLite::Vector<ItemType>::Type& buffer2)
 		{
-			std::vector<ItemType> buffer;
+			PsimagLite::Vector<ItemType>::Type buffer;
 			makeUnique(buffer,buffer2);
 			assert(buffer.size()==transform_.row());
 			size_t counter = 0;
@@ -221,7 +222,7 @@ namespace LanczosPlusPlus {
 			transform_.checkValidity();
 		}
 
-		void makeUnique(std::vector<ItemType>& dest,const std::vector<ItemType>& src)
+		void makeUnique(PsimagLite::Vector<ItemType>::Type& dest,const PsimagLite::Vector<ItemType>::Type& src)
 		{
 			size_t zeros=0;
 			size_t pluses=0;
@@ -319,7 +320,7 @@ namespace LanczosPlusPlus {
 		PsimagLite::ProgressIndicator progress_;
 		SparseMatrixType transform_;
 		size_t plusSector_;
-		std::vector<SparseMatrixType> matrixStored_;
+		typename PsimagLite::Vector<SparseMatrixType>::Type matrixStored_;
 		size_t pointer_;
 	}; // class ReflectionSymmetry
 } // namespace Dmrg

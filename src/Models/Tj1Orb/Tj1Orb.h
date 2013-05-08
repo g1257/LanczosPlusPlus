@@ -29,7 +29,7 @@ namespace LanczosPlusPlus {
 		typedef BasisTj1OrbLanczos<GeometryType> BasisType;
 		typedef typename BasisType::WordType WordType;
 		typedef RealType_ RealType;
-		typedef std::vector<RealType> VectorType;
+		typedef typename PsimagLite::Vector<RealType>::Type VectorType;
 
 		static int const FERMION_SIGN = BasisType::FERMION_SIGN;
 
@@ -71,7 +71,7 @@ namespace LanczosPlusPlus {
 		                      const BasisType &basis) const
 		{
 			size_t hilbert=basis.size();
-			std::vector<RealType> diag(hilbert,0.0);
+			typename PsimagLite::Vector<RealType>::Type diag(hilbert,0.0);
 			calcDiagonalElements(diag,basis);
 			
 			size_t nsite = geometry_.numberOfSites();
@@ -149,7 +149,7 @@ namespace LanczosPlusPlus {
 			return true;
 		}
 
-		void calcDiagonalElements(std::vector<RealType>& diag,
+		void calcDiagonalElements(typename PsimagLite::Vector<RealType>::Type& diag,
 		                          const BasisType &basis) const
 		{
 			size_t hilbert=basis.size();

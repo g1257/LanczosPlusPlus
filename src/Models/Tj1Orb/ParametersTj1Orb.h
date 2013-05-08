@@ -97,7 +97,7 @@ namespace LanczosPlusPlus {
 		
 		// Do not include here connection parameters
 		// those are handled by the Geometry
-		std::vector<Field> potentialV;
+		typename PsimagLite::Vector<Field>::Type potentialV;
 
 		// target number of electrons  in the system
 		int nOfElectrons;

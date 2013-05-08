@@ -35,7 +35,7 @@ namespace LanczosPlusPlus {
 		//! Spin up and spin down
 		size_t dofs() const { return 2; }
 
-		size_t perfectIndex(std::vector<WordType>& kets) const
+		size_t perfectIndex(PsimagLite::Vector<WordType>::Type& kets) const
 		{
 			assert(kets.size()==2);
 			return perfectIndex(kets[0],kets[1]);

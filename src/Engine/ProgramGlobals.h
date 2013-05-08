@@ -136,7 +136,7 @@ struct ProgramGlobals {
 
 	static std::string id2Operator(size_t id)
 	{
-		std::vector<std::string> labels;
+		PsimagLite::Vector<std::string>::Type labels;
 		labels.push_back("cdagger");
 		labels.push_back("c");
 		labels.push_back("n");

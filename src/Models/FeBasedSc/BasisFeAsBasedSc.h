@@ -70,7 +70,7 @@ namespace LanczosPlusPlus {
 			return (spin==ProgramGlobals::SPIN_UP) ? basis1_[x] : basis2_[y];
 		}
 
-		size_t perfectIndex(const std::vector<WordType>& kets) const
+		size_t perfectIndex(const PsimagLite::Vector<WordType>::Type& kets) const
 		{
 			assert(kets.size()==2);
 			return  perfectIndex(kets[0],kets[1]);

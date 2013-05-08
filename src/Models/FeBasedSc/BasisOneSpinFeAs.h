@@ -43,7 +43,7 @@ namespace LanczosPlusPlus {
 		static int const FERMION_SIGN  = -1;
 		static size_t nsite_;
 		static PsimagLite::Matrix<size_t> comb_;
-		static std::vector<WordType> bitmask_; 
+		static PsimagLite::Vector<WordType>::Type bitmask_; 
 		
 		BasisOneSpinFeAs(size_t nsite, size_t npart,size_t orbitals)
 				: npart_(npart)
@@ -65,7 +65,7 @@ namespace LanczosPlusPlus {
 			size_ = 0;
 			PartitionsType partitions(npart,orbitals_);
 			for (size_t i=0;i<partitions.size();i++) {
-					const std::vector<size_t>& na = partitions(i);
+					const PsimagLite::Vector<size_t>::Type& na = partitions(i);
 					size_t tmp = 1;
 					for (size_t j=0;j<na.size();j++)
 						tmp *= comb_(nsite_,na[j]);
@@ -77,8 +77,8 @@ namespace LanczosPlusPlus {
 			size_t counter = 0;
 
 			for (size_t i=0;i<partitions.size();i++) {
-				const std::vector<size_t>& na = partitions(i);
-				std::vector<std::vector<WordType> > basisA(orbitals_);
+				const PsimagLite::Vector<size_t>::Type& na = partitions(i);
+				PsimagLite::Vector<PsimagLite::Vector<WordType>::Type>::Type basisA(orbitals_);
 				for (size_t orb=0;orb<orbitals_;orb++) {
 					fillPartialBasis(basisA[orb],na[orb]);
 				}
@@ -102,7 +102,7 @@ namespace LanczosPlusPlus {
 
 		size_t getN(WordType ket,size_t site,size_t orb) const
 		{
-			std::vector<WordType> kets(orbitals_,0);
+			PsimagLite::Vector<WordType>::Type kets(orbitals_,0);
 			uncollateKet(kets,ket);
 
 			WordType res = (kets[orb] & bitmask_[site]);
@@ -111,7 +111,7 @@ namespace LanczosPlusPlus {
 
 		size_t getN(size_t i,size_t orb) const
 		{
-			std::vector<WordType> kets(orbitals_,0);
+			PsimagLite::Vector<WordType>::Type kets(orbitals_,0);
 			uncollateKet(kets,data_[i]);
 			return PsimagLite::BitManip::count(kets[orb]);
 		}
@@ -126,7 +126,7 @@ namespace LanczosPlusPlus {
 
 		bool getBra(WordType& bra,const WordType& myword,size_t what,size_t site,size_t orb) const
 		{
-			std::vector<WordType> kets(orbitals_,0);
+			PsimagLite::Vector<WordType>::Type kets(orbitals_,0);
 			uncollateKet(kets,myword);
 
 			WordType braA = kets[orb];
@@ -235,7 +235,7 @@ namespace LanczosPlusPlus {
 
 	private:
 
-		void fillPartialBasis(std::vector<WordType>& partialBasis,size_t npart)
+		void fillPartialBasis(PsimagLite::Vector<WordType>::Type& partialBasis,size_t npart)
 		{
 			/* compute size of basis */
 			size_t hilbert=1;
@@ -265,7 +265,7 @@ namespace LanczosPlusPlus {
 			}
 		}
 
-		void collateBasis(size_t& counter,const std::vector<std::vector<WordType> >& basisA)
+		void collateBasis(size_t& counter,const PsimagLite::Vector<PsimagLite::Vector<WordType>::Type >::Type& basisA)
 		{
 			size_t total = 1;
 			for (size_t orb=0;orb<orbitals_;orb++) {
@@ -273,14 +273,14 @@ namespace LanczosPlusPlus {
 			}
 
 			for (size_t i=0;i<total;i++) {
-				std::vector<WordType> kets(orbitals_);
+				PsimagLite::Vector<WordType>::Type kets(orbitals_);
 				getKets(kets,basisA,i);
 				WordType ket = getCollatedKet(kets);
 				data_[counter++] = ket;
 			}
 		}
 
-		void getKets(std::vector<WordType>& kets,const std::vector<std::vector<WordType> >& basisA,size_t ind) const
+		void getKets(PsimagLite::Vector<WordType>::Type& kets,const PsimagLite::Vector<PsimagLite::Vector<WordType>::Type >::Type& basisA,size_t ind) const
 		{
 			// ind = i0 + i1 * size0 + i2 * size0 * size1 + ...
 			size_t tmp = ind;
@@ -334,12 +334,12 @@ namespace LanczosPlusPlus {
 			return n;
 		}
 
-		WordType getCollatedKet(const std::vector<WordType>& kets) const
+		WordType getCollatedKet(const PsimagLite::Vector<WordType>::Type& kets) const
 		{
 			size_t counter = 0;
 			WordType ket = 0;
 
-			std::vector<WordType> remA = kets;
+			PsimagLite::Vector<WordType>::Type remA = kets;
 
 			while( orAll(remA) ) {
 				for (size_t orb=0;orb<kets.size();orb++) {
@@ -352,7 +352,7 @@ namespace LanczosPlusPlus {
 			return ket;
 		}
 
-		size_t orAll(const std::vector<WordType>& kets) const
+		size_t orAll(const PsimagLite::Vector<WordType>::Type& kets) const
 		{
 			size_t b = 0;
 			for (size_t orb=0;orb<kets.size();orb++) b |= kets[orb];
@@ -360,7 +360,7 @@ namespace LanczosPlusPlus {
 		}
 
 		//! kets must be all zero here
-		void uncollateKet(std::vector<WordType>& kets,WordType ket) const
+		void uncollateKet(PsimagLite::Vector<WordType>::Type& kets,WordType ket) const
 		{
 			size_t counter = 0;
 
@@ -416,7 +416,7 @@ namespace LanczosPlusPlus {
 
 		size_t size_;
 		size_t npart_;
-		std::vector<WordType> data_;
+		PsimagLite::Vector<WordType>::Type data_;
 
 	}; // class BasisOneSpinFeAs
 
@@ -430,7 +430,7 @@ namespace LanczosPlusPlus {
 	size_t BasisOneSpinFeAs::orbitals_=2;
 	size_t BasisOneSpinFeAs::nsite_=0;
 	PsimagLite::Matrix<size_t> BasisOneSpinFeAs::comb_;
-	std::vector<BasisOneSpinFeAs::WordType> BasisOneSpinFeAs::bitmask_;
+	PsimagLite::Vector<BasisOneSpinFeAs::WordType>::Type BasisOneSpinFeAs::bitmask_;
 
 } // namespace LanczosPlusPlus
 #endif

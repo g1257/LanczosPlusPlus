@@ -18,8 +18,8 @@ namespace LanczosPlusPlus {
 	public:		
 
 		typedef ProgramGlobals::WordType WordType;
-
-		static PsimagLite::Vector<WordType>::Type bitmask_;
+		typedef PsimagLite::Vector<WordType>::Type VectorWordType;
+		static VectorWordType bitmask_;
 
 		enum {OPERATOR_NIL=ProgramGlobals::OPERATOR_NIL,
 		      OPERATOR_C=ProgramGlobals::OPERATOR_C,
@@ -385,7 +385,7 @@ namespace LanczosPlusPlus {
 	}
 
 	template<typename GeometryType>
-	typename PsimagLite::Vector<typename BasisTj1OrbLanczos<GeometryType>::WordType>::Type
+	typename BasisTj1OrbLanczos<GeometryType>::VectorWordType
 	BasisTj1OrbLanczos<GeometryType>::bitmask_;
 
 

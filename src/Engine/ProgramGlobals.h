@@ -79,7 +79,7 @@ DISCLOSED WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
  */
 #ifndef PROGRAM_LIMITS_H
 #define PROGRAM_LIMITS_H
-#include <string>
+#include "String.h"
 #include "TypeToString.h"
 
 namespace LanczosPlusPlus {
@@ -111,7 +111,7 @@ struct ProgramGlobals {
 		return false;
 	}
 
-	static size_t operator2id(const std::string& s)
+	static size_t operator2id(const PsimagLite::String& s)
 	{
 		if (s=="c") {
 			return OPERATOR_C;
@@ -128,15 +128,15 @@ struct ProgramGlobals {
 		} else if (s=="sminus") {
 			return OPERATOR_SMINUS;
 		}
-		std::string str(__FILE__);
+		PsimagLite::String str(__FILE__);
 		str += " " + ttos(__LINE__) +  "\n";
 		str += "operatorWithType: unsupported operator " + s + "\n";
 		throw std::runtime_error(str.c_str());
 	}
 
-	static std::string id2Operator(size_t id)
+	static PsimagLite::String id2Operator(size_t id)
 	{
-		PsimagLite::Vector<std::string>::Type labels;
+		PsimagLite::Vector<PsimagLite::String>::Type labels;
 		labels.push_back("cdagger");
 		labels.push_back("c");
 		labels.push_back("n");
@@ -150,9 +150,9 @@ struct ProgramGlobals {
 		return "UNKNOWN";
 	}
 
-	static std::string unknownOperator(size_t id)
+	static PsimagLite::String unknownOperator(size_t id)
 	{
-		std::string str(__FILE__);
+		PsimagLite::String str(__FILE__);
 		str += " " + ttos(__LINE__) + "\n";
 		str += "Unknown operator " + id2Operator(id) + "\n";
 		return str;

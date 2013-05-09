@@ -164,7 +164,7 @@ template<typename RealType_,typename GeometryType_>
 			matrix.setRow(hilbert,nCounter);
 		}
 
-		std::string name() const { return __FILE__; }
+		PsimagLite::String name() const { return __FILE__; }
 
 	private:
 

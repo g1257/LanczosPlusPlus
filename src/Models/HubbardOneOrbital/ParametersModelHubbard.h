@@ -129,7 +129,7 @@ namespace LanczosPlusPlus {
 	operator <= (ParametersModelHubbard<FieldType>& parameters, const dca::JsonReader& reader) 
 	{
 
-		const dca::JsonAccessor<std::string>& dmrg(reader["programSpecific"]["DMRG"]);
+		const dca::JsonAccessor<PsimagLite::String>& dmrg(reader["programSpecific"]["DMRG"]);
 		
 		parameters.hubbardU <= dmrg["hubbardU"];
 		parameters.potentialV <= dmrg["potentialV"];

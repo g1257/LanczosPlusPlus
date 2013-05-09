@@ -47,7 +47,7 @@ namespace LanczosPlusPlus {
 		: orbsPerSite_(orbsPerSite),npart_(npart)
 		{
 			if (nsite_>0 && orbsPerSite.size()!=nsite_) {
-				std::string s =  
+				PsimagLite::String s =  
 					"BasisOneSpinImmm: All basis must have same number of sites\n";
 				throw std::runtime_error(s.c_str());
 			}
@@ -293,7 +293,7 @@ namespace LanczosPlusPlus {
 				bra = ket;
 				return true;
 			}
-			std::string str = ProgramGlobals::unknownOperator(what);
+			PsimagLite::String str = ProgramGlobals::unknownOperator(what);
 			throw std::runtime_error(str.c_str());
 
 		}

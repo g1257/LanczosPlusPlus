@@ -108,7 +108,7 @@ namespace LanczosPlusPlus {
 							  const PairType& orbs) const
 		{
 			if (spins.first!=spins.second) {
-				std::string str(__FILE__);
+				PsimagLite::String str(__FILE__);
 				str += " " + ttos(__LINE__) + "\n";
 				str += "spectralFunction: no support yet for off-diagonal spin\n";
 				throw std::runtime_error(str.c_str());
@@ -226,7 +226,7 @@ namespace LanczosPlusPlus {
 				int temp = tempValue.first;
 				int value = tempValue.second;
 				if (temp>=0 && size_t(temp)>=z.size()) {
-					std::string s = "old basis=" + ttos(model_.basis().size());
+					PsimagLite::String s = "old basis=" + ttos(model_.basis().size());
 					s += " newbasis=" + ttos(newBasis.size());
 					s += "\n";
 					s += "operatorLabel=" + ttos(operatorLabel) + " spin=" + ttos(spin);

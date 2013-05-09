@@ -399,7 +399,7 @@ namespace LanczosPlusPlus {
 				bra = ket;
 				return true;
 			}
-			std::string str = ProgramGlobals::unknownOperator(what);
+			PsimagLite::String str = ProgramGlobals::unknownOperator(what);
 			throw std::runtime_error(str.c_str());
 		}
 

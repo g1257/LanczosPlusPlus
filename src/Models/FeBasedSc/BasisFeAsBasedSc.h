@@ -102,9 +102,9 @@ namespace LanczosPlusPlus {
 				return PairIntType(getBraIndexCorCdaggerOrN(ket1,ket2,what,site,spin,orb),1);
 			if (what==ProgramGlobals::OPERATOR_SPLUS || what==ProgramGlobals::OPERATOR_SMINUS)
 				return PairIntType(getBraIndexSplusOrSminus(ket1,ket2,what,site,orb),1);
-			std::string str(__FILE__);
+			PsimagLite::String str(__FILE__);
 			str += " " + ttos(__LINE__) +  "\n";
-			str += std::string("getBraIndex: unsupported operator ");
+			str += PsimagLite::String("getBraIndex: unsupported operator ");
 			str += ProgramGlobals::id2Operator(what) + "\n";
 			throw std::runtime_error(str.c_str());
 		}
@@ -160,9 +160,9 @@ namespace LanczosPlusPlus {
 				return hasNewPartsCorCdagger(newParts,what,spin,orbs);
 			if (what==ProgramGlobals::OPERATOR_SPLUS || what==ProgramGlobals::OPERATOR_SMINUS)
 				return hasNewPartsSplusOrSminus(newParts,what,orbs);
-			std::string str(__FILE__);
+			PsimagLite::String str(__FILE__);
 			str += " " + ttos(__LINE__) +  "\n";
-			str += std::string("hasNewParts: unsupported operator ");
+			str += PsimagLite::String("hasNewParts: unsupported operator ");
 			str += ProgramGlobals::id2Operator(what) + "\n";
 			throw std::runtime_error(str.c_str());
 		}

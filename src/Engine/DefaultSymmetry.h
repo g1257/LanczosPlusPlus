@@ -64,7 +64,7 @@ namespace LanczosPlusPlus {
 
 		void setPointer(size_t p) { }
 
-		std::string name() const { return "default"; }
+		PsimagLite::String name() const { return "default"; }
 
 		size_t rank() const { return matrixStored_.row(); }
 

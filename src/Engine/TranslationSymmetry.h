@@ -281,7 +281,7 @@ private:
 
 		void setPointer(size_t p) { pointer_=p; }
 
-		std::string name() const { return "translation"; }
+		PsimagLite::String name() const { return "translation"; }
 
 	private:
 
@@ -380,7 +380,7 @@ private:
 //						continue;
 //					}
 //					if (!isAlmostZero(val)) {
-//						std::string s(__FILE__);
+//						PsimagLite::String s(__FILE__);
 //						s += " Hamiltonian has no reflection symmetry.";
 //						throw std::runtime_error(s.c_str());
 //					}
@@ -404,7 +404,7 @@ private:
 //						continue;
 //					}
 //					if (!isAlmostZero(val)) {
-//						std::string s(__FILE__);
+//						PsimagLite::String s(__FILE__);
 //						s += " Hamiltonian has no reflection symmetry.";
 //						throw std::runtime_error(s.c_str());
 //					}

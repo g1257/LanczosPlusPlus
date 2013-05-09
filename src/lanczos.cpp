@@ -1,5 +1,5 @@
-#include <string>
-std::string license = "Copyright (c) 2009-2012, UT-Battelle, LLC\n"
+#include "String.h"
+PsimagLite::String license = "Copyright (c) 2009-2012, UT-Battelle, LLC\n"
 "All rights reserved\n"
 "\n"
 "[Lanczos++, Version 1.0.0]\n"
@@ -47,10 +47,10 @@ typedef PsimagLite::Geometry<RealType,ProgramGlobals> GeometryType;
 typedef PsimagLite::IoSimple::In IoInputType;
 typedef std::pair<size_t,size_t> PairType;
 
-void fillOrbsOrSpin(PsimagLite::Vector<PairType>::Type& spinV,const PsimagLite::Vector<std::string>::Type& strV)
+void fillOrbsOrSpin(PsimagLite::Vector<PairType>::Type& spinV,const PsimagLite::Vector<PsimagLite::String>::Type& strV)
 {
 	for (size_t i=0;i<strV.size();i++) {
-		PsimagLite::Vector<std::string>::Type strV2;
+		PsimagLite::Vector<PsimagLite::String>::Type strV2;
 		PsimagLite::tokenizer(strV[i],strV2,",");
 		if (strV2.size()!=2)
 			throw std::runtime_error("-o needs pairs\n");
@@ -84,19 +84,19 @@ std::pair<size_t,size_t> readElectrons(PsimagLite::IoSimple::In& io,size_t nsite
 	}
 
 	if (nup<0 && v.size()==0) {
-		std::string str("Either TargetElectronsUp/Down or TargetQuantumNumbers is need\n");
+		PsimagLite::String str("Either TargetElectronsUp/Down or TargetQuantumNumbers is need\n");
 		throw std::runtime_error(str.c_str());
 	}
 
 	if (nup>=0 && v.size()>0) {
-		std::string str("Having both TargetElectronsUp/Down and TargetQuantumNumbers is an error\n");
+		PsimagLite::String str("Having both TargetElectronsUp/Down and TargetQuantumNumbers is an error\n");
 		throw std::runtime_error(str.c_str());
 	}
 
 	if (nup>=0) return std::pair<size_t,size_t>(nup,ndown);
 
 	if (v.size()<2) {
-		std::string str("Incorrect TargetQuantumNumbers line\n");
+		PsimagLite::String str("Incorrect TargetQuantumNumbers line\n");
 		throw std::runtime_error(str.c_str());
 	}
 	nup = size_t(v[0]*nsites);
@@ -222,10 +222,10 @@ int main(int argc,char *argv[])
 {
 	int opt = 0;
 	PsimagLite::Vector<size_t>::Type cicj,gf;
-	std::string file = "";
+	PsimagLite::String file = "";
 	PsimagLite::Vector<size_t>::Type sites;
 	PsimagLite::Vector<PairType>::Type spins(1,PairType(0,0));
-	PsimagLite::Vector<std::string>::Type str;
+	PsimagLite::Vector<PsimagLite::String>::Type str;
 
 	while ((opt = getopt(argc, argv, "g:c:f:s:")) != -1) {
 		switch (opt) {
@@ -263,7 +263,7 @@ int main(int argc,char *argv[])
 	// print license
 	if (concurrency.root()) std::cerr<<license;
 
-	std::string model("");
+	PsimagLite::String model("");
 	io.readline(model,"Model=");
 
 	if (model=="Tj1Orb") {

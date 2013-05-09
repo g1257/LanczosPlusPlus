@@ -70,7 +70,7 @@ int main(int argc,char *argv[])
 {
 	int opt = 0;
 	bool gf = false;
-	std::string file = "";
+	PsimagLite::String file = "";
 	while ((opt = getopt(argc, argv, "gf:")) != -1) {
 		switch (opt) {
 		case 'g':

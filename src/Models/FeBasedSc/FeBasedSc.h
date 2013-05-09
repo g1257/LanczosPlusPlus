@@ -165,7 +165,7 @@ namespace LanczosPlusPlus {
 
 		const BasisType& basis() const { return basis_; }
 
-		std::string name() const { return __FILE__; }
+		PsimagLite::String name() const { return __FILE__; }
 
 	private:
 

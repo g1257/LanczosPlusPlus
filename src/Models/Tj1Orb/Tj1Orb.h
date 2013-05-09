@@ -108,9 +108,9 @@ namespace LanczosPlusPlus {
 		{
 			if (what==ProgramGlobals::OPERATOR_C || what==ProgramGlobals::OPERATOR_CDAGGER)
 				return hasNewPartsCorCdagger(newParts,what,spin,orbs);
-			std::string str(__FILE__);
+			PsimagLite::String str(__FILE__);
 			str += " " + ttos(__LINE__) +  "\n";
-			str += std::string("hasNewParts: unsupported operator ");
+			str += PsimagLite::String("hasNewParts: unsupported operator ");
 			str += ProgramGlobals::id2Operator(what) + "\n";
 			throw std::runtime_error(str.c_str());
 		}
@@ -124,7 +124,7 @@ namespace LanczosPlusPlus {
 			os<<basis_;
 		}
 
-		std::string name() const { return __FILE__; }
+		PsimagLite::String name() const { return __FILE__; }
 
 	private:
 

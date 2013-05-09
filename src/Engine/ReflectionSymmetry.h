@@ -162,7 +162,7 @@ namespace LanczosPlusPlus {
 
 		void setPointer(size_t p) { pointer_=p; }
 
-		std::string name() const { return "reflection"; }
+		PsimagLite::String name() const { return "reflection"; }
 
 		template<typename SomeVectorType>
 		void matrixVectorProduct(SomeVectorType &x, SomeVectorType const &y) const
@@ -244,13 +244,13 @@ namespace LanczosPlusPlus {
 
 				dest.push_back(item);
 			}
-			std::ostringstream msg;
+			PsimagLite::OstringStream msg;
 			msg<<pluses<<" +, "<<minuses<<" -, "<<zeros<<" zeros.";
 			progress_.printline(msg,std::cout);
 			plusSector_ = zeros + pluses;
 		}
 
-		void isIdentity(const SparseMatrixType& s,const std::string& label) const
+		void isIdentity(const SparseMatrixType& s,const PsimagLite::String& label) const
 		{
 			std::cerr<<"Checking label="<<label<<"\n";
 			for (size_t i=0;i<s.rank();i++) {
@@ -284,7 +284,7 @@ namespace LanczosPlusPlus {
 						continue;
 					}
 					if (!isAlmostZero(val)) {
-						std::string s(__FILE__);
+						PsimagLite::String s(__FILE__);
 						s += " Hamiltonian has no reflection symmetry.";
 						throw std::runtime_error(s.c_str());
 					}
@@ -308,7 +308,7 @@ namespace LanczosPlusPlus {
 						continue;
 					}
 					if (!isAlmostZero(val)) {
-						std::string s(__FILE__);
+						PsimagLite::String s(__FILE__);
 						s += " Hamiltonian has no reflection symmetry.";
 						throw std::runtime_error(s.c_str());
 					}

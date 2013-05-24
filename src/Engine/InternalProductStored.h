@@ -110,7 +110,7 @@ namespace LanczosPlusPlus {
 			rs_.init(model,model.basis());
 		}
 
-		size_t rank() const { return rs_.rank(); }
+		SizeType rank() const { return rs_.rank(); }
 
 		template<typename SomeVectorType>
 		void matrixVectorProduct(SomeVectorType &x, SomeVectorType const &y) const
@@ -118,9 +118,9 @@ namespace LanczosPlusPlus {
 			rs_.matrixVectorProduct(x,y);
 		}
 
-		//size_t reflectionSector() const { return pointer_; }
+		//SizeType reflectionSector() const { return pointer_; }
 
-		void specialSymmetrySector(size_t p) { rs_.setPointer(p); }
+		void specialSymmetrySector(SizeType p) { rs_.setPointer(p); }
 
 	private:
 

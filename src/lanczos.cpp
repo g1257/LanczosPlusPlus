@@ -45,11 +45,11 @@ typedef std::complex<RealType> ComplexType;
 typedef PsimagLite::ConcurrencySerial<RealType> ConcurrencyType;
 typedef PsimagLite::Geometry<RealType,ProgramGlobals> GeometryType;
 typedef PsimagLite::IoSimple::In IoInputType;
-typedef std::pair<size_t,size_t> PairType;
+typedef std::pair<SizeType,SizeType> PairType;
 
 void fillOrbsOrSpin(PsimagLite::Vector<PairType>::Type& spinV,const PsimagLite::Vector<PsimagLite::String>::Type& strV)
 {
-	for (size_t i=0;i<strV.size();i++) {
+	for (SizeType i=0;i<strV.size();i++) {
 		PsimagLite::Vector<PsimagLite::String>::Type strV2;
 		PsimagLite::tokenizer(strV[i],strV2,",");
 		if (strV2.size()!=2)
@@ -61,7 +61,7 @@ void fillOrbsOrSpin(PsimagLite::Vector<PairType>::Type& spinV,const PsimagLite::
 	}
 }
 
-std::pair<size_t,size_t> readElectrons(PsimagLite::IoSimple::In& io,size_t nsites)
+std::pair<SizeType,SizeType> readElectrons(PsimagLite::IoSimple::In& io,SizeType nsites)
 {
 	int nup = -1;
 	int ndown = -1;
@@ -93,15 +93,15 @@ std::pair<size_t,size_t> readElectrons(PsimagLite::IoSimple::In& io,size_t nsite
 		throw std::runtime_error(str.c_str());
 	}
 
-	if (nup>=0) return std::pair<size_t,size_t>(nup,ndown);
+	if (nup>=0) return std::pair<SizeType,SizeType>(nup,ndown);
 
 	if (v.size()<2) {
 		PsimagLite::String str("Incorrect TargetQuantumNumbers line\n");
 		throw std::runtime_error(str.c_str());
 	}
-	nup = size_t(v[0]*nsites);
-	ndown = size_t(v[1]*nsites);
-	return std::pair<size_t,size_t>(nup,ndown);
+	nup = SizeType(v[0]*nsites);
+	ndown = SizeType(v[1]*nsites);
+	return std::pair<SizeType,SizeType>(nup,ndown);
 }
 
 void usage(const char *progName)
@@ -110,10 +110,10 @@ void usage(const char *progName)
 }
 
 template<typename ModelType>
-size_t maxOrbitals(const ModelType& model)
+SizeType maxOrbitals(const ModelType& model)
 {
-	size_t res=0;
-	for (size_t i=0;i<model.geometry().numberOfSites();i++) {
+	SizeType res=0;
+	for (SizeType i=0;i<model.geometry().numberOfSites();i++) {
 		if (res<model.orbitals(i)) res=model.orbitals(i);
 	}
 	return res;
@@ -123,9 +123,9 @@ template<typename ModelType,typename SpecialSymmetryType>
 void mainLoop2(ModelType& model,
 			   IoInputType& io,
 			   const GeometryType& geometry,
-			   const PsimagLite::Vector<size_t>::Type& gfV,
-			   PsimagLite::Vector<size_t>::Type& sites,
-			   const PsimagLite::Vector<size_t>::Type& cicjV,
+			   const PsimagLite::Vector<SizeType>::Type& gfV,
+			   PsimagLite::Vector<SizeType>::Type& sites,
+			   const PsimagLite::Vector<SizeType>::Type& cicjV,
                const PsimagLite::Vector<PairType>::Type& spins)
 {
 	typedef typename ModelType::BasisType BasisType;
@@ -138,8 +138,8 @@ void mainLoop2(ModelType& model,
 	RealType Eg = engine.gsEnergy();
 	std::cout.precision(8);
 	std::cout<<"Energy="<<Eg<<"\n";
-	for (size_t gfi=0;gfi<gfV.size();gfi++) {
-		size_t gf = gfV[gfi];
+	for (SizeType gfi=0;gfi<gfV.size();gfi++) {
+		SizeType gf = gfV[gfi];
 		io.read(sites,"TSPSites");
 		if (sites.size()==0) throw std::runtime_error("No sites in input file!\n");
 		if (sites.size()==1) sites.push_back(sites[0]);
@@ -152,23 +152,23 @@ void mainLoop2(ModelType& model,
 
 		PsimagLite::IoSimple::Out ioOut(std::cout);
 		ContinuedFractionCollectionType cfCollection;
-		size_t norbitals = maxOrbitals(model);
-		for (size_t orb1=0;orb1<norbitals;orb1++) {
-			for (size_t orb2=0;orb2<norbitals;orb2++) {
-				engine.spectralFunction(cfCollection,gf,sites[0],sites[1],spins,std::pair<size_t,size_t>(orb1,orb2));
+		SizeType norbitals = maxOrbitals(model);
+		for (SizeType orb1=0;orb1<norbitals;orb1++) {
+			for (SizeType orb2=0;orb2<norbitals;orb2++) {
+				engine.spectralFunction(cfCollection,gf,sites[0],sites[1],spins,std::pair<SizeType,SizeType>(orb1,orb2));
 			}
 		}
 		cfCollection.save(ioOut);
 	}
 
-	for (size_t cicji=0;cicji<cicjV.size();cicji++) {
-		size_t cicj = cicjV[cicji];
-		size_t total = geometry.numberOfSites();
+	for (SizeType cicji=0;cicji<cicjV.size();cicji++) {
+		SizeType cicj = cicjV[cicji];
+		SizeType total = geometry.numberOfSites();
 		PsimagLite::Matrix<typename SpecialSymmetryType::VectorType::value_type> cicjMatrix(total,total);
-		size_t norbitals = maxOrbitals(model);
-		for (size_t orb1=0;orb1<norbitals;orb1++) {
-			for (size_t orb2=0;orb2<norbitals;orb2++) {
-				engine.twoPoint(cicjMatrix,cicj,spins,std::pair<size_t,size_t>(orb1,orb2));
+		SizeType norbitals = maxOrbitals(model);
+		for (SizeType orb1=0;orb1<norbitals;orb1++) {
+			for (SizeType orb2=0;orb2<norbitals;orb2++) {
+				engine.twoPoint(cicjMatrix,cicj,spins,std::pair<SizeType,SizeType>(orb1,orb2));
 				std::cout<<cicjMatrix;
 			}
 		}
@@ -178,9 +178,9 @@ void mainLoop2(ModelType& model,
 template<typename ModelType>
 void mainLoop(IoInputType& io,
 			  const GeometryType& geometry,
-			  const PsimagLite::Vector<size_t>::Type& gf,
-			  PsimagLite::Vector<size_t>::Type& sites,
-			  const PsimagLite::Vector<size_t>::Type& cicj,
+			  const PsimagLite::Vector<SizeType>::Type& gf,
+			  PsimagLite::Vector<SizeType>::Type& sites,
+			  const PsimagLite::Vector<SizeType>::Type& cicj,
               const PsimagLite::Vector<PairType>::Type& spins)
 {
 	typedef typename ModelType::ParametersModelType ParametersModelType;
@@ -190,7 +190,7 @@ void mainLoop(IoInputType& io,
 	ParametersModelType mp(io);
 
 	std::cout<<mp;
-	std::pair<size_t,size_t> nupndown = readElectrons(io,geometry.numberOfSites());
+	std::pair<SizeType,SizeType> nupndown = readElectrons(io,geometry.numberOfSites());
 
 	//! Setup the Model
 	ModelType model(nupndown.first,nupndown.second,mp,geometry);
@@ -221,9 +221,9 @@ void mainLoop(IoInputType& io,
 int main(int argc,char *argv[])
 {
 	int opt = 0;
-	PsimagLite::Vector<size_t>::Type cicj,gf;
+	PsimagLite::Vector<SizeType>::Type cicj,gf;
 	PsimagLite::String file = "";
-	PsimagLite::Vector<size_t>::Type sites;
+	PsimagLite::Vector<SizeType>::Type sites;
 	PsimagLite::Vector<PairType>::Type spins(1,PairType(0,0));
 	PsimagLite::Vector<PsimagLite::String>::Type str;
 

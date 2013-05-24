@@ -29,7 +29,7 @@ namespace LanczosPlusPlus {
 
 		typedef ProgramGlobals::PairIntType PairIntType;
 
-		static size_t orbitals_;
+		static SizeType orbitals_;
 
 	public:
 		
@@ -37,7 +37,7 @@ namespace LanczosPlusPlus {
 		typedef BasisType::WordType WordType;
 		static int const FERMION_SIGN = BasisType::FERMION_SIGN;	
 		
-		BasisFeAsBasedSc(const GeometryType& geometry, size_t nup,size_t ndown,size_t orbitals)
+		BasisFeAsBasedSc(const GeometryType& geometry, SizeType nup,SizeType ndown,SizeType orbitals)
 		: basis1_(geometry.numberOfSites(),nup,orbitals),
 		  basis2_(geometry.numberOfSites(),ndown,orbitals)
 		{
@@ -48,53 +48,53 @@ namespace LanczosPlusPlus {
 //			std::cout<<basis2_;
 		}
 		
-		BasisFeAsBasedSc(const GeometryType& geometry, size_t nup,size_t ndown)
+		BasisFeAsBasedSc(const GeometryType& geometry, SizeType nup,SizeType ndown)
 		: basis1_(geometry.numberOfSites(),nup,orbitals_),
 		  basis2_(geometry.numberOfSites(),ndown,orbitals_)
 		{}
 		
 
-		static const WordType& bitmask(size_t i)
+		static const WordType& bitmask(SizeType i)
 		{
 			return BasisType::bitmask(i);
 		}
 		
-		size_t dofs() const { return 2*orbitals_; }
+		SizeType dofs() const { return 2*orbitals_; }
 
-		size_t size() const { return basis1_.size()*basis2_.size(); }
+		SizeType size() const { return basis1_.size()*basis2_.size(); }
 		
-		const WordType& operator()(size_t i,size_t spin) const
+		const WordType& operator()(SizeType i,SizeType spin) const
 		{
-			size_t y = i/basis1_.size();
-			size_t x = i%basis1_.size();
+			SizeType y = i/basis1_.size();
+			SizeType x = i%basis1_.size();
 			return (spin==ProgramGlobals::SPIN_UP) ? basis1_[x] : basis2_[y];
 		}
 
-		size_t perfectIndex(const PsimagLite::Vector<WordType>::Type& kets) const
+		SizeType perfectIndex(const PsimagLite::Vector<WordType>::Type& kets) const
 		{
 			assert(kets.size()==2);
 			return  perfectIndex(kets[0],kets[1]);
 		}
 
-		size_t perfectIndex(WordType ket1,WordType ket2) const
+		SizeType perfectIndex(WordType ket1,WordType ket2) const
 		{
 			return basis1_.perfectIndex(ket1) + basis2_.perfectIndex(ket2)*basis1_.size();
 		}
 		
 
-		size_t getN(size_t i,size_t spin,size_t orb) const
+		SizeType getN(SizeType i,SizeType spin,SizeType orb) const
 		{
-			size_t y = i/basis1_.size();
-			size_t x = i%basis1_.size();
+			SizeType y = i/basis1_.size();
+			SizeType x = i%basis1_.size();
 			return (spin==ProgramGlobals::SPIN_UP) ? basis1_.getN(x,orb) : basis2_.getN(y,orb);
 		}
 
-		size_t getN(WordType ket,size_t site,size_t spin,size_t orb) const
+		SizeType getN(WordType ket,SizeType site,SizeType spin,SizeType orb) const
 		{
 			return (spin==ProgramGlobals::SPIN_UP) ? basis1_.getN(ket,site,orb) : basis2_.getN(ket,site,orb);
 		}
 
-		PairIntType getBraIndex(WordType ket1, WordType ket2,size_t what,size_t site,size_t spin,size_t orb) const
+		PairIntType getBraIndex(WordType ket1, WordType ket2,SizeType what,SizeType site,SizeType spin,SizeType orb) const
 		{
 			if (what==ProgramGlobals::OPERATOR_C ||
 			    what==ProgramGlobals::OPERATOR_CDAGGER ||
@@ -111,11 +111,11 @@ namespace LanczosPlusPlus {
 
 		int doSign(WordType ket1,
 			   WordType ket2,
-			   size_t i,
-			   size_t orb1,
-			   size_t j,
-			   size_t orb2,
-			   size_t spin) const
+			   SizeType i,
+			   SizeType orb1,
+			   SizeType j,
+			   SizeType orb2,
+			   SizeType spin) const
 		{
 			if (i > j) {
 				std::cerr<<"FATAL: At doSign\n";
@@ -129,7 +129,7 @@ namespace LanczosPlusPlus {
 			return basis2_.doSign(ket2,i,orb1,j,orb2);
 		}
 
-		int doSignGf(WordType a, WordType b,size_t ind,size_t spin,size_t orb) const
+		int doSignGf(WordType a, WordType b,SizeType ind,SizeType spin,SizeType orb) const
 		{
 			if (spin==ProgramGlobals::SPIN_UP) return basis1_.doSignGf(a,ind,orb);
 
@@ -139,22 +139,22 @@ namespace LanczosPlusPlus {
 			return s*s2;
 		}
 
-		size_t isThereAnElectronAt(
-				size_t ket1,
-				size_t ket2,
-				size_t site,
-				size_t spin,
-				size_t orb) const
+		SizeType isThereAnElectronAt(
+				SizeType ket1,
+				SizeType ket2,
+				SizeType site,
+				SizeType spin,
+				SizeType orb) const
 		{
 			if (spin==ProgramGlobals::SPIN_UP)
 				return basis1_.isThereAnElectronAt(ket1,site,orb);
 			return basis2_.isThereAnElectronAt(ket2,site,orb);
 		}
 
-		bool hasNewParts(std::pair<size_t,size_t>& newParts,
-		                 size_t what,
-		                 size_t spin,
-		                 const std::pair<size_t,size_t>& orbs) const
+		bool hasNewParts(std::pair<SizeType,SizeType>& newParts,
+		                 SizeType what,
+		                 SizeType spin,
+		                 const std::pair<SizeType,SizeType>& orbs) const
 		{
 			if (what==ProgramGlobals::OPERATOR_C || what==ProgramGlobals::OPERATOR_CDAGGER)
 				return hasNewPartsCorCdagger(newParts,what,spin,orbs);
@@ -169,7 +169,7 @@ namespace LanczosPlusPlus {
 
 	private:
 
-		int getBraIndexCorCdaggerOrN(WordType ket1, WordType ket2,size_t what,size_t site,size_t spin,size_t orb) const
+		int getBraIndexCorCdaggerOrN(WordType ket1, WordType ket2,SizeType what,SizeType site,SizeType spin,SizeType orb) const
 		{
 
 			WordType bra  =0;
@@ -179,7 +179,7 @@ namespace LanczosPlusPlus {
 			                         perfectIndex(ket1,bra);
 		}
 
-		int getBraIndexSplusOrSminus(WordType ket1, WordType ket2,size_t what,size_t site,size_t orb) const
+		int getBraIndexSplusOrSminus(WordType ket1, WordType ket2,SizeType what,SizeType site,SizeType orb) const
 		{
 
 			WordType bra1  =0;
@@ -189,10 +189,10 @@ namespace LanczosPlusPlus {
 			return perfectIndex(bra1,bra2);
 		}
 
-		bool hasNewPartsCorCdagger(std::pair<size_t,size_t>& newParts,
-		                           size_t what,
-		                           size_t spin,
-		                           const std::pair<size_t,size_t>& orbs) const
+		bool hasNewPartsCorCdagger(std::pair<SizeType,SizeType>& newParts,
+		                           SizeType what,
+		                           SizeType spin,
+		                           const std::pair<SizeType,SizeType>& orbs) const
 		{
 			int newPart1=basis1_.electrons();
 			int newPart2=basis2_.electrons();
@@ -203,14 +203,14 @@ namespace LanczosPlusPlus {
 			if (newPart1<0 || newPart2<0) return false;
 
 			if (newPart1==0 && newPart2==0) return false;
-			newParts.first = size_t(newPart1);
-			newParts.second = size_t(newPart2);
+			newParts.first = SizeType(newPart1);
+			newParts.second = SizeType(newPart2);
 			return true;
 		}
 
-		bool hasNewPartsSplusOrSminus(std::pair<size_t,size_t>& newParts,
-		                              size_t what,
-		                              const std::pair<size_t,size_t>& orbs) const
+		bool hasNewPartsSplusOrSminus(std::pair<SizeType,SizeType>& newParts,
+		                              SizeType what,
+		                              const std::pair<SizeType,SizeType>& orbs) const
 		{
 			int c1 = (what==ProgramGlobals::OPERATOR_SPLUS) ? 1 : -1;
 			int c2 = (what==ProgramGlobals::OPERATOR_SPLUS) ? -1 : 1;
@@ -221,18 +221,18 @@ namespace LanczosPlusPlus {
 			if (newPart1<0 || newPart2<0) return false;
 
 			if (newPart1==0 && newPart2==0) return false;
-			newParts.first = size_t(newPart1);
-			newParts.second = size_t(newPart2);
+			newParts.first = SizeType(newPart1);
+			newParts.second = SizeType(newPart2);
 			return true;
 		}
 		
 		bool getBraCorCdaggerOrN(WordType& bra,
 		                         const WordType& ket1,
 		                         const WordType& ket2,
-		                         size_t what,
-		                         size_t site,
-		                         size_t spin,
-		                         size_t orb) const
+		                         SizeType what,
+		                         SizeType site,
+		                         SizeType spin,
+		                         SizeType orb) const
 		{
 			return (spin==ProgramGlobals::SPIN_UP) ? basis1_.getBra(bra,ket1,what,site,orb) :
 			                         basis2_.getBra(bra,ket2,what,site,orb);
@@ -242,12 +242,12 @@ namespace LanczosPlusPlus {
 		                        WordType& bra2,
 		                        const WordType& ket1,
 		                        const WordType& ket2,
-		                        size_t what,
-		                        size_t site,
-		                        size_t orb) const
+		                        SizeType what,
+		                        SizeType site,
+		                        SizeType orb) const
 		{
-			size_t what1 = (what==ProgramGlobals::OPERATOR_SPLUS) ? ProgramGlobals::OPERATOR_CDAGGER : ProgramGlobals::OPERATOR_C;
-			size_t what2 = (what==ProgramGlobals::OPERATOR_SPLUS) ? ProgramGlobals::OPERATOR_C : ProgramGlobals::OPERATOR_CDAGGER;
+			SizeType what1 = (what==ProgramGlobals::OPERATOR_SPLUS) ? ProgramGlobals::OPERATOR_CDAGGER : ProgramGlobals::OPERATOR_C;
+			SizeType what2 = (what==ProgramGlobals::OPERATOR_SPLUS) ? ProgramGlobals::OPERATOR_C : ProgramGlobals::OPERATOR_CDAGGER;
 			bool b1 = basis1_.getBra(bra1,ket1,what1,site,orb);
 			bool b2 = basis2_.getBra(bra2,ket2,what2,site,orb);
 			return (b1 & b2);
@@ -257,7 +257,7 @@ namespace LanczosPlusPlus {
 	}; // class BasisFeAsBasedSc
 
 	template<typename GeometryType>
-	size_t BasisFeAsBasedSc<GeometryType>::orbitals_=2;
+	SizeType BasisFeAsBasedSc<GeometryType>::orbitals_=2;
 
 } // namespace LanczosPlusPlus
 #endif

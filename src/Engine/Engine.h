@@ -59,15 +59,15 @@ namespace LanczosPlusPlus {
 		typedef PsimagLite::Matrix<FieldType> MatrixType;
 		typedef typename LanczosSolverType::TridiagonalMatrixType
 				TridiagonalMatrixType;
-		typedef std::pair<size_t,size_t> PairType;
+		typedef std::pair<SizeType,SizeType> PairType;
 
 		// ContF needs to support concurrency FIXME
-		static const size_t parallelRank_ = 0;
-		static const size_t CHECK_HERMICITY = 1;
+		static const SizeType parallelRank_ = 0;
+		static const SizeType CHECK_HERMICITY = 1;
 
 		enum {PLUS,MINUS};
 		
-		Engine(const ModelType& model,size_t numberOfSites,PsimagLite::IoSimple::In& io)
+		Engine(const ModelType& model,SizeType numberOfSites,PsimagLite::IoSimple::In& io)
 		: model_(model),
 		  progress_("Engine",0),
 		  params_(io)
@@ -86,13 +86,13 @@ namespace LanczosPlusPlus {
 		//! Calc Green function G(isite,jsite)  (still diagonal in spin)
 		template<typename ContinuedFractionCollectionType>
 		void spectralFunction(ContinuedFractionCollectionType& cfCollection,
-							  size_t what2,
+							  SizeType what2,
 							  int isite,
 							  int jsite,
 							  const PsimagLite::Vector<PairType>::Type& spins,
 							  const PairType& orbs) const
 		{
-			for (size_t i=0;i<spins.size();i++) {
+			for (SizeType i=0;i<spins.size();i++) {
 				std::cout<<"spins="<<spins[i].first<<" "<<spins[i].second<<"\n";
 				spectralFunction(cfCollection,what2,isite,jsite,spins[i],orbs);
 			}
@@ -101,7 +101,7 @@ namespace LanczosPlusPlus {
 		//! Calc Green function G(isite,jsite)  (still diagonal in spin)
 		template<typename ContinuedFractionCollectionType>
 		void spectralFunction(ContinuedFractionCollectionType& cfCollection,
-							  size_t what2,
+							  SizeType what2,
 							  int isite,
 							  int jsite,
 							  const PairType& spins,
@@ -119,13 +119,13 @@ namespace LanczosPlusPlus {
 			const BasisType* basisNew = 0;
 			bool isDiagonal = (isite==jsite && orbs.first==orbs.second);
 
-			for (size_t type=0;type<4;type++) {
+			for (SizeType type=0;type<4;type++) {
 				if (isDiagonal && type>1) continue;
 
-				size_t operatorLabel= (type&1) ?  what2 : ProgramGlobals::transposeConjugate(what2);
+				SizeType operatorLabel= (type&1) ?  what2 : ProgramGlobals::transposeConjugate(what2);
 				if (ProgramGlobals::needsNewBasis(operatorLabel)) {
 					assert(spins.first==spins.second);
-					std::pair<size_t,size_t> newParts(0,0);
+					std::pair<SizeType,SizeType> newParts(0,0);
 					if (!model_.hasNewParts(newParts,operatorLabel,spins.first,orbs)) continue;
 					// Create new bases
 					basisNew = new BasisType(model_.geometry(),newParts.first,newParts.second);
@@ -147,11 +147,11 @@ namespace LanczosPlusPlus {
 		}
 
 		void twoPoint(PsimagLite::Matrix<typename VectorType::value_type>& result,
-		              size_t what2,
+		              SizeType what2,
 		              const PsimagLite::Vector<PairType>::Type& spins,
 		              const PairType& orbs) const
 		{
-			for (size_t i=0;i<spins.size();i++) {
+			for (SizeType i=0;i<spins.size();i++) {
 				std::cout<<"spins="<<spins[i].first<<" "<<spins[i].second<<"\n";
 				twoPoint(result,what2,spins[i],orbs);
 			}
@@ -159,7 +159,7 @@ namespace LanczosPlusPlus {
 		}
 
 		void twoPoint(PsimagLite::Matrix<typename VectorType::value_type>& result,
-		              size_t what2,
+		              SizeType what2,
 		              const PairType& spins,
 		              const PairType& orbs) const
 		{
@@ -167,7 +167,7 @@ namespace LanczosPlusPlus {
 
 			if (ProgramGlobals::needsNewBasis(what2)) {
 				assert(spins.first==spins.second);
-				std::pair<size_t,size_t> newParts(0,0);
+				std::pair<SizeType,SizeType> newParts(0,0);
 				if (!model_.hasNewParts(newParts,what2,spins.first,orbs)) return;
 
 				basisNew = new BasisType(model_.geometry(),newParts.first,newParts.second);
@@ -179,22 +179,22 @@ namespace LanczosPlusPlus {
 				basisNew = &model_.basis();
 			}
 
-			size_t total =result.n_row();
+			SizeType total =result.n_row();
 
-			for (size_t isite=0;isite<total;isite++)
-				for (size_t jsite=0;jsite<total;jsite++)
+			for (SizeType isite=0;isite<total;isite++)
+				for (SizeType jsite=0;jsite<total;jsite++)
 					result(isite,jsite) = -100;
 
-			size_t isign = 1;
+			SizeType isign = 1;
 
 			typename VectorType::value_type sum = 0;
 			std::cout<<"orbs="<<orbs.first<<" "<<orbs.second<<"\n";
-			for (size_t isite=0;isite<total;isite++) {
+			for (SizeType isite=0;isite<total;isite++) {
 				VectorType modifVector1(basisNew->size(),0);
 				if (orbs.first>=model_.orbitals(isite)) continue;
 				accModifiedState(modifVector1,what2,*basisNew,gsVector_,
 							isite,spins.first,orbs.first,isign);
-				for (size_t jsite=0;jsite<total;jsite++) {
+				for (SizeType jsite=0;jsite<total;jsite++) {
 					VectorType modifVector2(basisNew->size(),0);
 					if (orbs.second>=model_.orbitals(jsite)) continue;
 					accModifiedState(modifVector2,what2,*basisNew,gsVector_,
@@ -211,21 +211,21 @@ namespace LanczosPlusPlus {
 	private:
 
 		void accModifiedState_(VectorType &z,
-		                       size_t operatorLabel,
+		                       SizeType operatorLabel,
 		                       const BasisType& newBasis,
 		                       const VectorType& gsVector,
-		                       size_t site,
-		                       size_t spin,
-		                       size_t orb,
+		                       SizeType site,
+		                       SizeType spin,
+		                       SizeType orb,
 		                       int isign) const
 		{
-			for (size_t ispace=0;ispace<model_.basis().size();ispace++) {
+			for (SizeType ispace=0;ispace<model_.basis().size();ispace++) {
 				ProgramGlobals::WordType ket1 = model_.basis()(ispace,ProgramGlobals::SPIN_UP);
 				ProgramGlobals::WordType ket2 = model_.basis()(ispace,ProgramGlobals::SPIN_DOWN);
 				ProgramGlobals::PairIntType tempValue = newBasis.getBraIndex(ket1,ket2,operatorLabel,site,spin,orb);
 				int temp = tempValue.first;
 				int value = tempValue.second;
-				if (temp>=0 && size_t(temp)>=z.size()) {
+				if (temp>=0 && SizeType(temp)>=z.size()) {
 					PsimagLite::String s = "old basis=" + ttos(model_.basis().size());
 					s += " newbasis=" + ttos(newBasis.size());
 					s += "\n";
@@ -244,17 +244,17 @@ namespace LanczosPlusPlus {
 		}
 
 		void getModifiedState(VectorType& modifVector,
-		                      size_t operatorLabel,
+		                      SizeType operatorLabel,
 		                      const VectorType& gsVector,
 		                      const BasisType& basisNew,
-		                      size_t type,
-		                      size_t isite,
-		                      size_t jsite,
-		                      size_t spin,
-		                      const std::pair<size_t,size_t>& orbs) const
+		                      SizeType type,
+		                      SizeType isite,
+		                      SizeType jsite,
+		                      SizeType spin,
+		                      const std::pair<SizeType,SizeType>& orbs) const
 		{
 			modifVector.resize(basisNew.size());
-			for (size_t temp=0;temp<modifVector.size();temp++)
+			for (SizeType temp=0;temp<modifVector.size();temp++)
 				modifVector[temp]=0.0;
 
 			accModifiedState_(modifVector,operatorLabel,basisNew,gsVector,isite,spin,orbs.first,1);
@@ -269,12 +269,12 @@ namespace LanczosPlusPlus {
 		}
 
 		void accModifiedState(VectorType& z,
-		                      size_t operatorLabel,
+		                      SizeType operatorLabel,
 		                      const BasisType& newBasis,
 		                      const VectorType& gsVector,
-		                      size_t site,
-		                      size_t spin,
-		                      size_t orb,
+		                      SizeType site,
+		                      SizeType spin,
+		                      SizeType orb,
 		                      int isign) const
 		{
 			if (model_.name()=="Tj1Orb.h")
@@ -307,9 +307,9 @@ namespace LanczosPlusPlus {
 			LanczosSolverType lanczosSolver(hamiltonian,params);
 
 			gsEnergy_ = 1e10;
-			size_t offset = model_.basis().size();
-			size_t currentOffset = 0;
-			for (size_t i=0;i<rs.sectors();i++) {
+			SizeType offset = model_.basis().size();
+			SizeType currentOffset = 0;
+			for (SizeType i=0;i<rs.sectors();i++) {
 				hamiltonian.specialSymmetrySector(i);
 				VectorType gsVector1(hamiltonian.rank());
 				if (gsVector1.size()==0) continue;
@@ -328,11 +328,11 @@ namespace LanczosPlusPlus {
 
 		template<typename ContinuedFractionType>
 		void calcSpectral(ContinuedFractionType& cf,
-		                  size_t what2,
+		                  SizeType what2,
 		                  const VectorType& modifVector,
 		                  const InternalProductDefaultType& matrix,
-		                  size_t type,
-		                  size_t spin,
+		                  SizeType type,
+		                  SizeType spin,
 		                  bool isDiagonal) const
 		{
 			typedef typename ContinuedFractionType::TridiagonalMatrixType
@@ -365,7 +365,7 @@ namespace LanczosPlusPlus {
 		{
 			typename PsimagLite::Vector<RealType>::Type e(fm.n_row());
 			diag(fm,e,'N');
-			for (size_t i=0;i<e.size();i++)
+			for (SizeType i=0;i<e.size();i++)
 				std::cout<<e[i]<<"\n";
 		}
 		

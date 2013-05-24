@@ -88,8 +88,8 @@ struct ProgramGlobals {
 	typedef std::pair<int,int> PairIntType;
 	typedef unsigned int long long WordType;
 
-	static size_t const MaxLanczosSteps = 1000000; // max number of internal Lanczos steps
-	static size_t const LanczosSteps = 300; // max number of external Lanczos steps
+	static SizeType const MaxLanczosSteps = 1000000; // max number of internal Lanczos steps
+	static SizeType const LanczosSteps = 300; // max number of external Lanczos steps
 	static double const LanczosTolerance; // tolerance of the Lanczos Algorithm
 
 	enum {FERMION,BOSON};
@@ -104,14 +104,14 @@ struct ProgramGlobals {
 	      OPERATOR_SPLUS,
 	      OPERATOR_SMINUS};
 
-	static bool needsNewBasis(size_t what)
+	static bool needsNewBasis(SizeType what)
 	{
 		if (what==OPERATOR_C || what==OPERATOR_CDAGGER) return true;
 		if (what==OPERATOR_SPLUS || what==OPERATOR_SMINUS) return true;
 		return false;
 	}
 
-	static size_t operator2id(const PsimagLite::String& s)
+	static SizeType operator2id(const PsimagLite::String& s)
 	{
 		if (s=="c") {
 			return OPERATOR_C;
@@ -134,7 +134,7 @@ struct ProgramGlobals {
 		throw std::runtime_error(str.c_str());
 	}
 
-	static PsimagLite::String id2Operator(size_t id)
+	static PsimagLite::String id2Operator(SizeType id)
 	{
 		PsimagLite::Vector<PsimagLite::String>::Type labels;
 		labels.push_back("cdagger");
@@ -144,13 +144,13 @@ struct ProgramGlobals {
 		labels.push_back("splus");
 		labels.push_back("sminus");
 		labels.push_back("nil");
-		for (size_t i=0;i<labels.size();i++) {
+		for (SizeType i=0;i<labels.size();i++) {
 			if (operator2id(labels[i])==id) return labels[i];
 		}
 		return "UNKNOWN";
 	}
 
-	static PsimagLite::String unknownOperator(size_t id)
+	static PsimagLite::String unknownOperator(SizeType id)
 	{
 		PsimagLite::String str(__FILE__);
 		str += " " + ttos(__LINE__) + "\n";
@@ -158,14 +158,14 @@ struct ProgramGlobals {
 		return str;
 	}
 
-	static bool isFermionic(size_t what)
+	static bool isFermionic(SizeType what)
 	{
 		if (what==OPERATOR_C) return true;
 		if (what==OPERATOR_CDAGGER) return true;
 		return false;
 	}
 
-	static size_t transposeConjugate(size_t operatorLabel)
+	static SizeType transposeConjugate(SizeType operatorLabel)
 	{
 		if (operatorLabel==OPERATOR_C)
 			return OPERATOR_CDAGGER;

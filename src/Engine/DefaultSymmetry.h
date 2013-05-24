@@ -56,17 +56,17 @@ namespace LanczosPlusPlus {
 			throw std::runtime_error("DefaultSymmetry: cannot call transformMatrix\n");
 		}
 
-		void transformGs(VectorType& gs,size_t offset)
+		void transformGs(VectorType& gs,SizeType offset)
 		{
 		}
 
-		size_t sectors() const { return 1; }
+		SizeType sectors() const { return 1; }
 
-		void setPointer(size_t p) { }
+		void setPointer(SizeType p) { }
 
 		PsimagLite::String name() const { return "default"; }
 
-		size_t rank() const { return matrixStored_.row(); }
+		SizeType rank() const { return matrixStored_.row(); }
 
 		template<typename SomeVectorType>
 		void matrixVectorProduct(SomeVectorType &x, SomeVectorType const &y) const

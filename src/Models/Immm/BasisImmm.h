@@ -35,17 +35,17 @@ namespace LanczosPlusPlus {
 		typedef BasisOneSpinImmm BasisType;
 		typedef BasisType::WordType WordType;
 
-		class OrbsPerSite : public PsimagLite::Vector<size_t>::Type {
+		class OrbsPerSite : public PsimagLite::Vector<SizeType>::Type {
 
 		public:
 
 			OrbsPerSite(const GeometryType& geometry)
-			: PsimagLite::Vector<size_t>::Type(geometry.numberOfSites())
+			: PsimagLite::Vector<SizeType>::Type(geometry.numberOfSites())
 			{
 				typename GeometryType::AdditionalDataType additional;
 				additional.type1 = 0;
 				additional.TYPE_C = 0;
-				for (size_t i=0;i<this->size();i++) {
+				for (SizeType i=0;i<this->size();i++) {
 					geometry.fillAdditionalData(additional,0,i,0);
 					this->operator[](i) = (additional.type1==additional.TYPE_C) ? 1 : 2;
 				}
@@ -54,69 +54,69 @@ namespace LanczosPlusPlus {
 
 		static int const FERMION_SIGN = BasisType::FERMION_SIGN;
 
-		BasisImmm(const GeometryType& geometry, size_t nup,size_t ndown)
+		BasisImmm(const GeometryType& geometry, SizeType nup,SizeType ndown)
 		: orbsPerSite_(geometry),
 		  basis1_(orbsPerSite_,nup),
 		  basis2_(orbsPerSite_,ndown)
 		{}
 
-		static const WordType& bitmask(size_t i)
+		static const WordType& bitmask(SizeType i)
 		{
 			return BasisType::bitmask(i);
 		}
 
-		size_t dofs() const
+		SizeType dofs() const
 		{
 			throw std::runtime_error("Wrong way!\n");
 		}
 
-		size_t size() const { return basis1_.size()*basis2_.size(); }
+		SizeType size() const { return basis1_.size()*basis2_.size(); }
 
-		const WordType& operator()(size_t i,size_t spin) const
+		const WordType& operator()(SizeType i,SizeType spin) const
 		{
-			size_t y = i/basis1_.size();
-			size_t x = i%basis1_.size();
+			SizeType y = i/basis1_.size();
+			SizeType x = i%basis1_.size();
 			return (spin==ProgramGlobals::SPIN_UP) ? basis1_[x] : basis2_[y];
 		}
 
-		size_t perfectIndex(const PsimagLite::Vector<WordType>::Type& ket1) const
+		SizeType perfectIndex(const PsimagLite::Vector<WordType>::Type& ket1) const
 		{
 			throw std::runtime_error("Wrong way!\n");
 		}
 
-		size_t perfectIndex(WordType newKet,size_t ispace,size_t spinOfNew) const
+		SizeType perfectIndex(WordType newKet,SizeType ispace,SizeType spinOfNew) const
 		{
 			if (spinOfNew==ProgramGlobals::SPIN_UP) {
-				size_t oldIndex1 = ispace / basis1_.size();
+				SizeType oldIndex1 = ispace / basis1_.size();
 				return basis1_.perfectIndex(newKet) + oldIndex1*basis1_.size();
 			}
-			size_t oldIndex2 = ispace % basis2_.size();
+			SizeType oldIndex2 = ispace % basis2_.size();
 			return oldIndex2 + basis2_.perfectIndex(newKet) * basis2_.size();
 		}
 
-		size_t perfectIndex(WordType ket1,WordType ket2) const
+		SizeType perfectIndex(WordType ket1,WordType ket2) const
 		{
 			return basis1_.perfectIndex(ket1) + basis2_.perfectIndex(ket2)*basis1_.size();
 		}
 
-		size_t getN(size_t i,size_t spin,size_t orb) const
+		SizeType getN(SizeType i,SizeType spin,SizeType orb) const
 		{
-			size_t y = i/basis1_.size();
-			size_t x = i%basis1_.size();
+			SizeType y = i/basis1_.size();
+			SizeType x = i%basis1_.size();
 			return (spin==ProgramGlobals::SPIN_UP) ? basis1_.getN(x,orb) : basis2_.getN(y,orb);
 		}
 
-		size_t getN(WordType ket,size_t site,size_t spin,size_t orb) const
+		SizeType getN(WordType ket,SizeType site,SizeType spin,SizeType orb) const
 		{
 			return (spin==ProgramGlobals::SPIN_UP) ? basis1_.getN(ket,site,orb) : basis2_.getN(ket,site,orb);
 		}
 
 		PairIntType getBraIndex(const WordType& ket1,
 		                        const WordType& ket2,
-		                        size_t what,
-		                        size_t site,
-		                        size_t spin,
-		                        size_t orb) const
+		                        SizeType what,
+		                        SizeType site,
+		                        SizeType spin,
+		                        SizeType orb) const
 		{
 			WordType bra = 0;
 			bool b = getBra(bra,ket1,ket2,what,site,spin,orb);
@@ -125,16 +125,16 @@ namespace LanczosPlusPlus {
 			return PairIntType(tmp,1);
 		}
 
-		int doSign(size_t i,size_t site,size_t sector) const
+		int doSign(SizeType i,SizeType site,SizeType sector) const
 		{
-			size_t y = i/basis1_.size();
-			size_t x = i%basis1_.size();
-			size_t spin = sector/2;
-			size_t orb = (sector & 1);
+			SizeType y = i/basis1_.size();
+			SizeType x = i%basis1_.size();
+			SizeType spin = sector/2;
+			SizeType orb = (sector & 1);
 			if (spin==ProgramGlobals::SPIN_UP) {
 				return basis1_.doSign(x,site,orb);
 			}
-			size_t c = basis1_.getN(x);
+			SizeType c = basis1_.getN(x);
 			int ret = 1;
 			if (c&1) ret = FERMION_SIGN;
 			return ret * basis2_.doSign(y,site,orb);
@@ -142,11 +142,11 @@ namespace LanczosPlusPlus {
 
 		int doSign(WordType ket1,
 		           WordType ket2,
-		           size_t i,
-		           size_t orb1,
-		           size_t j,
-		           size_t orb2,
-		           size_t spin) const
+		           SizeType i,
+		           SizeType orb1,
+		           SizeType j,
+		           SizeType orb2,
+		           SizeType spin) const
 		{
 			if (i > j) {
 				std::cerr<<"FATAL: At doSign\n";
@@ -160,7 +160,7 @@ namespace LanczosPlusPlus {
 			return basis2_.doSign(ket2,i,orb1,j,orb2);
 		}
 
-		int doSignGf(WordType a, WordType b,size_t ind,size_t spin,size_t orb) const
+		int doSignGf(WordType a, WordType b,SizeType ind,SizeType spin,SizeType orb) const
 		{
 			if (spin==ProgramGlobals::SPIN_UP) {
 				return basis1_.doSignGf(a,ind,orb);
@@ -169,30 +169,30 @@ namespace LanczosPlusPlus {
 			return s*basis2_.doSignGf(b,ind,orb);
 		}
 
-		size_t isThereAnElectronAt(size_t ket1,
-		                           size_t ket2,
-		                           size_t site,
-		                           size_t spin,
-		                           size_t orb) const
+		SizeType isThereAnElectronAt(SizeType ket1,
+		                           SizeType ket2,
+		                           SizeType site,
+		                           SizeType spin,
+		                           SizeType orb) const
 		{
 			if (spin==ProgramGlobals::SPIN_UP)
 				return basis1_.isThereAnElectronAt(ket1,site,orb);
 			return basis2_.isThereAnElectronAt(ket2,site,orb);
 		}
 
-		size_t orbsPerSite(size_t i) const { return orbsPerSite_[i]; }
+		SizeType orbsPerSite(SizeType i) const { return orbsPerSite_[i]; }
 
-		size_t orbs() const { return orbsPerSite_[0]; }
+		SizeType orbs() const { return orbsPerSite_[0]; }
 
-		size_t electrons(size_t what) const
+		SizeType electrons(SizeType what) const
 		{
 			return (what==ProgramGlobals::SPIN_UP) ? basis1_.electrons() : basis2_.electrons();
 		}
 
-		bool hasNewParts(std::pair<size_t,size_t>& newParts,
-		                 size_t what,
-		                 size_t spin,
-		                 const std::pair<size_t,size_t>& orbs) const
+		bool hasNewParts(std::pair<SizeType,SizeType>& newParts,
+		                 SizeType what,
+		                 SizeType spin,
+		                 const std::pair<SizeType,SizeType>& orbs) const
 		{
 			if (what==ProgramGlobals::OPERATOR_C || what==ProgramGlobals::OPERATOR_CDAGGER)
 				return hasNewPartsCorCdagger(newParts,what,spin,orbs);
@@ -205,10 +205,10 @@ namespace LanczosPlusPlus {
 
 	private:
 
-		bool hasNewPartsCorCdagger(std::pair<size_t,size_t>& newParts,
-		                           size_t what,
-		                           size_t spin,
-		                           const std::pair<size_t,size_t>& orbs) const
+		bool hasNewPartsCorCdagger(std::pair<SizeType,SizeType>& newParts,
+		                           SizeType what,
+		                           SizeType spin,
+		                           const std::pair<SizeType,SizeType>& orbs) const
 		{
 			int newPart1=basis1_.electrons();
 			int newPart2=basis2_.electrons();
@@ -219,18 +219,18 @@ namespace LanczosPlusPlus {
 			if (newPart1<0 || newPart2<0) return false;
 
 			if (newPart1==0 && newPart2==0) return false;
-			newParts.first = size_t(newPart1);
-			newParts.second = size_t(newPart2);
+			newParts.first = SizeType(newPart1);
+			newParts.second = SizeType(newPart2);
 			return true;
 		}
 
 		bool getBra(WordType& bra,
 					const WordType& ket1,
 					const WordType& ket2,
-					size_t what,
-					size_t site,
-					size_t spin,
-					size_t orb) const
+					SizeType what,
+					SizeType site,
+					SizeType spin,
+					SizeType orb) const
 		{
 			return (spin==ProgramGlobals::SPIN_UP) ? basis1_.getBra(bra,ket1,what,site,orb) :
 									 basis2_.getBra(bra,ket2,what,site,orb);

@@ -97,7 +97,7 @@ namespace LanczosPlusPlus {
 			io.read(potentialV,"potentialV");
 		}
 		
-		size_t orbitals;
+		SizeType orbitals;
 		// Hubbard U values (one for each site)
 		typename PsimagLite::Vector<Field>::Type hubbardU;
 		// Onsite potential values, one for each site

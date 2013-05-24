@@ -29,10 +29,10 @@ class Partitions {
 
 public:
 
-	Partitions(size_t length,size_t parts)
+	Partitions(SizeType length,SizeType parts)
 		: length_(length)
 	{
-		PsimagLite::Vector<size_t>::Type values(parts,0);
+		PsimagLite::Vector<SizeType>::Type values(parts,0);
 
 		while(true) {
 			if (sumOf(values)==length_)
@@ -45,28 +45,28 @@ public:
 		}
 	}
 
-	size_t size() const { return partitions_.size(); }
+	SizeType size() const { return partitions_.size(); }
 
-	const PsimagLite::Vector<size_t>::Type& operator()(size_t i) const
+	const PsimagLite::Vector<SizeType>::Type& operator()(SizeType i) const
 	{
 		return partitions_[i];
 	}
 
 private:
 
-	size_t sumOf(const PsimagLite::Vector<size_t>::Type& values) const
+	SizeType sumOf(const PsimagLite::Vector<SizeType>::Type& values) const
 	{
-		size_t sum = 0;
-		for (size_t i=0;i<values.size();i++)
+		SizeType sum = 0;
+		for (SizeType i=0;i<values.size();i++)
 			sum += values[i];
 		return sum;
 	}
 
-	int increaseNextIndices(PsimagLite::Vector<size_t>::Type& values) const
+	int increaseNextIndices(PsimagLite::Vector<SizeType>::Type& values) const
 	{
 		if (0==values.size()-1) return -1;
 		values[0]=0;
-		size_t i = 1;
+		SizeType i = 1;
 		while(true) {
 			values[i]++;
 			if (sumOf(values)<=length_) return i;
@@ -76,8 +76,8 @@ private:
 		}
 	}
 
-	size_t length_;
-	PsimagLite::Vector<PsimagLite::Vector<size_t>::Type>::Type partitions_;
+	SizeType length_;
+	PsimagLite::Vector<PsimagLite::Vector<SizeType>::Type>::Type partitions_;
 
 }; // class Partitions
 

@@ -16,8 +16,8 @@ namespace LanczosPlusPlus {
 		
 		static int const FERMION_SIGN  = -1;
 		typedef ProgramGlobals::WordType WordType;
-		static size_t nsite_;
-		static PsimagLite::Matrix<size_t> comb_;
+		static SizeType nsite_;
+		static PsimagLite::Matrix<SizeType> comb_;
 		static PsimagLite::Vector<WordType>::Type bitmask_; 
 
 		enum {OPERATOR_NIL=ProgramGlobals::OPERATOR_NIL,
@@ -25,7 +25,7 @@ namespace LanczosPlusPlus {
 		      OPERATOR_SZ=ProgramGlobals::OPERATOR_SZ,
 		      OPERATOR_CDAGGER=ProgramGlobals::OPERATOR_CDAGGER};
 
-		BasisOneSpin(size_t nsite, size_t npart) 
+		BasisOneSpin(SizeType nsite, SizeType npart) 
 		: npart_(npart)
 		{
 			if (nsite_>0 && nsite!=nsite_)
@@ -35,9 +35,9 @@ namespace LanczosPlusPlus {
 			doBitmask();
 
 			/* compute size of basis */
-			size_t hilbert=1;
+			SizeType hilbert=1;
 			int n=nsite;
-			size_t m=1;
+			SizeType m=1;
 			for (;m<=npart;n--,m++)
 				hilbert=hilbert*n/m;
 
@@ -54,7 +54,7 @@ namespace LanczosPlusPlus {
 			
 			/* define basis states */
 			WordType ket = (1ul<<npart)-1;
-			for (size_t i=0;i<hilbert;i++) {
+			for (SizeType i=0;i<hilbert;i++) {
 				data_[i] = ket;
 				n=m=0;
 				for (;(ket&3)!=1;n++,ket>>=1) {
@@ -66,41 +66,41 @@ namespace LanczosPlusPlus {
 		} 
 		
 
-		size_t size() const { return size_; } 
+		SizeType size() const { return size_; } 
 
-		const WordType& operator[](size_t i) const
+		const WordType& operator[](SizeType i) const
 		{
 			return data_[i];
 		} 
 
-		size_t perfectIndex(WordType state) const
+		SizeType perfectIndex(WordType state) const
 		{
-			size_t n=0;
-			for (size_t b=0,c=1;state>0;b++,state>>=1)
+			SizeType n=0;
+			for (SizeType b=0,c=1;state>0;b++,state>>=1)
 				if (state&1) n += comb_(b,c++);
 
 			assert(n<data_.size());
 			return n;
 		} 
 
-		static const WordType& bitmask(size_t i)
+		static const WordType& bitmask(SizeType i)
 		{
 			return bitmask_[i];
 		}
 
-		size_t electrons() const { return npart_; }
+		SizeType electrons() const { return npart_; }
 
-		size_t isThereAnElectronAt(WordType ket,size_t site) const
+		SizeType isThereAnElectronAt(WordType ket,SizeType site) const
 		{
 			return (ket & bitmask_[site]) ? 1 : 0;
 		}
 		
-		size_t getN(WordType ket,size_t site) const
+		SizeType getN(WordType ket,SizeType site) const
 		{
 			return isThereAnElectronAt(ket,site);
 		}
 
-		int doSign(WordType a, size_t i) const
+		int doSign(WordType a, SizeType i) const
 		{
 			if (i==nsite_-1) return 1;
 
@@ -110,13 +110,13 @@ namespace LanczosPlusPlus {
 			return s;
 		}
 
-		int doSign(WordType ket,size_t i,size_t j) const
+		int doSign(WordType ket,SizeType i,SizeType j) const
 		{
 			assert(i <= j);
-			size_t x0 = (i+1); // i+1 cannot be the last site, 'cause i<j
-			size_t x1 = j;
+			SizeType x0 = (i+1); // i+1 cannot be the last site, 'cause i<j
+			SizeType x1 = j;
 
-			size_t sum = getNbyKet(ket,x0,x1);
+			SizeType sum = getNbyKet(ket,x0,x1);
 
 			// at site i we need to be carefull
 			x0 = i;
@@ -131,7 +131,7 @@ namespace LanczosPlusPlus {
 			return (sum & 1) ? FERMION_SIGN : 1;
 		}
 
-		bool getBra(WordType& bra, const WordType& ket,size_t what,size_t site) const
+		bool getBra(WordType& bra, const WordType& ket,SizeType what,SizeType site) const
 		{
 			WordType si=(ket & bitmask_[site]);
 			if (what==OPERATOR_C) {
@@ -159,10 +159,10 @@ namespace LanczosPlusPlus {
 	
 	private:
 
-		size_t getNbyKet(size_t ket,size_t from,size_t upto) const
+		SizeType getNbyKet(SizeType ket,SizeType from,SizeType upto) const
 		{
-			size_t sum = 0;
-			size_t counter = from;
+			SizeType sum = 0;
+			SizeType counter = from;
 			while(counter<upto) {
 				if (ket & bitmask_[counter]) sum++;
 				counter++;
@@ -170,9 +170,9 @@ namespace LanczosPlusPlus {
 			return sum;
 		}
 
-// 		size_t getNbyKet(size_t ket) const
+// 		SizeType getNbyKet(SizeType ket) const
 // 		{
-// 			size_t sum = 0;
+// 			SizeType sum = 0;
 // 			WordType ketCopy = ket;
 // 			while(ketCopy) {
 // 				if (ketCopy & 1) sum++;
@@ -186,15 +186,15 @@ namespace LanczosPlusPlus {
 			/* look-up table for binomial coefficients */
 			comb_.reset(nsite_,nsite_);
 
-			for (size_t n=0;n<nsite_;n++)
-				for (size_t i=0;i<nsite_;i++)
+			for (SizeType n=0;n<nsite_;n++)
+				for (SizeType i=0;i<nsite_;i++)
 					comb_(n,i)=0;
 
-			for (size_t n=0;n<nsite_;n++) {
-				size_t m = 0;
+			for (SizeType n=0;n<nsite_;n++) {
+				SizeType m = 0;
 				int j = n;
-				size_t i = 1;
-				size_t cnm  = 1;
+				SizeType i = 1;
+				SizeType cnm  = 1;
 				for (;m<=n/2;m++,cnm=cnm*j/i,i++,j--)
 					comb_(n,m) = comb_(n,n-m) = cnm;
 			}
@@ -204,20 +204,20 @@ namespace LanczosPlusPlus {
 		{
 			bitmask_.resize(nsite_);
 			bitmask_[0]=1ul;
-			for (size_t i=1;i<nsite_;i++)
+			for (SizeType i=1;i<nsite_;i++)
 				bitmask_[i] = bitmask_[i-1]<<1;
 		} 
 		
 		
-		size_t size_;
-		size_t npart_;
+		SizeType size_;
+		SizeType npart_;
 		PsimagLite::Vector<WordType>::Type data_;
 		
 	}; // class BasisOneSpin
 
-	size_t BasisOneSpin::nsite_=0;
+	SizeType BasisOneSpin::nsite_=0;
 
-	PsimagLite::Matrix<size_t> BasisOneSpin::comb_;
+	PsimagLite::Matrix<SizeType> BasisOneSpin::comb_;
 
 	PsimagLite::Vector<BasisOneSpin::WordType>::Type BasisOneSpin::bitmask_; 
 

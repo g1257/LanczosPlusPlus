@@ -39,13 +39,13 @@ namespace LanczosPlusPlus {
 	public:
 		
 		typedef ProgramGlobals::WordType WordType;
-		static size_t orbitals_;
+		static SizeType orbitals_;
 		static int const FERMION_SIGN  = -1;
-		static size_t nsite_;
-		static PsimagLite::Matrix<size_t> comb_;
+		static SizeType nsite_;
+		static PsimagLite::Matrix<SizeType> comb_;
 		static PsimagLite::Vector<WordType>::Type bitmask_; 
 		
-		BasisOneSpinFeAs(size_t nsite, size_t npart,size_t orbitals)
+		BasisOneSpinFeAs(SizeType nsite, SizeType npart,SizeType orbitals)
 				: npart_(npart)
 		{
 			if (nsite_>0 && nsite!=nsite_)
@@ -64,43 +64,43 @@ namespace LanczosPlusPlus {
 			}
 			size_ = 0;
 			PartitionsType partitions(npart,orbitals_);
-			for (size_t i=0;i<partitions.size();i++) {
-					const PsimagLite::Vector<size_t>::Type& na = partitions(i);
-					size_t tmp = 1;
-					for (size_t j=0;j<na.size();j++)
+			for (SizeType i=0;i<partitions.size();i++) {
+					const PsimagLite::Vector<SizeType>::Type& na = partitions(i);
+					SizeType tmp = 1;
+					for (SizeType j=0;j<na.size();j++)
 						tmp *= comb_(nsite_,na[j]);
 					size_ += tmp;
 			}
 			data_.resize(size_);
 
 			// compute basis:
-			size_t counter = 0;
+			SizeType counter = 0;
 
-			for (size_t i=0;i<partitions.size();i++) {
-				const PsimagLite::Vector<size_t>::Type& na = partitions(i);
+			for (SizeType i=0;i<partitions.size();i++) {
+				const PsimagLite::Vector<SizeType>::Type& na = partitions(i);
 				PsimagLite::Vector<PsimagLite::Vector<WordType>::Type>::Type basisA(orbitals_);
-				for (size_t orb=0;orb<orbitals_;orb++) {
+				for (SizeType orb=0;orb<orbitals_;orb++) {
 					fillPartialBasis(basisA[orb],na[orb]);
 				}
 				collateBasis(counter,basisA);
 			}
 		}
 
-		size_t size() const { return size_; }
+		SizeType size() const { return size_; }
 
-		const WordType& operator[](size_t i) const
+		const WordType& operator[](SizeType i) const
 		{
 			return data_[i];
 		}
 
-		size_t perfectIndex(WordType ket) const
+		SizeType perfectIndex(WordType ket) const
 		{
-			for (size_t i=0;i<data_.size();i++)
+			for (SizeType i=0;i<data_.size();i++)
 				if (data_[i]==ket) return i;
 			throw std::runtime_error("perfectindex\n");
 		}
 
-		size_t getN(WordType ket,size_t site,size_t orb) const
+		SizeType getN(WordType ket,SizeType site,SizeType orb) const
 		{
 			PsimagLite::Vector<WordType>::Type kets(orbitals_,0);
 			uncollateKet(kets,ket);
@@ -109,22 +109,22 @@ namespace LanczosPlusPlus {
 			return (res>0) ? 1 : 0;
 		}
 
-		size_t getN(size_t i,size_t orb) const
+		SizeType getN(SizeType i,SizeType orb) const
 		{
 			PsimagLite::Vector<WordType>::Type kets(orbitals_,0);
 			uncollateKet(kets,data_[i]);
 			return PsimagLite::BitManip::count(kets[orb]);
 		}
 
-		size_t getN(size_t i) const
+		SizeType getN(SizeType i) const
 		{
-			size_t c = 0;
-			for (size_t orb=0;orb<orbitals_;orb++)
+			SizeType c = 0;
+			for (SizeType orb=0;orb<orbitals_;orb++)
 				c += getN(i,orb);
 			return c;
 		}
 
-		bool getBra(WordType& bra,const WordType& myword,size_t what,size_t site,size_t orb) const
+		bool getBra(WordType& bra,const WordType& myword,SizeType what,SizeType site,SizeType orb) const
 		{
 			PsimagLite::Vector<WordType>::Type kets(orbitals_,0);
 			uncollateKet(kets,myword);
@@ -137,17 +137,17 @@ namespace LanczosPlusPlus {
 			return true;
 		}
 
-		static const WordType& bitmask(size_t i)
+		static const WordType& bitmask(SizeType i)
 		{
 			return bitmask_[i];
 		}
 
 		int doSign(
 				WordType ket,
-				size_t i,
-				size_t orb1,
-				size_t j,
-				size_t orb2) const
+				SizeType i,
+				SizeType orb1,
+				SizeType j,
+				SizeType orb2) const
 		{
 			if (i > j) {
 				std::cerr<<"FATAL: At doSign\n";
@@ -155,10 +155,10 @@ namespace LanczosPlusPlus {
 				std::cerr<<"AT: "<<__FILE__<<" : "<<__LINE__<<std::endl;
 				throw std::runtime_error("FeBasedSc::doSign(...)\n");
 			}
-			size_t x0 = (i+1)*orbitals_; // i+1 cannot be the last site, 'cause i<j
-			size_t x1 = j*orbitals_;
+			SizeType x0 = (i+1)*orbitals_; // i+1 cannot be the last site, 'cause i<j
+			SizeType x1 = j*orbitals_;
 
-			size_t sum = getNbyKet(ket,x0,x1);
+			SizeType sum = getNbyKet(ket,x0,x1);
 
 			// at site i we need to be carefull
 			x0 = i*orbitals_+orb1;
@@ -173,9 +173,9 @@ namespace LanczosPlusPlus {
 			return (sum & 1) ? FERMION_SIGN : 1;
 		}
 
-		size_t getNbyKet(size_t ket) const
+		SizeType getNbyKet(SizeType ket) const
 		{
-			size_t sum = 0;
+			SizeType sum = 0;
 			WordType ketCopy = ket;
 			while(ketCopy) {
 				if (ketCopy & 1) sum++;
@@ -184,15 +184,15 @@ namespace LanczosPlusPlus {
 			return sum;
 		}
 
-		size_t isThereAnElectronAt(size_t ket,size_t site,size_t orb) const
+		SizeType isThereAnElectronAt(SizeType ket,SizeType site,SizeType orb) const
 		{
-			size_t x = site*orbitals_ + orb;
+			SizeType x = site*orbitals_ + orb;
 			return (ket & bitmask_[x]) ? 1 : 0;
 		}
 
-		size_t electrons() const { return npart_; }
+		SizeType electrons() const { return npart_; }
 
-		int newPartCorCdagger(size_t what,size_t orb) const
+		int newPartCorCdagger(SizeType what,SizeType orb) const
 		{
 			int newPart1=npart_;
 
@@ -201,12 +201,12 @@ namespace LanczosPlusPlus {
 
 			if (newPart1<0) return -1;
 
-			if (size_t(newPart1)>orbitals_*nsite_) return -1;
+			if (SizeType(newPart1)>orbitals_*nsite_) return -1;
 
 			return newPart1;
 		}
 
-		int hasNewPartsSplusOrSminus(int c,size_t orb) const
+		int hasNewPartsSplusOrSminus(int c,SizeType orb) const
 		{
 			int newPart1=npart_;
 
@@ -214,16 +214,16 @@ namespace LanczosPlusPlus {
 
 			if (newPart1<0) return -1;
 
-			if (size_t(newPart1)>orbitals_*nsite_) return -1;
+			if (SizeType(newPart1)>orbitals_*nsite_) return -1;
 
 			return newPart1;
 		}
 
-		int doSignGf(WordType a,size_t ind,size_t orb) const
+		int doSignGf(WordType a,SizeType ind,SizeType orb) const
 		{
-			size_t x0 = 0;
-			size_t x1 = ind*orbitals_;
-			size_t sum = getNbyKet(a,x0,x1);
+			SizeType x0 = 0;
+			SizeType x1 = ind*orbitals_;
+			SizeType sum = getNbyKet(a,x0,x1);
 
 			// at site ind we need to be carefull
 			x0 = ind*orbitals_;
@@ -235,12 +235,12 @@ namespace LanczosPlusPlus {
 
 	private:
 
-		void fillPartialBasis(PsimagLite::Vector<WordType>::Type& partialBasis,size_t npart)
+		void fillPartialBasis(PsimagLite::Vector<WordType>::Type& partialBasis,SizeType npart)
 		{
 			/* compute size of basis */
-			size_t hilbert=1;
+			SizeType hilbert=1;
 			int n=nsite_;
-			size_t m=1;
+			SizeType m=1;
 			for (;m<=npart;n--,m++)
 				hilbert=hilbert*n/m;
 
@@ -255,7 +255,7 @@ namespace LanczosPlusPlus {
 			}
 			/* define basis states */
 			WordType ket = (1ul<<npart)-1;
-			for (size_t i=0;i<hilbert;i++) {
+			for (SizeType i=0;i<hilbert;i++) {
 				partialBasis[i] = ket;
 				n=m=0;
 				for (;(ket&3)!=1;n++,ket>>=1) {
@@ -265,14 +265,14 @@ namespace LanczosPlusPlus {
 			}
 		}
 
-		void collateBasis(size_t& counter,const PsimagLite::Vector<PsimagLite::Vector<WordType>::Type >::Type& basisA)
+		void collateBasis(SizeType& counter,const PsimagLite::Vector<PsimagLite::Vector<WordType>::Type >::Type& basisA)
 		{
-			size_t total = 1;
-			for (size_t orb=0;orb<orbitals_;orb++) {
+			SizeType total = 1;
+			for (SizeType orb=0;orb<orbitals_;orb++) {
 				total *= basisA[orb].size();
 			}
 
-			for (size_t i=0;i<total;i++) {
+			for (SizeType i=0;i<total;i++) {
 				PsimagLite::Vector<WordType>::Type kets(orbitals_);
 				getKets(kets,basisA,i);
 				WordType ket = getCollatedKet(kets);
@@ -280,17 +280,17 @@ namespace LanczosPlusPlus {
 			}
 		}
 
-		void getKets(PsimagLite::Vector<WordType>::Type& kets,const PsimagLite::Vector<PsimagLite::Vector<WordType>::Type >::Type& basisA,size_t ind) const
+		void getKets(PsimagLite::Vector<WordType>::Type& kets,const PsimagLite::Vector<PsimagLite::Vector<WordType>::Type >::Type& basisA,SizeType ind) const
 		{
 			// ind = i0 + i1 * size0 + i2 * size0 * size1 + ...
-			size_t tmp = ind;
+			SizeType tmp = ind;
 
-			size_t sizes = 1;
-			for (size_t orb=0;orb<orbitals_-1;orb++)
+			SizeType sizes = 1;
+			for (SizeType orb=0;orb<orbitals_-1;orb++)
 				sizes *= basisA[orb].size();
 
-			for (size_t orb=1;orb<orbitals_;orb++) {
-				size_t ix = size_t(tmp / sizes);
+			for (SizeType orb=1;orb<orbitals_;orb++) {
+				SizeType ix = SizeType(tmp / sizes);
 				tmp = ind % sizes;
 				kets[orbitals_-orb] = basisA[orbitals_-orb][ix];
 				sizes /= basisA[orbitals_-orb-1].size();
@@ -303,15 +303,15 @@ namespace LanczosPlusPlus {
 			/* look-up table for binomial coefficients */
 			comb_.reset(orbitals_*nsite_+1,orbitals_*nsite_+1);
 
-			for (size_t n=0;n<comb_.n_row();n++)
-				for (size_t i=0;i<comb_.n_col();i++)
+			for (SizeType n=0;n<comb_.n_row();n++)
+				for (SizeType i=0;i<comb_.n_col();i++)
 					comb_(n,i)=0;
 
-			for (size_t n=0;n<comb_.n_row();n++) {
-				size_t m = 0;
+			for (SizeType n=0;n<comb_.n_row();n++) {
+				SizeType m = 0;
 				int j = n;
-				size_t i = 1;
-				size_t cnm  = 1;
+				SizeType i = 1;
+				SizeType cnm  = 1;
 				for (;m<=n/2;m++,cnm=cnm*j/i,i++,j--)
 					comb_(n,m) = comb_(n,n-m) = cnm;
 			}
@@ -321,14 +321,14 @@ namespace LanczosPlusPlus {
 		{
 			bitmask_.resize(nsite_*orbitals_*orbitals_+1);
 			bitmask_[0]=1ul;
-			for (size_t i=1;i<bitmask_.size();i++)
+			for (SizeType i=1;i<bitmask_.size();i++)
 				bitmask_[i] = bitmask_[i-1]<<1;
 		}
 
-		size_t perfectIndexPartial(WordType state) const
+		SizeType perfectIndexPartial(WordType state) const
 		{
-			size_t n=0;
-			for (size_t b=0,c=1;state>0;b++,state>>=1)
+			SizeType n=0;
+			for (SizeType b=0,c=1;state>0;b++,state>>=1)
 				if (state&1) n += comb_(b,c++);
 
 			return n;
@@ -336,14 +336,14 @@ namespace LanczosPlusPlus {
 
 		WordType getCollatedKet(const PsimagLite::Vector<WordType>::Type& kets) const
 		{
-			size_t counter = 0;
+			SizeType counter = 0;
 			WordType ket = 0;
 
 			PsimagLite::Vector<WordType>::Type remA = kets;
 
 			while( orAll(remA) ) {
-				for (size_t orb=0;orb<kets.size();orb++) {
-					size_t bitA = (remA[orb] & 1);
+				for (SizeType orb=0;orb<kets.size();orb++) {
+					SizeType bitA = (remA[orb] & 1);
 					if (bitA) ket |=bitmask_[counter];
 					counter++;
 					if (remA[orb]) remA[orb] >>= 1;
@@ -352,22 +352,22 @@ namespace LanczosPlusPlus {
 			return ket;
 		}
 
-		size_t orAll(const PsimagLite::Vector<WordType>::Type& kets) const
+		SizeType orAll(const PsimagLite::Vector<WordType>::Type& kets) const
 		{
-			size_t b = 0;
-			for (size_t orb=0;orb<kets.size();orb++) b |= kets[orb];
+			SizeType b = 0;
+			for (SizeType orb=0;orb<kets.size();orb++) b |= kets[orb];
 			return b;
 		}
 
 		//! kets must be all zero here
 		void uncollateKet(PsimagLite::Vector<WordType>::Type& kets,WordType ket) const
 		{
-			size_t counter = 0;
+			SizeType counter = 0;
 
 			while(ket) {
-				for (size_t orb=0;orb<kets.size();orb++) {
-					size_t mask = (1<<orb);
-					size_t bitA = (ket & mask);
+				for (SizeType orb=0;orb<kets.size();orb++) {
+					SizeType mask = (1<<orb);
+					SizeType bitA = (ket & mask);
 
 					if (bitA) kets[orb] |= bitmask_[counter];
 				}
@@ -376,7 +376,7 @@ namespace LanczosPlusPlus {
 			}
 		}
 
-		bool getBraCorCdagger(WordType& bra, const WordType& ket,size_t what,size_t i) const
+		bool getBraCorCdagger(WordType& bra, const WordType& ket,SizeType what,SizeType i) const
 		{
 
 			WordType si=(ket & bitmask_[i]);
@@ -403,10 +403,10 @@ namespace LanczosPlusPlus {
 			throw std::runtime_error(str.c_str());
 		}
 
-		size_t getNbyKet(size_t ket,size_t from,size_t upto) const
+		SizeType getNbyKet(SizeType ket,SizeType from,SizeType upto) const
 		{
-			size_t sum = 0;
-			size_t counter = from;
+			SizeType sum = 0;
+			SizeType counter = from;
 			while(counter<upto) {
 				if (ket & bitmask_[counter]) sum++;
 				counter++;
@@ -414,22 +414,22 @@ namespace LanczosPlusPlus {
 			return sum;
 		}
 
-		size_t size_;
-		size_t npart_;
+		SizeType size_;
+		SizeType npart_;
 		PsimagLite::Vector<WordType>::Type data_;
 
 	}; // class BasisOneSpinFeAs
 
 	std::ostream& operator<<(std::ostream& os,const BasisOneSpinFeAs& b)
 	{
-		for (size_t i=0;i<b.size();i++)
+		for (SizeType i=0;i<b.size();i++)
 			os<<i<<" "<<b[i]<<"\n";
 		return os;
 	}
 
-	size_t BasisOneSpinFeAs::orbitals_=2;
-	size_t BasisOneSpinFeAs::nsite_=0;
-	PsimagLite::Matrix<size_t> BasisOneSpinFeAs::comb_;
+	SizeType BasisOneSpinFeAs::orbitals_=2;
+	SizeType BasisOneSpinFeAs::nsite_=0;
+	PsimagLite::Matrix<SizeType> BasisOneSpinFeAs::comb_;
 	PsimagLite::Vector<BasisOneSpinFeAs::WordType>::Type BasisOneSpinFeAs::bitmask_;
 
 } // namespace LanczosPlusPlus

@@ -20,68 +20,68 @@ namespace LanczosPlusPlus {
 
 		static int const FERMION_SIGN = BasisType::FERMION_SIGN;
 
-		BasisHubbardLanczos(const GeometryType& geometry, size_t nup,size_t ndown) 
+		BasisHubbardLanczos(const GeometryType& geometry, SizeType nup,SizeType ndown) 
 		: basis1_(geometry.numberOfSites(),nup),
 		  basis2_(geometry.numberOfSites(),ndown)
 		{} 
 		
-		static const WordType& bitmask(size_t i)
+		static const WordType& bitmask(SizeType i)
 		{
 			return BasisType::bitmask(i);
 		}
 
-		size_t size() const { return basis1_.size()*basis2_.size(); }
+		SizeType size() const { return basis1_.size()*basis2_.size(); }
 
 		//! Spin up and spin down
-		size_t dofs() const { return 2; }
+		SizeType dofs() const { return 2; }
 
-		size_t perfectIndex(PsimagLite::Vector<WordType>::Type& kets) const
+		SizeType perfectIndex(PsimagLite::Vector<WordType>::Type& kets) const
 		{
 			assert(kets.size()==2);
 			return perfectIndex(kets[0],kets[1]);
 		}
 
-		size_t perfectIndex(WordType ket1,WordType ket2) const
+		SizeType perfectIndex(WordType ket1,WordType ket2) const
 		{
 			return basis1_.perfectIndex(ket1) + 
 			       basis2_.perfectIndex(ket2)*basis1_.size();
 		}
 
-		size_t electrons(size_t what) const
+		SizeType electrons(SizeType what) const
 		{
 			return (what==ProgramGlobals::SPIN_UP) ? basis1_.electrons() : basis2_.electrons();
 		}
 
-		const WordType& operator()(size_t i,size_t spin) const
+		const WordType& operator()(SizeType i,SizeType spin) const
 		{
-			size_t y = i/basis1_.size();
-			size_t x = i%basis1_.size();
+			SizeType y = i/basis1_.size();
+			SizeType x = i%basis1_.size();
 			return (spin==ProgramGlobals::SPIN_UP) ? basis1_[x] : basis2_[y];
 		}
 
-		size_t isThereAnElectronAt(WordType ket1,
+		SizeType isThereAnElectronAt(WordType ket1,
 								   WordType ket2,
-								   size_t site,
-								   size_t spin) const
+								   SizeType site,
+								   SizeType spin) const
 		{
 			if (spin==ProgramGlobals::SPIN_UP)
 				return basis1_.isThereAnElectronAt(ket1,site);
 			return basis2_.isThereAnElectronAt(ket2,site);
 		}
 
-		size_t getN(WordType ket1,WordType ket2, size_t site,size_t spin) const
+		SizeType getN(WordType ket1,WordType ket2, SizeType site,SizeType spin) const
 		{
 			return (spin==ProgramGlobals::SPIN_UP) ? basis1_.getN(ket1,site) : basis2_.getN(ket2,site);
 		}
 		
-		int doSignGf(WordType a, WordType b,size_t ind,size_t sector,size_t orb) const
+		int doSignGf(WordType a, WordType b,SizeType ind,SizeType sector,SizeType orb) const
 		{
 			if (sector==ProgramGlobals::SPIN_UP) {
 				if (ind==0) return 1;
 
 				// ind>0 from now on
-				size_t i = 0;
-				size_t j = ind;
+				SizeType i = 0;
+				SizeType j = ind;
 				WordType mask = a;
 				mask &= ((1 << (i+1)) - 1) ^ ((1 << j) - 1);
 				int s=(PsimagLite::BitManip::count(mask) & 1) ? -1 : 1; // Parity of up between i and j
@@ -93,8 +93,8 @@ namespace LanczosPlusPlus {
 			if (ind==0) return s;
 
 			// ind>0 from now on
-			size_t i = 0;
-			size_t j = ind;
+			SizeType i = 0;
+			SizeType j = ind;
 			WordType mask = b;
 			mask &= ((1 << (i+1)) - 1) ^ ((1 << j) - 1);
 			s=(PsimagLite::BitManip::count(mask) & 1) ? -1 : 1; // Parity of up between i and j
@@ -105,9 +105,9 @@ namespace LanczosPlusPlus {
 
 		int doSign(WordType ket1,
 		           WordType ket2,
-		           size_t i,
-		           size_t j,
-		           size_t spin) const
+		           SizeType i,
+		           SizeType j,
+		           SizeType spin) const
 		{
 			assert(i <= j);
 			return (spin==ProgramGlobals::SPIN_UP) ? basis1_.doSign(ket1,i,j): basis2_.doSign(ket2,i,j);
@@ -115,10 +115,10 @@ namespace LanczosPlusPlus {
 
 		PairIntType getBraIndex(const WordType& ket1,
 		                        const WordType& ket2,
-		                        size_t what,
-		                        size_t site,
-		                        size_t spin,
-		                        size_t orb) const
+		                        SizeType what,
+		                        SizeType site,
+		                        SizeType spin,
+		                        SizeType orb) const
 		{
 			WordType bra = 0;
 			bool b = getBra(bra,ket1,ket2,what,site,spin);
@@ -131,9 +131,9 @@ namespace LanczosPlusPlus {
 		bool getBra(WordType& bra,
 		            const WordType& ket1,
 		            const WordType& ket2,
-		            size_t what,
-		            size_t site,
-		            size_t spin) const
+		            SizeType what,
+		            SizeType site,
+		            SizeType spin) const
 		{
 			return (spin==ProgramGlobals::SPIN_UP) ? basis1_.getBra(bra,ket1,what,site) :
 									 basis2_.getBra(bra,ket2,what,site);

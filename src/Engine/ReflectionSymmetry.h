@@ -33,15 +33,15 @@ namespace LanczosPlusPlus {
 
 		enum { DIAGONAL,PLUS,MINUS};
 
-		ReflectionItem(size_t ii)
+		ReflectionItem(SizeType ii)
 		: i(ii),j(ii),type(DIAGONAL)
 		{}
 
-		ReflectionItem(size_t ii,size_t jj,size_t type1)
+		ReflectionItem(SizeType ii,SizeType jj,SizeType type1)
 		: i(ii),j(jj),type(type1)
 		{}
 
-		size_t i,j,type;
+		SizeType i,j,type;
 
 	}; // class ReflectionItem
 
@@ -73,26 +73,26 @@ namespace LanczosPlusPlus {
 		  matrixStored_(2),
 		  pointer_(0)
 		{
-			size_t hilbert = basis.size();
-			size_t numberOfDofs = basis.dofs();
-			size_t numberOfSites = geometry.numberOfSites();
-			size_t termId = 0;
-//			size_t counter=0;
+			SizeType hilbert = basis.size();
+			SizeType numberOfDofs = basis.dofs();
+			SizeType numberOfSites = geometry.numberOfSites();
+			SizeType termId = 0;
+//			SizeType counter=0;
 			PsimagLite::Vector<ItemType>::Type buffer;
-			for (size_t ispace=0;ispace<hilbert;ispace++) {
+			for (SizeType ispace=0;ispace<hilbert;ispace++) {
 				typename PsimagLite::Vector<WordType>::Type y(numberOfDofs,0);
-				for (size_t dof=0;dof<numberOfDofs;dof++) {
+				for (SizeType dof=0;dof<numberOfDofs;dof++) {
 					WordType x = basis(ispace,dof);
-					for (size_t site=0;site<numberOfSites;site++) {
-						size_t reflectedSite = geometry.findReflection(site,termId);
-						size_t thisSiteContent = x & 1;
+					for (SizeType site=0;site<numberOfSites;site++) {
+						SizeType reflectedSite = geometry.findReflection(site,termId);
+						SizeType thisSiteContent = x & 1;
 						x >>=1; // go to next site
 						addTo(y[dof],thisSiteContent,reflectedSite);
 						if (!x) break;
 					}
 				}
 
-				size_t yIndex = basis.perfectIndex(y);
+				SizeType yIndex = basis.perfectIndex(y);
 //				s_.setRow(ispace,counter);
 //				s_.pushCol(yIndex);
 //				s_.pushValue(1.0);
@@ -124,7 +124,7 @@ namespace LanczosPlusPlus {
 			transformMatrix(matrixStored_,matrix2);
 		}
 
-		size_t rank() const { return matrixStored_[pointer_].row(); }
+		SizeType rank() const { return matrixStored_[pointer_].row(); }
 
 		void transformMatrix(typename PsimagLite::Vector<SparseMatrixType>::Type& matrix1,
 		                     const SparseMatrixType& matrix) const
@@ -143,11 +143,11 @@ namespace LanczosPlusPlus {
 			split(matrix1[0],matrix1[1],matrix2);
 		}
 
-		void transformGs(VectorType& gs,size_t offset)
+		void transformGs(VectorType& gs,SizeType offset)
 		{
 			typename PsimagLite::Vector<RealType>::Type gstmp(transform_.row(),0);
 
-			for (size_t i=0;i<gs.size();i++) {
+			for (SizeType i=0;i<gs.size();i++) {
 				assert(i+offset<gstmp.size());
 				gstmp[i+offset]=gs[i];
 			}
@@ -158,9 +158,9 @@ namespace LanczosPlusPlus {
 			multiply(gs,rT,gstmp);
 		}
 
-		size_t sectors() const { return 2; }
+		SizeType sectors() const { return 2; }
 
-		void setPointer(size_t p) { pointer_=p; }
+		void setPointer(SizeType p) { pointer_=p; }
 
 		PsimagLite::String name() const { return "reflection"; }
 
@@ -172,7 +172,7 @@ namespace LanczosPlusPlus {
 
 	private:
 
-		void addTo(WordType& yy,size_t what,size_t site) const
+		void addTo(WordType& yy,SizeType what,SizeType site) const
 		{
 			if (what==0) return;
 			WordType mask = (1<<site);
@@ -184,11 +184,11 @@ namespace LanczosPlusPlus {
 			PsimagLite::Vector<ItemType>::Type buffer;
 			makeUnique(buffer,buffer2);
 			assert(buffer.size()==transform_.row());
-			size_t counter = 0;
+			SizeType counter = 0;
 			RealType oneOverSqrt2 = 1.0/sqrt(2.0);
 			RealType sign = 1.0;
-			size_t row = 0;
-			for (size_t i=0;i<buffer.size();i++) {
+			SizeType row = 0;
+			for (SizeType i=0;i<buffer.size();i++) {
 				if (buffer[i].type==ItemType::MINUS) continue;
 				transform_.setRow(row++,counter);
 				switch(buffer[i].type) {
@@ -208,7 +208,7 @@ namespace LanczosPlusPlus {
 				}
 			}
 
-			for (size_t i=0;i<buffer.size();i++) {
+			for (SizeType i=0;i<buffer.size();i++) {
 				if (buffer[i].type!=ItemType::MINUS) continue;
 				transform_.setRow(row++,counter);
 				transform_.pushCol(buffer[i].i);
@@ -224,16 +224,16 @@ namespace LanczosPlusPlus {
 
 		void makeUnique(PsimagLite::Vector<ItemType>::Type& dest,const PsimagLite::Vector<ItemType>::Type& src)
 		{
-			size_t zeros=0;
-			size_t pluses=0;
-			size_t minuses=0;
-			for (size_t i=0;i<src.size();i++) {
+			SizeType zeros=0;
+			SizeType pluses=0;
+			SizeType minuses=0;
+			for (SizeType i=0;i<src.size();i++) {
 				ItemType item = src[i];
 				int x =  PsimagLite::isInVector(dest,item);
 				if (x>=0) continue;
 //				if (item.type ==ItemType::PLUS) {
-//					size_t i = item.i;
-//					size_t j = item.j;
+//					SizeType i = item.i;
+//					SizeType j = item.j;
 //					ItemType item2(j,i,ItemType::PLUS);
 //					x = PsimagLite::isInVector(dest,item2);
 //					if (x>=0) continue;
@@ -253,9 +253,9 @@ namespace LanczosPlusPlus {
 		void isIdentity(const SparseMatrixType& s,const PsimagLite::String& label) const
 		{
 			std::cerr<<"Checking label="<<label<<"\n";
-			for (size_t i=0;i<s.rank();i++) {
+			for (SizeType i=0;i<s.rank();i++) {
 				for (int k=s.getRowPtr(i);k<s.getRowPtr(i+1);k++) {
-					size_t col = s.getCol(k);
+					SizeType col = s.getCol(k);
 					RealType val = s.getValue(k);
 					if (col==i) assert(isAlmostZero(val-1.0));
 					else assert(isAlmostZero(val));
@@ -270,12 +270,12 @@ namespace LanczosPlusPlus {
 
 		void split(SparseMatrixType& matrixA,SparseMatrixType& matrixB,const SparseMatrixType& matrix) const
 		{
-			size_t counter = 0;
+			SizeType counter = 0;
 			matrixA.resize(plusSector_,plusSector_);
-			for (size_t i=0;i<plusSector_;i++) {
+			for (SizeType i=0;i<plusSector_;i++) {
 				matrixA.setRow(i,counter);
 				for (int k=matrix.getRowPtr(i);k<matrix.getRowPtr(i+1);k++) {
-					size_t col = matrix.getCol(k);
+					SizeType col = matrix.getCol(k);
 					RealType val = matrix.getValue(k);
 					if (col<plusSector_) {
 						matrixA.pushCol(col);
@@ -292,14 +292,14 @@ namespace LanczosPlusPlus {
 			}
 			matrixA.setRow(plusSector_,counter);
 
-			size_t rank = matrix.row();
-			size_t minusSector=rank-plusSector_;
+			SizeType rank = matrix.row();
+			SizeType minusSector=rank-plusSector_;
 			matrixB.resize(minusSector,minusSector);
 			counter=0;
-			for (size_t i=plusSector_;i<rank;i++) {
+			for (SizeType i=plusSector_;i<rank;i++) {
 				matrixB.setRow(i-plusSector_,counter);
 				for (int k=matrix.getRowPtr(i);k<matrix.getRowPtr(i+1);k++) {
-					size_t col = matrix.getCol(k);
+					SizeType col = matrix.getCol(k);
 					RealType val = matrix.getValue(k);
 					if (col>=plusSector_) {
 						matrixB.pushCol(col-plusSector_);
@@ -319,9 +319,9 @@ namespace LanczosPlusPlus {
 
 		PsimagLite::ProgressIndicator progress_;
 		SparseMatrixType transform_;
-		size_t plusSector_;
+		SizeType plusSector_;
 		typename PsimagLite::Vector<SparseMatrixType>::Type matrixStored_;
-		size_t pointer_;
+		SizeType pointer_;
 	}; // class ReflectionSymmetry
 } // namespace Dmrg
 

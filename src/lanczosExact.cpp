@@ -44,7 +44,7 @@ ComplexType proc(PsimagLite::Vector<ComplexType>::Type& psi,
 	PsimagLite::Matrix<ComplexType> fhmat;
 	crsMatrixToFullMatrix(fhmat,hmat);
 
-	size_t n = fhmat.n_row();
+	SizeType n = fhmat.n_row();
 	PsimagLite::Matrix<ComplexType> fhIntegral(n,n);
 	crsMatrixToFullMatrix(fhIntegral,hIntegral);
 	ComplexType val= ComplexType(0,-tau);
@@ -53,9 +53,9 @@ ComplexType proc(PsimagLite::Vector<ComplexType>::Type& psi,
 	exp(fhIntegral);
 
 	PsimagLite::Vector<ComplexType>::Type psiNew(n);
-	for (size_t i=0;i<n;i++) {
+	for (SizeType i=0;i<n;i++) {
 		ComplexType sum = 0;
-		for (size_t j=0;j<n;j++)  sum += fhIntegral(i,j) * psi[j];
+		for (SizeType j=0;j<n;j++)  sum += fhIntegral(i,j) * psi[j];
 		psiNew[i] = sum;
 	}
 
@@ -102,8 +102,8 @@ int main(int argc,char *argv[])
 	PsimagLite::Vector<RealType>::Type qns;
 	io.read(qns,"TargetQuantumNumbers");
 	if (qns.size()<2) throw std::runtime_error("HubbardLanczos::ctor(...)\n");
-	size_t nup=size_t(geometry.numberOfSites()*qns[0]);
-	size_t ndown=size_t(geometry.numberOfSites()*qns[1]);
+	SizeType nup=SizeType(geometry.numberOfSites()*qns[0]);
+	SizeType ndown=SizeType(geometry.numberOfSites()*qns[1]);
 
 	ParametersModelType mpTimeIndepedent = mp;
 
@@ -118,14 +118,14 @@ int main(int argc,char *argv[])
 	PsimagLite::Vector<RealType>::Type eigs2(fpsi.n_row());
 	diag(fpsi,eigs2,'V');
 	PsimagLite::Vector<ComplexType>::Type psi(eigs2.size());
-	for (size_t i=0;i<psi.size();i++) psi[i] = fpsi(i,0);
+	for (SizeType i=0;i<psi.size();i++) psi[i] = fpsi(i,0);
 
 	//! Setup the Models
-	size_t numberOfTimes = 510;
+	SizeType numberOfTimes = 510;
 	RealType deltaTime = 0.01;
 	RealType omega = 0.8;
 	PsimagLite::Vector<ComplexType>::Type v(numberOfTimes);
-	for (size_t i=0;i<numberOfTimes;i++) {
+	for (SizeType i=0;i<numberOfTimes;i++) {
 		RealType time = i*deltaTime;
 
 		mp.timeFactor = cos(omega*time);
@@ -142,7 +142,7 @@ int main(int argc,char *argv[])
 		std::cerr<<time<<" "<<v[i]<<"\n";
 	}
 
-	for (size_t i=0;i<v.size();i++) {
+	for (SizeType i=0;i<v.size();i++) {
 		RealType time = i*deltaTime;
 		std::cout<<time<<" "<<std::real(v[i])<<"\n";
 	}

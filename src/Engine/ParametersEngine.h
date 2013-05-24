@@ -132,9 +132,9 @@ namespace LanczosPlusPlus {
 		}
 		
 		bool storeLanczosVectors;
-		size_t gsSteps;
+		SizeType gsSteps;
 		Field gsEps;
-		size_t spectralSteps;
+		SizeType spectralSteps;
 		Field spectralEps;
 	};
 

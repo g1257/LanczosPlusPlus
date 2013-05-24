@@ -110,7 +110,7 @@ namespace LanczosPlusPlus {
 		// Onsite potential values, one for each site
 		typename PsimagLite::Vector<Field>::Type potentialV;
 		// use reflection symmetry if set to 1
-		size_t useReflectionSymmetry;
+		SizeType useReflectionSymmetry;
 		// target number of electrons  in the system
 		int nOfElectrons;
 		// target density

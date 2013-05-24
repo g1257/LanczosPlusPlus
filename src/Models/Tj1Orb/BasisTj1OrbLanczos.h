@@ -28,7 +28,7 @@ namespace LanczosPlusPlus {
 
 		static int const FERMION_SIGN = -1;
 
-		BasisTj1OrbLanczos(const GeometryType& geometry, size_t nup,size_t ndown)
+		BasisTj1OrbLanczos(const GeometryType& geometry, SizeType nup,SizeType ndown)
 		: geometry_(geometry),nup_(nup),ndown_(ndown)
 		{
 			assert(bitmask_.size()==0 || bitmask_.size()==geometry_.numberOfSites());
@@ -39,40 +39,40 @@ namespace LanczosPlusPlus {
 			fillOneSector(data2,ndown);
 			combineAndFilter(data1,data2);
 			std::sort(data_.begin(),data_.end());
-//			for (size_t i=0;i<data_.size();i++)
+//			for (SizeType i=0;i<data_.size();i++)
 //				std::cout<<"data["<<i<<"]="<<data_[i]<<"\n";
 		}
 		
-		static const WordType& bitmask(size_t i)
+		static const WordType& bitmask(SizeType i)
 		{
 			return bitmask_[i];
 		}
 
-		size_t size() const { return data_.size(); }
+		SizeType size() const { return data_.size(); }
 
 		//! Spin up and spin down
-		size_t dofs() const { return 2; }
+		SizeType dofs() const { return 2; }
 
-		size_t perfectIndex(PsimagLite::Vector<WordType>::Type& kets) const
+		SizeType perfectIndex(PsimagLite::Vector<WordType>::Type& kets) const
 		{
 			assert(kets.size()==2);
 			return perfectIndex(kets[0],kets[1]);
 		}
 
-		size_t perfectIndex(WordType ket1,WordType ket2) const
+		SizeType perfectIndex(WordType ket1,WordType ket2) const
 		{
-			assert(size_t(PsimagLite::BitManip::count(ket1))==nup_);
-			assert(size_t(PsimagLite::BitManip::count(ket2))==ndown_);
-			size_t n = geometry_.numberOfSites();
+			assert(SizeType(PsimagLite::BitManip::count(ket1))==nup_);
+			assert(SizeType(PsimagLite::BitManip::count(ket2))==ndown_);
+			SizeType n = geometry_.numberOfSites();
 			WordType w = ket2;
 			w <<= n;
 			w |= ket1;
-			size_t elements = data_.size();
-			size_t i = elements/2;
-			size_t start = 0;
-			size_t end = elements;
-			size_t counter = 0;
-			size_t max = size_t(0.1*elements);
+			SizeType elements = data_.size();
+			SizeType i = elements/2;
+			SizeType start = 0;
+			SizeType end = elements;
+			SizeType counter = 0;
+			SizeType max = SizeType(0.1*elements);
 			if (max>100) max = 100;
 		       	if (max<1) max = 1;
 
@@ -87,21 +87,21 @@ namespace LanczosPlusPlus {
 				}
 				counter++;
 			}
-			for (size_t j=start;j<end;++j) {
+			for (SizeType j=start;j<end;++j) {
 				if (data_[j] == w) return j;
 			}
 			assert(false);
 			return 0;
 		}
 
-		size_t electrons(size_t what) const
+		SizeType electrons(SizeType what) const
 		{
 			return (what==ProgramGlobals::SPIN_UP) ? nup_ : ndown_;
 		}
 
-		WordType operator()(size_t i,size_t spin) const
+		WordType operator()(SizeType i,SizeType spin) const
 		{
-			size_t n = geometry_.numberOfSites();
+			SizeType n = geometry_.numberOfSites();
 			WordType w = data_[i];
 			WordType mask = (1<<n);
 			mask--;
@@ -115,27 +115,27 @@ namespace LanczosPlusPlus {
 			return w;
 		}
 
-		size_t isThereAnElectronAt(WordType ket1,
+		SizeType isThereAnElectronAt(WordType ket1,
 		                           WordType ket2,
-		                           size_t site,
-		                           size_t spin) const
+		                           SizeType site,
+		                           SizeType spin) const
 		{
 			return (spin==ProgramGlobals::SPIN_UP) ? isThereAnElectronAt(ket1,site) : isThereAnElectronAt(ket2,site);
 		}
 
-		size_t getN(WordType ket1,WordType ket2, size_t site,size_t spin) const
+		SizeType getN(WordType ket1,WordType ket2, SizeType site,SizeType spin) const
 		{
 			return (spin==ProgramGlobals::SPIN_UP) ? getN(ket1,site) : getN(ket2,site);
 		}
 		
-		int doSignGf(WordType a, WordType b,size_t ind,size_t sector,size_t orb) const
+		int doSignGf(WordType a, WordType b,SizeType ind,SizeType sector,SizeType orb) const
 		{
 			if (sector==ProgramGlobals::SPIN_UP) {
 				if (ind==0) return 1;
 
 				// ind>0 from now on
-				size_t i = 0;
-				size_t j = ind;
+				SizeType i = 0;
+				SizeType j = ind;
 				WordType mask = a;
 				mask &= ((1 << (i+1)) - 1) ^ ((1 << j) - 1);
 				int s=(PsimagLite::BitManip::count(mask) & 1) ? -1 : 1; // Parity of up between i and j
@@ -147,8 +147,8 @@ namespace LanczosPlusPlus {
 			if (ind==0) return s;
 
 			// ind>0 from now on
-			size_t i = 0;
-			size_t j = ind;
+			SizeType i = 0;
+			SizeType j = ind;
 			WordType mask = b;
 			mask &= ((1 << (i+1)) - 1) ^ ((1 << j) - 1);
 			s *= (PsimagLite::BitManip::count(mask) & 1) ? -1 : 1; // Parity of up between i and j
@@ -159,21 +159,21 @@ namespace LanczosPlusPlus {
 
 		int doSign(WordType ket1,
 		           WordType ket2,
-		           size_t i,
-		           size_t j,
-		           size_t spin) const
+		           SizeType i,
+		           SizeType j,
+		           SizeType spin) const
 		{
 			assert(i <= j);
 			return (spin==ProgramGlobals::SPIN_UP) ? doSign(ket1,i,j): doSign(ket2,i,j);
 		}
 		
 		int getBra(WordType& bra,
-					size_t operatorLabel,
+					SizeType operatorLabel,
 		            const WordType& ket1,
 		            const WordType& ket2,
-//		            size_t what,
-		            size_t site,
-		            size_t spin) const
+//		            SizeType what,
+		            SizeType site,
+		            SizeType spin) const
 		{
 			switch(operatorLabel) {
 			case ProgramGlobals::OPERATOR_C:
@@ -189,10 +189,10 @@ namespace LanczosPlusPlus {
 
 		PairIntType getBraIndex(const WordType& ket1,
 		                        const WordType& ket2,
-		                        size_t operatorLabel,
-		                        size_t site,
-		                        size_t spin,
-		                        size_t orb) const
+		                        SizeType operatorLabel,
+		                        SizeType site,
+		                        SizeType spin,
+		                        SizeType orb) const
 		{
 			WordType bra1 = ket1;
 			WordType bra2 = ket2;
@@ -217,12 +217,12 @@ namespace LanczosPlusPlus {
 			return (tmp>0);
 		}
 
-		void fillOneSector(PsimagLite::Vector<WordType>::Type& data1,size_t npart) const
+		void fillOneSector(PsimagLite::Vector<WordType>::Type& data1,SizeType npart) const
 		{
 			/* compute size of basis */
-			size_t hilbert=1;
+			SizeType hilbert=1;
 			int n=geometry_.numberOfSites();
-			size_t m=1;
+			SizeType m=1;
 			for (;m<=npart;n--,m++)
 				hilbert=hilbert*n/m;
 
@@ -238,7 +238,7 @@ namespace LanczosPlusPlus {
 
 			/* define basis states */
 			WordType ket = (1ul<<npart)-1;
-			for (size_t i=0;i<hilbert;i++) {
+			for (SizeType i=0;i<hilbert;i++) {
 				data1[i] = ket;
 				n=m=0;
 				for (;(ket&3)!=1;n++,ket>>=1) {
@@ -252,9 +252,9 @@ namespace LanczosPlusPlus {
 		{
 			WordType tmp = 0;
 			WordType tmp2 = 0;
-			size_t n=geometry_.numberOfSites();
-			for (size_t i=0;i<data1.size();i++) {
-				for (size_t j=0;j<data2.size();j++) {
+			SizeType n=geometry_.numberOfSites();
+			for (SizeType i=0;i<data1.size();i++) {
+				for (SizeType j=0;j<data2.size();j++) {
 					tmp = (data1[i] & data2[j]);
 					if (tmp>0) continue; // there's one or more double occupied
 					tmp2 = data2[j];
@@ -264,32 +264,32 @@ namespace LanczosPlusPlus {
 			}
 		}
 
-		size_t isThereAnElectronAt(WordType ket,size_t site) const
+		SizeType isThereAnElectronAt(WordType ket,SizeType site) const
 		{
 			return (ket & bitmask_[site]) ? 1 : 0;
 		}
 
-		size_t getN(WordType ket,size_t site) const
+		SizeType getN(WordType ket,SizeType site) const
 		{
 			return isThereAnElectronAt(ket,site);
 		}
 
 		void doBitmask()
 		{
-			size_t n = geometry_.numberOfSites();
+			SizeType n = geometry_.numberOfSites();
 			bitmask_.resize(n);
 			bitmask_[0]=1ul;
-			for (size_t i=1;i<n;i++)
+			for (SizeType i=1;i<n;i++)
 				bitmask_[i] = bitmask_[i-1]<<1;
 		}
 
-		int doSign(WordType ket,size_t i,size_t j) const
+		int doSign(WordType ket,SizeType i,SizeType j) const
 		{
 			assert(i <= j);
-			size_t x0 = (i+1); // i+1 cannot be the last site, 'cause i<j
-			size_t x1 = j;
+			SizeType x0 = (i+1); // i+1 cannot be the last site, 'cause i<j
+			SizeType x1 = j;
 
-			size_t sum = getNbyKet(ket,x0,x1);
+			SizeType sum = getNbyKet(ket,x0,x1);
 
 			// at site i we need to be carefull
 			x0 = i;
@@ -304,10 +304,10 @@ namespace LanczosPlusPlus {
 			return (sum & 1) ? FERMION_SIGN : 1;
 		}
 
-		size_t getNbyKet(size_t ket,size_t from,size_t upto) const
+		SizeType getNbyKet(SizeType ket,SizeType from,SizeType upto) const
 		{
-			size_t sum = 0;
-			size_t counter = from;
+			SizeType sum = 0;
+			SizeType counter = from;
 			while(counter<upto) {
 				if (ket & bitmask_[counter]) sum++;
 				counter++;
@@ -318,9 +318,9 @@ namespace LanczosPlusPlus {
 		int getBraC(WordType& bra,
 					const WordType& ket1,
 					const WordType& ket2,
-					size_t what,
-					size_t site,
-					size_t spin) const
+					SizeType what,
+					SizeType site,
+					SizeType spin) const
 		{
 			if (spin==ProgramGlobals::SPIN_UP) {
 				int b1 = getBraC(bra,ket1,what,site);
@@ -333,7 +333,7 @@ namespace LanczosPlusPlus {
 			return (isDoublyOccupied(ket1,bra)) ? 0 : 1;
 		}
 
-		int getBraC(WordType& bra,const WordType& ket,size_t what,size_t site) const
+		int getBraC(WordType& bra,const WordType& ket,SizeType what,SizeType site) const
 		{
 			WordType si=(ket & bitmask_[site]);
 			if (what==OPERATOR_C) {
@@ -355,9 +355,9 @@ namespace LanczosPlusPlus {
 		int getBraSzOrN(WordType& bra,
 		                const WordType& ket1,
 		                const WordType& ket2,
-		                size_t operatorLabel,
-		                size_t site,
-		                size_t spin) const
+		                SizeType operatorLabel,
+		                SizeType site,
+		                SizeType spin) const
 		{
 			assert(spin==ProgramGlobals::SPIN_UP); // spin index is bogus here
 			if (spin==ProgramGlobals::SPIN_UP) bra = ket1;
@@ -371,15 +371,15 @@ namespace LanczosPlusPlus {
 		}
 
 		const GeometryType& geometry_;
-		size_t nup_;
-		size_t ndown_;
+		SizeType nup_;
+		SizeType ndown_;
 		PsimagLite::Vector<WordType>::Type data_;
 	}; // class BasisTj1OrbLanczos
 	
 	template<typename GeometryType>
 	std::ostream& operator<<(std::ostream& os,const BasisTj1OrbLanczos<GeometryType>& basis)
 	{
-		for (size_t i=0;i<basis.data_.size();i++)
+		for (SizeType i=0;i<basis.data_.size();i++)
 			os<<i<<" "<<basis.data_[i]<<"\n";
 		return os;
 	}

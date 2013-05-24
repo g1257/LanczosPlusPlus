@@ -47,14 +47,14 @@ namespace LanczosPlusPlus {
 		static int const FERMION_SIGN = BasisType::FERMION_SIGN;
 		
 		
-		FeBasedSc(size_t nup,size_t ndown,const ParametersModelType& mp,const GeometryType& geometry)
+		FeBasedSc(SizeType nup,SizeType ndown,const ParametersModelType& mp,const GeometryType& geometry)
 		: mp_(mp),geometry_(geometry),basis_(geometry,nup,ndown,mp_.orbitals)
 		{
 		}
 		
-		size_t size() const { return basis_.size(); }
+		SizeType size() const { return basis_.size(); }
 
-		size_t orbitals(size_t site) const
+		SizeType orbitals(SizeType site) const
 		{
 			return mp_.orbitals;
 		}
@@ -64,10 +64,10 @@ namespace LanczosPlusPlus {
 			setupHamiltonian(matrix,basis_);
 		}
 		
-		bool hasNewParts(std::pair<size_t,size_t>& newParts,
-		                 size_t what,
-		                 size_t spin,
-		                 const std::pair<size_t,size_t>& orbs) const
+		bool hasNewParts(std::pair<SizeType,SizeType>& newParts,
+		                 SizeType what,
+		                 SizeType spin,
+		                 const std::pair<SizeType,SizeType>& orbs) const
 		{
 			return basis_.hasNewParts(newParts,what,spin,orbs);
 		}
@@ -78,32 +78,32 @@ namespace LanczosPlusPlus {
 				      const BasisType &basis) const
 		{
 			// Calculate diagonal elements AND count non-zero matrix elements
-			size_t hilbert=basis.size();
+			SizeType hilbert=basis.size();
 			typename PsimagLite::Vector<RealType>::Type diag(hilbert);
 			calcDiagonalElements(diag,basis);
 
-			size_t nsite = geometry_.numberOfSites();
+			SizeType nsite = geometry_.numberOfSites();
 
 			// Setup CRS matrix
 			matrix.resize(hilbert,hilbert);
 
 			// Calculate off-diagonal elements AND store matrix
-			size_t nCounter=0;
-			for (size_t ispace=0;ispace<hilbert;ispace++) {
+			SizeType nCounter=0;
+			for (SizeType ispace=0;ispace<hilbert;ispace++) {
 				SparseRowType sparseRow;
 				matrix.setRow(ispace,nCounter);
 				WordType ket1 = basis(ispace,ProgramGlobals::SPIN_UP);
 				WordType ket2 = basis(ispace,ProgramGlobals::SPIN_DOWN);
 				// Save diagonal
 				sparseRow.add(ispace,diag[ispace]);
-				for (size_t i=0;i<nsite;i++) {
-					for (size_t orb=0;orb<mp_.orbitals;orb++) {
+				for (SizeType i=0;i<nsite;i++) {
+					for (SizeType orb=0;orb<mp_.orbitals;orb++) {
 						setHoppingTerm(sparseRow,ket1,ket2,
 								i,orb,basis);
 
 						setU2OffDiagonalTerm(sparseRow,ket1,ket2,
 							i,orb,basis);
-						for (size_t orb2=0;orb2<mp_.orbitals;orb2++) {
+						for (SizeType orb2=0;orb2<mp_.orbitals;orb2++) {
 							if (orb==orb2) continue;
 
 							setU3Term(sparseRow,ket1,ket2,
@@ -129,29 +129,29 @@ namespace LanczosPlusPlus {
 					  const BasisType* basis) const
 		{
 			// Calculate diagonal elements AND count non-zero matrix elements
-			size_t hilbert=basis->size();
+			SizeType hilbert=basis->size();
 			calcDiagonalElements(x,y,basis);
 
-			size_t nsite = geometry_.numberOfSites();
+			SizeType nsite = geometry_.numberOfSites();
 
 			// Calculate off-diagonal elements AND store matrix
 
-			for (size_t ispace=0;ispace<hilbert;ispace++) {
+			for (SizeType ispace=0;ispace<hilbert;ispace++) {
 				SparseRowType sparseRow;
 
 				WordType ket1 = basis->operator ()(ispace,ProgramGlobals::SPIN_UP);
 				WordType ket2 = basis->operator ()(ispace,ProgramGlobals::SPIN_DOWN);
 
 				//x[ispace] += diag[ispace]*y[ispace];
-				for (size_t i=0;i<nsite;i++) {
-					for (size_t orb=0;orb<mp_.orbitals;orb++) {
+				for (SizeType i=0;i<nsite;i++) {
+					for (SizeType orb=0;orb<mp_.orbitals;orb++) {
 						setHoppingTerm(sparseRow,ket1,ket2,
 								i,orb,*basis);
 
 						setU2OffDiagonalTerm(sparseRow,ket1,ket2,
 								i,orb,*basis);
 
-						for (size_t orb2=orb+1;orb2<mp_.orbitals;orb2++) {
+						for (SizeType orb2=orb+1;orb2<mp_.orbitals;orb2++) {
 							setU3Term(sparseRow,ket1,ket2,
 								i,orb,orb2,*basis);
 						}
@@ -169,7 +169,7 @@ namespace LanczosPlusPlus {
 
 	private:
 
-		RealType hoppings(size_t i,size_t orb1,size_t j,size_t orb2) const
+		RealType hoppings(SizeType i,SizeType orb1,SizeType j,SizeType orb2) const
 		{
 			return -geometry_(i,orb1,j,orb2,TERM_HOPPINGS);
 		}
@@ -178,23 +178,23 @@ namespace LanczosPlusPlus {
 				SparseRowType &sparseRow,
 				const WordType& ket1,
 				const WordType& ket2,
-				size_t i,
-				size_t orb,
+				SizeType i,
+				SizeType orb,
 				const BasisType &basis) const
 		{
-			size_t ii = i*mp_.orbitals+orb;
+			SizeType ii = i*mp_.orbitals+orb;
 			WordType s1i=(ket1 & BasisType::bitmask(ii));
 			if (s1i>0) s1i=1;
 			WordType s2i=(ket2 & BasisType::bitmask(ii));
 			if (s2i>0) s2i=1;
 
-			size_t nsite = geometry_.numberOfSites();
+			SizeType nsite = geometry_.numberOfSites();
 
 			// Hopping term
-			for (size_t j=0;j<nsite;j++) {
+			for (SizeType j=0;j<nsite;j++) {
 				if (j<i) continue;
-				for (size_t orb2=0;orb2<mp_.orbitals;orb2++) {
-					size_t jj = j*mp_.orbitals+orb2;
+				for (SizeType orb2=0;orb2<mp_.orbitals;orb2++) {
+					SizeType jj = j*mp_.orbitals+orb2;
 					RealType h = hoppings(i,orb,j,orb2);
 					if (h==0) continue;
 					WordType s1j= (ket1 & BasisType::bitmask(jj));
@@ -204,7 +204,7 @@ namespace LanczosPlusPlus {
 
 					if (s1i+s1j==1) {
 						WordType bra1= ket1 ^(BasisType::bitmask(ii)|BasisType::bitmask(jj));
-						size_t temp = basis.perfectIndex(bra1,ket2);
+						SizeType temp = basis.perfectIndex(bra1,ket2);
 						int extraSign = (s1i==1) ? FERMION_SIGN : 1;
 						RealType cTemp = h*extraSign*basis_.doSign(
 							ket1,ket2,i,orb,j,orb2,ProgramGlobals::SPIN_UP);
@@ -213,7 +213,7 @@ namespace LanczosPlusPlus {
 					}
 					if (s2i+s2j==1) {
 						WordType bra2= ket2 ^(BasisType::bitmask(ii)|BasisType::bitmask(jj));
-						size_t temp = basis.perfectIndex(ket1,bra2);
+						SizeType temp = basis.perfectIndex(ket1,bra2);
 						int extraSign = (s2i==1) ? FERMION_SIGN : 1;
 						RealType cTemp = h*extraSign*basis_.doSign(
 							ket1,ket2,i,orb,j,orb2,ProgramGlobals::SPIN_DOWN);
@@ -227,13 +227,13 @@ namespace LanczosPlusPlus {
 				SparseRowType &sparseRow,
 				const WordType& ket1,
 				const WordType& ket2,
-				size_t i,
-				size_t orb1,
+				SizeType i,
+				SizeType orb1,
 				const BasisType &basis) const
 		{
 			RealType val = FERMION_SIGN * mp_.hubbardU[2]*0.5;
 
-			for (size_t orb2=orb1+1;orb2<mp_.orbitals;orb2++) {
+			for (SizeType orb2=orb1+1;orb2<mp_.orbitals;orb2++) {
 				setSplusSminus(sparseRow,ket1,ket2,i,orb1,i,orb2,val,basis);
 				setSplusSminus(sparseRow,ket1,ket2,i,orb2,i,orb1,val,basis);
 			}
@@ -245,21 +245,21 @@ namespace LanczosPlusPlus {
 				SparseRowType &sparseRow,
 				const WordType& ket1,
 				const WordType& ket2,
-				size_t i,
-				size_t orb1,
-				size_t j,
-				size_t orb2,
+				SizeType i,
+				SizeType orb1,
+				SizeType j,
+				SizeType orb2,
 				RealType value,
 				const BasisType &basis) const
 		{
 			if (splusSminusNonZero(ket1,ket2,i,orb1,j,orb2,basis)==0) return;
 
-			size_t ii = i*mp_.orbitals + orb1;
-			size_t jj = j*mp_.orbitals + orb2;
+			SizeType ii = i*mp_.orbitals + orb1;
+			SizeType jj = j*mp_.orbitals + orb2;
 			assert(ii!=jj);
 			WordType bra1 = ket1 ^ (BasisType::bitmask(ii)|BasisType::bitmask(jj));
 			WordType bra2 = ket2 ^ (BasisType::bitmask(ii)|BasisType::bitmask(jj));
-			size_t temp = basis.perfectIndex(bra1,bra2);
+			SizeType temp = basis.perfectIndex(bra1,bra2);
 			sparseRow.add(temp,value);
 		}
 
@@ -268,19 +268,19 @@ namespace LanczosPlusPlus {
 				SparseRowType &sparseRow,
 				const WordType& ket1,
 				const WordType& ket2,
-				size_t i,
-				size_t orb1,
-				size_t orb2,
+				SizeType i,
+				SizeType orb1,
+				SizeType orb2,
 				const BasisType &basis) const
 		{
 			assert(orb1!=orb2);
 			if (u3TermNonZero(ket1,ket2,i,orb1,orb2,basis)==0) return;
 
-			size_t ii = i*mp_.orbitals + orb1;
-			size_t jj = i*mp_.orbitals + orb2;
+			SizeType ii = i*mp_.orbitals + orb1;
+			SizeType jj = i*mp_.orbitals + orb2;
 			WordType bra1 = ket1 ^ (BasisType::bitmask(ii)|BasisType::bitmask(jj));
 			WordType bra2 = ket2 ^ (BasisType::bitmask(ii)|BasisType::bitmask(jj));
-			size_t temp = basis.perfectIndex(bra1,bra2);
+			SizeType temp = basis.perfectIndex(bra1,bra2);
 			sparseRow.add(temp,FERMION_SIGN * mp_.hubbardU[3]);
 		}
 
@@ -288,16 +288,16 @@ namespace LanczosPlusPlus {
 				SparseRowType &sparseRow,
 				const WordType& ket1,
 				const WordType& ket2,
-				size_t i,
-				size_t orb,
+				SizeType i,
+				SizeType orb,
 				const BasisType &basis) const
 		{
-			for (size_t j=0;j<geometry_.numberOfSites();j++) {
+			for (SizeType j=0;j<geometry_.numberOfSites();j++) {
 				RealType value = jCoupling(i,j)*0.5;
 				if (value==0) continue;
 				value *= 0.5; // double counting i,j
 				assert(i!=j);
-				for (size_t orb2=0;orb2<mp_.orbitals;orb2++) {
+				for (SizeType orb2=0;orb2<mp_.orbitals;orb2++) {
 					//if (orb2!=orb) continue; // testing only!!
 					int sign = jTermSign(ket1,ket2,i,orb,j,orb2,basis);
 					setSplusSminus(sparseRow,ket1,ket2,
@@ -311,10 +311,10 @@ namespace LanczosPlusPlus {
 		int jTermSign(
 				const WordType& ket1,
 				const WordType& ket2,
-				size_t i,
-				size_t orb1,
-				size_t j,
-				size_t orb2,
+				SizeType i,
+				SizeType orb1,
+				SizeType j,
+				SizeType orb2,
 				const BasisType &basis) const
 		{
 			if (i>j) return jTermSign(ket1,ket2,j,orb2,i,orb1,basis);
@@ -326,11 +326,11 @@ namespace LanczosPlusPlus {
 		void calcDiagonalElements(typename PsimagLite::Vector<RealType>::Type& diag,
 		                          const BasisType &basis) const
 		{
-			size_t hilbert=basis.size();
-			size_t nsite = geometry_.numberOfSites();
+			SizeType hilbert=basis.size();
+			SizeType nsite = geometry_.numberOfSites();
 
 			// Calculate diagonal elements
-			for (size_t ispace=0;ispace<hilbert;ispace++) {
+			for (SizeType ispace=0;ispace<hilbert;ispace++) {
 				WordType ket1 = basis(ispace,ProgramGlobals::SPIN_UP);
 				WordType ket2 = basis(ispace,ProgramGlobals::SPIN_DOWN);
 				diag[ispace]=findS(nsite,ket1,ket2,ispace,basis);
@@ -341,21 +341,21 @@ namespace LanczosPlusPlus {
 					  const VectorType& y,
 					  const BasisType* basis) const
 		{
-			size_t hilbert=basis->size();
-			size_t nsite = geometry_.numberOfSites();
+			SizeType hilbert=basis->size();
+			SizeType nsite = geometry_.numberOfSites();
 
-			for (size_t ispace=0;ispace<hilbert;ispace++) {
+			for (SizeType ispace=0;ispace<hilbert;ispace++) {
 				WordType ket1 = basis->operator()(ispace,ProgramGlobals::SPIN_UP);
 				WordType ket2 = basis->operator()(ispace,ProgramGlobals::SPIN_DOWN);
 				x[ispace] += findS(nsite,ket1,ket2,ispace,*basis)*y[ispace];
 			}
 		}
 
-		RealType findS(size_t nsite,WordType ket1,WordType ket2,size_t ispace,const BasisType& basis) const
+		RealType findS(SizeType nsite,WordType ket1,WordType ket2,SizeType ispace,const BasisType& basis) const
 		{
 			RealType s = 0;
-			for (size_t i=0;i<nsite;i++) {
-				for (size_t orb=0;orb<mp_.orbitals;orb++) {
+			for (SizeType i=0;i<nsite;i++) {
+				for (SizeType orb=0;orb<mp_.orbitals;orb++) {
 
 					// Hubbard term U0
 					s += mp_.hubbardU[0] * basis.isThereAnElectronAt(ket1,ket2,
@@ -363,7 +363,7 @@ namespace LanczosPlusPlus {
 																    i,ProgramGlobals::SPIN_DOWN,orb);
 
 
-					for (size_t orb2=orb+1;orb2<mp_.orbitals;orb2++) {
+					for (SizeType orb2=orb+1;orb2<mp_.orbitals;orb2++) {
 						// Hubbard term U1
 						s += mp_.hubbardU[1] * nix(ket1,ket2,i,orb,basis) *
 								nix(ket1,ket2,i,orb2,basis);
@@ -375,8 +375,8 @@ namespace LanczosPlusPlus {
 					}
 
 					// JNN and JNNN diagonal part
-					for (size_t j=0;j<nsite;j++) {
-						for (size_t orb2=0;orb2<mp_.orbitals;orb2++) {
+					for (SizeType j=0;j<nsite;j++) {
+						for (SizeType orb2=0;orb2<mp_.orbitals;orb2++) {
 							RealType value = jCoupling(i,j);
 							if (value==0) continue;
 							s += value*0.5* // double counting i,j
@@ -396,13 +396,13 @@ namespace LanczosPlusPlus {
 			return s;
 		}
 
-		size_t splusSminusNonZero(
+		SizeType splusSminusNonZero(
 						const WordType& ket1,
 						const WordType& ket2,
-						size_t i,
-						size_t orb1,
-						size_t j,
-						size_t orb2,
+						SizeType i,
+						SizeType orb1,
+						SizeType j,
+						SizeType orb2,
 						const BasisType &basis) const
 		{
 			if (basis.isThereAnElectronAt(ket1,ket2,
@@ -416,12 +416,12 @@ namespace LanczosPlusPlus {
 			return 1;
 		}
 
-		size_t u3TermNonZero(
+		SizeType u3TermNonZero(
 				const WordType& ket1,
 				const WordType& ket2,
-				size_t i,
-				size_t orb1,
-				size_t orb2,
+				SizeType i,
+				SizeType orb1,
+				SizeType orb2,
 				const BasisType &basis) const
 		{
 			if (basis.isThereAnElectronAt(ket1,ket2,
@@ -435,15 +435,15 @@ namespace LanczosPlusPlus {
 			return 1;
 		}
 
-		size_t nix(
+		SizeType nix(
 				const WordType& ket1,
 				const WordType& ket2,
-				size_t i,
-				size_t orb,
+				SizeType i,
+				SizeType orb,
 				const BasisType &basis) const
 		{
-			size_t sum = 0;
-			for (size_t spin=0;spin<2;spin++)
+			SizeType sum = 0;
+			for (SizeType spin=0;spin<2;spin++)
 				sum += basis.isThereAnElectronAt(ket1,ket2,i,spin,orb);
 			return sum;
 		}
@@ -451,8 +451,8 @@ namespace LanczosPlusPlus {
 		RealType szTerm(
 				const WordType& ket1,
 				const WordType& ket2,
-				size_t i,
-				size_t orb,
+				SizeType i,
+				SizeType orb,
 				const BasisType &basis) const
 		{
 			RealType sz = basis.isThereAnElectronAt(ket1,ket2,i,ProgramGlobals::SPIN_UP,orb);
@@ -460,7 +460,7 @@ namespace LanczosPlusPlus {
 			return 0.5*sz;
 		}
 		
-		RealType jCoupling(size_t i,size_t j) const
+		RealType jCoupling(SizeType i,SizeType j) const
 		{
 			if (geometry_.terms()==1) return 0;
 			return geometry_(i,0,j,0,TERM_J);

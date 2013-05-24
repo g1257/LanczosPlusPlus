@@ -111,7 +111,7 @@ namespace LanczosPlusPlus {
 			//model.setupHamiltonian(matrixStored_);
 		}
 
-		size_t rank() const { return model_.size(); }
+		SizeType rank() const { return model_.size(); }
 
 		template<typename SomeVectorType>
 		void matrixVectorProduct(SomeVectorType &x,SomeVectorType const &y) const
@@ -123,9 +123,9 @@ namespace LanczosPlusPlus {
 			}
 		}
 
-		size_t reflectionSector() const { return 0; }
+		SizeType reflectionSector() const { return 0; }
 
-		void reflectionSector(size_t p) {  }
+		void reflectionSector(SizeType p) {  }
 
 	private:
 

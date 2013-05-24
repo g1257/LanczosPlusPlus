@@ -143,7 +143,7 @@ namespace LanczosPlusPlus {
 			SizeType nsite = geometry_.numberOfSites();
 			if (SizeType(newPart1)>nsite || SizeType(newPart2)>nsite) return false;
 			if (newPart1==0 && newPart2==0) return false;
-			if (SizeType(newPart1+newPart2)>nsite) return false; // no double occupancy
+			if (SizeType(newPart1+newPart2)>nsite) return false; // no RealType occupancy
 			newParts.first = SizeType(newPart1);
 			newParts.second = SizeType(newPart2);
 			return true;

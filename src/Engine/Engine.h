@@ -352,9 +352,9 @@ namespace LanczosPlusPlus {
 			typename VectorType::value_type weight = modifVector*modifVector;
 			//weight = 1.0/weight;
 			int s = (type&1) ? -1 : 1;
-			double s2 = (type>1) ? -1 : 1;
+			RealType s2 = (type>1) ? -1 : 1;
 			if (!ProgramGlobals::isFermionic(what2)) s2 *= s;
-			double diagonalFactor = (isDiagonal) ? 1 : 0.5;
+			RealType diagonalFactor = (isDiagonal) ? 1 : 0.5;
 			s2 *= diagonalFactor;
 			cf.set(ab,gsEnergy_,std::real(weight*s2),s);
 

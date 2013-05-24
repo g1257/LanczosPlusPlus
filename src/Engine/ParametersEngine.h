@@ -93,7 +93,7 @@ namespace LanczosPlusPlus {
 		ParametersEngine(IoInputType& io)
 		    : storeLanczosVectors(false),
 		      gsSteps(ProgramGlobals::LanczosSteps),
-		      gsEps(ProgramGlobals::LanczosTolerance),
+		      gsEps(1e-12),
 		      spectralSteps(gsSteps),
 		      spectralEps(gsEps)
 		{

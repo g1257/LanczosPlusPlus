@@ -90,7 +90,6 @@ struct ProgramGlobals {
 
 	static SizeType const MaxLanczosSteps = 1000000; // max number of internal Lanczos steps
 	static SizeType const LanczosSteps = 300; // max number of external Lanczos steps
-	static double const LanczosTolerance; // tolerance of the Lanczos Algorithm
 
 	enum {FERMION,BOSON};
 
@@ -179,7 +178,6 @@ struct ProgramGlobals {
 	}
 }; // ProgramGlobals
 
-	double const ProgramGlobals::LanczosTolerance = 1e-12;
 }; // namespace LanczosPlusPlus
 /*@}*/
 #endif

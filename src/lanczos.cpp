@@ -40,7 +40,11 @@ PsimagLite::String license = "Copyright (c) 2009-2012, UT-Battelle, LLC\n"
 
 using namespace LanczosPlusPlus;
 
+#ifndef USE_FLOAT
 typedef double RealType;
+#else
+typedef float RealType;
+#endif
 typedef std::complex<RealType> ComplexType;
 typedef PsimagLite::ConcurrencySerial<RealType> ConcurrencyType;
 typedef PsimagLite::Geometry<RealType,ProgramGlobals> GeometryType;

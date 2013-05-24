@@ -256,7 +256,7 @@ namespace LanczosPlusPlus {
 			for (SizeType i=0;i<data1.size();i++) {
 				for (SizeType j=0;j<data2.size();j++) {
 					tmp = (data1[i] & data2[j]);
-					if (tmp>0) continue; // there's one or more double occupied
+					if (tmp>0) continue; // there's one or more RealType occupied
 					tmp2 = data2[j];
 					tmp2 <<= n;
 					data_.push_back(tmp2 | data1[i]);

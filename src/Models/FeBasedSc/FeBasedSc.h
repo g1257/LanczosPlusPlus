@@ -295,7 +295,7 @@ namespace LanczosPlusPlus {
 			for (SizeType j=0;j<geometry_.numberOfSites();j++) {
 				RealType value = jCoupling(i,j)*0.5;
 				if (value==0) continue;
-				value *= 0.5; // double counting i,j
+				value *= 0.5; // RealType counting i,j
 				assert(i!=j);
 				for (SizeType orb2=0;orb2<mp_.orbitals;orb2++) {
 					//if (orb2!=orb) continue; // testing only!!
@@ -379,7 +379,7 @@ namespace LanczosPlusPlus {
 						for (SizeType orb2=0;orb2<mp_.orbitals;orb2++) {
 							RealType value = jCoupling(i,j);
 							if (value==0) continue;
-							s += value*0.5* // double counting i,j
+							s += value*0.5* // RealType counting i,j
 									szTerm(ket1,ket2,i,orb,basis)*
 									szTerm(ket1,ket2,j,orb2,basis);
 						}

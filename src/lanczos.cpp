@@ -27,7 +27,7 @@ PsimagLite::String license = "Copyright (c) 2009-2012, UT-Battelle, LLC\n"
 #include "HubbardOneOrbital.h"
 #include "FeBasedSc.h"
 
-#include "Geometry.h"
+#include "Geometry/Geometry.h"
 #include "InternalProductStored.h"
 #include "IoSimple.h" // in PsimagLite
 #include "ProgramGlobals.h"

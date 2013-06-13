@@ -26,7 +26,7 @@ my $hasGsl = "no"; # say "no" here to remove GSL dependence
 my $mpi=0;
 my $platform="linux";
 my $lapack="-llapack";
-my $PsimagLite="../../PsimagLite/src";
+my $PsimagLite="../../PsimagLite";
 my ($pthreads,$pthreadsLib)=(0,"");
 my $brand= "v1.0";
 
@@ -64,7 +64,7 @@ print FOUT<<EOF;
 # MPI: $mpi
 
 LDFLAGS =    $lapack  $gslLibs $pthreadsLib
-CPPFLAGS = -Werror -Wall  -IEngine -IModels/Tj1Orb -IModels/Immm -IModels/HubbardOneOrbital -IModels/FeBasedSc -I$PsimagLite/Geometry -I$PsimagLite $usePthreadsOrNot
+CPPFLAGS = -Werror -Wall  -IEngine -IModels/Tj1Orb -IModels/Immm -IModels/HubbardOneOrbital -IModels/FeBasedSc -I$PsimagLite -I$PsimagLite/src $usePthreadsOrNot
 EOF
 if ($mpi) {
 	print FOUT "CXX = mpicxx -O3 -DNDEBUG \n";

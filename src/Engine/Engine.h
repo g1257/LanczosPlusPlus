@@ -33,13 +33,11 @@ Please see full open source license included in file LICENSE.
 namespace LanczosPlusPlus {
 	template<typename ModelType_,
 			 template<typename,typename> class InternalProductTemplate,
-			 typename SpecialSymmetryType,
-			 typename ConcurrencyType_>
+			 typename SpecialSymmetryType>
 	class Engine  {
 	public:
 		
 		typedef ModelType_ ModelType;
-		typedef ConcurrencyType_ ConcurrencyType;
 		typedef typename ModelType::RealType RealType;
 		typedef typename std::complex<RealType> ComplexType;
 		typedef typename SpecialSymmetryType::VectorType VectorType;

@@ -18,7 +18,7 @@ PsimagLite::String license = "Copyright (c) 2009-2012, UT-Battelle, LLC\n"
 #include <unistd.h>
 #include <cstdlib>
 #include <getopt.h>
-#include "ConcurrencySerial.h"
+#include "Concurrency.h"
 #include "Engine.h"
 #include "ProgramGlobals.h"
 
@@ -46,7 +46,7 @@ typedef double RealType;
 typedef float RealType;
 #endif
 typedef std::complex<RealType> ComplexType;
-typedef PsimagLite::ConcurrencySerial<RealType> ConcurrencyType;
+typedef PsimagLite::Concurrency ConcurrencyType;
 typedef PsimagLite::Geometry<RealType,ProgramGlobals> GeometryType;
 typedef PsimagLite::IoSimple::In IoInputType;
 typedef std::pair<SizeType,SizeType> PairType;
@@ -133,7 +133,7 @@ void mainLoop2(ModelType& model,
                const PsimagLite::Vector<PairType>::Type& spins)
 {
 	typedef typename ModelType::BasisType BasisType;
-	typedef Engine<ModelType,InternalProductStored,SpecialSymmetryType,ConcurrencyType> EngineType;
+	typedef Engine<ModelType,InternalProductStored,SpecialSymmetryType> EngineType;
 	typedef typename EngineType::TridiagonalMatrixType TridiagonalMatrixType;
 
 	EngineType engine(model,geometry.numberOfSites(),io);
@@ -265,7 +265,7 @@ int main(int argc,char *argv[])
 	GeometryType geometry(io);
 
 	// print license
-	if (concurrency.root()) std::cerr<<license;
+	if (ConcurrencyType::root()) std::cerr<<license;
 
 	PsimagLite::String model("");
 	io.readline(model,"Model=");

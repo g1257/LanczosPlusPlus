@@ -258,7 +258,8 @@ int main(int argc,char *argv[])
 	}
 
 	//! setup distributed parallelization
-	ConcurrencyType concurrency(argc,argv);
+	SizeType npthreads = 1;
+	ConcurrencyType concurrency(argc,argv,npthreads);
 
 	//Setup the Geometry
 	IoInputType io(file);

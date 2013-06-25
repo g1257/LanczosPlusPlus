@@ -194,7 +194,7 @@ private:
 		typedef typename PsimagLite::Vector<ComplexType>::Type VectorType;
 
 		TranslationSymmetry(const BasisType& basis,const GeometryType& geometry)
-		: progress_("TranslationSymmetry",0),
+		: progress_("TranslationSymmetry"),
 		  transform_(basis.size(),basis.size()),
 		  kspace_(geometry.length(1,0)),
 		  matrixStored_(kspace_.size()),

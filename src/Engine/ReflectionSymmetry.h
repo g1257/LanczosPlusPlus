@@ -67,7 +67,7 @@ namespace LanczosPlusPlus {
 		typedef typename PsimagLite::Vector<RealType>::Type VectorType;
 
 		ReflectionSymmetry(const BasisType& basis,const GeometryType& geometry)
-		: progress_("ReflectionSymmetry",0),
+		: progress_("ReflectionSymmetry"),
 		  transform_(basis.size(),basis.size()),
 		  plusSector_(0),
 		  matrixStored_(2),

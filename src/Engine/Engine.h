@@ -67,7 +67,7 @@ namespace LanczosPlusPlus {
 		
 		Engine(const ModelType& model,SizeType numberOfSites,PsimagLite::IoSimple::In& io)
 		: model_(model),
-		  progress_("Engine",0),
+		  progress_("Engine"),
 		  params_(io)
 		{
 			// printHeader();

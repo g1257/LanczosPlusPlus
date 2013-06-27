@@ -149,7 +149,7 @@ void mainLoop2(ModelType& model,
 		if (sites.size()==1) sites.push_back(sites[0]);
 
 		std::cout<<"#gf(i="<<sites[0]<<",j="<<sites[1]<<")\n";
-		typedef PsimagLite::ContinuedFraction<RealType,TridiagonalMatrixType>
+		typedef PsimagLite::ContinuedFraction<TridiagonalMatrixType>
 		ContinuedFractionType;
 		typedef PsimagLite::ContinuedFractionCollection<ContinuedFractionType>
 			ContinuedFractionCollectionType;

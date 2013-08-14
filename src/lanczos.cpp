@@ -29,7 +29,7 @@ PsimagLite::String license = "Copyright (c) 2009-2012, UT-Battelle, LLC\n"
 
 #include "Geometry/Geometry.h"
 #include "InternalProductStored.h"
-#include "IoSimple.h" // in PsimagLite
+#include "InputNg.h" // in PsimagLite
 #include "ProgramGlobals.h"
 #include "ContinuedFraction.h" // in PsimagLite 
 #include "ContinuedFractionCollection.h" // in PsimagLite
@@ -37,6 +37,7 @@ PsimagLite::String license = "Copyright (c) 2009-2012, UT-Battelle, LLC\n"
 #include "ReflectionSymmetry.h"
 #include "TranslationSymmetry.h"
 #include "Tokenizer.h"
+#include "InputCheck.h"
 
 using namespace LanczosPlusPlus;
 
@@ -48,8 +49,8 @@ typedef float RealType;
 typedef std::complex<RealType> ComplexType;
 typedef PsimagLite::Concurrency ConcurrencyType;
 typedef PsimagLite::Geometry<RealType,ProgramGlobals> GeometryType;
-typedef PsimagLite::IoSimple::In IoInputType;
 typedef std::pair<SizeType,SizeType> PairType;
+typedef PsimagLite::InputNg<InputCheck> InputNgType;
 
 void fillOrbsOrSpin(PsimagLite::Vector<PairType>::Type& spinV,const PsimagLite::Vector<PsimagLite::String>::Type& strV)
 {
@@ -65,54 +66,6 @@ void fillOrbsOrSpin(PsimagLite::Vector<PairType>::Type& spinV,const PsimagLite::
 	}
 }
 
-std::pair<SizeType,SizeType> readElectrons(PsimagLite::IoSimple::In& io,SizeType nsites)
-{
-	int nup = -1;
-	int ndown = -1;
-	try {
-		io.readline(nup,"TargetElectronsUp=");
-		io.readline(ndown,"TargetElectronsDown=");
-	} catch (std::exception& e)
-	{
-		nup = ndown = -1;
-		io.rewind();
-	}
-
-	PsimagLite::Vector<RealType>::Type v;
-	try {
-		io.read(v,"TargetQuantumNumbers");
-	} catch (std::exception& e)
-	{
-		v.resize(0);
-		io.rewind();
-	}
-
-	if (nup<0 && v.size()==0) {
-		PsimagLite::String str("Either TargetElectronsUp/Down or TargetQuantumNumbers is need\n");
-		throw std::runtime_error(str.c_str());
-	}
-
-	if (nup>=0 && v.size()>0) {
-		PsimagLite::String str("Having both TargetElectronsUp/Down and TargetQuantumNumbers is an error\n");
-		throw std::runtime_error(str.c_str());
-	}
-
-	if (nup>=0) return std::pair<SizeType,SizeType>(nup,ndown);
-
-	if (v.size()<2) {
-		PsimagLite::String str("Incorrect TargetQuantumNumbers line\n");
-		throw std::runtime_error(str.c_str());
-	}
-	nup = SizeType(v[0]*nsites);
-	ndown = SizeType(v[1]*nsites);
-	return std::pair<SizeType,SizeType>(nup,ndown);
-}
-
-void usage(const char *progName)
-{
-	std::cerr<<"Usage: "<<progName<<" [-g -c] -f filename\n";
-}
-
 template<typename ModelType>
 SizeType maxOrbitals(const ModelType& model)
 {
@@ -125,7 +78,7 @@ SizeType maxOrbitals(const ModelType& model)
 
 template<typename ModelType,typename SpecialSymmetryType>
 void mainLoop2(ModelType& model,
-			   IoInputType& io,
+			   InputNgType::Readable& io,
 			   const GeometryType& geometry,
 			   const PsimagLite::Vector<SizeType>::Type& gfV,
 			   PsimagLite::Vector<SizeType>::Type& sites,
@@ -180,7 +133,7 @@ void mainLoop2(ModelType& model,
 }
 
 template<typename ModelType>
-void mainLoop(IoInputType& io,
+void mainLoop(InputNgType::Readable& io,
 			  const GeometryType& geometry,
 			  const PsimagLite::Vector<SizeType>::Type& gf,
 			  PsimagLite::Vector<SizeType>::Type& sites,
@@ -194,22 +147,27 @@ void mainLoop(IoInputType& io,
 	ParametersModelType mp(io);
 
 	std::cout<<mp;
-	std::pair<SizeType,SizeType> nupndown = readElectrons(io,geometry.numberOfSites());
+
+	SizeType nup = 0;
+	io.read(nup,"TargetElectronsUp");
+
+	SizeType ndown;
+	io.read(ndown,"TargetElectronsDown");
 
 	//! Setup the Model
-	ModelType model(nupndown.first,nupndown.second,mp,geometry);
+	ModelType model(nup,ndown,mp,geometry);
 
 	int tmp = 0;
 	try {
 		io.readline(tmp,"UseTranslationSymmetry=");
 	} catch(std::exception& e) {}
-	io.rewind();
+
 	bool useTranslationSymmetry = (tmp==1) ? true : false;
 
 	try {
 		io.readline(tmp,"UseReflectionSymmetry=");
 	} catch(std::exception& e) {}
-	io.rewind();
+
 	bool useReflectionSymmetry = (tmp==1) ? true : false;
 
 	if (useTranslationSymmetry) {
@@ -230,6 +188,7 @@ int main(int argc,char *argv[])
 	PsimagLite::Vector<SizeType>::Type sites;
 	PsimagLite::Vector<PairType>::Type spins(1,PairType(0,0));
 	PsimagLite::Vector<PsimagLite::String>::Type str;
+	InputCheck inputCheck;
 
 	while ((opt = getopt(argc, argv, "g:c:f:s:")) != -1) {
 		switch (opt) {
@@ -248,12 +207,13 @@ int main(int argc,char *argv[])
 			str.clear();
 			break;
 		default: /* '?' */
-			usage(argv[0]);
+			inputCheck.usage(argv[0]);
 			return 1;
 		}
 	}
+
 	if (file == "") {
-		usage(argv[0]);
+		inputCheck.usage(argv[0]);
 		return 1;
 	}
 
@@ -262,7 +222,8 @@ int main(int argc,char *argv[])
 	ConcurrencyType concurrency(&argc,&argv,npthreads);
 
 	//Setup the Geometry
-	IoInputType io(file);
+	InputNgType::Writeable ioWriteable(file,inputCheck);
+	InputNgType::Readable io(ioWriteable);
 	GeometryType geometry(io);
 
 	// print license
@@ -272,13 +233,17 @@ int main(int argc,char *argv[])
 	io.readline(model,"Model=");
 
 	if (model=="Tj1Orb") {
-		mainLoop<Tj1Orb<RealType,GeometryType> >(io,geometry,gf,sites,cicj,spins);
+		mainLoop<Tj1Orb<RealType,GeometryType, InputNgType::Readable> >
+		        (io,geometry,gf,sites,cicj,spins);
 	} else if (model=="Immm") {
-		mainLoop<Immm<RealType,GeometryType> >(io,geometry,gf,sites,cicj,spins);
+		mainLoop<Immm<RealType,GeometryType, InputNgType::Readable> >
+		        (io,geometry,gf,sites,cicj,spins);
 	} else if (model=="HubbardOneBand") {
-		mainLoop<HubbardOneOrbital<RealType,GeometryType> >(io,geometry,gf,sites,cicj,spins);
+		mainLoop<HubbardOneOrbital<RealType,GeometryType, InputNgType::Readable> >
+		        (io,geometry,gf,sites,cicj,spins);
 	} else if (model=="FeAsBasedSc") {
-		mainLoop<FeBasedSc<RealType,GeometryType> >(io,geometry,gf,sites,cicj,spins);
+		mainLoop<FeBasedSc<RealType,GeometryType, InputNgType::Readable> >
+		        (io,geometry,gf,sites,cicj,spins);
 	} else {
 		std::cerr<<"No known model "<<model<<"\n";
 		return 1;

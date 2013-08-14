@@ -15,14 +15,15 @@
 
 namespace LanczosPlusPlus {
 
-	template<typename RealType_,typename GeometryType_>
+	template<typename RealType_,typename GeometryType_,typename InputType_>
 	class HubbardOneOrbital {
 
 		typedef PsimagLite::Matrix<RealType_> MatrixType;
 
 	public:
 
-		typedef ParametersModelHubbard<RealType_> ParametersModelType;
+		typedef InputType_ InputType;
+		typedef ParametersModelHubbard<RealType_,InputType> ParametersModelType;
 		typedef GeometryType_ GeometryType;
 		typedef PsimagLite::CrsMatrix<RealType_> SparseMatrixType;
 		typedef PsimagLite::SparseRow<SparseMatrixType> SparseRowType;

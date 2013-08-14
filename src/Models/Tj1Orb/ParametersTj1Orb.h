@@ -81,14 +81,13 @@ DISCLOSED WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
 #define PARAMETERS_TJ_1ORB_H
 #include "Vector.h"
 #include <stdexcept>
-#include "IoSimple.h"
 
 namespace LanczosPlusPlus {
 	//! Hubbard Model Parameters
-	template<typename Field>
+	template<typename Field,typename InputType>
 	struct ParametersTj1Orb {
 
-		ParametersTj1Orb(PsimagLite::IoSimple::In& io)
+		ParametersTj1Orb(InputType& io)
 		{
 			io.read(potentialV,"potentialV");
 			nOfElectrons=0;
@@ -104,8 +103,9 @@ namespace LanczosPlusPlus {
 	};
 	
 	//! Function that prints model parameters to stream os
-	template<typename FieldType>
-	std::ostream& operator<<(std::ostream &os,const ParametersTj1Orb<FieldType>& parameters)
+	template<typename FieldType,typename InputType>
+	std::ostream& operator<<(std::ostream &os,
+	                         const ParametersTj1Orb<FieldType,InputType>& parameters)
 	{
 		return os;
 	}

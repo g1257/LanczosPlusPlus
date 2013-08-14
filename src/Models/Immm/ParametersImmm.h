@@ -101,8 +101,6 @@ namespace LanczosPlusPlus {
 				io.readline(useReflectionSymmetry,"UseReflectionSymmetry=");
 			} catch (std::exception& e) {
 			}
-			io.rewind();
-
 		}
 
 		// Hubbard U values (one for each site)

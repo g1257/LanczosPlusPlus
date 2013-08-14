@@ -28,13 +28,14 @@ Please see full open source license included in file LICENSE.
 
 namespace LanczosPlusPlus {
 
-template<typename RealType_,typename GeometryType_>
+template<typename RealType_,typename GeometryType_,typename InputType_>
 	class Immm {
 
 		typedef PsimagLite::Matrix<RealType_> MatrixType;
 
 	public:
 
+		typedef InputType_ InputType;
 		typedef GeometryType_ GeometryType;
 		typedef ParametersImmm<RealType_> ParametersModelType;
 		typedef BasisImmm<GeometryType> BasisType;

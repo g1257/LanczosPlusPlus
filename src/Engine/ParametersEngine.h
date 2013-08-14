@@ -101,34 +101,24 @@ namespace LanczosPlusPlus {
 			int tmp = 1;
 			try {
 				io.readline(tmp,"StoreLanczosVectors=");
-			} catch (std::exception& e) {
-				io.rewind();
-			}
+			} catch (std::exception& e) {}
 			storeLanczosVectors = (tmp==1) ? true : false;
 
 			try {
 				io.readline(gsSteps,"LanczosSteps=");
-			} catch (std::exception& e) {
-				io.rewind();
-			}
+			} catch (std::exception& e) {}
 
 			try {
 				io.readline(gsEps,"LanczosEps=");
-			} catch (std::exception& e) {
-				io.rewind();
-			}
+			} catch (std::exception& e) {}
 
 			try {
 				io.readline(spectralSteps,"DynamicDmrgSteps=");
-			} catch (std::exception& e) {
-				io.rewind();
-			}
+			} catch (std::exception& e) {}
 
 			try {
 				io.readline(spectralEps,"DynamicDmrgEps=");
-			} catch (std::exception& e) {
-				io.rewind();
-			}
+			} catch (std::exception& e) {}
 		}
 		
 		bool storeLanczosVectors;

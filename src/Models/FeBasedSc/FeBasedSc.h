@@ -28,13 +28,14 @@ Please see full open source license included in file LICENSE.
 
 namespace LanczosPlusPlus {
 	
-	template<typename RealType_,typename GeometryType_>
+	template<typename RealType_,typename GeometryType_,typename InputType_>
 	class FeBasedSc {
 		
 		typedef PsimagLite::Matrix<RealType_> MatrixType;
 
 	public:
 
+		typedef InputType_ InputType;
 		typedef ParametersModelFeAs<RealType_> ParametersModelType;
 		typedef GeometryType_ GeometryType;
 		typedef BasisFeAsBasedSc<GeometryType> BasisType;

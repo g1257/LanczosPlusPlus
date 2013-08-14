@@ -87,10 +87,10 @@ DISCLOSED WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
 
 namespace LanczosPlusPlus {
 	//! Hubbard Model Parameters
-	template<typename Field>
+	template<typename Field,typename InputType>
 	struct ParametersModelHubbard {
 
-		ParametersModelHubbard(PsimagLite::IoSimple::In& io)
+		ParametersModelHubbard(InputType& io)
 		{
 	
 			io.read(hubbardU,"hubbardU");
@@ -99,10 +99,8 @@ namespace LanczosPlusPlus {
 			try {
 				io.read(potentialT,"PotentialT");
 				io.readline(timeFactor,"timeFactor=");
-			} catch (std::exception& e) {
+			} catch (std::exception& e) {}
 
-			}
-			io.rewind();
 			nOfElectrons=0;
 
 			//io.readline(density,"density=");
@@ -143,12 +141,13 @@ namespace LanczosPlusPlus {
 	} */
 	
 	//! Function that prints model parameters to stream os
-	template<typename FieldType>
-	std::ostream& operator<<(std::ostream &os,const ParametersModelHubbard<FieldType>& parameters)
+	template<typename FieldType,typename InputType>
+	std::ostream& operator<<(std::ostream &os,
+	                         const ParametersModelHubbard<FieldType,InputType>& params)
 	{
 		//os<<"parameters.density="<<parameters.density<<"\n";
-		PsimagLite::vectorPrint(parameters.hubbardU,"hubbardU",os);
-		PsimagLite::vectorPrint(parameters.potentialV,"potentialV",os);
+		PsimagLite::vectorPrint(params.hubbardU,"hubbardU",os);
+		PsimagLite::vectorPrint(params.potentialV,"potentialV",os);
 //		os<<"UseReflectionSymmetry="<<parameters.useReflectionSymmetry<<"\n";
 		return os;
 	}

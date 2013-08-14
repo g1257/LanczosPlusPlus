@@ -38,6 +38,7 @@ namespace LanczosPlusPlus {
 	public:
 		
 		typedef ModelType_ ModelType;
+		typedef typename ModelType::InputType InputType;
 		typedef typename ModelType::RealType RealType;
 		typedef typename std::complex<RealType> ComplexType;
 		typedef typename SpecialSymmetryType::VectorType VectorType;
@@ -65,7 +66,9 @@ namespace LanczosPlusPlus {
 
 		enum {PLUS,MINUS};
 		
-		Engine(const ModelType& model,SizeType numberOfSites,PsimagLite::IoSimple::In& io)
+		Engine(const ModelType& model,
+		       SizeType numberOfSites,
+		       InputType& io)
 		: model_(model),
 		  progress_("Engine"),
 		  params_(io)

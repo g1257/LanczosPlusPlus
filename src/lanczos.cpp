@@ -147,12 +147,20 @@ void mainLoop(InputNgType::Readable& io,
 	ParametersModelType mp(io);
 
 	std::cout<<mp;
-
 	SizeType nup = 0;
-	io.read(nup,"TargetElectronsUp");
+	SizeType ndown = 0;
 
-	SizeType ndown;
-	io.read(ndown,"TargetElectronsDown");
+	try {
+		io.read(nup,"TargetElectronsUp");
+		io.read(ndown,"TargetElectronsDown");
+	} catch (std::exception& e) {
+		PsimagLite::Vector<RealType>::Type v;
+		io.read(v,"TargetQuantumNumbers");
+		if (v.size() < 2)
+			throw PsimagLite::RuntimeError("TargetQuantumNumbers\n");
+		nup = static_cast<SizeType>(v[0]*geometry.numberOfSites());
+		ndown = static_cast<SizeType>(v[1]*geometry.numberOfSites());
+	}
 
 	//! Setup the Model
 	ModelType model(nup,ndown,mp,geometry);

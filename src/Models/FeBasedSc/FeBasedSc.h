@@ -102,17 +102,21 @@ namespace LanczosPlusPlus {
 						setHoppingTerm(sparseRow,ket1,ket2,
 								i,orb,basis);
 
-						setU2OffDiagonalTerm(sparseRow,ket1,ket2,
-							i,orb,basis);
-						for (SizeType orb2=0;orb2<mp_.orbitals;orb2++) {
-							if (orb==orb2) continue;
+						if (!mp_.decay) {
+							setU2OffDiagonalTerm(sparseRow,ket1,ket2,
+							                     i,orb,basis);
+							for (SizeType orb2=0;orb2<mp_.orbitals;orb2++) {
+								if (orb==orb2) continue;
 
-							setU3Term(sparseRow,ket1,ket2,
-									  i,orb,orb2,basis);
+								setU3Term(sparseRow,ket1,ket2,
+								          i,orb,orb2,basis);
+							}
+
+							setJTermOffDiagonal(sparseRow,ket1,ket2,
+							                    i,orb,basis);
+						} else {
+							setOffDiagonalDecay();
 						}
-
-						setJTermOffDiagonal(sparseRow,ket1,ket2,
-								i,orb,basis);
 					}
 				}
 				nCounter += sparseRow.finalize(matrix);
@@ -149,15 +153,19 @@ namespace LanczosPlusPlus {
 						setHoppingTerm(sparseRow,ket1,ket2,
 								i,orb,*basis);
 
-						setU2OffDiagonalTerm(sparseRow,ket1,ket2,
-								i,orb,*basis);
+						if (!mp_.decay) {
+							setU2OffDiagonalTerm(sparseRow,ket1,ket2,
+							                     i,orb,*basis);
 
-						for (SizeType orb2=orb+1;orb2<mp_.orbitals;orb2++) {
-							setU3Term(sparseRow,ket1,ket2,
-								i,orb,orb2,*basis);
+							for (SizeType orb2=orb+1;orb2<mp_.orbitals;orb2++) {
+								setU3Term(sparseRow,ket1,ket2,
+								          i,orb,orb2,*basis);
+							}
+							setJTermOffDiagonal(sparseRow,ket1,ket2,
+							                    i,orb,*basis);
+						} else {
+							setOffDiagonalDecay();
 						}
-						setJTermOffDiagonal(sparseRow,ket1,ket2,
-								i,orb,*basis);
 					}
 				}
 				x[ispace] += sparseRow.finalize(y);
@@ -169,6 +177,17 @@ namespace LanczosPlusPlus {
 		PsimagLite::String name() const { return __FILE__; }
 
 	private:
+
+		void setOffDiagonalDecay() const
+		{
+
+		}
+
+		RealType findSdecay() const
+		{
+			return 0;
+		}
+
 
 		RealType hoppings(SizeType i,SizeType orb1,SizeType j,SizeType orb2) const
 		{
@@ -358,33 +377,10 @@ namespace LanczosPlusPlus {
 			for (SizeType i=0;i<nsite;i++) {
 				for (SizeType orb=0;orb<mp_.orbitals;orb++) {
 
-					// Hubbard term U0
-					s += mp_.hubbardU[0] * basis.isThereAnElectronAt(ket1,ket2,
-											 i,ProgramGlobals::SPIN_UP,orb) * basis.isThereAnElectronAt(ket1,ket2,
-																    i,ProgramGlobals::SPIN_DOWN,orb);
-
-
-					for (SizeType orb2=orb+1;orb2<mp_.orbitals;orb2++) {
-						// Hubbard term U1
-						s += mp_.hubbardU[1] * nix(ket1,ket2,i,orb,basis) *
-								nix(ket1,ket2,i,orb2,basis);
-
-						// Diagonal U2 term
-						s+= mp_.hubbardU[2]*
-								szTerm(ket1,ket2,i,orb,basis)*
-								szTerm(ket1,ket2,i,orb2,basis);
-					}
-
-					// JNN and JNNN diagonal part
-					for (SizeType j=0;j<nsite;j++) {
-						for (SizeType orb2=0;orb2<mp_.orbitals;orb2++) {
-							RealType value = jCoupling(i,j);
-							if (value==0) continue;
-							s += value*0.5* // RealType counting i,j
-									szTerm(ket1,ket2,i,orb,basis)*
-									szTerm(ket1,ket2,j,orb2,basis);
-						}
-					}
+					if (!mp_.decay)
+						s += findSnoDecay(nsite,ket1,ket2,i,orb,basis);
+					else
+						s += findSdecay();
 
 					// Potential term
 					s += mp_.potentialV[i+(orb+mp_.orbitals*0)*nsite]*
@@ -394,6 +390,44 @@ namespace LanczosPlusPlus {
 
 				}
 			}
+			return s;
+		}
+
+		RealType findSnoDecay(SizeType nsite,
+		                      WordType ket1,
+		                      WordType ket2,
+		                      SizeType i,
+		                      SizeType orb,
+		                      const BasisType& basis) const
+		{
+			// Hubbard term U0
+			RealType s = mp_.hubbardU[0] * basis.isThereAnElectronAt(ket1,ket2,
+									 i,ProgramGlobals::SPIN_UP,orb) * basis.isThereAnElectronAt(ket1,ket2,
+														    i,ProgramGlobals::SPIN_DOWN,orb);
+
+
+			for (SizeType orb2=orb+1;orb2<mp_.orbitals;orb2++) {
+				// Hubbard term U1
+				s += mp_.hubbardU[1] * nix(ket1,ket2,i,orb,basis) *
+						nix(ket1,ket2,i,orb2,basis);
+
+				// Diagonal U2 term
+				s+= mp_.hubbardU[2]*
+						szTerm(ket1,ket2,i,orb,basis)*
+						szTerm(ket1,ket2,i,orb2,basis);
+			}
+
+			// JNN and JNNN diagonal part
+			for (SizeType j=0;j<nsite;j++) {
+				for (SizeType orb2=0;orb2<mp_.orbitals;orb2++) {
+					RealType value = jCoupling(i,j);
+					if (value==0) continue;
+					s += value*0.5* // RealType counting i,j
+							szTerm(ket1,ket2,i,orb,basis)*
+							szTerm(ket1,ket2,j,orb2,basis);
+				}
+			}
+
 			return s;
 		}
 

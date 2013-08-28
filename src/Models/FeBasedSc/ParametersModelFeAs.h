@@ -91,10 +91,17 @@ namespace LanczosPlusPlus {
 		
 		template<typename IoInputType>
 		ParametersModelFeAs(IoInputType& io) 
+		    : decay(0)
 		{
 			io.readline(orbitals,"Orbitals=");
 			io.read(hubbardU,"hubbardU");
 			io.read(potentialV,"potentialV");
+
+			try {
+				io.readline(decay,"Decay=");
+				if (decay !=0 && decay != 1)
+					throw PsimagLite::RuntimeError("Decay: expecting 0 or 1\n");
+			} catch (std::exception& e) {}
 		}
 		
 		SizeType orbitals;
@@ -102,6 +109,7 @@ namespace LanczosPlusPlus {
 		typename PsimagLite::Vector<Field>::Type hubbardU;
 		// Onsite potential values, one for each site
 		typename PsimagLite::Vector<Field>::Type potentialV;
+		int decay;
 		// target number of electrons  in the system
 		int nOfElectrons;
 	}; //struct ParametersModelFeAs

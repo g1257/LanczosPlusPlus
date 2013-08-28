@@ -84,14 +84,14 @@ DISCLOSED WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
 
 namespace LanczosPlusPlus {
 	//! FeAs Model Parameters
-	template<typename Field>
+	template<typename RealType>
 	struct ParametersModelFeAs {
 		// no connections here please!!
 		// connections are handled by the geometry
 		
 		template<typename IoInputType>
 		ParametersModelFeAs(IoInputType& io) 
-		    : decay(0)
+		    : decay(0),coulombV(0)
 		{
 			io.readline(orbitals,"Orbitals=");
 			io.read(hubbardU,"hubbardU");
@@ -102,27 +102,40 @@ namespace LanczosPlusPlus {
 				if (decay !=0 && decay != 1)
 					throw PsimagLite::RuntimeError("Decay: expecting 0 or 1\n");
 			} catch (std::exception& e) {}
+
+			if (decay) {
+				if (orbitals != 3)
+					throw PsimagLite::RuntimeError("Decay: expecting 3 orbitals\n");
+				if (hubbardU.size() != 9)
+					throw PsimagLite::RuntimeError("Decay: expecting 9 U values\n");
+				io.readline(coulombV,"CoulombV=");
+			}
 		}
 		
 		SizeType orbitals;
 		// Hubbard U values (one for each site)
-		typename PsimagLite::Vector<Field>::Type hubbardU;
+		typename PsimagLite::Vector<RealType>::Type hubbardU;
 		// Onsite potential values, one for each site
-		typename PsimagLite::Vector<Field>::Type potentialV;
+		typename PsimagLite::Vector<RealType>::Type potentialV;
 		int decay;
+		RealType coulombV;
 		// target number of electrons  in the system
 		int nOfElectrons;
 	}; //struct ParametersModelFeAs
 	
 	//! Function that prints model parameters to stream os
-	template<typename FieldType>
-	std::ostream& operator<<(std::ostream &os,const ParametersModelFeAs<FieldType>& parameters)
+	template<typename RealTypeType>
+	std::ostream& operator<<(std::ostream &os,const ParametersModelFeAs<RealTypeType>& parameters)
 	{
 		os<<"orbitals="<<parameters.orbitals<<"\n";
 		os<<"hubbardU\n";
 		os<<parameters.hubbardU;
 		os<<"potentialV\n";
 		os<<parameters.potentialV;
+		os<<"Decay="<<parameters.decay<<"\n";
+		if (parameters.decay)
+			os<<"CoulombV="<<parameters.coulombV<<"\n";
+
 		return os;
 	}
 } // namespace Dmrg

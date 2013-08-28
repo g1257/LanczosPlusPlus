@@ -33,6 +33,9 @@ namespace LanczosPlusPlus {
 		
 		typedef PsimagLite::Matrix<RealType_> MatrixType;
 
+		enum {SPIN_UP = ProgramGlobals::SPIN_UP,
+			  SPIN_DOWN = ProgramGlobals::SPIN_DOWN};
+
 	public:
 
 		typedef InputType_ InputType;
@@ -93,7 +96,7 @@ namespace LanczosPlusPlus {
 			for (SizeType ispace=0;ispace<hilbert;ispace++) {
 				SparseRowType sparseRow;
 				matrix.setRow(ispace,nCounter);
-				WordType ket1 = basis(ispace,ProgramGlobals::SPIN_UP);
+				WordType ket1 = basis(ispace,SPIN_UP);
 				WordType ket2 = basis(ispace,ProgramGlobals::SPIN_DOWN);
 				// Save diagonal
 				sparseRow.add(ispace,diag[ispace]);
@@ -115,7 +118,8 @@ namespace LanczosPlusPlus {
 							setJTermOffDiagonal(sparseRow,ket1,ket2,
 							                    i,orb,basis);
 						} else {
-							setOffDiagonalDecay();
+							setOffDiagonalDecay(sparseRow,ket1,ket2,
+							                    i,orb,basis);
 						}
 					}
 				}
@@ -144,7 +148,7 @@ namespace LanczosPlusPlus {
 			for (SizeType ispace=0;ispace<hilbert;ispace++) {
 				SparseRowType sparseRow;
 
-				WordType ket1 = basis->operator ()(ispace,ProgramGlobals::SPIN_UP);
+				WordType ket1 = basis->operator ()(ispace,SPIN_UP);
 				WordType ket2 = basis->operator ()(ispace,ProgramGlobals::SPIN_DOWN);
 
 				//x[ispace] += diag[ispace]*y[ispace];
@@ -164,7 +168,8 @@ namespace LanczosPlusPlus {
 							setJTermOffDiagonal(sparseRow,ket1,ket2,
 							                    i,orb,*basis);
 						} else {
-							setOffDiagonalDecay();
+							setOffDiagonalDecay(sparseRow,ket1,ket2,
+							                    i,orb,*basis);
 						}
 					}
 				}
@@ -178,14 +183,62 @@ namespace LanczosPlusPlus {
 
 	private:
 
-		void setOffDiagonalDecay() const
+		void setOffDiagonalDecay(SparseRowType& sparseRow,
+		                         const WordType& ket1,
+								 const WordType& ket2,
+								 SizeType i,
+								 SizeType orb,
+								 const BasisType &basis) const
 		{
+			for (SizeType spin1 = 0; spin1 < 2; ++spin1) {
+				for (SizeType spin2 = 0; spin2 < 2; ++spin2) {
 
+					if (spin1 != spin2) continue;
+
+					if (!basis.isThereAnElectronAt(ket1,ket2,i,spin1,1)) continue;
+					if (!basis.isThereAnElectronAt(ket1,ket2,i,spin2,1)) continue;
+					WordType mask = BasisType::bitmask(i*mp_.orbitals+1);
+					WordType bra1 = (spin1 == SPIN_UP) ? (ket1 ^ mask): ket1;
+					WordType bra2 = (spin1 == SPIN_UP) ? ket2 : (ket2 ^ mask);
+
+					if (!basis.isThereAnElectronAt(bra1,bra2,i,spin2,1)) continue;
+					WordType bra3 = (spin2 == SPIN_UP) ? (bra1 ^ mask): bra1;
+					WordType bra4 = (spin2 == SPIN_UP) ? bra2 : (bra2 ^ mask);
+
+					if (basis.isThereAnElectronAt(bra3,bra4,i,spin2,0)) continue;
+					mask = BasisType::bitmask(i*mp_.orbitals+0);
+					WordType bra5 = (spin2 == SPIN_UP) ? (bra3 ^ mask): bra3;
+					WordType bra6 = (spin2 == SPIN_UP) ? bra4 : (bra4 ^ mask);
+
+					if (basis.isThereAnElectronAt(bra5,bra6,i,spin1,2)) continue;
+					mask = BasisType::bitmask(i*mp_.orbitals+2);
+					WordType bra7 = (spin1 == SPIN_UP) ? (bra5 ^ mask): bra5;
+					WordType bra8 = (spin1 == SPIN_UP) ? bra6 : (bra6 ^ mask);
+
+					SizeType temp = basis.perfectIndex(bra7,bra8);
+					sparseRow.add(temp,mp_.coulombV);
+				}
+			}
 		}
 
-		RealType findSdecay() const
+		RealType findSdecay(SizeType nsite,
+		                    WordType ket1,
+		                    WordType ket2,
+		                    SizeType i,
+		                    SizeType orb,
+		                    const BasisType& basis) const
 		{
-			return 0;
+			RealType s = mp_.hubbardU[orb+orb*mp_.orbitals] *
+			        basis.isThereAnElectronAt(ket1,ket2,i,SPIN_UP,orb) *
+			        basis.isThereAnElectronAt(ket1,ket2,i,ProgramGlobals::SPIN_DOWN,orb);
+
+			for (SizeType orb2=orb+1;orb2<mp_.orbitals;orb2++) {
+				// Hubbard term U1
+				s += mp_.hubbardU[orb+orb2*mp_.orbitals] * nix(ket1,ket2,i,orb,basis) *
+						nix(ket1,ket2,i,orb2,basis);
+			}
+
+			return s;
 		}
 
 
@@ -227,7 +280,7 @@ namespace LanczosPlusPlus {
 						SizeType temp = basis.perfectIndex(bra1,ket2);
 						int extraSign = (s1i==1) ? FERMION_SIGN : 1;
 						RealType cTemp = h*extraSign*basis_.doSign(
-							ket1,ket2,i,orb,j,orb2,ProgramGlobals::SPIN_UP);
+							ket1,ket2,i,orb,j,orb2,SPIN_UP);
 						sparseRow.add(temp,cTemp);
 
 					}
@@ -338,7 +391,7 @@ namespace LanczosPlusPlus {
 				const BasisType &basis) const
 		{
 			if (i>j) return jTermSign(ket1,ket2,j,orb2,i,orb1,basis);
-			int x = basis.doSign(ket1,ket2,i,orb1,j,orb2,ProgramGlobals::SPIN_UP);
+			int x = basis.doSign(ket1,ket2,i,orb1,j,orb2,SPIN_UP);
 			x *= basis.doSign(ket1,ket2,i,orb1,j,orb2,ProgramGlobals::SPIN_DOWN);
 			return x;
 		}
@@ -351,7 +404,7 @@ namespace LanczosPlusPlus {
 
 			// Calculate diagonal elements
 			for (SizeType ispace=0;ispace<hilbert;ispace++) {
-				WordType ket1 = basis(ispace,ProgramGlobals::SPIN_UP);
+				WordType ket1 = basis(ispace,SPIN_UP);
 				WordType ket2 = basis(ispace,ProgramGlobals::SPIN_DOWN);
 				diag[ispace]=findS(nsite,ket1,ket2,ispace,basis);
 			}
@@ -365,7 +418,7 @@ namespace LanczosPlusPlus {
 			SizeType nsite = geometry_.numberOfSites();
 
 			for (SizeType ispace=0;ispace<hilbert;ispace++) {
-				WordType ket1 = basis->operator()(ispace,ProgramGlobals::SPIN_UP);
+				WordType ket1 = basis->operator()(ispace,SPIN_UP);
 				WordType ket2 = basis->operator()(ispace,ProgramGlobals::SPIN_DOWN);
 				x[ispace] += findS(nsite,ket1,ket2,ispace,*basis)*y[ispace];
 			}
@@ -380,11 +433,11 @@ namespace LanczosPlusPlus {
 					if (!mp_.decay)
 						s += findSnoDecay(nsite,ket1,ket2,i,orb,basis);
 					else
-						s += findSdecay();
+						s += findSdecay(nsite,ket1,ket2,i,orb,basis);
 
 					// Potential term
 					s += mp_.potentialV[i+(orb+mp_.orbitals*0)*nsite]*
-							basis.getN(ket1,i,ProgramGlobals::SPIN_UP,orb) +
+							basis.getN(ket1,i,SPIN_UP,orb) +
 						mp_.potentialV[i+(orb+mp_.orbitals*1)*nsite]*
 							 basis.getN(ket2,i,ProgramGlobals::SPIN_DOWN,orb);
 
@@ -402,7 +455,7 @@ namespace LanczosPlusPlus {
 		{
 			// Hubbard term U0
 			RealType s = mp_.hubbardU[0] * basis.isThereAnElectronAt(ket1,ket2,
-									 i,ProgramGlobals::SPIN_UP,orb) * basis.isThereAnElectronAt(ket1,ket2,
+									 i,SPIN_UP,orb) * basis.isThereAnElectronAt(ket1,ket2,
 														    i,ProgramGlobals::SPIN_DOWN,orb);
 
 
@@ -441,9 +494,9 @@ namespace LanczosPlusPlus {
 						const BasisType &basis) const
 		{
 			if (basis.isThereAnElectronAt(ket1,ket2,
-					j,ProgramGlobals::SPIN_UP,orb2)==0) return 0;
+					j,SPIN_UP,orb2)==0) return 0;
 			if (basis.isThereAnElectronAt(ket1,ket2,
-					i,ProgramGlobals::SPIN_UP,orb1)==1) return 0;
+					i,SPIN_UP,orb1)==1) return 0;
 			if (basis.isThereAnElectronAt(ket1,ket2,
 					i,ProgramGlobals::SPIN_DOWN,orb1)==0) return 0;
 			if (basis.isThereAnElectronAt(ket1,ket2,
@@ -460,9 +513,9 @@ namespace LanczosPlusPlus {
 				const BasisType &basis) const
 		{
 			if (basis.isThereAnElectronAt(ket1,ket2,
-					i,ProgramGlobals::SPIN_UP,orb2)==0) return 0;
+					i,SPIN_UP,orb2)==0) return 0;
 			if (basis.isThereAnElectronAt(ket1,ket2,
-					i,ProgramGlobals::SPIN_UP,orb1)==1) return 0;
+					i,SPIN_UP,orb1)==1) return 0;
 			if (basis.isThereAnElectronAt(ket1,ket2,
 					i,ProgramGlobals::SPIN_DOWN,orb1)==1) return 0;
 			if (basis.isThereAnElectronAt(ket1,ket2,
@@ -490,7 +543,7 @@ namespace LanczosPlusPlus {
 				SizeType orb,
 				const BasisType &basis) const
 		{
-			RealType sz = basis.isThereAnElectronAt(ket1,ket2,i,ProgramGlobals::SPIN_UP,orb);
+			RealType sz = basis.isThereAnElectronAt(ket1,ket2,i,SPIN_UP,orb);
 			sz -= basis.isThereAnElectronAt(ket1,ket2,i,ProgramGlobals::SPIN_DOWN,orb);
 			return 0.5*sz;
 		}

@@ -165,6 +165,7 @@ namespace LanczosPlusPlus {
 								setU3Term(sparseRow,ket1,ket2,
 								          i,orb,orb2,*basis);
 							}
+
 							setJTermOffDiagonal(sparseRow,ket1,ket2,
 							                    i,orb,*basis);
 						} else {

@@ -246,10 +246,12 @@ int main(int argc,char *argv[])
 	} else if (model=="Immm") {
 		mainLoop<Immm<RealType,GeometryType, InputNgType::Readable> >
 		        (io,geometry,gf,sites,cicj,spins);
-	} else if (model=="HubbardOneBand") {
+	} else if (model=="HubbardOneBand" ||
+	           model=="HubbardOneBandExtended" ||
+	           model=="SuperHubbardExtended") {
 		mainLoop<HubbardOneOrbital<RealType,GeometryType, InputNgType::Readable> >
 		        (io,geometry,gf,sites,cicj,spins);
-	} else if (model=="FeAsBasedSc") {
+	} else if (model=="FeAsBasedSc" || model=="FeAsBasedScExtended") {
 		mainLoop<FeBasedSc<RealType,GeometryType, InputNgType::Readable> >
 		        (io,geometry,gf,sites,cicj,spins);
 	} else {

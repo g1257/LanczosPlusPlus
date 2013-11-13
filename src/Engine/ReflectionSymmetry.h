@@ -57,7 +57,8 @@ namespace LanczosPlusPlus {
 	template<typename GeometryType,typename BasisType>
 	class ReflectionSymmetry  {
 
-		typedef typename GeometryType::RealType RealType;
+		typedef typename GeometryType::ComplexOrRealType ComplexOrRealType;
+		typedef typename PsimagLite::Real<ComplexOrRealType>::Type RealType;
 		typedef typename BasisType::WordType WordType;
 		typedef ReflectionItem ItemType;
 

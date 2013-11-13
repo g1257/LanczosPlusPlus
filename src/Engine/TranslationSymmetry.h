@@ -180,18 +180,18 @@ private:
 	template<typename GeometryType,typename BasisType>
 	class TranslationSymmetry  {
 
-		typedef typename GeometryType::RealType RealType;
-		typedef std::complex<RealType> ComplexType;
+		typedef typename GeometryType::ComplexOrRealType ComplexOrRealType;
+		typedef typename PsimagLite::Real<ComplexOrRealType>::Type RealType;
 		typedef typename BasisType::WordType WordType;
-		typedef PsimagLite::SparseVector<ComplexType> SparseVectorType;
+		typedef PsimagLite::SparseVector<ComplexOrRealType> SparseVectorType;
 		typedef Kspace<RealType> KspaceType;
 		typedef ClassRepresentatives<GeometryType,BasisType,KspaceType> ClassRepresentativesType;
 		typedef std::pair<PsimagLite::Vector<SizeType>::Type ,SizeType> BufferItemType;
 
 	public:
 
-		typedef PsimagLite::CrsMatrix<ComplexType> SparseMatrixType;
-		typedef typename PsimagLite::Vector<ComplexType>::Type VectorType;
+		typedef PsimagLite::CrsMatrix<ComplexOrRealType> SparseMatrixType;
+		typedef typename PsimagLite::Vector<ComplexOrRealType>::Type VectorType;
 
 		TranslationSymmetry(const BasisType& basis,const GeometryType& geometry)
 		: progress_("TranslationSymmetry"),
@@ -207,7 +207,7 @@ private:
 			for (SizeType k=0;k<kspace_.size();k++) {
 				SizeType blockSize = 0;
 				for (SizeType ispace=0;ispace<hilbert;ispace++) {
-					typename PsimagLite::Vector<ComplexType>::Type v(hilbert);
+					typename PsimagLite::Vector<ComplexOrRealType>::Type v(hilbert);
 					eikrTr(v,ispace,k,reps);
 					SparseVectorType sparseV(v);
 					sparseV.sort();
@@ -310,7 +310,7 @@ private:
 				printFullMatrix(transform_,"transform");
 		}
 
-		void eikrTr(typename PsimagLite::Vector<ComplexType>::Type& v,
+		void eikrTr(typename PsimagLite::Vector<std::complex<RealType> >::Type& v,
 		            SizeType ispace,
 		            SizeType k,
 		            const ClassRepresentativesType& reps) const
@@ -318,15 +318,23 @@ private:
 			for (SizeType r=0;r<kspace_.size();r++) {
 				SizeType jspace = reps.translate(ispace,r);
 				RealType tmp = 2*M_PI*k*r/RealType(kspace_.size());
-				v[jspace] = ComplexType(cos(tmp),sin(tmp));
+				v[jspace] = ComplexOrRealType(cos(tmp),sin(tmp));
 			}
+		}
+
+		void eikrTr(typename PsimagLite::Vector<RealType>::Type& v,
+		            SizeType ispace,
+		            SizeType k,
+		            const ClassRepresentativesType& reps) const
+		{
+			throw PsimagLite::RuntimeError("eikrTr: not for real template\n");
 		}
 
 		bool checkForOrthogonality(const SparseVectorType& sparseV,
 		                           const typename PsimagLite::Vector<SparseVectorType>::Type& bag) const
 		{
 			for (SizeType i=0;i<bag.size();i++) {
-				ComplexType sp = sparseV.scalarProduct(bag[i]);
+				ComplexOrRealType sp = sparseV.scalarProduct(bag[i]);
 				if (std::norm(sp)>1e-8) return false;
 			}
 			return true;
@@ -346,7 +354,7 @@ private:
 					m.setRow(row,counter);
 					SizeType globalRow = row + offset;
 					for (int k=matrix2.getRowPtr(globalRow);k<matrix2.getRowPtr(globalRow+1);k++) {
-						ComplexType val = matrix2.getValue(k);
+						ComplexOrRealType val = matrix2.getValue(k);
 						if (std::norm(val)<1e-8) continue;
 						SizeType globalCol = matrix2.getCol(k);
 //						if (globalCol<offset) continue; // <<-- FIXME

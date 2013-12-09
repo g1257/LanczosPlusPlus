@@ -85,7 +85,6 @@ void mainLoop2(ModelType& model,
 			   const PsimagLite::Vector<SizeType>::Type& cicjV,
                const PsimagLite::Vector<PairType>::Type& spins)
 {
-	typedef typename ModelType::BasisType BasisType;
 	typedef Engine<ModelType,InternalProductStored,SpecialSymmetryType> EngineType;
 	typedef typename EngineType::TridiagonalMatrixType TridiagonalMatrixType;
 

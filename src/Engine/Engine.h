@@ -357,7 +357,10 @@ namespace LanczosPlusPlus {
 			if (!ProgramGlobals::isFermionic(what2)) s2 *= s;
 			RealType diagonalFactor = (isDiagonal) ? 1 : 0.5;
 			s2 *= diagonalFactor;
-			cf.set(ab,gsEnergy_,std::real(weight*s2),s);
+
+			const MatrixType& reortho = lanczosSolver.reorthogonalizationMatrix();
+
+			cf.set(ab,reortho,gsEnergy_,std::real(weight*s2),s);
 
 		}
 		

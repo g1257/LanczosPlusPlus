@@ -122,9 +122,9 @@ struct ProgramGlobals {
 			return OPERATOR_NIL;
 		} else if (s=="n") {
 			return OPERATOR_N;
-		} else if (s=="splus") {
+		} else if (s=="splus" || s=="s+") {
 			return OPERATOR_SPLUS;
-		} else if (s=="sminus") {
+		} else if (s=="sminus" || s=="s-") {
 			return OPERATOR_SMINUS;
 		}
 		PsimagLite::String str(__FILE__);

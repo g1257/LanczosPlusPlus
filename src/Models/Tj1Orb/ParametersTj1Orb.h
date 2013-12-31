@@ -92,16 +92,11 @@ struct ParametersTj1Orb {
 		try {
 			io.read(potentialV,"potentialV");
 		} catch(std::exception& e) {}
-
-		nOfElectrons=0;
 	}
 
 	// Do not include here connection parameters
 	// those are handled by the Geometry
 	typename PsimagLite::Vector<Field>::Type potentialV;
-
-	// target number of electrons  in the system
-	int nOfElectrons;
 };
 
 //! Function that prints model parameters to stream os
@@ -115,3 +110,4 @@ std::ostream& operator<<(std::ostream &os,
 
 /*@}*/
 #endif
+

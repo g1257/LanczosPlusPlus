@@ -111,6 +111,11 @@ namespace LanczosPlusPlus {
 		{
 			if (what==ProgramGlobals::OPERATOR_C || what==ProgramGlobals::OPERATOR_CDAGGER)
 				return hasNewPartsCorCdagger(newParts,what,spin,orbs);
+
+			if (what == ProgramGlobals::OPERATOR_SPLUS ||
+			    what == ProgramGlobals::OPERATOR_SMINUS)
+				return hasNewPartsSplusOrMinus(newParts,what,spin,orbs);
+
 			PsimagLite::String str(__FILE__);
 			str += " " + ttos(__LINE__) +  "\n";
 			str += PsimagLite::String("hasNewParts: unsupported operator ");
@@ -147,6 +152,33 @@ namespace LanczosPlusPlus {
 			if (SizeType(newPart1)>nsite || SizeType(newPart2)>nsite) return false;
 			if (newPart1==0 && newPart2==0) return false;
 			if (SizeType(newPart1+newPart2)>nsite) return false; // no RealType occupancy
+			newParts.first = SizeType(newPart1);
+			newParts.second = SizeType(newPart2);
+			return true;
+		}
+
+		bool hasNewPartsSplusOrMinus(std::pair<SizeType,SizeType>& newParts,
+		                             SizeType what,
+		                             SizeType spin,
+		                             const PairType& orbs) const
+		{
+			int newPart1=basis_.electrons(ProgramGlobals::SPIN_UP);
+			int newPart2=basis_.electrons(ProgramGlobals::SPIN_DOWN);
+			int c = (what==ProgramGlobals::OPERATOR_SPLUS) ? 1 : -1;
+			if (spin==ProgramGlobals::SPIN_UP) {
+				newPart1 += c;
+				newPart2 -= c;
+			} else {
+				newPart2 += c;
+				newPart1 -= c;
+			}
+
+			if (newPart1<0 || newPart2<0) return false;
+
+			SizeType nsite = geometry_.numberOfSites();
+			if (SizeType(newPart1)>nsite || SizeType(newPart2)>nsite) return false;
+			if (newPart1==0 && newPart2==0) return false;
+			if (SizeType(newPart1+newPart2)>nsite) return false; // no double occupancy
 			newParts.first = SizeType(newPart1);
 			newParts.second = SizeType(newPart2);
 			return true;

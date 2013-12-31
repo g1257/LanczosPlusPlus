@@ -166,7 +166,89 @@ namespace LanczosPlusPlus {
 			assert(i <= j);
 			return (spin==ProgramGlobals::SPIN_UP) ? doSign(ket1,i,j): doSign(ket2,i,j);
 		}
-		
+
+		PairIntType getBraIndex(const WordType& ket1,
+		                        const WordType& ket2,
+		                        SizeType operatorLabel,
+		                        SizeType site,
+		                        SizeType spin,
+		                        SizeType orb) const
+		{
+			if (operatorLabel == ProgramGlobals::OPERATOR_SPLUS) {
+				WordType bra1 = ket1;
+				WordType bra2 = ket2;
+
+				int value1 = getBra(bra2,
+				                    ProgramGlobals::OPERATOR_C,
+				                    ket1,
+				                    ket2,
+				                    site,
+				                    ProgramGlobals::SPIN_DOWN);
+				if (value1 == 0) return PairIntType(-1,value1);
+
+				int value2 = getBra(bra1,
+				                    ProgramGlobals::OPERATOR_CDAGGER,
+				                    ket1,
+				                    bra2,
+				                    site,
+				                    ProgramGlobals::SPIN_UP);
+				if (value2 == 0) return PairIntType(-1,value2);
+
+				int tmp = perfectIndex(bra1,bra2);
+				return PairIntType(tmp,value1*value2);
+
+			} else if (operatorLabel == ProgramGlobals::OPERATOR_SMINUS) {
+				WordType bra1 = ket1;
+				WordType bra2 = ket2;
+
+				int value1 = getBra(bra1,
+				                    ProgramGlobals::OPERATOR_C,
+				                    ket1,
+				                    ket2,
+				                    site,
+				                    ProgramGlobals::SPIN_UP);
+				if (value1 == 0) return PairIntType(-1,value1);
+
+				int value2 = getBra(bra2,
+				                    ProgramGlobals::OPERATOR_CDAGGER,
+				                    bra1,
+				                    ket2,
+				                    site,
+				                    ProgramGlobals::SPIN_DOWN);
+				if (value2 == 0) return PairIntType(-1,value2);
+
+				int tmp = perfectIndex(bra1,bra2);
+				return PairIntType(tmp,value1*value2);
+			}
+
+			return getBraIndex_(ket1,ket2,operatorLabel,site,spin,orb);
+		}
+
+		template<typename GeometryType2>
+		friend std::ostream& operator<<(std::ostream& os,const BasisTj1OrbLanczos<GeometryType2>& basis);
+
+	private:
+
+		PairIntType getBraIndex_(const WordType& ket1,
+		                         const WordType& ket2,
+		                         SizeType operatorLabel,
+		                         SizeType site,
+		                         SizeType spin,
+		                         SizeType orb) const
+		{
+			WordType bra1 = ket1;
+			WordType bra2 = ket2;
+			int value = getBra(bra1,operatorLabel,ket1,ket2,site,spin);
+			if (value==0) return PairIntType(-1,value);
+			if (spin!=ProgramGlobals::SPIN_UP) {
+				bra2 = bra1;
+				bra1 = ket1;
+			}
+
+			int tmp = perfectIndex(bra1,bra2);
+			return PairIntType(tmp,value);
+		}
+
 		int getBra(WordType& bra,
 					SizeType operatorLabel,
 		            const WordType& ket1,
@@ -186,30 +268,6 @@ namespace LanczosPlusPlus {
 			assert(false);
 			return 0;
 		}
-
-		PairIntType getBraIndex(const WordType& ket1,
-		                        const WordType& ket2,
-		                        SizeType operatorLabel,
-		                        SizeType site,
-		                        SizeType spin,
-		                        SizeType orb) const
-		{
-			WordType bra1 = ket1;
-			WordType bra2 = ket2;
-			int value = getBra(bra1,operatorLabel,ket1,ket2,site,spin);
-			if (value==0) return PairIntType(-1,value);
-			if (spin!=ProgramGlobals::SPIN_UP) {
-				bra2 = bra1;
-				bra1 = ket1;
-			}
-			int tmp = perfectIndex(bra1,bra2);
-			return PairIntType(tmp,value);
-		}
-
-		template<typename GeometryType2>
-		friend std::ostream& operator<<(std::ostream& os,const BasisTj1OrbLanczos<GeometryType2>& basis);
-
-	private:
 
 		bool isDoublyOccupied(const WordType& ket1,const WordType& ket2) const
 		{

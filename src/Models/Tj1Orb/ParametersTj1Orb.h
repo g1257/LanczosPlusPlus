@@ -38,7 +38,7 @@ must include the following acknowledgment:
 "This product includes software produced by UT-Battelle,
 LLC under Contract No. DE-AC05-00OR22725  with the
 Department of Energy."
- 
+
 *********************************************************
 DISCLAIMER
 
@@ -74,7 +74,7 @@ DISCLOSED WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
 
 /*! \file ParametersTj1Orb.h
  *
- *  Contains the parameters for the Hubbard model and function to read them from a JSON file
+ *  Contains the parameters for the Tj1Orb model
  *
  */
 #ifndef PARAMETERS_TJ_1ORB_H
@@ -83,32 +83,34 @@ DISCLOSED WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
 #include <stdexcept>
 
 namespace LanczosPlusPlus {
-	//! Hubbard Model Parameters
-	template<typename Field,typename InputType>
-	struct ParametersTj1Orb {
+//! Tj1Orb Model Parameters
+template<typename Field,typename InputType>
+struct ParametersTj1Orb {
 
-		ParametersTj1Orb(InputType& io)
-		{
-			io.read(potentialV,"potentialV");
-			nOfElectrons=0;
-			//io.readline(density,"density=");
-		}
-		
-		// Do not include here connection parameters
-		// those are handled by the Geometry
-		typename PsimagLite::Vector<Field>::Type potentialV;
-
-		// target number of electrons  in the system
-		int nOfElectrons;
-	};
-	
-	//! Function that prints model parameters to stream os
-	template<typename FieldType,typename InputType>
-	std::ostream& operator<<(std::ostream &os,
-	                         const ParametersTj1Orb<FieldType,InputType>& parameters)
+	ParametersTj1Orb(InputType& io)
 	{
-		return os;
+		try {
+			io.read(potentialV,"potentialV");
+		} catch(std::exception& e) {}
+
+		nOfElectrons=0;
 	}
+
+	// Do not include here connection parameters
+	// those are handled by the Geometry
+	typename PsimagLite::Vector<Field>::Type potentialV;
+
+	// target number of electrons  in the system
+	int nOfElectrons;
+};
+
+//! Function that prints model parameters to stream os
+template<typename FieldType,typename InputType>
+std::ostream& operator<<(std::ostream &os,
+                         const ParametersTj1Orb<FieldType,InputType>& parameters)
+{
+	return os;
+}
 } // namespace LanczosPlusPlus
 
 /*@}*/

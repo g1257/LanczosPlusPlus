@@ -26,7 +26,6 @@ PsimagLite::String license = "Copyright (c) 2009-2012, UT-Battelle, LLC\n"
 #include "Immm.h"
 #include "HubbardOneOrbital.h"
 #include "FeBasedSc.h"
-
 #include "Geometry/Geometry.h"
 #include "InternalProductStored.h"
 #include "InputNg.h" // in PsimagLite
@@ -267,7 +266,7 @@ int main(int argc,char *argv[])
 	PsimagLite::String model("");
 	io.readline(model,"Model=");
 
-	if (model=="Tj1Orb") {
+	if (model=="Tj1Orb" || model == "HeisenbergSpinOneHalf") {
 		mainLoop<Tj1Orb<RealType,GeometryType, InputNgType::Readable> >
 		        (io,geometry,gf,sites,cicj,spins);
 	} else if (model=="Immm") {

@@ -46,11 +46,13 @@ namespace LanczosPlusPlus {
 		  w_(geometry_.numberOfSites(),geometry_.numberOfSites())
 		{
 			SizeType n = geometry_.numberOfSites();
+			bool h = (geometry_.terms() == 1);
+
 			for (SizeType i=0;i<n;i++) {
 				for (SizeType j=0;j<n;j++) {
-					hoppings_(i,j) = geometry_(i,0,j,0,0);
-					j_(i,j) = geometry_(i,0,j,0,1);
-					w_(i,j) = geometry_(i,0,j,0,2);
+					hoppings_(i,j) = (h) ? 0 : geometry_(i,0,j,0,0);
+					j_(i,j) = (h) ? geometry_(i,0,j,0,0) : geometry_(i,0,j,0,1);
+					w_(i,j) = (h) ? 0 : geometry_(i,0,j,0,2);
 				}
 			}
 		}
@@ -167,8 +169,11 @@ namespace LanczosPlusPlus {
 
 					int nidown = basis.isThereAnElectronAt(ket1,ket2,i,ProgramGlobals::SPIN_DOWN);
 
-					s += mp_.potentialV[i]*niup;
-					s += mp_.potentialV[i]*nidown;
+					if (i < mp_.potentialV.size()) {
+						s += mp_.potentialV[i]*niup;
+						s += mp_.potentialV[i]*nidown;
+					}
+
 					for (SizeType j=i+1;j<nsite;j++) {
 
 						int njup = basis.isThereAnElectronAt(ket1,ket2,j,ProgramGlobals::SPIN_UP);

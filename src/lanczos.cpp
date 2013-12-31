@@ -1,19 +1,19 @@
 #include "String.h"
 PsimagLite::String license = "Copyright (c) 2009-2012, UT-Battelle, LLC\n"
-"All rights reserved\n"
-"\n"
-"[Lanczos++, Version 1.0.0]\n"
-"\n"
-"*********************************************************\n"
-"THE SOFTWARE IS SUPPLIED BY THE COPYRIGHT HOLDERS AND\n"
-"CONTRIBUTORS \"AS IS\" AND ANY EXPRESS OR IMPLIED\n"
-"WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED\n"
-"WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A\n"
-"PARTICULAR PURPOSE ARE DISCLAIMED. \n"
-"\n"
-"Please see full open source license included in file LICENSE.\n"
-"*********************************************************\n"
-"\n";
+        "All rights reserved\n"
+        "\n"
+        "[Lanczos++, Version 1.0.0]\n"
+        "\n"
+        "*********************************************************\n"
+        "THE SOFTWARE IS SUPPLIED BY THE COPYRIGHT HOLDERS AND\n"
+        "CONTRIBUTORS \"AS IS\" AND ANY EXPRESS OR IMPLIED\n"
+        "WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED\n"
+        "WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A\n"
+        "PARTICULAR PURPOSE ARE DISCLAIMED. \n"
+        "\n"
+        "Please see full open source license included in file LICENSE.\n"
+        "*********************************************************\n"
+        "\n";
 
 #include <unistd.h>
 #include <cstdlib>
@@ -52,7 +52,8 @@ typedef PsimagLite::Geometry<RealType,ProgramGlobals> GeometryType;
 typedef std::pair<SizeType,SizeType> PairType;
 typedef PsimagLite::InputNg<InputCheck> InputNgType;
 
-void fillOrbsOrSpin(PsimagLite::Vector<PairType>::Type& spinV,const PsimagLite::Vector<PsimagLite::String>::Type& strV)
+void fillOrbsOrSpin(PsimagLite::Vector<PairType>::Type& spinV,
+                    const PsimagLite::Vector<PsimagLite::String>::Type& strV)
 {
 	for (SizeType i=0;i<strV.size();i++) {
 		PsimagLite::Vector<PsimagLite::String>::Type strV2;
@@ -78,11 +79,11 @@ SizeType maxOrbitals(const ModelType& model)
 
 template<typename ModelType,typename SpecialSymmetryType>
 void mainLoop2(ModelType& model,
-			   InputNgType::Readable& io,
-			   const GeometryType& geometry,
-			   const PsimagLite::Vector<SizeType>::Type& gfV,
-			   PsimagLite::Vector<SizeType>::Type& sites,
-			   const PsimagLite::Vector<SizeType>::Type& cicjV,
+               InputNgType::Readable& io,
+               const GeometryType& geometry,
+               const PsimagLite::Vector<SizeType>::Type& gfV,
+               PsimagLite::Vector<SizeType>::Type& sites,
+               const PsimagLite::Vector<SizeType>::Type& cicjV,
                const PsimagLite::Vector<PairType>::Type& spins)
 {
 	typedef Engine<ModelType,InternalProductStored,SpecialSymmetryType> EngineType;
@@ -102,29 +103,39 @@ void mainLoop2(ModelType& model,
 
 		std::cout<<"#gf(i="<<sites[0]<<",j="<<sites[1]<<")\n";
 		typedef PsimagLite::ContinuedFraction<TridiagonalMatrixType>
-		ContinuedFractionType;
+		        ContinuedFractionType;
 		typedef PsimagLite::ContinuedFractionCollection<ContinuedFractionType>
-			ContinuedFractionCollectionType;
+		        ContinuedFractionCollectionType;
 
 		PsimagLite::IoSimple::Out ioOut(std::cout);
 		ContinuedFractionCollectionType cfCollection;
 		SizeType norbitals = maxOrbitals(model);
 		for (SizeType orb1=0;orb1<norbitals;orb1++) {
 			for (SizeType orb2=0;orb2<norbitals;orb2++) {
-				engine.spectralFunction(cfCollection,gf,sites[0],sites[1],spins,std::pair<SizeType,SizeType>(orb1,orb2));
+				engine.spectralFunction(cfCollection,
+				                        gf,
+				                        sites[0],
+				                        sites[1],
+				                        spins,
+				                        std::pair<SizeType,SizeType>(orb1,orb2));
 			}
 		}
+
 		cfCollection.save(ioOut);
 	}
 
 	for (SizeType cicji=0;cicji<cicjV.size();cicji++) {
 		SizeType cicj = cicjV[cicji];
 		SizeType total = geometry.numberOfSites();
-		PsimagLite::Matrix<typename SpecialSymmetryType::VectorType::value_type> cicjMatrix(total,total);
+		typedef typename SpecialSymmetryType::VectorType::value_type ValueType;
+		PsimagLite::Matrix<ValueType> cicjMatrix(total,total);
 		SizeType norbitals = maxOrbitals(model);
 		for (SizeType orb1=0;orb1<norbitals;orb1++) {
 			for (SizeType orb2=0;orb2<norbitals;orb2++) {
-				engine.twoPoint(cicjMatrix,cicj,spins,std::pair<SizeType,SizeType>(orb1,orb2));
+				engine.twoPoint(cicjMatrix,
+				                cicj,
+				                spins,
+				                std::pair<SizeType,SizeType>(orb1,orb2));
 				std::cout<<cicjMatrix;
 			}
 		}
@@ -133,10 +144,10 @@ void mainLoop2(ModelType& model,
 
 template<typename ModelType>
 void mainLoop(InputNgType::Readable& io,
-			  const GeometryType& geometry,
-			  const PsimagLite::Vector<SizeType>::Type& gf,
-			  PsimagLite::Vector<SizeType>::Type& sites,
-			  const PsimagLite::Vector<SizeType>::Type& cicj,
+              const GeometryType& geometry,
+              const PsimagLite::Vector<SizeType>::Type& gf,
+              PsimagLite::Vector<SizeType>::Type& sites,
+              const PsimagLite::Vector<SizeType>::Type& cicj,
               const PsimagLite::Vector<PairType>::Type& spins)
 {
 	typedef typename ModelType::ParametersModelType ParametersModelType;
@@ -178,14 +189,31 @@ void mainLoop(InputNgType::Readable& io,
 	bool useReflectionSymmetry = (tmp==1) ? true : false;
 
 	if (useTranslationSymmetry) {
-		mainLoop2<ModelType,TranslationSymmetry<GeometryType,BasisType> >(model,io,geometry,gf,sites,cicj,spins);
+		mainLoop2<ModelType,TranslationSymmetry<GeometryType,BasisType> >(model,
+		                                                                  io,
+		                                                                  geometry,
+		                                                                  gf,
+		                                                                  sites,
+		                                                                  cicj,
+		                                                                  spins);
 	} else if (useReflectionSymmetry) {
-		mainLoop2<ModelType,ReflectionSymmetry<GeometryType,BasisType> >(model,io,geometry,gf,sites,cicj,spins);
+		mainLoop2<ModelType,ReflectionSymmetry<GeometryType,BasisType> >(model,
+		                                                                 io,
+		                                                                 geometry,
+		                                                                 gf,
+		                                                                 sites,
+		                                                                 cicj,
+		                                                                 spins);
 	} else {
-		mainLoop2<ModelType,DefaultSymmetry<GeometryType,BasisType> >(model,io,geometry,gf,sites,cicj,spins);
+		mainLoop2<ModelType,DefaultSymmetry<GeometryType,BasisType> >(model,
+		                                                              io,
+		                                                              geometry,
+		                                                              gf,
+		                                                              sites,
+		                                                              cicj,
+		                                                              spins);
 	}
 }
-
 
 int main(int argc,char *argv[])
 {

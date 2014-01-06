@@ -314,7 +314,7 @@ private:
 		if (i>0) s *= parityFrom(0,i-1,bra2);
 		if (i<n-1) s *= parityFrom(i+1,n-1,bra1);
 		if (j<n-1) s *= parityFrom(j+1,n-1,bra1);
-		return -s;
+		return s;
 	}
 
 	// from i to j including i and j

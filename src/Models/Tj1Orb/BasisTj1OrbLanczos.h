@@ -180,47 +180,27 @@ public:
 			WordType bra1 = ket1;
 			WordType bra2 = ket2;
 
-			int value1 = getBra(bra2,
-			                    ProgramGlobals::OPERATOR_C,
-			                    ket1,
-			                    ket2,
-			                    site,
-			                    ProgramGlobals::SPIN_DOWN);
+			int value1 = getBraC(bra2,ket2,ProgramGlobals::OPERATOR_C,site);
 			if (value1 == 0) return PairIntType(-1,value1);
 
-			int value2 = getBra(bra1,
-			                    ProgramGlobals::OPERATOR_CDAGGER,
-			                    ket1,
-			                    bra2,
-			                    site,
-			                    ProgramGlobals::SPIN_UP);
+			int value2 = getBraC(bra1,ket1,ProgramGlobals::OPERATOR_CDAGGER,site);
 			if (value2 == 0) return PairIntType(-1,value2);
 
 			int tmp = perfectIndex(bra1,bra2);
-			return PairIntType(tmp,value1*value2);
+			return PairIntType(tmp,1);
 
 		} else if (operatorLabel == ProgramGlobals::OPERATOR_SMINUS) {
 			WordType bra1 = ket1;
 			WordType bra2 = ket2;
 
-			int value1 = getBra(bra1,
-			                    ProgramGlobals::OPERATOR_C,
-			                    ket1,
-			                    ket2,
-			                    site,
-			                    ProgramGlobals::SPIN_UP);
+			int value1 = getBraC(bra1,ket1,ProgramGlobals::OPERATOR_C,site);
 			if (value1 == 0) return PairIntType(-1,value1);
 
-			int value2 = getBra(bra2,
-			                    ProgramGlobals::OPERATOR_CDAGGER,
-			                    bra1,
-			                    ket2,
-			                    site,
-			                    ProgramGlobals::SPIN_DOWN);
+			int value2 = getBraC(bra2,ket2,ProgramGlobals::OPERATOR_CDAGGER,site);
 			if (value2 == 0) return PairIntType(-1,value2);
 
 			int tmp = perfectIndex(bra1,bra2);
-			return PairIntType(tmp,value1*value2);
+			return PairIntType(tmp,1);
 		}
 
 		return getBraIndex_(ket1,ket2,operatorLabel,site,spin,orb);
@@ -422,15 +402,11 @@ private:
 	                SizeType site,
 	                SizeType spin) const
 	{
-		assert(spin==ProgramGlobals::SPIN_UP); // spin index is bogus here
-		if (spin==ProgramGlobals::SPIN_UP) bra = ket1;
-		else bra = ket2;
-		WordType siup=(ket1 & bitmask_[site]);
-		WordType sidown=(ket2 & bitmask_[site]);
-		if (siup>0) siup=1;
-		if (sidown>0) sidown=1;
-		int isign = (operatorLabel == OPERATOR_SZ) ? -1 : 1;
-		return (siup + isign * sidown);
+		bra = (spin==ProgramGlobals::SPIN_UP) ? ket1 : ket2;
+
+		WordType si= (bra & bitmask_[site]);
+
+		return (si == 0) ? 0 : 1;
 	}
 
 	const GeometryType& geometry_;

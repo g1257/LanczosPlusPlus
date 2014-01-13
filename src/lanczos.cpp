@@ -47,9 +47,9 @@ typedef float RealType;
 #endif
 typedef std::complex<RealType> ComplexType;
 typedef PsimagLite::Concurrency ConcurrencyType;
-typedef PsimagLite::Geometry<RealType,ProgramGlobals> GeometryType;
-typedef std::pair<SizeType,SizeType> PairType;
 typedef PsimagLite::InputNg<InputCheck> InputNgType;
+typedef PsimagLite::Geometry<RealType,InputNgType::Readable,ProgramGlobals> GeometryType;
+typedef std::pair<SizeType,SizeType> PairType;
 
 void fillOrbsOrSpin(PsimagLite::Vector<PairType>::Type& spinV,
                     const PsimagLite::Vector<PsimagLite::String>::Type& strV)

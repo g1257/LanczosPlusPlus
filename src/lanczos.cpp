@@ -260,6 +260,8 @@ int main(int argc,char *argv[])
 	InputNgType::Readable io(ioWriteable);
 	GeometryType geometry(io);
 
+	std::cout<<geometry;
+
 	// print license
 	if (ConcurrencyType::root()) std::cerr<<license;
 

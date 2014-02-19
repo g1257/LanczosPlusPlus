@@ -88,9 +88,6 @@ struct ProgramGlobals {
 	typedef std::pair<int,int> PairIntType;
 	typedef unsigned int long long WordType;
 
-	static SizeType const MaxLanczosSteps = 1000000; // max number of internal Lanczos steps
-	static SizeType const LanczosSteps = 300; // max number of external Lanczos steps
-
 	enum {FERMION,BOSON};
 
 	enum {SPIN_UP,SPIN_DOWN};

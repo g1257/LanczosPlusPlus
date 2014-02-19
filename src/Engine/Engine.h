@@ -78,7 +78,7 @@ public:
 	       InputType& io)
 	    : model_(model),
 	      progress_("Engine"),
-	      params_(io)
+	      io_(io)
 	{
 		// printHeader();
 		// task 1: Compute Hamiltonian and
@@ -336,13 +336,7 @@ private:
 	{
 		SpecialSymmetryType rs(model_.basis(),model_.geometry());
 		InternalProductType hamiltonian(model_,rs);
-
-		ParametersForSolverType params;
-		params.steps =  params_.gsSteps;
-		params.tolerance = params_.gsEps;
-		params.lotaMemory = params_.storeLanczosVectors;
-		params.stepsForEnergyConvergence =ProgramGlobals::MaxLanczosSteps;
-
+		ParametersForSolverType params(io_,"Lanczos");
 		LanczosSolverType lanczosSolver(hamiltonian,params);
 
 		gsEnergy_ = 1e10;
@@ -377,11 +371,7 @@ private:
 		typedef typename ContinuedFractionType::TridiagonalMatrixType
 		        TridiagonalMatrixType;
 
-		ParametersForSolverType params;
-		params.steps = params_.spectralSteps;
-		params.tolerance = params_.spectralEps;
-		params.lotaMemory = params_.storeLanczosVectors;
-		params.stepsForEnergyConvergence =ProgramGlobals::MaxLanczosSteps;
+		ParametersForSolverType params(io_,"Spectral");
 
 		LanczosSolverDefaultType lanczosSolver(matrix,params);
 
@@ -413,7 +403,7 @@ private:
 
 	const ModelType& model_;
 	PsimagLite::ProgressIndicator progress_;
-	ParametersEngine<RealType> params_;
+	InputType& io_;
 	RealType gsEnergy_;
 	VectorType gsVector_;
 }; // class ContinuedFraction

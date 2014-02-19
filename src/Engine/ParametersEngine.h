@@ -82,7 +82,6 @@ DISCLOSED WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
 #define PARAMETERS_ENGINE_H
 #include "Vector.h"
 #include <stdexcept>
-#include "ProgramGlobals.h"
 
 namespace LanczosPlusPlus {
 	//! Hubbard Model Parameters
@@ -91,41 +90,7 @@ namespace LanczosPlusPlus {
 		
 		template<typename IoInputType>
 		ParametersEngine(IoInputType& io)
-		    : storeLanczosVectors(false),
-		      gsSteps(ProgramGlobals::LanczosSteps),
-		      gsEps(1e-12),
-		      spectralSteps(gsSteps),
-		      spectralEps(gsEps)
-		{
-	
-			int tmp = 1;
-			try {
-				io.readline(tmp,"StoreLanczosVectors=");
-			} catch (std::exception& e) {}
-			storeLanczosVectors = (tmp==1) ? true : false;
-
-			try {
-				io.readline(gsSteps,"LanczosSteps=");
-			} catch (std::exception& e) {}
-
-			try {
-				io.readline(gsEps,"LanczosEps=");
-			} catch (std::exception& e) {}
-
-			try {
-				io.readline(spectralSteps,"DynamicDmrgSteps=");
-			} catch (std::exception& e) {}
-
-			try {
-				io.readline(spectralEps,"DynamicDmrgEps=");
-			} catch (std::exception& e) {}
-		}
-		
-		bool storeLanczosVectors;
-		SizeType gsSteps;
-		Field gsEps;
-		SizeType spectralSteps;
-		Field spectralEps;
+		{}
 	};
 
 	
@@ -133,11 +98,6 @@ namespace LanczosPlusPlus {
 	template<typename FieldType>
 	std::ostream& operator<<(std::ostream &os,const ParametersEngine<FieldType>& parameters)
 	{
-		os<<"parameters.storeLanczosVectors="<<parameters.storeLanczosVectors<<"\n";
-		os<<"parameters.gsSteps="<<parameters.gsSteps<<"\n";
-		os<<"parameters.gsEps="<<parameters.gsEps<<"\n";
-		os<<"parameters.spectralSteps="<<parameters.spectralSteps<<"\n";
-		os<<"parameters.pectralEps="<<parameters.pectralEps<<"\n";
 		return os;
 	}
 } // namespace LanczosPlusPlus

@@ -27,7 +27,6 @@ Please see full open source license included in file LICENSE.
 #include "Random48.h"
 #include "ProgramGlobals.h"
 #include "ParametersForSolver.h"
-#include "ParametersEngine.h"
 #include "DefaultSymmetry.h"
 
 namespace LanczosPlusPlus {

@@ -77,8 +77,8 @@ DISCLOSED WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
  *
  *
  */
-#ifndef PROGRAM_LIMITS_H
-#define PROGRAM_LIMITS_H
+#ifndef LANCZOS_PROGRAM_LIMITS_H
+#define LANCZOS_PROGRAM_LIMITS_H 
 #include "String.h"
 #include "TypeToString.h"
 

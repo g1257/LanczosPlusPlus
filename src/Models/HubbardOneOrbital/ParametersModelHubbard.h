@@ -79,8 +79,8 @@ DISCLOSED WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
  *  Contains the parameters for the Hubbard model and function to read them from a JSON file
  *
  */
-#ifndef PARAMETERSMODELHUBBARD_H
-#define PARAMETERSMODELHUBBARD_H
+#ifndef LANCZOS_PARAMS_HUBBARD_H
+#define LANCZOS_PARAMS_HUBBARD_H
 #include "Vector.h"
 #include <stdexcept>
 #include "IoSimple.h"

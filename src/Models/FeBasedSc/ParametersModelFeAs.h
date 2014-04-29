@@ -91,24 +91,53 @@ namespace LanczosPlusPlus {
 		
 		template<typename IoInputType>
 		ParametersModelFeAs(IoInputType& io) 
-		    : decay(0),coulombV(0)
+		    : feAsMode(0),coulombV(0)
 		{
 			io.readline(orbitals,"Orbitals=");
 			io.read(hubbardU,"hubbardU");
 			io.read(potentialV,"potentialV");
 
+			bool decayInInputFile = false;
 			try {
-				io.readline(decay,"Decay=");
-				if (decay !=0 && decay != 1)
-					throw PsimagLite::RuntimeError("Decay: expecting 0 or 1\n");
+				io.readline(feAsMode,"Decay=");
+				decayInInputFile = true;
 			} catch (std::exception& e) {}
 
-			if (decay) {
+			if (decayInInputFile) {
+				PsimagLite::String str("Please use FeAsMode= instead of Decay=");
+				str += " in input file\n";
+				throw PsimagLite::RuntimeError(str);
+			}
+
+			try {
+				io.readline(feAsMode,"FeAsMode=");
+			} catch (std::exception& e) {}
+
+			if (feAsMode > 3)
+				throw PsimagLite::RuntimeError("FeAsMode: expecting 0 or 1 or 2 or 3\n");
+
+			if (feAsMode == 1 || feAsMode == 2) {
+				SizeType tmp = orbitals * orbitals;
+				if (feAsMode == 2) tmp *= 2;
+				if (hubbardU.size() != tmp) {
+					PsimagLite::String str("FeAsMode: expecting ");
+					str += ttos(tmp) + " U values\n";
+					throw PsimagLite::RuntimeError(str);
+				}
+			}
+
+			if (feAsMode == 1) {
 				if (orbitals != 3)
-					throw PsimagLite::RuntimeError("Decay: expecting 3 orbitals\n");
-				if (hubbardU.size() != 9)
-					throw PsimagLite::RuntimeError("Decay: expecting 9 U values\n");
+					throw PsimagLite::RuntimeError("FeAsMode: expecting 3 orbitals\n");
 				io.readline(coulombV,"CoulombV=");
+			}
+
+			if (feAsMode == 0 || feAsMode == 3) {
+				if (hubbardU.size() != 4) {
+					PsimagLite::String str("FeAsMode: expecting");
+					str +=  " 4 U values\n";
+					throw PsimagLite::RuntimeError(str);
+				}
 			}
 		}
 		
@@ -117,7 +146,7 @@ namespace LanczosPlusPlus {
 		typename PsimagLite::Vector<RealType>::Type hubbardU;
 		// Onsite potential values, one for each site
 		typename PsimagLite::Vector<RealType>::Type potentialV;
-		int decay;
+		SizeType feAsMode;
 		RealType coulombV;
 		// target number of electrons  in the system
 		int nOfElectrons;
@@ -132,8 +161,8 @@ namespace LanczosPlusPlus {
 		os<<parameters.hubbardU;
 		os<<"potentialV\n";
 		os<<parameters.potentialV;
-		os<<"Decay="<<parameters.decay<<"\n";
-		if (parameters.decay)
+		os<<"FeAsMode="<<parameters.feAsMode<<"\n";
+		if (parameters.feAsMode)
 			os<<"CoulombV="<<parameters.coulombV<<"\n";
 
 		return os;

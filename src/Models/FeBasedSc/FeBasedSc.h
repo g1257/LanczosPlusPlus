@@ -105,7 +105,7 @@ namespace LanczosPlusPlus {
 						setHoppingTerm(sparseRow,ket1,ket2,
 								i,orb,basis);
 
-						if (!mp_.decay) {
+						if (mp_.feAsMode == 0) {
 							setU2OffDiagonalTerm(sparseRow,ket1,ket2,
 							                     i,orb,basis);
 							for (SizeType orb2=0;orb2<mp_.orbitals;orb2++) {
@@ -117,9 +117,11 @@ namespace LanczosPlusPlus {
 
 							setJTermOffDiagonal(sparseRow,ket1,ket2,
 							                    i,orb,basis);
-						} else {
+						} else if (mp_.feAsMode == 1 || mp_.feAsMode == 2) {
 							setOffDiagonalDecay(sparseRow,ket1,ket2,
 							                    i,orb,basis);
+						} else {
+							throw PsimagLite::RuntimeError("setupHamiltonian\n");
 						}
 					}
 				}
@@ -157,7 +159,7 @@ namespace LanczosPlusPlus {
 						setHoppingTerm(sparseRow,ket1,ket2,
 								i,orb,*basis);
 
-						if (!mp_.decay) {
+						if (mp_.feAsMode == 0) {
 							setU2OffDiagonalTerm(sparseRow,ket1,ket2,
 							                     i,orb,*basis);
 
@@ -168,9 +170,11 @@ namespace LanczosPlusPlus {
 
 							setJTermOffDiagonal(sparseRow,ket1,ket2,
 							                    i,orb,*basis);
-						} else {
+						} else if (mp_.feAsMode == 1 || mp_.feAsMode == 2) {
 							setOffDiagonalDecay(sparseRow,ket1,ket2,
 							                    i,orb,*basis);
+						} else {
+							throw PsimagLite::RuntimeError("matrixVectorProduct\n");
 						}
 					}
 				}
@@ -431,11 +435,14 @@ namespace LanczosPlusPlus {
 			for (SizeType i=0;i<nsite;i++) {
 				for (SizeType orb=0;orb<mp_.orbitals;orb++) {
 
-					if (!mp_.decay)
+					if (mp_.feAsMode == 0) {
 						s += findSnoDecay(nsite,ket1,ket2,i,orb,basis);
-					else
+					} else if (mp_.feAsMode == 1 || mp_.feAsMode == 2){
 						s += findSdecay(nsite,ket1,ket2,i,orb,basis);
-
+					} else {
+						throw PsimagLite::RuntimeError("findS\n");
+					}
+					
 					// Potential term
 					s += mp_.potentialV[i+(orb+mp_.orbitals*0)*nsite]*
 							basis.getN(ket1,i,SPIN_UP,orb) +

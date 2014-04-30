@@ -24,6 +24,7 @@ Please see full open source license included in file LICENSE.
 #include "ProgressIndicator.h"
 #include "CrsMatrix.h"
 #include "Vector.h"
+#include "Matrix.h"
 
 namespace LanczosPlusPlus {
 
@@ -55,6 +56,8 @@ namespace LanczosPlusPlus {
 				if (nrows > 40)
 					throw PsimagLite::RuntimeError("printMatrix too big\n");
 				std::cout<<matrixStored_.toDense();
+				PsimagLite::Matrix<ComplexOrRealType> matrixCopy = matrixStored_.toDense();
+				fullDiag(matrixCopy);
 			}
 		}
 
@@ -83,6 +86,15 @@ namespace LanczosPlusPlus {
 		}
 
 	private:
+
+		//! For debugging purpose only:
+		void fullDiag(PsimagLite::Matrix<ComplexOrRealType>& fm) const
+		{
+			typename PsimagLite::Vector<RealType>::Type e(fm.n_row());
+			diag(fm,e,'N');
+			for (SizeType i=0;i<e.size();i++)
+				std::cout<<e[i]<<"\n";
+		}
 
 		SparseMatrixType matrixStored_;
 		bool printMatrix_;

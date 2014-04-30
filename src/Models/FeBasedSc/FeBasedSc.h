@@ -518,6 +518,7 @@ namespace LanczosPlusPlus {
 			}
 			
 			for (SizeType orb2=0;orb2<mp_.orbitals;orb2++) {
+				if (orb == orb2) continue;
 				// Diagonal U2 term
 				s+= mp_.hubbardU[2]*
 						basis.isThereAnElectronAt(ket1,ket2,i,SPIN_UP,orb) *

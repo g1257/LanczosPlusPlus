@@ -67,12 +67,15 @@ namespace LanczosPlusPlus {
 		typedef PsimagLite::CrsMatrix<RealType> SparseMatrixType;
 		typedef typename PsimagLite::Vector<RealType>::Type VectorType;
 
-		ReflectionSymmetry(const BasisType& basis,const GeometryType& geometry)
+		ReflectionSymmetry(const BasisType& basis,
+		                   const GeometryType& geometry,
+		                   bool printMatrix)
 		: progress_("ReflectionSymmetry"),
 		  transform_(basis.size(),basis.size()),
 		  plusSector_(0),
 		  matrixStored_(2),
-		  pointer_(0)
+		  pointer_(0),
+		  printMatrix_(printMatrix)
 		{
 			SizeType hilbert = basis.size();
 			SizeType numberOfDofs = basis.dofs();
@@ -123,6 +126,15 @@ namespace LanczosPlusPlus {
 			SparseMatrixType matrix2;
 			model.setupHamiltonian(matrix2,basis);
 			transformMatrix(matrixStored_,matrix2);
+
+			if (matrixStored_.size() == 0) return;
+
+			bool nrows = matrixStored_[0].row();
+			if (printMatrix_) {
+				if (nrows > 40)
+					throw PsimagLite::RuntimeError("printMatrix too big\n");
+			std::cout<<matrixStored_[0].toDense();
+			}
 		}
 
 		SizeType rank() const { return matrixStored_[pointer_].row(); }
@@ -323,6 +335,7 @@ namespace LanczosPlusPlus {
 		SizeType plusSector_;
 		typename PsimagLite::Vector<SparseMatrixType>::Type matrixStored_;
 		SizeType pointer_;
+		bool printMatrix_;
 	}; // class ReflectionSymmetry
 } // namespace Dmrg
 

@@ -40,15 +40,22 @@ namespace LanczosPlusPlus {
 		typedef PsimagLite::CrsMatrix<RealType> SparseMatrixType;
 		typedef typename PsimagLite::Vector<RealType>::Type VectorType;
 
-		DefaultSymmetry(const BasisType& basis,const GeometryType& geometry)
-		{
-		}
+		DefaultSymmetry(const BasisType& basis,
+		                const GeometryType& geometry,
+		                bool printMatrix)
+		: printMatrix_(printMatrix)
+		{}
 
 		template<typename SomeModelType>
 		void init(const SomeModelType& model,const BasisType& basis)
 		{
 			model.setupHamiltonian(matrixStored_,basis);
-//			std::cout<<matrixStored_;
+			bool nrows = matrixStored_.row();
+			if (printMatrix_) {
+				if (nrows > 40)
+					throw PsimagLite::RuntimeError("printMatrix too big\n");
+				std::cout<<matrixStored_.toDense();
+			}
 		}
 
 		void transformMatrix(typename PsimagLite::Vector<SparseMatrixType>::Type& matrix1,
@@ -78,7 +85,7 @@ namespace LanczosPlusPlus {
 	private:
 
 		SparseMatrixType matrixStored_;
-
+		bool printMatrix_;
 	}; // class DefaultSymmetry
 } // namespace Dmrg
 

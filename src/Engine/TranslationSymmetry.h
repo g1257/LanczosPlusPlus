@@ -193,12 +193,15 @@ private:
 		typedef PsimagLite::CrsMatrix<ComplexOrRealType> SparseMatrixType;
 		typedef typename PsimagLite::Vector<ComplexOrRealType>::Type VectorType;
 
-		TranslationSymmetry(const BasisType& basis,const GeometryType& geometry)
+		TranslationSymmetry(const BasisType& basis,
+		                    const GeometryType& geometry,
+		                    bool printMatrix)
 		: progress_("TranslationSymmetry"),
 		  transform_(basis.size(),basis.size()),
 		  kspace_(geometry.length(1,0)),
 		  matrixStored_(kspace_.size()),
-		  pointer_(0)
+		  pointer_(0),
+		  printMatrix_(printMatrix)
 		{
 			ClassRepresentativesType reps(basis,geometry,kspace_);
 
@@ -232,6 +235,14 @@ private:
 			PsimagLite::CrsMatrix<RealType> matrix2;
 			model.setupHamiltonian(matrix2,basis);
 			transformMatrix(matrixStored_,matrix2);
+
+			if (matrixStored_.size() == 0) return;
+			bool nrows = matrixStored_[0].row();
+			if (printMatrix_) {
+				if (nrows > 40)
+					throw PsimagLite::RuntimeError("printMatrix too big\n");
+			std::cout<<matrixStored_[0].toDense();
+			}
 		}
 
 		SizeType rank() const { return matrixStored_[pointer_].row(); }
@@ -426,6 +437,7 @@ private:
 		KspaceType kspace_;
 		typename PsimagLite::Vector<SparseMatrixType>::Type matrixStored_;
 		SizeType pointer_;
+		bool printMatrix_;
 //		SparseMatrixType s_;
 	}; // class TranslationSymmetry
 } // namespace Dmrg

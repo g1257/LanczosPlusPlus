@@ -152,7 +152,7 @@ public:
 			                 spins.first,
 			                 orbs);
 
-			DefaultSymmetryType symm(*basisNew,model_.geometry());
+			DefaultSymmetryType symm(*basisNew,model_.geometry(),false);
 			InternalProductTemplate<ModelType,DefaultSymmetryType> matrix(model_,
 			                                                              *basisNew,
 			                                                              symm);
@@ -333,7 +333,10 @@ private:
 
 	void computeGroundState()
 	{
-		SpecialSymmetryType rs(model_.basis(),model_.geometry());
+		PsimagLite::String str;
+		io_.readline(str,"SolverOptions=");
+		bool printMatrix = (str.find("printmatrix") != PsimagLite::String::npos);
+		SpecialSymmetryType rs(model_.basis(),model_.geometry(),printMatrix);
 		InternalProductType hamiltonian(model_,rs);
 		ParametersForSolverType params(io_,"Lanczos");
 		LanczosSolverType lanczosSolver(hamiltonian,params);

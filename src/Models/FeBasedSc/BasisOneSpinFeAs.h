@@ -155,6 +155,9 @@ namespace LanczosPlusPlus {
 				std::cerr<<"AT: "<<__FILE__<<" : "<<__LINE__<<std::endl;
 				throw std::runtime_error("FeBasedSc::doSign(...)\n");
 			}
+
+			if (i == j) return doSign(ket,i,orb1,orb2);
+
 			SizeType x0 = (i+1)*orbitals_; // i+1 cannot be the last site, 'cause i<j
 			SizeType x1 = j*orbitals_;
 
@@ -412,6 +415,19 @@ namespace LanczosPlusPlus {
 				counter++;
 			}
 			return sum;
+		}
+		
+		int doSign(WordType ket,
+		                 SizeType i,
+				 SizeType orb1,
+				 SizeType orb2) const
+		{
+			if (orb1 > orb2) return -doSign(ket,i,orb2,orb1);
+	
+			SizeType x0 = i*orbitals_+orb1;
+			SizeType x1 = i*orbitals_+orb2;
+			SizeType sum = getNbyKet(ket,x0,x1);
+			return (sum & 1) ? FERMION_SIGN : 1;
 		}
 
 		SizeType size_;

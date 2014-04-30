@@ -121,12 +121,14 @@ namespace LanczosPlusPlus {
 							setOffDiagonalDecay(sparseRow,ket1,ket2,
 							                    i,orb,basis);
 						} else {
-							throw PsimagLite::RuntimeError("setupHamiltonian\n");
+							setOffDiagonalJimpurity(sparseRow,ket1,ket2,i,orb,basis);
 						}
 					}
 				}
+
 				nCounter += sparseRow.finalize(matrix);
 			}
+
 			matrix.setRow(hilbert,nCounter);
 		}
 
@@ -174,10 +176,11 @@ namespace LanczosPlusPlus {
 							setOffDiagonalDecay(sparseRow,ket1,ket2,
 							                    i,orb,*basis);
 						} else {
-							throw PsimagLite::RuntimeError("matrixVectorProduct\n");
+							setOffDiagonalJimpurity(sparseRow,ket1,ket2,i,orb,*basis);
 						}
 					}
 				}
+
 				x[ispace] += sparseRow.finalize(y);
 			}
 		}
@@ -440,7 +443,7 @@ namespace LanczosPlusPlus {
 					} else if (mp_.feAsMode == 1 || mp_.feAsMode == 2){
 						s += findSdecay(nsite,ket1,ket2,i,orb,basis);
 					} else {
-						throw PsimagLite::RuntimeError("findS\n");
+						s += findSImpurity(nsite,ket1,ket2,i,orb,basis);
 					}
 					
 					// Potential term
@@ -487,6 +490,38 @@ namespace LanczosPlusPlus {
 							szTerm(ket1,ket2,i,orb,basis)*
 							szTerm(ket1,ket2,j,orb2,basis);
 				}
+			}
+
+			return s;
+		}
+
+		RealType findSImpurity(SizeType nsite,
+		                      WordType ket1,
+		                      WordType ket2,
+		                      SizeType i,
+		                      SizeType orb,
+		                      const BasisType& basis) const
+		{
+			if (i > 0) return 0.0;
+
+			// Hubbard term U0
+			RealType s = mp_.hubbardU[0] * basis.isThereAnElectronAt(ket1,ket2,
+									 i,SPIN_UP,orb) * basis.isThereAnElectronAt(ket1,ket2,
+														    i,ProgramGlobals::SPIN_DOWN,orb);
+
+
+			for (SizeType orb2=orb+1;orb2<mp_.orbitals;orb2++) {
+				// Hubbard term U1
+				for (SizeType spin = 0; spin < 2; ++spin) 
+					s += mp_.hubbardU[1] *  basis.isThereAnElectronAt(ket1,ket2,i,spin,orb) *
+					       basis.isThereAnElectronAt(ket1,ket2,i,spin,orb2);
+			}
+			
+			for (SizeType orb2=0;orb2<mp_.orbitals;orb2++) {
+				// Diagonal U2 term
+				s+= mp_.hubbardU[2]*
+						basis.isThereAnElectronAt(ket1,ket2,i,SPIN_UP,orb) *
+						basis.isThereAnElectronAt(ket1,ket2,i,SPIN_DOWN,orb2);
 			}
 
 			return s;
@@ -560,6 +595,47 @@ namespace LanczosPlusPlus {
 		{
 			if (geometry_.terms()==1) return 0;
 			return geometry_(i,0,j,0,TERM_J);
+		}
+		
+		void setOffDiagonalJimpurity(SparseRowType& sparseRow,
+		                         const WordType& ket1,
+								 const WordType& ket2,
+								 SizeType i,
+		                                                 SizeType orb1,
+								 const BasisType &basis) const
+		{
+			if (i > 0) return;
+
+			SizeType orbitals = mp_.orbitals;
+
+			for (SizeType type = 0; type < 2; ++type) {
+				for (SizeType orb2 = 0; orb2 < orbitals; ++orb2) {
+
+					if (orb1 == orb2) continue;
+
+					SizeType orb3 = (type == 0) ? orb2 : orb1;
+					SizeType orb4 = (type == 0) ? orb1 : orb2;
+
+					if (!basis.isThereAnElectronAt(ket1,ket2,i,SPIN_DOWN,orb4)) continue;
+					if (basis.isThereAnElectronAt(ket1,ket2,i,SPIN_DOWN,orb3)) continue;
+					if (!basis.isThereAnElectronAt(ket1,ket2,i,SPIN_UP,orb2)) continue;
+					if (basis.isThereAnElectronAt(ket1,ket2,i,SPIN_UP,orb1)) continue;
+						
+					WordType mask4 = BasisType::bitmask(i*mp_.orbitals+orb4);
+					WordType mask3 = BasisType::bitmask(i*mp_.orbitals+orb3);
+					WordType bra2 =(ket2 ^ mask4) ^ mask3;
+						
+					WordType mask2 = BasisType::bitmask(i*mp_.orbitals+orb2);
+					WordType mask1 = BasisType::bitmask(i*mp_.orbitals+orb1);
+					WordType bra1 = (ket1 ^ mask2) ^ mask1;
+					
+					RealType x = basis.doSign(ket1,ket2,i,orb1,i,orb2,SPIN_UP);
+					x *= basis.doSign(ket1,ket2,i,orb3,i,orb4,SPIN_DOWN);
+
+					SizeType temp = basis.perfectIndex(bra1,bra2);
+					sparseRow.add(temp,x * mp_.hubbardU[3]);
+				}
+			}
 		}
 
 		const ParametersModelType& mp_;

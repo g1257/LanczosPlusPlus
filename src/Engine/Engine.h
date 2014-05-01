@@ -65,6 +65,7 @@ public:
 	typedef typename LanczosSolverType::TridiagonalMatrixType
 	TridiagonalMatrixType;
 	typedef std::pair<SizeType,SizeType> PairType;
+	typedef typename PsimagLite::Vector<RealType>::Type VectorRealType;
 
 	// ContF needs to support concurrency FIXME
 	static const SizeType parallelRank_ = 0;
@@ -349,7 +350,22 @@ private:
 			VectorType gsVector1(hamiltonian.rank());
 			if (gsVector1.size()==0) continue;
 			RealType gsEnergy1 = 0;
-			lanczosSolver.computeGroundState(gsEnergy1,gsVector1);
+
+			try {
+				lanczosSolver.computeGroundState(gsEnergy1,gsVector1);
+			} catch (std::exception& e) {
+
+				std::cerr<<"Engine: Lanczos Solver failed ";
+				std::cerr<<" trying exact diagonalization...\n";	
+				VectorRealType eigs(hamiltonian.rank());
+				PsimagLite::Matrix<FieldType> fm;
+				hamiltonian.fullDiag(eigs,fm);
+				for (SizeType j = 0; j < eigs.size(); ++j)
+					gsVector1[j] = fm(j,0);
+				gsEnergy1 = eigs[0];
+				std::cout<<"Found lowest eigenvalue= "<<gsEnergy1<<"\n";
+			}
+
 			if (gsEnergy1<gsEnergy_) {
 				gsVector_=gsVector1;
 				gsEnergy_=gsEnergy1;
@@ -392,15 +408,6 @@ private:
 
 		cf.set(ab,reortho,gsEnergy_,std::real(weight*s2),s);
 
-	}
-
-	//! For debugging purpose only:
-	void fullDiag(MatrixType& fm) const
-	{
-		typename PsimagLite::Vector<RealType>::Type e(fm.n_row());
-		diag(fm,e,'N');
-		for (SizeType i=0;i<e.size();i++)
-			std::cout<<e[i]<<"\n";
 	}
 
 	const ModelType& model_;

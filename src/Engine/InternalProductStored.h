@@ -94,6 +94,9 @@ namespace LanczosPlusPlus {
 		typedef typename SpecialSymmetryType::SparseMatrixType SparseMatrixType;
 		typedef typename ModelType::RealType RealType;
 		typedef typename ModelType::GeometryType GeometryType;
+		typedef typename SparseMatrixType::value_type ComplexOrRealType;
+		typedef PsimagLite::Matrix<ComplexOrRealType> MatrixType;
+		typedef typename PsimagLite::Vector<RealType>::Type VectorRealType;
 
 		InternalProductStored(const ModelType& model,
 				      const BasisType& basis,
@@ -118,9 +121,13 @@ namespace LanczosPlusPlus {
 			rs_.matrixVectorProduct(x,y);
 		}
 
-		//SizeType reflectionSector() const { return pointer_; }
-
 		void specialSymmetrySector(SizeType p) { rs_.setPointer(p); }
+
+		void fullDiag(VectorRealType& eigs,
+		              MatrixType& z)
+		{
+			rs_.fullDiag(eigs,z);
+		}
 
 	private:
 

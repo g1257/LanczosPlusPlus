@@ -58,6 +58,7 @@ namespace LanczosPlusPlus {
 	class ReflectionSymmetry  {
 
 		typedef typename GeometryType::ComplexOrRealType ComplexOrRealType;
+		typedef PsimagLite::Matrix<ComplexOrRealType> MatrixType;
 		typedef typename PsimagLite::Real<ComplexOrRealType>::Type RealType;
 		typedef typename BasisType::WordType WordType;
 		typedef ReflectionItem ItemType;
@@ -177,6 +178,21 @@ namespace LanczosPlusPlus {
 
 		PsimagLite::String name() const { return "reflection"; }
 
+		void fullDiag(VectorType& eigs,MatrixType& fm) const
+		{
+			if (matrixStored_[pointer_].row() > 1000)
+				throw PsimagLite::RuntimeError("fullDiag too big\n");
+
+			fm = matrixStored_[pointer_].toDense();
+			diag(fm,eigs,'V');
+			
+			if (!printMatrix_) return;
+
+			for (SizeType i=0;i<eigs.size();i++)
+				std::cout<<eigs[i]<<"\n";
+			std::cout<<fm;
+                }
+	
 		template<typename SomeVectorType>
 		void matrixVectorProduct(SomeVectorType &x, SomeVectorType const &y) const
 		{

@@ -35,6 +35,8 @@ namespace LanczosPlusPlus {
 		typedef typename GeometryType::ComplexOrRealType ComplexOrRealType;
 		typedef typename PsimagLite::Real<ComplexOrRealType>::Type RealType;
 		typedef typename BasisType::WordType WordType;
+		typedef PsimagLite::Matrix<ComplexOrRealType> MatrixType;
+		typedef typename PsimagLite::Vector<RealType>::Type VectorRealType;
 
 	public:
 
@@ -56,9 +58,25 @@ namespace LanczosPlusPlus {
 				if (nrows > 40)
 					throw PsimagLite::RuntimeError("printMatrix too big\n");
 				std::cout<<matrixStored_.toDense();
-				PsimagLite::Matrix<ComplexOrRealType> matrixCopy = matrixStored_.toDense();
-				fullDiag(matrixCopy);
+				PsimagLite::Matrix<ComplexOrRealType> matrixCopy;
+				VectorRealType eigs(matrixCopy.n_row());
+				fullDiag(eigs,matrixCopy);
 			}
+		}
+
+		void fullDiag(VectorType& eigs,MatrixType& fm) const
+		{
+			if (matrixStored_.row() > 1000)
+				throw PsimagLite::RuntimeError("fullDiag too big\n");
+
+			fm = matrixStored_.toDense();
+			diag(fm,eigs,'V');
+
+			if (!printMatrix_) return;
+
+			for (SizeType i=0;i<eigs.size();i++)
+				std::cout<<eigs[i]<<"\n";
+			std::cout<<fm;
 		}
 
 		void transformMatrix(typename PsimagLite::Vector<SparseMatrixType>::Type& matrix1,
@@ -86,15 +104,6 @@ namespace LanczosPlusPlus {
 		}
 
 	private:
-
-		//! For debugging purpose only:
-		void fullDiag(PsimagLite::Matrix<ComplexOrRealType>& fm) const
-		{
-			typename PsimagLite::Vector<RealType>::Type e(fm.n_row());
-			diag(fm,e,'N');
-			for (SizeType i=0;i<e.size();i++)
-				std::cout<<e[i]<<"\n";
-		}
 
 		SparseMatrixType matrixStored_;
 		bool printMatrix_;

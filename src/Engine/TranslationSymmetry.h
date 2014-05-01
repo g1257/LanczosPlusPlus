@@ -181,6 +181,7 @@ private:
 	class TranslationSymmetry  {
 
 		typedef typename GeometryType::ComplexOrRealType ComplexOrRealType;
+		typedef PsimagLite::Matrix<ComplexOrRealType> MatrixType;
 		typedef typename PsimagLite::Real<ComplexOrRealType>::Type RealType;
 		typedef typename BasisType::WordType WordType;
 		typedef PsimagLite::SparseVector<ComplexOrRealType> SparseVectorType;
@@ -293,6 +294,21 @@ private:
 		void setPointer(SizeType p) { pointer_=p; }
 
 		PsimagLite::String name() const { return "translation"; }
+
+		void fullDiag(VectorType& eigs,MatrixType& fm) const
+		{
+			if (matrixStored_[pointer_].row() > 1000)
+				throw PsimagLite::RuntimeError("fullDiag too big\n");
+
+			fm = matrixStored_[pointer_].toDense();
+			diag(fm,eigs,'V');
+
+			if (!printMatrix_) return;
+
+			for (SizeType i=0;i<eigs.size();i++)
+				std::cout<<eigs[i]<<"\n";
+			std::cout<<fm;
+		}
 
 	private:
 

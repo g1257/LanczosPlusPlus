@@ -21,38 +21,36 @@ Please see full open source license included in file LICENSE.
 #ifndef FEBASED_SC_H
 #define FEBASED_SC_H
 
-#include "CrsMatrix.h"
 #include "BasisFeAsBasedSc.h"
 #include "SparseRow.h"
 #include "ParametersModelFeAs.h"
+#include "ModelBase.h"
 
 namespace LanczosPlusPlus {
-	
-	template<typename RealType_,typename GeometryType_,typename InputType_>
-	class FeBasedSc {
+
+	template<typename RealType,typename GeometryType,typename InputType>
+	class FeBasedSc : public ModelBase<RealType,GeometryType,InputType> {
 		
-		typedef PsimagLite::Matrix<RealType_> MatrixType;
+		typedef PsimagLite::Matrix<RealType> MatrixType;
+		typedef ModelBase<RealType,GeometryType,InputType> BaseType;
 
 		enum {SPIN_UP = ProgramGlobals::SPIN_UP,
 			  SPIN_DOWN = ProgramGlobals::SPIN_DOWN};
 
 	public:
 
-		typedef InputType_ InputType;
-		typedef ParametersModelFeAs<RealType_> ParametersModelType;
-		typedef GeometryType_ GeometryType;
+		typedef ParametersModelFeAs<RealType> ParametersModelType;
 		typedef BasisFeAsBasedSc<GeometryType> BasisType;
 		typedef typename BasisType::WordType WordType;
-		typedef RealType_ RealType;
-		typedef PsimagLite::CrsMatrix<RealType> SparseMatrixType;
+		typedef typename BaseType::SparseMatrixType SparseMatrixType;
+		typedef typename BaseType::VectorType VectorType;
 		typedef PsimagLite::SparseRow<SparseMatrixType> SparseRowType;
-		typedef typename PsimagLite::Vector<RealType>::Type VectorType;
 		enum {TERM_HOPPINGS=0,TERM_J=1};
 		static int const FERMION_SIGN = BasisType::FERMION_SIGN;
 		
 		
-		FeBasedSc(SizeType nup,SizeType ndown,const ParametersModelType& mp,const GeometryType& geometry)
-		: mp_(mp),geometry_(geometry),basis_(geometry,nup,ndown,mp_.orbitals)
+		FeBasedSc(SizeType nup,SizeType ndown,const InputType& io,const GeometryType& geometry)
+		: mp_(io),geometry_(geometry),basis_(geometry,nup,ndown,mp_.orbitals)
 		{
 		}
 		
@@ -639,7 +637,7 @@ namespace LanczosPlusPlus {
 			}
 		}
 
-		const ParametersModelType& mp_;
+		const ParametersModelType mp_;
 		const GeometryType& geometry_;
 		BasisType basis_;
 		

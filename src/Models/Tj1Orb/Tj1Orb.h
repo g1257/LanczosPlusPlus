@@ -11,34 +11,33 @@
 #include "TypeToString.h"
 #include "SparseRow.h"
 #include "ParametersTj1Orb.h"
+#include "ModelBase.h"
 
 namespace LanczosPlusPlus {
 
-template<typename RealType_,typename GeometryType_,typename InputType_>
-class Tj1Orb {
+template<typename RealType,typename GeometryType,typename InputType>
+class Tj1Orb  : public ModelBase<RealType,GeometryType,InputType> {
 
-	typedef PsimagLite::Matrix<RealType_> MatrixType;
+	typedef PsimagLite::Matrix<RealType> MatrixType;
 	typedef std::pair<SizeType,SizeType> PairType;
+	typedef ModelBase<RealType,GeometryType,InputType> BaseType;
 
 public:
 
-	typedef InputType_ InputType;
-	typedef ParametersTj1Orb<RealType_,InputType> ParametersModelType;
-	typedef GeometryType_ GeometryType;
-	typedef PsimagLite::CrsMatrix<RealType_> SparseMatrixType;
-	typedef PsimagLite::SparseRow<SparseMatrixType> SparseRowType;
+	typedef ParametersTj1Orb<RealType,InputType> ParametersModelType;
 	typedef BasisTj1OrbLanczos<GeometryType> BasisType;
 	typedef typename BasisType::WordType WordType;
-	typedef RealType_ RealType;
-	typedef typename PsimagLite::Vector<RealType>::Type VectorType;
+	typedef typename BaseType::SparseMatrixType SparseMatrixType;
+	typedef typename BaseType::VectorType VectorType;
+	typedef PsimagLite::SparseRow<SparseMatrixType> SparseRowType;
 
 	static int const FERMION_SIGN = BasisType::FERMION_SIGN;
 
 	Tj1Orb(SizeType nup,
 	       SizeType ndown,
-	       const ParametersModelType& mp,
+	       InputType& io,
 	       const GeometryType& geometry)
-	    : mp_(mp),
+	    : mp_(io),
 	      geometry_(geometry),
 	      basis_(geometry,nup,ndown),
 	      hoppings_(geometry_.numberOfSites(),geometry_.numberOfSites()),
@@ -254,7 +253,8 @@ private:
 				WordType bra2= ket2 ^(BasisType::bitmask(i)|BasisType::bitmask(j));
 				SizeType temp = basis.perfectIndex(ket1,bra2);
 				int extraSign = (s2i==1) ? FERMION_SIGN : 1;
-				RealType cTemp = h*extraSign*basis_.doSign(ket1,ket2,i,j,ProgramGlobals::SPIN_DOWN);
+				RealType cTemp = h*extraSign*
+				                 basis_.doSign(ket1,ket2,i,j,ProgramGlobals::SPIN_DOWN);
 				sparseRow.add(temp,cTemp);
 			}
 		}
@@ -334,7 +334,7 @@ private:
 		return s;
 	}
 
-	const ParametersModelType& mp_;
+	const ParametersModelType mp_;
 	const GeometryType& geometry_;
 	BasisType basis_;
 	PsimagLite::Matrix<RealType> hoppings_;

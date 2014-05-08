@@ -7,18 +7,20 @@
 
 #include "BitManip.h"
 #include "ProgramGlobals.h"
+#include "BasisBase.h"
 
 namespace LanczosPlusPlus {
 
 template<typename GeometryType>
-class BasisTj1OrbLanczos {
+class BasisTj1OrbLanczos : public BasisBase<GeometryType> {
 
 	typedef ProgramGlobals::PairIntType PairIntType;
 
 public:
 
-	typedef ProgramGlobals::WordType WordType;
-	typedef PsimagLite::Vector<WordType>::Type VectorWordType;
+	typedef BasisBase<GeometryType> BaseType;
+	typedef typename BaseType::WordType WordType;
+	typedef typename BaseType::VectorWordType VectorWordType;
 	static VectorWordType bitmask_;
 
 	enum {OPERATOR_NIL=ProgramGlobals::OPERATOR_NIL,
@@ -33,9 +35,9 @@ public:
 	{
 		assert(bitmask_.size()==0 || bitmask_.size()==geometry_.numberOfSites());
 		if (bitmask_.size()==0) doBitmask();
-		PsimagLite::Vector<WordType>::Type data1;
+		VectorWordType data1;
 		fillOneSector(data1,nup);
-		PsimagLite::Vector<WordType>::Type data2;
+		VectorWordType data2;
 		fillOneSector(data2,ndown);
 		combineAndFilter(data1,data2);
 		std::sort(data_.begin(),data_.end());
@@ -51,7 +53,7 @@ public:
 	//! Spin up and spin down
 	SizeType dofs() const { return 2; }
 
-	SizeType perfectIndex(PsimagLite::Vector<WordType>::Type& kets) const
+	SizeType perfectIndex(const VectorWordType& kets) const
 	{
 		assert(kets.size()==2);
 		return perfectIndex(kets[0],kets[1]);
@@ -162,15 +164,17 @@ public:
 	int doSign(WordType ket1,
 	           WordType ket2,
 	           SizeType i,
+	           SizeType orb1,
 	           SizeType j,
+	           SizeType orb2,
 	           SizeType spin) const
 	{
 		assert(i <= j);
 		return (spin==ProgramGlobals::SPIN_UP) ? doSign(ket1,i,j): doSign(ket2,i,j);
 	}
 
-	PairIntType getBraIndex(const WordType& ket1,
-	                        const WordType& ket2,
+	PairIntType getBraIndex(WordType ket1,
+	                        WordType ket2,
 	                        SizeType operatorLabel,
 	                        SizeType site,
 	                        SizeType spin,
@@ -204,6 +208,14 @@ public:
 		}
 
 		return getBraIndex_(ket1,ket2,operatorLabel,site,spin,orb);
+	}
+
+	bool hasNewParts(std::pair<SizeType,SizeType>& newParts,
+	                 SizeType what,
+	                 SizeType spin,
+	                 const std::pair<SizeType,SizeType>& orbs) const
+	{
+		throw PsimagLite::RuntimeError("hasNewParts\n");
 	}
 
 	template<typename GeometryType2>
@@ -258,7 +270,7 @@ private:
 		return (tmp>0);
 	}
 
-	void fillOneSector(PsimagLite::Vector<WordType>::Type& data1,SizeType npart) const
+	void fillOneSector(VectorWordType& data1,SizeType npart) const
 	{
 		/* compute size of basis */
 		SizeType hilbert=1;
@@ -289,8 +301,8 @@ private:
 		}
 	}
 
-	void combineAndFilter(const PsimagLite::Vector<WordType>::Type& data1,
-	                      const PsimagLite::Vector<WordType>::Type& data2)
+	void combineAndFilter(const VectorWordType& data1,
+	                      const VectorWordType& data2)
 	{
 		WordType tmp = 0;
 		WordType tmp2 = 0;
@@ -412,7 +424,7 @@ private:
 	const GeometryType& geometry_;
 	SizeType nup_;
 	SizeType ndown_;
-	PsimagLite::Vector<WordType>::Type data_;
+	VectorWordType data_;
 }; // class BasisTj1OrbLanczos
 
 template<typename GeometryType>

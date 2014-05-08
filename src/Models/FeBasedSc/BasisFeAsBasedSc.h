@@ -21,11 +21,12 @@ Please see full open source license included in file LICENSE.
 #ifndef BASIS_FEASBASED_SC_H
 #define BASIS_FEASBASED_SC_H
 #include "BasisOneSpinFeAs.h"
+#include "BasisBase.h"
 
 namespace LanczosPlusPlus {
 
 template<typename GeometryType>
-class BasisFeAsBasedSc {
+class BasisFeAsBasedSc : public BasisBase<GeometryType> {
 
 	typedef ProgramGlobals::PairIntType PairIntType;
 
@@ -36,8 +37,10 @@ class BasisFeAsBasedSc {
 
 public:
 
+	typedef BasisBase<GeometryType> BaseType;
+	typedef typename BaseType::WordType WordType;
+	typedef typename BaseType::VectorWordType VectorWordType;
 	typedef BasisOneSpinFeAs BasisType;
-	typedef BasisType::WordType WordType;
 	static int const FERMION_SIGN = BasisType::FERMION_SIGN;
 
 	BasisFeAsBasedSc(const GeometryType& geometry, SizeType nup,SizeType ndown,SizeType orbitals)
@@ -74,7 +77,7 @@ public:
 		return (spin==ProgramGlobals::SPIN_UP) ? basis1_[x] : basis2_[y];
 	}
 
-	SizeType perfectIndex(const PsimagLite::Vector<WordType>::Type& kets) const
+	SizeType perfectIndex(const VectorWordType& kets) const
 	{
 		assert(kets.size()==2);
 		return  perfectIndex(kets[0],kets[1]);

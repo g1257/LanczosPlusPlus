@@ -21,7 +21,7 @@ PsimagLite::String license = "Copyright (c) 2009-2012, UT-Battelle, LLC\n"
 #include "Concurrency.h"
 #include "Engine.h"
 #include "ProgramGlobals.h"
-
+#include "ModelBase.h"
 #include "Tj1Orb.h"
 #include "Immm.h"
 #include "HubbardOneOrbital.h"
@@ -50,6 +50,11 @@ typedef PsimagLite::Concurrency ConcurrencyType;
 typedef PsimagLite::InputNg<InputCheck> InputNgType;
 typedef PsimagLite::Geometry<RealType,InputNgType::Readable,ProgramGlobals> GeometryType;
 typedef std::pair<SizeType,SizeType> PairType;
+typedef ModelBase<RealType,GeometryType, InputNgType::Readable> ModelBaseType;
+typedef Tj1Orb<RealType,GeometryType, InputNgType::Readable> Tj1OrbType;
+typedef Immm<RealType,GeometryType, InputNgType::Readable> ImmmType;
+typedef HubbardOneOrbital<RealType,GeometryType, InputNgType::Readable> HubbardOneOrbitalType;
+typedef FeBasedSc<RealType,GeometryType, InputNgType::Readable> FeBasedScType;
 
 void fillOrbsOrSpin(PsimagLite::Vector<PairType>::Type& spinV,
                     const PsimagLite::Vector<PsimagLite::String>::Type& strV)
@@ -143,36 +148,13 @@ void mainLoop2(ModelType& model,
 
 template<typename ModelType>
 void mainLoop(InputNgType::Readable& io,
-              const GeometryType& geometry,
+              const ModelType& model,
               const PsimagLite::Vector<SizeType>::Type& gf,
               PsimagLite::Vector<SizeType>::Type& sites,
               const PsimagLite::Vector<SizeType>::Type& cicj,
               const PsimagLite::Vector<PairType>::Type& spins)
 {
-	typedef typename ModelType::ParametersModelType ParametersModelType;
 	typedef typename ModelType::BasisType BasisType;
-
-	// read model parameters
-	ParametersModelType mp(io);
-
-	std::cout<<mp;
-	SizeType nup = 0;
-	SizeType ndown = 0;
-
-	try {
-		io.read(nup,"TargetElectronsUp");
-		io.read(ndown,"TargetElectronsDown");
-	} catch (std::exception& e) {
-		PsimagLite::Vector<RealType>::Type v;
-		io.read(v,"TargetQuantumNumbers");
-		if (v.size() < 2)
-			throw PsimagLite::RuntimeError("TargetQuantumNumbers\n");
-		nup = static_cast<SizeType>(v[0]*geometry.numberOfSites());
-		ndown = static_cast<SizeType>(v[1]*geometry.numberOfSites());
-	}
-
-	//! Setup the Model
-	ModelType model(nup,ndown,mp,geometry);
 
 	int tmp = 0;
 	try {
@@ -186,6 +168,7 @@ void mainLoop(InputNgType::Readable& io,
 	} catch(std::exception& e) {}
 
 	bool useReflectionSymmetry = (tmp==1) ? true : false;
+	const GeometryType& geometry = model.geometry();
 
 	if (useTranslationSymmetry) {
 		mainLoop2<ModelType,TranslationSymmetry<GeometryType,BasisType> >(model,
@@ -212,6 +195,47 @@ void mainLoop(InputNgType::Readable& io,
 		                                                              cicj,
 		                                                              spins);
 	}
+}
+
+ModelBaseType* getModel(InputNgType::Readable& io,
+                                          const GeometryType& geometry)
+{
+	SizeType nup = 0;
+	SizeType ndown = 0;
+
+	try {
+		io.read(nup,"TargetElectronsUp");
+		io.read(ndown,"TargetElectronsDown");
+	} catch (std::exception& e) {
+		PsimagLite::Vector<RealType>::Type v;
+		io.read(v,"TargetQuantumNumbers");
+		if (v.size() < 2)
+			throw PsimagLite::RuntimeError("TargetQuantumNumbers\n");
+		nup = static_cast<SizeType>(v[0]*geometry.numberOfSites());
+		ndown = static_cast<SizeType>(v[1]*geometry.numberOfSites());
+	}
+
+	PsimagLite::String model("");
+	io.readline(model,"Model=");
+
+	ModelBaseType* modelPtr = 0;
+
+	if (model=="Tj1Orb" || model == "HeisenbergSpinOneHalf") {
+		modelPtr = new Tj1OrbType(nup,ndown,io,geometry);
+	} else if (model=="Immm") {
+		modelPtr = new ImmmType(nup,ndown,io,geometry);
+	} else if (model=="HubbardOneBand" ||
+	           model=="HubbardOneBandExtended" ||
+	           model=="SuperHubbardExtended") {
+		modelPtr = new HubbardOneOrbitalType(nup,ndown,io,geometry);
+	} else if (model=="FeAsBasedSc" || model=="FeAsBasedScExtended") {
+		modelPtr = new FeBasedScType(nup,ndown,io,geometry);
+	} else {
+		std::cerr<<"No known model "<<model<<"\n";
+		return 0;
+	}
+
+	return modelPtr;
 }
 
 int main(int argc,char *argv[])
@@ -265,26 +289,12 @@ int main(int argc,char *argv[])
 	// print license
 	if (ConcurrencyType::root()) std::cerr<<license;
 
-	PsimagLite::String model("");
-	io.readline(model,"Model=");
+	ModelBaseType* modelPtr = getModel(io,geometry);
 
-	if (model=="Tj1Orb" || model == "HeisenbergSpinOneHalf") {
-		mainLoop<Tj1Orb<RealType,GeometryType, InputNgType::Readable> >
-		        (io,geometry,gf,sites,cicj,spins);
-	} else if (model=="Immm") {
-		mainLoop<Immm<RealType,GeometryType, InputNgType::Readable> >
-		        (io,geometry,gf,sites,cicj,spins);
-	} else if (model=="HubbardOneBand" ||
-	           model=="HubbardOneBandExtended" ||
-	           model=="SuperHubbardExtended") {
-		mainLoop<HubbardOneOrbital<RealType,GeometryType, InputNgType::Readable> >
-		        (io,geometry,gf,sites,cicj,spins);
-	} else if (model=="FeAsBasedSc" || model=="FeAsBasedScExtended") {
-		mainLoop<FeBasedSc<RealType,GeometryType, InputNgType::Readable> >
-		        (io,geometry,gf,sites,cicj,spins);
-	} else {
-		std::cerr<<"No known model "<<model<<"\n";
-		return 1;
-	}
+	if (modelPtr == 0) return 1;
+
+	mainLoop(io,*modelPtr,gf,sites,cicj,spins);
+
+	delete modelPtr;
 }
 

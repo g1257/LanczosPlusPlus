@@ -126,6 +126,8 @@ namespace LanczosPlusPlus {
 			return ptr;
 		}
 
+		void print(std::ostream& os) const { os<<mp_; }
+
 	private:
 
 		bool hasNewPartsCorCdagger(std::pair<SizeType,SizeType>& newParts,
@@ -228,8 +230,8 @@ namespace LanczosPlusPlus {
 					SizeType temp = basis.perfectIndex(bra1,ket2);
 					int extraSign = (s1i==1) ? FERMION_SIGN : 1;
 					RealType cTemp = h*extraSign*
-					                 basis_.doSign(ket1,ket2,i,orb,j,orb,SPIN_UP);
-					assert(temp<basis_.size());
+					                 basis.doSign(ket1,ket2,i,orb,j,orb,SPIN_UP);
+					assert(temp<basis.size());
 					sparseRow.add(temp,cTemp);
 				}
 
@@ -237,8 +239,8 @@ namespace LanczosPlusPlus {
 					WordType bra2= ket2 ^(BasisType::bitmask(i)|BasisType::bitmask(j));
 					SizeType temp = basis.perfectIndex(ket1,bra2);
 					int extraSign = (s2i==1) ? FERMION_SIGN : 1;
-					RealType cTemp = h*extraSign*basis_.doSign(ket1,ket2,i,orb,j,orb,SPIN_DOWN);
-					assert(temp<basis_.size());
+					RealType cTemp = h*extraSign*basis.doSign(ket1,ket2,i,orb,j,orb,SPIN_DOWN);
+					assert(temp<basis.size());
 					sparseRow.add(temp,cTemp);
 				}
 			}
@@ -330,7 +332,7 @@ namespace LanczosPlusPlus {
 			return geometry_(i,0,j,0,TERM_NINJ);
 		}
 
-		const ParametersModelType& mp_;
+		const ParametersModelType mp_;
 		const GeometryType& geometry_;
 		BasisType basis_;
 		PsimagLite::Matrix<RealType> hoppings_;

@@ -179,6 +179,8 @@ class Immm : public ModelBase<RealType,GeometryType,InputType> {
 			return ptr;
 		}
 
+		void print(std::ostream& os) const { os<<mp_; }
+
 	private:
 
 		RealType hoppings(SizeType i,SizeType orb1,SizeType j,SizeType orb2) const
@@ -256,6 +258,7 @@ class Immm : public ModelBase<RealType,GeometryType,InputType> {
 								basis.getN(ket2,ket2,i,ProgramGlobals::SPIN_DOWN,orb);
 
 						// Hubbard term U0
+						assert(i < mp_.hubbardU.size());
 						s += mp_.hubbardU[i] * (1.0-basis.isThereAnElectronAt(ket1,ket2,
 								i,ProgramGlobals::SPIN_UP,orb)) * (1.0-basis.isThereAnElectronAt(ket1,ket2,
 								i,ProgramGlobals::SPIN_DOWN,orb));
@@ -293,7 +296,7 @@ class Immm : public ModelBase<RealType,GeometryType,InputType> {
 				accModifiedState(z,operatorLabel,newBasis,gsVector,site,spin,orb,isign);
 		}
 
-		const ParametersModelType& mp_;
+		const ParametersModelType mp_;
 		const GeometryType& geometry_;
 		BasisType basis_;
 		mutable typename PsimagLite::Vector<BasisType*>::Type garbage_;

@@ -143,6 +143,8 @@ public:
 		return ptr;
 	}
 
+	void print(std::ostream& os) const { os<<mp_; }
+
 private:
 
 	bool hasNewPartsCorCdagger(std::pair<SizeType,SizeType>& newParts,

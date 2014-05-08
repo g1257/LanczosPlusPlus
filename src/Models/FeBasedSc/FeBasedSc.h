@@ -199,6 +199,8 @@ namespace LanczosPlusPlus {
 			return ptr;
 		}
 
+		void print(std::ostream& os) const { os<<mp_; }
+
 	private:
 
 		void setOffDiagonalDecay(SparseRowType& sparseRow,

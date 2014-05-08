@@ -289,8 +289,9 @@ int main(int argc,char *argv[])
 
 	if (modelPtr == 0) return 1;
 
+	std::cout<<(*modelPtr);
 	mainLoop(io,*modelPtr,gf,sites,cicj,spins);
 
-	//delete modelPtr;
+	delete modelPtr;
 }
 

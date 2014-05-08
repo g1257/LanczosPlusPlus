@@ -106,8 +106,7 @@ namespace LanczosPlusPlus {
 				sparseRow.add(ispace,diag[ispace]);
 				for (SizeType i=0;i<nsite;i++) {
 					for (SizeType orb=0;orb<mp_.orbitals;orb++) {
-						setHoppingTerm(sparseRow,ket1,ket2,
-								i,orb,basis);
+						setHoppingTerm(sparseRow,ket1,ket2,i,orb,basis);
 
 						if (mp_.feAsMode == 0) {
 							setU2OffDiagonalTerm(sparseRow,ket1,ket2,
@@ -207,7 +206,7 @@ namespace LanczosPlusPlus {
 								 const WordType& ket2,
 								 SizeType i,
 								 SizeType orb,
-								 const BasisType &basis) const
+								 const BasisBaseType &basis) const
 		{
 			for (SizeType spin1 = 0; spin1 < 2; ++spin1) {
 				for (SizeType spin2 = 0; spin2 < 2; ++spin2) {
@@ -245,7 +244,7 @@ namespace LanczosPlusPlus {
 		                    WordType ket2,
 		                    SizeType i,
 		                    SizeType orb,
-		                    const BasisType& basis) const
+		                    const BasisBaseType& basis) const
 		{
 			RealType s = mp_.hubbardU[orb+orb*mp_.orbitals] *
 			        basis.isThereAnElectronAt(ket1,ket2,i,SPIN_UP,orb) *
@@ -266,13 +265,12 @@ namespace LanczosPlusPlus {
 			return -geometry_(i,orb1,j,orb2,TERM_HOPPINGS);
 		}
 
-		void setHoppingTerm(
-				SparseRowType &sparseRow,
-				const WordType& ket1,
-				const WordType& ket2,
-				SizeType i,
-				SizeType orb,
-				const BasisType &basis) const
+		void setHoppingTerm(SparseRowType &sparseRow,
+		                    const WordType& ket1,
+		                    const WordType& ket2,
+		                    SizeType i,
+		                    SizeType orb,
+		                    const BasisBaseType &basis) const
 		{
 			SizeType ii = i*mp_.orbitals+orb;
 			WordType s1i=(ket1 & BasisType::bitmask(ii));
@@ -321,7 +319,7 @@ namespace LanczosPlusPlus {
 				const WordType& ket2,
 				SizeType i,
 				SizeType orb1,
-				const BasisType &basis) const
+				const BasisBaseType &basis) const
 		{
 			RealType val = FERMION_SIGN * mp_.hubbardU[2]*0.5;
 
@@ -342,7 +340,7 @@ namespace LanczosPlusPlus {
 				SizeType j,
 				SizeType orb2,
 				RealType value,
-				const BasisType &basis) const
+				const BasisBaseType &basis) const
 		{
 			if (splusSminusNonZero(ket1,ket2,i,orb1,j,orb2,basis)==0) return;
 
@@ -363,7 +361,7 @@ namespace LanczosPlusPlus {
 				SizeType i,
 				SizeType orb1,
 				SizeType orb2,
-				const BasisType &basis) const
+				const BasisBaseType &basis) const
 		{
 			assert(orb1!=orb2);
 			if (u3TermNonZero(ket1,ket2,i,orb1,orb2,basis)==0) return;
@@ -382,7 +380,7 @@ namespace LanczosPlusPlus {
 				const WordType& ket2,
 				SizeType i,
 				SizeType orb,
-				const BasisType &basis) const
+				const BasisBaseType& basis) const
 		{
 			for (SizeType j=0;j<geometry_.numberOfSites();j++) {
 				RealType value = jCoupling(i,j)*0.5;
@@ -407,7 +405,7 @@ namespace LanczosPlusPlus {
 				SizeType orb1,
 				SizeType j,
 				SizeType orb2,
-				const BasisType &basis) const
+				const BasisBaseType &basis) const
 		{
 			if (i>j) return jTermSign(ket1,ket2,j,orb2,i,orb1,basis);
 			int x = basis.doSign(ket1,ket2,i,orb1,j,orb2,SPIN_UP);
@@ -416,7 +414,7 @@ namespace LanczosPlusPlus {
 		}
 
 		void calcDiagonalElements(typename PsimagLite::Vector<RealType>::Type& diag,
-		                          const BasisType &basis) const
+		                          const BasisBaseType& basis) const
 		{
 			SizeType hilbert=basis.size();
 			SizeType nsite = geometry_.numberOfSites();
@@ -443,7 +441,7 @@ namespace LanczosPlusPlus {
 			}
 		}
 
-		RealType findS(SizeType nsite,WordType ket1,WordType ket2,SizeType ispace,const BasisType& basis) const
+		RealType findS(SizeType nsite,WordType ket1,WordType ket2,SizeType ispace,const BasisBaseType& basis) const
 		{
 			RealType s = 0;
 			for (SizeType i=0;i<nsite;i++) {
@@ -459,9 +457,9 @@ namespace LanczosPlusPlus {
 					
 					// Potential term
 					s += mp_.potentialV[i+(orb+mp_.orbitals*0)*nsite]*
-							basis.getN(ket1,i,SPIN_UP,orb) +
+							basis.getN(ket1,ket1,i,SPIN_UP,orb) +
 						mp_.potentialV[i+(orb+mp_.orbitals*1)*nsite]*
-							 basis.getN(ket2,i,ProgramGlobals::SPIN_DOWN,orb);
+							 basis.getN(ket2,ket2,i,SPIN_DOWN,orb);
 
 				}
 			}
@@ -473,7 +471,7 @@ namespace LanczosPlusPlus {
 		                      WordType ket2,
 		                      SizeType i,
 		                      SizeType orb,
-		                      const BasisType& basis) const
+		                      const BasisBaseType& basis) const
 		{
 			// Hubbard term U0
 			RealType s = mp_.hubbardU[0] * basis.isThereAnElectronAt(ket1,ket2,
@@ -511,7 +509,7 @@ namespace LanczosPlusPlus {
 		                      WordType ket2,
 		                      SizeType i,
 		                      SizeType orb,
-		                      const BasisType& basis) const
+		                      const BasisBaseType& basis) const
 		{
 			if (i > 0) return 0.0;
 
@@ -546,7 +544,7 @@ namespace LanczosPlusPlus {
 						SizeType orb1,
 						SizeType j,
 						SizeType orb2,
-						const BasisType &basis) const
+						const BasisBaseType& basis) const
 		{
 			if (basis.isThereAnElectronAt(ket1,ket2,
 					j,SPIN_UP,orb2)==0) return 0;
@@ -565,7 +563,7 @@ namespace LanczosPlusPlus {
 				SizeType i,
 				SizeType orb1,
 				SizeType orb2,
-				const BasisType &basis) const
+				const BasisBaseType &basis) const
 		{
 			if (basis.isThereAnElectronAt(ket1,ket2,
 					i,SPIN_UP,orb2)==0) return 0;
@@ -583,7 +581,7 @@ namespace LanczosPlusPlus {
 				const WordType& ket2,
 				SizeType i,
 				SizeType orb,
-				const BasisType &basis) const
+				const BasisBaseType& basis) const
 		{
 			SizeType sum = 0;
 			for (SizeType spin=0;spin<2;spin++)
@@ -596,7 +594,7 @@ namespace LanczosPlusPlus {
 				const WordType& ket2,
 				SizeType i,
 				SizeType orb,
-				const BasisType &basis) const
+				const BasisBaseType& basis) const
 		{
 			RealType sz = basis.isThereAnElectronAt(ket1,ket2,i,SPIN_UP,orb);
 			sz -= basis.isThereAnElectronAt(ket1,ket2,i,ProgramGlobals::SPIN_DOWN,orb);
@@ -614,7 +612,7 @@ namespace LanczosPlusPlus {
 								 const WordType& ket2,
 								 SizeType i,
 		                                                 SizeType orb1,
-								 const BasisType &basis) const
+								 const BasisBaseType &basis) const
 		{
 			if (i > 0) return;
 

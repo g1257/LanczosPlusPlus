@@ -88,6 +88,13 @@ public:
 		return basis1_.perfectIndex(ket1) + basis2_.perfectIndex(ket2)*basis1_.size();
 	}
 
+	SizeType perfectIndex(WordType newKet,
+	                      SizeType ispace,
+	                      SizeType spinOfNew) const
+	{
+		throw PsimagLite::RuntimeError("perfectIndex\n");
+	}
+
 	SizeType getN(SizeType i,SizeType spin,SizeType orb) const
 	{
 		SizeType y = i/basis1_.size();
@@ -95,9 +102,9 @@ public:
 		return (spin==ProgramGlobals::SPIN_UP) ? basis1_.getN(x,orb) : basis2_.getN(y,orb);
 	}
 
-	SizeType getN(WordType ket,SizeType site,SizeType spin,SizeType orb) const
+	SizeType getN(WordType ket1, WordType ket2, SizeType site,SizeType spin,SizeType orb) const
 	{
-		return (spin==SPIN_UP) ? basis1_.getN(ket,site,orb) : basis2_.getN(ket,site,orb);
+		return (spin==SPIN_UP) ? basis1_.getN(ket1,site,orb) : basis2_.getN(ket2,site,orb);
 	}
 
 	PairIntType getBraIndex(WordType ket1,
@@ -150,12 +157,11 @@ public:
 		return s*s2;
 	}
 
-	SizeType isThereAnElectronAt(
-	    SizeType ket1,
-	    SizeType ket2,
-	    SizeType site,
-	    SizeType spin,
-	    SizeType orb) const
+	SizeType isThereAnElectronAt(WordType ket1,
+	                             WordType ket2,
+	                             SizeType site,
+	                             SizeType spin,
+	                             SizeType orb) const
 	{
 		if (spin==ProgramGlobals::SPIN_UP)
 			return basis1_.isThereAnElectronAt(ket1,site,orb);
@@ -176,6 +182,16 @@ public:
 		str += PsimagLite::String("hasNewParts: unsupported operator ");
 		str += ProgramGlobals::id2Operator(what) + "\n";
 		throw std::runtime_error(str.c_str());
+	}
+
+	SizeType orbsPerSite(SizeType i) const
+	{
+		throw PsimagLite::RuntimeError("orbsPerSite\n");
+	}
+
+	SizeType orbs() const
+	{
+		throw PsimagLite::RuntimeError("orbs\n");
 	}
 
 private:

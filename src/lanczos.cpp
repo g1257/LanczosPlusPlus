@@ -224,12 +224,12 @@ ModelBaseType* getModel(InputNgType::Readable& io,
 	           model=="HubbardOneBandExtended" ||
 	           model=="SuperHubbardExtended") {
 		modelPtr = new HubbardOneOrbitalType(nup,ndown,io,geometry);
-	} /* else if (model=="FeAsBasedSc" || model=="FeAsBasedScExtended") {
+	} else if (model=="FeAsBasedSc" || model=="FeAsBasedScExtended") {
 		modelPtr = new FeBasedScType(nup,ndown,io,geometry);
 	} else {
 		std::cerr<<"No known model "<<model<<"\n";
 		return 0;
-	}*/
+	}
 
 	return modelPtr;
 }

@@ -220,11 +220,11 @@ ModelBaseType* getModel(InputNgType::Readable& io,
 		modelPtr = new Tj1OrbType(nup,ndown,io,geometry);
 	} else if (model=="Immm") {
 		modelPtr = new ImmmType(nup,ndown,io,geometry);
-	} /*else if (model=="HubbardOneBand" ||
+	} else if (model=="HubbardOneBand" ||
 	           model=="HubbardOneBandExtended" ||
 	           model=="SuperHubbardExtended") {
 		modelPtr = new HubbardOneOrbitalType(nup,ndown,io,geometry);
-	} else if (model=="FeAsBasedSc" || model=="FeAsBasedScExtended") {
+	} /* else if (model=="FeAsBasedSc" || model=="FeAsBasedScExtended") {
 		modelPtr = new FeBasedScType(nup,ndown,io,geometry);
 	} else {
 		std::cerr<<"No known model "<<model<<"\n";

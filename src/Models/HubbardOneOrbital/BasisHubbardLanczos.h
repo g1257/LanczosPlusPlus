@@ -50,6 +50,13 @@ namespace LanczosPlusPlus {
 			       basis2_.perfectIndex(ket2)*basis1_.size();
 		}
 
+		virtual SizeType perfectIndex(WordType newKet,
+	                                      SizeType ispace,
+	                                      SizeType spinOfNew) const
+		{
+			throw PsimagLite::RuntimeError("perfectIndex\n");
+		}
+
 		SizeType electrons(SizeType what) const
 		{
 			return (what==ProgramGlobals::SPIN_UP) ? basis1_.electrons() : basis2_.electrons();
@@ -63,16 +70,17 @@ namespace LanczosPlusPlus {
 		}
 
 		SizeType isThereAnElectronAt(WordType ket1,
-								   WordType ket2,
-								   SizeType site,
-								   SizeType spin) const
+		                             WordType ket2,
+		                             SizeType site,
+		                             SizeType spin,
+		                             SizeType orb) const
 		{
 			if (spin==ProgramGlobals::SPIN_UP)
 				return basis1_.isThereAnElectronAt(ket1,site);
 			return basis2_.isThereAnElectronAt(ket2,site);
 		}
 
-		SizeType getN(WordType ket1,WordType ket2, SizeType site,SizeType spin) const
+		SizeType getN(WordType ket1,WordType ket2, SizeType site,SizeType spin, SizeType orb) const
 		{
 			return (spin==ProgramGlobals::SPIN_UP) ? basis1_.getN(ket1,site) : basis2_.getN(ket2,site);
 		}
@@ -143,6 +151,10 @@ namespace LanczosPlusPlus {
 			return (spin==ProgramGlobals::SPIN_UP) ? basis1_.getBra(bra,ket1,what,site) :
 									 basis2_.getBra(bra,ket2,what,site);
 		}
+
+		SizeType orbsPerSite(SizeType i) const { return 1; } 
+		
+		SizeType orbs() const { return 1; }
 
 	private:
 

@@ -11,7 +11,7 @@
 #include "SparseRow.h"
 #include "ParametersModelHubbard.h"
 #include "ProgramGlobals.h"
-#include "ModelBase.h"
+#include "../../Engine/ModelBase.h"
 
 namespace LanczosPlusPlus {
 

@@ -5,7 +5,7 @@
 #ifndef BASISHUBBARDLANCZOS_H
 #define BASISHUBBARDLANCZOS_H
 #include "BasisOneSpin.h"
-#include "BasisBase.h"
+#include "../../Engine/BasisBase.h"
 
 namespace LanczosPlusPlus {
 	

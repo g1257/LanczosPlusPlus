@@ -26,6 +26,7 @@ public:
 
 	typedef ParametersTj1Orb<RealType,InputType> ParametersModelType;
 	typedef BasisTj1OrbLanczos<GeometryType> BasisType;
+	typedef typename BasisType::BaseType BasisBaseType;
 	typedef typename BasisType::WordType WordType;
 	typedef typename BaseType::SparseMatrixType SparseMatrixType;
 	typedef typename BaseType::VectorType VectorType;
@@ -56,6 +57,11 @@ public:
 		}
 	}
 
+	~Tj1Orb()
+	{
+		BaseType::deleteGarbage(garbage_);
+	}
+
 	SizeType size() const { return basis_.size(); }
 
 	SizeType orbitals(SizeType site) const
@@ -63,14 +69,14 @@ public:
 		return 1;
 	}
 
-	void setupHamiltonian(SparseMatrixType &matrix) const
+	void setupHamiltonian(SparseMatrixType& matrix) const
 	{
 		setupHamiltonian(matrix,basis_);
 	}
 
 	//! Gf. related functions below:
-	void setupHamiltonian(SparseMatrixType &matrix,
-	                      const BasisType &basis) const
+	void setupHamiltonian(SparseMatrixType& matrix,
+	                      const BasisBaseType& basis) const
 	{
 		SizeType hilbert=basis.size();
 		typename PsimagLite::Vector<RealType>::Type diag(hilbert,0.0);
@@ -130,6 +136,13 @@ public:
 
 	PsimagLite::String name() const { return __FILE__; }
 
+	BasisType* createBasis(SizeType nup, SizeType ndown) const
+	{
+		BasisType* ptr = new BasisType(geometry_,nup,ndown);
+		garbage_.push_back(ptr);
+		return ptr;
+	}
+
 private:
 
 	bool hasNewPartsCorCdagger(std::pair<SizeType,SizeType>& newParts,
@@ -181,7 +194,7 @@ private:
 	}
 
 	void calcDiagonalElements(typename PsimagLite::Vector<RealType>::Type& diag,
-	                          const BasisType &basis) const
+	                          const BasisBaseType& basis) const
 	{
 		SizeType hilbert=basis.size();
 		SizeType nsite = geometry_.numberOfSites();
@@ -222,7 +235,7 @@ private:
 	                    const WordType& ket1,
 	                    const WordType& ket2,
 	                    SizeType i,
-	                    const BasisType &basis) const
+	                    const BasisBaseType &basis) const
 	{
 		WordType s1i=(ket1 & BasisType::bitmask(i));
 		if (s1i>0) s1i=1;
@@ -230,6 +243,7 @@ private:
 		if (s2i>0) s2i=1;
 
 		SizeType nsite = geometry_.numberOfSites();
+		SizeType orb = 0;
 
 		// Hopping term
 		for (SizeType j=0;j<nsite;j++) {
@@ -245,7 +259,7 @@ private:
 				WordType bra1= ket1 ^(BasisType::bitmask(i)|BasisType::bitmask(j));
 				SizeType temp = basis.perfectIndex(bra1,ket2);
 				int extraSign = (s1i==1) ? FERMION_SIGN : 1;
-				RealType cTemp = h*extraSign*basis_.doSign(ket1,ket2,i,j,ProgramGlobals::SPIN_UP);
+				RealType cTemp = h*extraSign*basis_.doSign(ket1,ket2,i,orb,j,orb,ProgramGlobals::SPIN_UP);
 				sparseRow.add(temp,cTemp);
 			}
 
@@ -254,7 +268,7 @@ private:
 				SizeType temp = basis.perfectIndex(ket1,bra2);
 				int extraSign = (s2i==1) ? FERMION_SIGN : 1;
 				RealType cTemp = h*extraSign*
-				                 basis_.doSign(ket1,ket2,i,j,ProgramGlobals::SPIN_DOWN);
+				                 basis_.doSign(ket1,ket2,i,orb,j,orb,ProgramGlobals::SPIN_DOWN);
 				sparseRow.add(temp,cTemp);
 			}
 		}
@@ -264,7 +278,7 @@ private:
 	                    const WordType& ket1,
 	                    const WordType& ket2,
 	                    SizeType i,
-	                    const BasisType &basis) const
+	                    const BasisBaseType &basis) const
 	{
 		WordType s1i=(ket1 & BasisType::bitmask(i));
 		if (s1i>0) s1i=1;
@@ -340,7 +354,7 @@ private:
 	PsimagLite::Matrix<RealType> hoppings_;
 	PsimagLite::Matrix<RealType> j_;
 	PsimagLite::Matrix<RealType> w_;
-
+	mutable typename PsimagLite::Vector<BasisType*>::Type garbage_;
 }; // class Tj1Orb
 } // namespace LanczosPlusPlus
 #endif

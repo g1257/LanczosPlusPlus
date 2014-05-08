@@ -82,9 +82,8 @@ SizeType maxOrbitals(const ModelType& model)
 }
 
 template<typename ModelType,typename SpecialSymmetryType>
-void mainLoop2(ModelType& model,
+void mainLoop2(const ModelType& model,
                InputNgType::Readable& io,
-               const GeometryType& geometry,
                const PsimagLite::Vector<SizeType>::Type& gfV,
                PsimagLite::Vector<SizeType>::Type& sites,
                const PsimagLite::Vector<SizeType>::Type& cicjV,
@@ -93,6 +92,7 @@ void mainLoop2(ModelType& model,
 	typedef Engine<ModelType,InternalProductStored,SpecialSymmetryType> EngineType;
 	typedef typename EngineType::TridiagonalMatrixType TridiagonalMatrixType;
 
+	const GeometryType& geometry = model.geometry();
 	EngineType engine(model,geometry.numberOfSites(),io);
 
 	//! get the g.s.:
@@ -154,7 +154,7 @@ void mainLoop(InputNgType::Readable& io,
               const PsimagLite::Vector<SizeType>::Type& cicj,
               const PsimagLite::Vector<PairType>::Type& spins)
 {
-	typedef typename ModelType::BasisType BasisType;
+	typedef typename ModelType::BasisBaseType BasisBaseType;
 
 	int tmp = 0;
 	try {
@@ -168,28 +168,24 @@ void mainLoop(InputNgType::Readable& io,
 	} catch(std::exception& e) {}
 
 	bool useReflectionSymmetry = (tmp==1) ? true : false;
-	const GeometryType& geometry = model.geometry();
 
 	if (useTranslationSymmetry) {
-		mainLoop2<ModelType,TranslationSymmetry<GeometryType,BasisType> >(model,
+		mainLoop2<ModelType,TranslationSymmetry<GeometryType,BasisBaseType> >(model,
 		                                                                  io,
-		                                                                  geometry,
 		                                                                  gf,
 		                                                                  sites,
 		                                                                  cicj,
 		                                                                  spins);
 	} else if (useReflectionSymmetry) {
-		mainLoop2<ModelType,ReflectionSymmetry<GeometryType,BasisType> >(model,
+		mainLoop2<ModelType,ReflectionSymmetry<GeometryType,BasisBaseType> >(model,
 		                                                                 io,
-		                                                                 geometry,
 		                                                                 gf,
 		                                                                 sites,
 		                                                                 cicj,
 		                                                                 spins);
 	} else {
-		mainLoop2<ModelType,DefaultSymmetry<GeometryType,BasisType> >(model,
+		mainLoop2<ModelType,DefaultSymmetry<GeometryType,BasisBaseType> >(model,
 		                                                              io,
-		                                                              geometry,
 		                                                              gf,
 		                                                              sites,
 		                                                              cicj,
@@ -198,7 +194,7 @@ void mainLoop(InputNgType::Readable& io,
 }
 
 ModelBaseType* getModel(InputNgType::Readable& io,
-                                          const GeometryType& geometry)
+                        const GeometryType& geometry)
 {
 	SizeType nup = 0;
 	SizeType ndown = 0;
@@ -222,7 +218,7 @@ ModelBaseType* getModel(InputNgType::Readable& io,
 
 	if (model=="Tj1Orb" || model == "HeisenbergSpinOneHalf") {
 		modelPtr = new Tj1OrbType(nup,ndown,io,geometry);
-	} else if (model=="Immm") {
+	} /* else if (model=="Immm") {
 		modelPtr = new ImmmType(nup,ndown,io,geometry);
 	} else if (model=="HubbardOneBand" ||
 	           model=="HubbardOneBandExtended" ||
@@ -233,7 +229,7 @@ ModelBaseType* getModel(InputNgType::Readable& io,
 	} else {
 		std::cerr<<"No known model "<<model<<"\n";
 		return 0;
-	}
+	}*/
 
 	return modelPtr;
 }
@@ -295,6 +291,6 @@ int main(int argc,char *argv[])
 
 	mainLoop(io,*modelPtr,gf,sites,cicj,spins);
 
-	delete modelPtr;
+	//delete modelPtr;
 }
 

@@ -41,6 +41,7 @@ namespace LanczosPlusPlus {
 
 		typedef ParametersModelFeAs<RealType> ParametersModelType;
 		typedef BasisFeAsBasedSc<GeometryType> BasisType;
+		typedef typename BasisType::BaseType BasisBaseType;
 		typedef typename BasisType::WordType WordType;
 		typedef typename BaseType::SparseMatrixType SparseMatrixType;
 		typedef typename BaseType::VectorType VectorType;
@@ -49,11 +50,16 @@ namespace LanczosPlusPlus {
 		static int const FERMION_SIGN = BasisType::FERMION_SIGN;
 		
 		
-		FeBasedSc(SizeType nup,SizeType ndown,const InputType& io,const GeometryType& geometry)
+		FeBasedSc(SizeType nup,SizeType ndown,InputType& io,const GeometryType& geometry)
 		: mp_(io),geometry_(geometry),basis_(geometry,nup,ndown,mp_.orbitals)
 		{
 		}
 		
+		~FeBasedSc()
+		{
+			BaseType::deleteGarbage(garbage_);
+		}
+
 		SizeType size() const { return basis_.size(); }
 
 		SizeType orbitals(SizeType site) const
@@ -61,7 +67,7 @@ namespace LanczosPlusPlus {
 			return mp_.orbitals;
 		}
 
-		void setupHamiltonian(SparseMatrixType &matrix) const
+		void setupHamiltonian(SparseMatrixType& matrix) const
 		{
 			setupHamiltonian(matrix,basis_);
 		}
@@ -76,8 +82,8 @@ namespace LanczosPlusPlus {
 
 		const GeometryType& geometry() const { return geometry_; }
 
-		void setupHamiltonian(SparseMatrixType &matrix,
-				      const BasisType &basis) const
+		void setupHamiltonian(SparseMatrixType& matrix,
+				      const BasisBaseType& basis) const
 		{
 			// Calculate diagonal elements AND count non-zero matrix elements
 			SizeType hilbert=basis.size();
@@ -186,6 +192,13 @@ namespace LanczosPlusPlus {
 		const BasisType& basis() const { return basis_; }
 
 		PsimagLite::String name() const { return __FILE__; }
+
+		BasisType* createBasis(SizeType nup, SizeType ndown) const
+		{
+			BasisType* ptr = new BasisType(geometry_,nup,ndown);
+			garbage_.push_back(ptr);
+			return ptr;
+		}
 
 	private:
 
@@ -640,7 +653,7 @@ namespace LanczosPlusPlus {
 		const ParametersModelType mp_;
 		const GeometryType& geometry_;
 		BasisType basis_;
-		
+		mutable typename PsimagLite::Vector<BasisType*>::Type garbage_;
 	}; // class FeBasedSc
 	
 } // namespace LanczosPlusPlus

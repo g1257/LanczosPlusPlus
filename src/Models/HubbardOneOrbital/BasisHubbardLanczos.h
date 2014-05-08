@@ -5,18 +5,21 @@
 #ifndef BASISHUBBARDLANCZOS_H
 #define BASISHUBBARDLANCZOS_H
 #include "BasisOneSpin.h"
+#include "BasisBase.h"
 
 namespace LanczosPlusPlus {
 	
 	template<typename GeometryType>
-	class BasisHubbardLanczos {
+	class BasisHubbardLanczos : public BasisBase<GeometryType> {
 
 		typedef ProgramGlobals::PairIntType PairIntType;
 
 	public:
 		
 		typedef BasisOneSpin BasisType;
-		typedef typename BasisType::WordType WordType;
+		typedef BasisBase<GeometryType> BaseType;
+		typedef typename BaseType::WordType WordType;
+		typedef typename BaseType::VectorWordType VectorWordType;
 
 		static int const FERMION_SIGN = BasisType::FERMION_SIGN;
 
@@ -35,7 +38,7 @@ namespace LanczosPlusPlus {
 		//! Spin up and spin down
 		SizeType dofs() const { return 2; }
 
-		SizeType perfectIndex(PsimagLite::Vector<WordType>::Type& kets) const
+		SizeType perfectIndex(const VectorWordType& kets) const
 		{
 			assert(kets.size()==2);
 			return perfectIndex(kets[0],kets[1]);
@@ -52,7 +55,7 @@ namespace LanczosPlusPlus {
 			return (what==ProgramGlobals::SPIN_UP) ? basis1_.electrons() : basis2_.electrons();
 		}
 
-		const WordType& operator()(SizeType i,SizeType spin) const
+		WordType operator()(SizeType i,SizeType spin) const
 		{
 			SizeType y = i/basis1_.size();
 			SizeType x = i%basis1_.size();
@@ -106,15 +109,17 @@ namespace LanczosPlusPlus {
 		int doSign(WordType ket1,
 		           WordType ket2,
 		           SizeType i,
+		           SizeType orb1,
 		           SizeType j,
+		           SizeType orb2,
 		           SizeType spin) const
 		{
 			assert(i <= j);
 			return (spin==ProgramGlobals::SPIN_UP) ? basis1_.doSign(ket1,i,j): basis2_.doSign(ket2,i,j);
 		}
 
-		PairIntType getBraIndex(const WordType& ket1,
-		                        const WordType& ket2,
+		PairIntType getBraIndex(WordType ket1,
+		                        WordType ket2,
 		                        SizeType what,
 		                        SizeType site,
 		                        SizeType spin,

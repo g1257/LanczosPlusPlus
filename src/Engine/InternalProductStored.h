@@ -90,7 +90,7 @@ namespace LanczosPlusPlus {
 	public:	
 
 		typedef SpecialSymmetryType_ SpecialSymmetryType;
-		typedef typename ModelType::BasisType BasisType;
+		typedef typename ModelType::BasisBaseType BasisType;
 		typedef typename SpecialSymmetryType::SparseMatrixType SparseMatrixType;
 		typedef typename ModelType::RealType RealType;
 		typedef typename ModelType::GeometryType GeometryType;

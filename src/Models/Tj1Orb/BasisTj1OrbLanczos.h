@@ -210,14 +210,6 @@ public:
 		return getBraIndex_(ket1,ket2,operatorLabel,site,spin,orb);
 	}
 
-	bool hasNewParts(std::pair<SizeType,SizeType>& newParts,
-	                 SizeType what,
-	                 SizeType spin,
-	                 const std::pair<SizeType,SizeType>& orbs) const
-	{
-		throw PsimagLite::RuntimeError("hasNewParts\n");
-	}
-
 	template<typename GeometryType2>
 	friend std::ostream& operator<<(std::ostream& os,
 	                                const BasisTj1OrbLanczos<GeometryType2>& basis);

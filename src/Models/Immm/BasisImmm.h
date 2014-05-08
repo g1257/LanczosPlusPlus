@@ -22,20 +22,23 @@ Please see full open source license included in file LICENSE.
 #define BASIS_IMMM_H
 #include "BasisOneSpinImmm.h"
 #include "ProgramGlobals.h"
+#include "BasisBase.h"
 
 namespace LanczosPlusPlus {
 
-	template<typename GeometryType>
-	class BasisImmm {
+template<typename GeometryType>
+class BasisImmm : public BasisBase<GeometryType> {
 
-		typedef ProgramGlobals::PairIntType PairIntType;
+	typedef ProgramGlobals::PairIntType PairIntType;
 
-	public:
+public:
 
-		typedef BasisOneSpinImmm BasisType;
-		typedef BasisType::WordType WordType;
+	typedef BasisBase<GeometryType> BaseType;
+        typedef typename BaseType::WordType WordType;
+        typedef typename BaseType::VectorWordType VectorWordType;
+	typedef BasisOneSpinImmm BasisType;
 
-		class OrbsPerSite : public PsimagLite::Vector<SizeType>::Type {
+	class OrbsPerSite : public PsimagLite::Vector<SizeType>::Type {
 
 		public:
 
@@ -72,14 +75,14 @@ namespace LanczosPlusPlus {
 
 		SizeType size() const { return basis1_.size()*basis2_.size(); }
 
-		const WordType& operator()(SizeType i,SizeType spin) const
+		WordType operator()(SizeType i,SizeType spin) const
 		{
 			SizeType y = i/basis1_.size();
 			SizeType x = i%basis1_.size();
 			return (spin==ProgramGlobals::SPIN_UP) ? basis1_[x] : basis2_[y];
 		}
 
-		SizeType perfectIndex(const PsimagLite::Vector<WordType>::Type& ket1) const
+		SizeType perfectIndex(const VectorWordType& ket1) const
 		{
 			throw std::runtime_error("Wrong way!\n");
 		}
@@ -111,8 +114,8 @@ namespace LanczosPlusPlus {
 			return (spin==ProgramGlobals::SPIN_UP) ? basis1_.getN(ket,site,orb) : basis2_.getN(ket,site,orb);
 		}
 
-		PairIntType getBraIndex(const WordType& ket1,
-		                        const WordType& ket2,
+		PairIntType getBraIndex(WordType ket1,
+		                        WordType ket2,
 		                        SizeType what,
 		                        SizeType site,
 		                        SizeType spin,

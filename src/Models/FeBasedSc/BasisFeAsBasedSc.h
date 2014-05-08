@@ -70,7 +70,7 @@ public:
 		return basis1_.size()*basis2_.size();
 	}
 
-	const WordType& operator()(SizeType i,SizeType spin) const
+	WordType operator()(SizeType i,SizeType spin) const
 	{
 		SizeType y = i/basis1_.size();
 		SizeType x = i%basis1_.size();

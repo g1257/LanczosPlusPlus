@@ -21,35 +21,40 @@ Please see full open source license included in file LICENSE.
 #ifndef IMMM_HEADER_H
 #define IMMM_HEADER_H
 
-#include "CrsMatrix.h"
+#include "ModelBase.h"
 #include "BasisImmm.h"
 #include "SparseRowCached.h"
 #include "ParametersImmm.h"
 
 namespace LanczosPlusPlus {
 
-template<typename RealType_,typename GeometryType_,typename InputType_>
-	class Immm {
+template<typename RealType,typename GeometryType,typename InputType>
 
-		typedef PsimagLite::Matrix<RealType_> MatrixType;
+class Immm : public ModelBase<RealType,GeometryType,InputType> {
+
+		typedef PsimagLite::Matrix<RealType> MatrixType;
+		typedef ModelBase<RealType,GeometryType,InputType> BaseType;
 
 	public:
 
-		typedef InputType_ InputType;
-		typedef GeometryType_ GeometryType;
-		typedef ParametersImmm<RealType_> ParametersModelType;
+		typedef ParametersImmm<RealType> ParametersModelType;
 		typedef BasisImmm<GeometryType> BasisType;
+		typedef typename BasisType::BaseType BasisBaseType;
 		typedef typename BasisType::WordType WordType;
-		typedef RealType_ RealType;
-		typedef PsimagLite::CrsMatrix<RealType> SparseMatrixType;
+		typedef typename BaseType::SparseMatrixType SparseMatrixType;
+		typedef typename BaseType::VectorType VectorType;
 		typedef PsimagLite::SparseRowCached<SparseMatrixType> SparseRowType;
-		typedef typename PsimagLite::Vector<RealType>::Type VectorType;
 
 		static int const FERMION_SIGN = BasisType::FERMION_SIGN;
 
 		Immm(SizeType nup,SizeType ndown,const ParametersModelType& mp,const GeometryType& geometry)
 		: mp_(mp),geometry_(geometry),basis_(geometry,nup,ndown)
 		{}
+
+		~Immm()
+		{
+			BaseType::deleteGarbage(garbage_);
+		}
 
 		SizeType size() const { return basis_.size(); }
 
@@ -125,8 +130,8 @@ template<typename RealType_,typename GeometryType_,typename InputType_>
 
 		const BasisType& basis() const { return basis_; }
 
-		void setupHamiltonian(SparseMatrixType &matrix,
-		                      const BasisType &basis) const
+		void setupHamiltonian(SparseMatrixType& matrix,
+		                      const BasisBaseType& basis) const
 		{
 			// Calculate diagonal elements AND count non-zero matrix elements
 			SizeType hilbert=basis.size();
@@ -166,6 +171,13 @@ template<typename RealType_,typename GeometryType_,typename InputType_>
 		}
 
 		PsimagLite::String name() const { return __FILE__; }
+
+		BasisBaseType* createBasis(SizeType nup, SizeType ndown) const
+		{
+			BasisType* ptr = new BasisType(geometry_,nup,ndown);
+			garbage_.push_back(ptr);
+			return ptr;
+		}
 
 	private:
 
@@ -284,6 +296,7 @@ template<typename RealType_,typename GeometryType_,typename InputType_>
 		const ParametersModelType& mp_;
 		const GeometryType& geometry_;
 		BasisType basis_;
+		mutable typename PsimagLite::Vector<BasisType*>::Type garbage_;
 	}; // class Immm
 
 } // namespace LanczosPlusPlus

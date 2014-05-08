@@ -5,20 +5,21 @@
 #ifndef HUBBARDLANCZOS_H
 #define HUBBARDLANCZOS_H
 
-#include "CrsMatrix.h"
 #include "BasisHubbardLanczos.h"
 #include "BitManip.h"
 #include "TypeToString.h"
 #include "SparseRow.h"
 #include "ParametersModelHubbard.h"
 #include "ProgramGlobals.h"
+#include "ModelBase.h"
 
 namespace LanczosPlusPlus {
 
-	template<typename RealType_,typename GeometryType_,typename InputType_>
-	class HubbardOneOrbital {
+	template<typename RealType,typename GeometryType,typename InputType>
+	class HubbardOneOrbital : public ModelBase<RealType,GeometryType,InputType> {
 
-		typedef PsimagLite::Matrix<RealType_> MatrixType;
+		typedef PsimagLite::Matrix<RealType> MatrixType;
+		typedef ModelBase<RealType,GeometryType,InputType> BaseType;
 
 		enum {TERM_HOPPING=0,TERM_NINJ=1,TERM_SUPER=2};
 
@@ -26,15 +27,13 @@ namespace LanczosPlusPlus {
 
 	public:
 
-		typedef InputType_ InputType;
-		typedef ParametersModelHubbard<RealType_,InputType> ParametersModelType;
-		typedef GeometryType_ GeometryType;
-		typedef PsimagLite::CrsMatrix<RealType_> SparseMatrixType;
-		typedef PsimagLite::SparseRow<SparseMatrixType> SparseRowType;
+		typedef ParametersModelHubbard<RealType,InputType> ParametersModelType;
 		typedef BasisHubbardLanczos<GeometryType> BasisType;
-		typedef typename BasisType::WordType WordType;
-		typedef RealType_ RealType;
-		typedef typename PsimagLite::Vector<RealType>::Type VectorType;
+		typedef typename BasisType::BaseType BasisBaseType;
+                typedef typename BasisType::WordType WordType;
+                typedef typename BaseType::SparseMatrixType SparseMatrixType;
+                typedef typename BaseType::VectorType VectorType;
+		typedef PsimagLite::SparseRow<SparseMatrixType> SparseRowType;
 
 		static int const FERMION_SIGN = BasisType::FERMION_SIGN;
 
@@ -53,6 +52,11 @@ namespace LanczosPlusPlus {
 					hoppings_(i,j) = geometry_(i,0,j,0,TERM_HOPPING);
 		}
 
+		~HubbardOneOrbital()
+		{
+			BaseType::deleteGarbage(garbage_);
+		}
+
 		SizeType size() const { return basis_.size(); }
 
 		SizeType orbitals(SizeType site) const
@@ -60,14 +64,14 @@ namespace LanczosPlusPlus {
 			return 1;
 		}
 
-		void setupHamiltonian(SparseMatrixType &matrix) const
+		void setupHamiltonian(SparseMatrixType& matrix) const
 		{
 			setupHamiltonian(matrix,basis_);
 		}
 
 		//! Gf. related functions below:
-		void setupHamiltonian(SparseMatrixType &matrix,
-		                      const BasisType &basis) const
+		void setupHamiltonian(SparseMatrixType& matrix,
+		                      const BasisBaseType& basis) const
 		{
 			SizeType hilbert=basis.size();
 			typename PsimagLite::Vector<RealType>::Type diag(hilbert);
@@ -114,6 +118,13 @@ namespace LanczosPlusPlus {
 		const BasisType& basis() const { return basis_; }
 
 		PsimagLite::String name() const { return __FILE__; }
+
+		BasisType* createBasis(SizeType nup, SizeType ndown) const
+		{
+			BasisType* ptr = new BasisType(geometry_,nup,ndown);
+			garbage_.push_back(ptr);
+			return ptr;
+		}
 
 	private:
 
@@ -317,7 +328,7 @@ namespace LanczosPlusPlus {
 		const GeometryType& geometry_;
 		BasisType basis_;
 		PsimagLite::Matrix<RealType> hoppings_;
-
+		mutable typename PsimagLite::Vector<BasisType*>::Type garbage_;
 	}; // class HubbardOneOrbital 
 } // namespace LanczosPlusPlus
 #endif

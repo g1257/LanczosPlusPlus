@@ -34,7 +34,7 @@ namespace LanczosPlusPlus {
 
 		typedef typename GeometryType::ComplexOrRealType ComplexOrRealType;
 		typedef typename PsimagLite::Real<ComplexOrRealType>::Type RealType;
-		typedef typename BasisType::WordType WordType;
+		typedef ProgramGlobals::WordType WordType;
 		typedef PsimagLite::Matrix<ComplexOrRealType> MatrixType;
 		typedef typename PsimagLite::Vector<RealType>::Type VectorRealType;
 

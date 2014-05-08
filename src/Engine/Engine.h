@@ -48,7 +48,7 @@ public:
 	typedef typename SpecialSymmetryType::VectorType VectorType;
 	typedef typename ModelType::SparseMatrixType SparseMatrixType;
 	typedef typename VectorType::value_type FieldType;
-	typedef typename ModelType::BasisType BasisType;
+	typedef typename ModelType::BasisBaseType BasisType;
 	typedef InternalProductTemplate<ModelType,SpecialSymmetryType> InternalProductType;
 	typedef DefaultSymmetry<typename ModelType::GeometryType,BasisType> DefaultSymmetryType;
 	typedef InternalProductTemplate<ModelType,DefaultSymmetryType> InternalProductDefaultType;
@@ -124,7 +124,6 @@ public:
 
 		typedef typename ContinuedFractionCollectionType::ContinuedFractionType
 		        ContinuedFractionType;
-		typedef typename ModelType::BasisType BasisType;
 
 		const BasisType* basisNew = 0;
 		bool isDiagonal = (isite==jsite && orbs.first==orbs.second);
@@ -138,7 +137,7 @@ public:
 				std::pair<SizeType,SizeType> newParts(0,0);
 				if (!model_.hasNewParts(newParts,operatorLabel,spins.first,orbs)) continue;
 				// Create new bases
-				basisNew = new BasisType(model_.geometry(),newParts.first,newParts.second);
+				basisNew = model_.createBasis(newParts.first,newParts.second);
 			} else {
 				basisNew = &model_.basis();
 			}
@@ -161,8 +160,6 @@ public:
 
 			calcSpectral(cf,operatorLabel,modifVector,matrix,type,spins.first,isDiagonal);
 			cfCollection.push(cf);
-
-			if (ProgramGlobals::needsNewBasis(operatorLabel)) delete basisNew;
 		}
 	}
 
@@ -190,7 +187,7 @@ public:
 			std::pair<SizeType,SizeType> newParts(0,0);
 			if (!model_.hasNewParts(newParts,what2,spins.first,orbs)) return;
 
-			basisNew = new BasisType(model_.geometry(),newParts.first,newParts.second);
+			basisNew = model_.createBasis(newParts.first,newParts.second);
 
 			std::cerr<<"basisNew.size="<<basisNew->size()<<" ";
 			std::cerr<<"newparts.first="<<newParts.first<<" ";
@@ -224,8 +221,6 @@ public:
 			}
 		}
 		std::cout<<"Total Electrons = "<<sum<<"\n";
-
-		if (ProgramGlobals::needsNewBasis(what2)) delete basisNew;
 	}
 
 private:
@@ -343,7 +338,7 @@ private:
 		LanczosSolverType lanczosSolver(hamiltonian,params);
 
 		gsEnergy_ = 1e10;
-		SizeType offset = model_.basis().size();
+		SizeType offset = model_.size();
 		SizeType currentOffset = 0;
 		for (SizeType i=0;i<rs.sectors();i++) {
 			hamiltonian.specialSymmetrySector(i);

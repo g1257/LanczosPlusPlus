@@ -191,13 +191,13 @@ class Immm : public ModelBase<RealType,GeometryType,InputType> {
 			return geometry_(i,0,j,0,1);
 		}
 
-		void setHoppingTerm(SparseRowType &sparseRow,
+		void setHoppingTerm(SparseRowType& sparseRow,
 		                    const WordType& ket1,
 		                    const WordType& ket2,
 		                    SizeType ispace,
 		                    SizeType i,
 		                    SizeType orb,
-		                    const BasisType &basis) const
+		                    const BasisBaseType& basis) const
 		{
 			SizeType ii = i*basis.orbs()+orb;
 			WordType s1i=(ket1 & BasisType::bitmask(ii));
@@ -239,7 +239,7 @@ class Immm : public ModelBase<RealType,GeometryType,InputType> {
 		}
 
 		void calcDiagonalElements(typename PsimagLite::Vector<RealType>::Type& diag,
-		                          const BasisType &basis) const
+		                          const BasisBaseType& basis) const
 		{
 			SizeType hilbert=basis.size();
 			SizeType nsite = geometry_.numberOfSites();
@@ -252,8 +252,8 @@ class Immm : public ModelBase<RealType,GeometryType,InputType> {
 				for (SizeType i=0;i<nsite;i++) {
 					for (SizeType orb=0;orb<basis.orbsPerSite(i);orb++) {
 
-						SizeType totalCharge = basis.getN(ket1,i,ProgramGlobals::SPIN_UP,orb) +
-								basis.getN(ket2,i,ProgramGlobals::SPIN_DOWN,orb);
+						SizeType totalCharge = basis.getN(ket1,ket1,i,ProgramGlobals::SPIN_UP,orb) +
+								basis.getN(ket2,ket2,i,ProgramGlobals::SPIN_DOWN,orb);
 
 						// Hubbard term U0
 						s += mp_.hubbardU[i] * (1.0-basis.isThereAnElectronAt(ket1,ket2,
@@ -269,8 +269,8 @@ class Immm : public ModelBase<RealType,GeometryType,InputType> {
 						for (SizeType j=0;j<nsite;j++) {
 							if (basis.orbsPerSite(j)==2) continue;
 							// j is a Copper site now
-							SizeType totalCharge2 = basis.getN(ket1,j,ProgramGlobals::SPIN_UP,0) +
-									basis.getN(ket2,j,ProgramGlobals::SPIN_DOWN,0);
+							SizeType totalCharge2 = basis.getN(ket1,ket1,j,ProgramGlobals::SPIN_UP,0) +
+									basis.getN(ket2,ket2,j,ProgramGlobals::SPIN_DOWN,0);
 							s += (2.0-totalCharge) * (2.0-totalCharge2) * Upd(i,j);
 						}
 					}

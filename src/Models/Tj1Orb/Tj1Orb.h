@@ -198,6 +198,7 @@ private:
 	{
 		SizeType hilbert=basis.size();
 		SizeType nsite = geometry_.numberOfSites();
+		SizeType orb = 0;
 
 		// Calculate diagonal elements
 		for (SizeType ispace=0;ispace<hilbert;ispace++) {
@@ -206,9 +207,9 @@ private:
 			RealType s=0;
 			for (SizeType i=0;i<nsite;i++) {
 
-				int niup = basis.isThereAnElectronAt(ket1,ket2,i,ProgramGlobals::SPIN_UP);
+				int niup = basis.isThereAnElectronAt(ket1,ket2,i,ProgramGlobals::SPIN_UP,orb);
 
-				int nidown = basis.isThereAnElectronAt(ket1,ket2,i,ProgramGlobals::SPIN_DOWN);
+				int nidown = basis.isThereAnElectronAt(ket1,ket2,i,ProgramGlobals::SPIN_DOWN,orb);
 
 				if (i < mp_.potentialV.size()) {
 					s += mp_.potentialV[i]*niup;
@@ -217,8 +218,8 @@ private:
 
 				for (SizeType j=i+1;j<nsite;j++) {
 
-					int njup = basis.isThereAnElectronAt(ket1,ket2,j,ProgramGlobals::SPIN_UP);
-					int njdown = basis.isThereAnElectronAt(ket1,ket2,j,ProgramGlobals::SPIN_DOWN);
+					int njup = basis.isThereAnElectronAt(ket1,ket2,j,ProgramGlobals::SPIN_UP,orb);
+					int njdown = basis.isThereAnElectronAt(ket1,ket2,j,ProgramGlobals::SPIN_DOWN,orb);
 
 					// Sz Sz term:
 					s += (niup-nidown) * (njup - njdown)  * j_(i,j)*0.25;

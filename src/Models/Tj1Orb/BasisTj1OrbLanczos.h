@@ -120,13 +120,14 @@ public:
 	SizeType isThereAnElectronAt(WordType ket1,
 	                             WordType ket2,
 	                             SizeType site,
-	                             SizeType spin) const
+	                             SizeType spin,
+	                             SizeType orb) const
 	{
 		return (spin==ProgramGlobals::SPIN_UP) ?
 		            isThereAnElectronAt(ket1,site) : isThereAnElectronAt(ket2,site);
 	}
 
-	SizeType getN(WordType ket1,WordType ket2, SizeType site,SizeType spin) const
+	SizeType getN(WordType ket1,WordType ket2, SizeType site,SizeType spin, SizeType orb) const
 	{
 		return (spin==ProgramGlobals::SPIN_UP) ? getN(ket1,site) : getN(ket2,site);
 	}
@@ -208,6 +209,15 @@ public:
 		}
 
 		return getBraIndex_(ket1,ket2,operatorLabel,site,spin,orb);
+	}
+
+	SizeType orbsPerSite(SizeType i) const { return 1; }
+
+	SizeType orbs() const { return 1; }
+
+	SizeType perfectIndex(WordType newKet,SizeType ispace,SizeType spinOfNew) const
+	{
+		throw PsimagLite::RuntimeError("perfectIndex\n");
 	}
 
 	template<typename GeometryType2>

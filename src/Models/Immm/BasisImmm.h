@@ -109,9 +109,9 @@ public:
 			return (spin==ProgramGlobals::SPIN_UP) ? basis1_.getN(x,orb) : basis2_.getN(y,orb);
 		}
 
-		SizeType getN(WordType ket,SizeType site,SizeType spin,SizeType orb) const
+		SizeType getN(WordType ket1, WordType ket2, SizeType site,SizeType spin,SizeType orb) const
 		{
-			return (spin==ProgramGlobals::SPIN_UP) ? basis1_.getN(ket,site,orb) : basis2_.getN(ket,site,orb);
+			return (spin==ProgramGlobals::SPIN_UP) ? basis1_.getN(ket1,site,orb) : basis2_.getN(ket2,site,orb);
 		}
 
 		PairIntType getBraIndex(WordType ket1,
@@ -172,11 +172,11 @@ public:
 			return s*basis2_.doSignGf(b,ind,orb);
 		}
 
-		SizeType isThereAnElectronAt(SizeType ket1,
-		                           SizeType ket2,
-		                           SizeType site,
-		                           SizeType spin,
-		                           SizeType orb) const
+		SizeType isThereAnElectronAt(WordType ket1,
+		                             WordType ket2,
+		                             SizeType site,
+		                             SizeType spin,
+		                             SizeType orb) const
 		{
 			if (spin==ProgramGlobals::SPIN_UP)
 				return basis1_.isThereAnElectronAt(ket1,site,orb);

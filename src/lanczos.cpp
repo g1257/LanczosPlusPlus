@@ -218,9 +218,9 @@ ModelBaseType* getModel(InputNgType::Readable& io,
 
 	if (model=="Tj1Orb" || model == "HeisenbergSpinOneHalf") {
 		modelPtr = new Tj1OrbType(nup,ndown,io,geometry);
-	} /* else if (model=="Immm") {
+	} else if (model=="Immm") {
 		modelPtr = new ImmmType(nup,ndown,io,geometry);
-	} else if (model=="HubbardOneBand" ||
+	} /*else if (model=="HubbardOneBand" ||
 	           model=="HubbardOneBandExtended" ||
 	           model=="SuperHubbardExtended") {
 		modelPtr = new HubbardOneOrbitalType(nup,ndown,io,geometry);

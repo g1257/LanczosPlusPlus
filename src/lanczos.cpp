@@ -21,11 +21,7 @@ PsimagLite::String license = "Copyright (c) 2009-2012, UT-Battelle, LLC\n"
 #include "Concurrency.h"
 #include "Engine.h"
 #include "ProgramGlobals.h"
-#include "ModelBase.h"
-#include "Tj1Orb.h"
-#include "Immm.h"
-#include "HubbardOneOrbital.h"
-#include "FeBasedSc.h"
+#include "ModelSelector.h"
 #include "Geometry/Geometry.h"
 #include "InternalProductStored.h"
 #include "InputNg.h" // in PsimagLite
@@ -50,11 +46,8 @@ typedef PsimagLite::Concurrency ConcurrencyType;
 typedef PsimagLite::InputNg<InputCheck> InputNgType;
 typedef PsimagLite::Geometry<RealType,InputNgType::Readable,ProgramGlobals> GeometryType;
 typedef std::pair<SizeType,SizeType> PairType;
-typedef ModelBase<RealType,GeometryType, InputNgType::Readable> ModelBaseType;
-typedef Tj1Orb<RealType,GeometryType, InputNgType::Readable> Tj1OrbType;
-typedef Immm<RealType,GeometryType, InputNgType::Readable> ImmmType;
-typedef HubbardOneOrbital<RealType,GeometryType, InputNgType::Readable> HubbardOneOrbitalType;
-typedef FeBasedSc<RealType,GeometryType, InputNgType::Readable> FeBasedScType;
+typedef ModelSelector<RealType,GeometryType,InputNgType::Readable> ModelSelectorType;
+typedef typename ModelSelectorType::ModelBaseType ModelBaseType;
 
 void fillOrbsOrSpin(PsimagLite::Vector<PairType>::Type& spinV,
                     const PsimagLite::Vector<PsimagLite::String>::Type& strV)
@@ -193,47 +186,6 @@ void mainLoop(InputNgType::Readable& io,
 	}
 }
 
-ModelBaseType* getModel(InputNgType::Readable& io,
-                        const GeometryType& geometry)
-{
-	SizeType nup = 0;
-	SizeType ndown = 0;
-
-	try {
-		io.read(nup,"TargetElectronsUp");
-		io.read(ndown,"TargetElectronsDown");
-	} catch (std::exception& e) {
-		PsimagLite::Vector<RealType>::Type v;
-		io.read(v,"TargetQuantumNumbers");
-		if (v.size() < 2)
-			throw PsimagLite::RuntimeError("TargetQuantumNumbers\n");
-		nup = static_cast<SizeType>(v[0]*geometry.numberOfSites());
-		ndown = static_cast<SizeType>(v[1]*geometry.numberOfSites());
-	}
-
-	PsimagLite::String model("");
-	io.readline(model,"Model=");
-
-	ModelBaseType* modelPtr = 0;
-
-	if (model=="Tj1Orb" || model == "HeisenbergSpinOneHalf") {
-		modelPtr = new Tj1OrbType(nup,ndown,io,geometry);
-	} else if (model=="Immm") {
-		modelPtr = new ImmmType(nup,ndown,io,geometry);
-	} else if (model=="HubbardOneBand" ||
-	           model=="HubbardOneBandExtended" ||
-	           model=="SuperHubbardExtended") {
-		modelPtr = new HubbardOneOrbitalType(nup,ndown,io,geometry);
-	} else if (model=="FeAsBasedSc" || model=="FeAsBasedScExtended") {
-		modelPtr = new FeBasedScType(nup,ndown,io,geometry);
-	} else {
-		std::cerr<<"No known model "<<model<<"\n";
-		return 0;
-	}
-
-	return modelPtr;
-}
-
 int main(int argc,char *argv[])
 {
 	int opt = 0;
@@ -285,13 +237,10 @@ int main(int argc,char *argv[])
 	// print license
 	if (ConcurrencyType::root()) std::cerr<<license;
 
-	ModelBaseType* modelPtr = getModel(io,geometry);
+	ModelSelectorType modelSelector(io,geometry);
+	const ModelBaseType& modelPtr = modelSelector();
 
-	if (modelPtr == 0) return 1;
-
-	std::cout<<(*modelPtr);
-	mainLoop(io,*modelPtr,gf,sites,cicj,spins);
-
-	delete modelPtr;
+	std::cout<<modelPtr;
+	mainLoop(io,modelPtr,gf,sites,cicj,spins);
 }
 

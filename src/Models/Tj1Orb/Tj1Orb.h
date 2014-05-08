@@ -2,8 +2,8 @@
 /*
 */
 
-#ifndef TJ_1ORB_H
-#define TJ_1ORB_H
+#ifndef LANCZOS_TJ_1ORB_H
+#define LANCZOS_TJ_1ORB_H
 
 #include "CrsMatrix.h"
 #include "BasisTj1OrbLanczos.h"

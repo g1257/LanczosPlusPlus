@@ -79,8 +79,8 @@ DISCLOSED WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
  *  Contains the parameters for the FeAs model and function to read them from a JSON file
  *
  */
-#ifndef PARAMETERSMODELFEAS_H
-#define PARAMETERSMODELFEAS_H
+#ifndef LANCZOS_PARAMS_MODELFEAS_H
+#define LANCZOS_PARAMS_MODELFEAS_H
 
 namespace LanczosPlusPlus {
 	//! FeAs Model Parameters
@@ -171,3 +171,4 @@ namespace LanczosPlusPlus {
 
 /*@}*/
 #endif
+

@@ -21,8 +21,8 @@ Please see full open source license included in file LICENSE.
 #ifndef BASIS_IMMM_H
 #define BASIS_IMMM_H
 #include "BasisOneSpinImmm.h"
-#include "ProgramGlobals.h"
-#include "BasisBase.h"
+#include "../../Engine/ProgramGlobals.h"
+#include "../../Engine/BasisBase.h"
 
 namespace LanczosPlusPlus {
 

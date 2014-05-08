@@ -22,8 +22,8 @@ Please see full open source license included in file LICENSE.
 #define BASIS_ONE_SPIN_FE_AS_H
 #include "Matrix.h"
 #include "BitManip.h"
-#include "Partitions.h"
-#include "ProgramGlobals.h"
+#include "../../Engine/Partitions.h"
+#include "../../Engine/ProgramGlobals.h"
 
 namespace LanczosPlusPlus {
 

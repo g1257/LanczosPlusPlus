@@ -7,7 +7,7 @@
 
 #include "BitManip.h"
 #include "ProgramGlobals.h"
-#include "BasisBase.h"
+#include "../../Engine/BasisBase.h"
 
 namespace LanczosPlusPlus {
 

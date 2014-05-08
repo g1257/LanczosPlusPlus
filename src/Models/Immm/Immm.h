@@ -18,8 +18,8 @@ Please see full open source license included in file LICENSE.
 
 */
 
-#ifndef IMMM_HEADER_H
-#define IMMM_HEADER_H
+#ifndef LANCZOS_IMMM_H
+#define LANCZOS_IMMM_H
 
 #include "ModelBase.h"
 #include "BasisImmm.h"

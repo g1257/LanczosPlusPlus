@@ -21,7 +21,7 @@ Please see full open source license included in file LICENSE.
 #ifndef BASIS_FEASBASED_SC_H
 #define BASIS_FEASBASED_SC_H
 #include "BasisOneSpinFeAs.h"
-#include "BasisBase.h"
+#include "../../Engine/BasisBase.h"
 
 namespace LanczosPlusPlus {
 

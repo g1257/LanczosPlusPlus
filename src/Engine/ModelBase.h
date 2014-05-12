@@ -1,0 +1,93 @@
+
+/*
+// BEGIN LICENSE BLOCK
+Copyright (c) 2014, UT-Battelle, LLC
+All rights reserved
+
+[Lanczos++, Version 1.0.0]
+
+*********************************************************
+THE SOFTWARE IS SUPPLIED BY THE COPYRIGHT HOLDERS AND
+CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+PARTICULAR PURPOSE ARE DISCLAIMED. 
+
+Please see full open source license included in file LICENSE.
+*********************************************************
+
+*/
+
+#ifndef LANCZOS_MODEL_BASE_H
+#define LANCZOS_MODEL_BASE_H
+#include "CrsMatrix.h"
+#include "BasisBase.h"
+#include "Vector.h"
+
+namespace LanczosPlusPlus {
+
+template<typename RealType_,typename GeometryType_,typename InputType_>
+
+class ModelBase {
+
+public:
+
+	typedef GeometryType_ GeometryType;
+	typedef RealType_ RealType;
+	typedef InputType_ InputType;
+	typedef BasisBase<GeometryType> BasisBaseType;
+	typedef PsimagLite::CrsMatrix<RealType> SparseMatrixType;
+	typedef typename PsimagLite::Vector<RealType>::Type VectorType;
+
+	virtual ~ModelBase() {}
+
+	virtual SizeType size() const = 0;
+
+	virtual SizeType orbitals(SizeType site) const = 0;
+
+	virtual void setupHamiltonian(SparseMatrixType& matrix) const = 0;
+
+	virtual bool hasNewParts(std::pair<SizeType,SizeType>& newParts,
+	                         SizeType what,
+	                         SizeType spin,
+	                         const std::pair<SizeType,SizeType>& orbs) const = 0;
+
+	virtual const GeometryType& geometry() const = 0;
+
+	virtual void setupHamiltonian(SparseMatrixType& matrix,
+	                              const BasisBaseType& basis) const =0;
+
+	virtual const BasisBaseType& basis() const = 0;
+
+	virtual PsimagLite::String name() const  = 0;
+
+	virtual BasisBaseType* createBasis(SizeType nup, SizeType ndown) const = 0;
+
+	virtual void print(std::ostream& os) const = 0;
+
+protected:
+
+	template<typename SomeVectorType>
+	static typename PsimagLite::EnableIf<PsimagLite::IsVectorLike<SomeVectorType>::True,
+	void>::Type deleteGarbage(SomeVectorType& garbage)
+	{
+		for (SizeType i = 0; i < garbage.size(); ++i) {
+			delete garbage[i];
+			garbage[i] = 0;
+		}
+	}
+
+}; // class ModelBase
+
+template<typename RealType,typename GeometryType,typename InputType>
+std::ostream& operator<<(std::ostream& os,
+                         const ModelBase<RealType,GeometryType,InputType>& model)
+{
+	model.print(os);
+	return os;
+}
+
+} // namespace LanczosPlusPlus
+
+#endif
+

@@ -64,7 +64,9 @@ print FOUT<<EOF;
 # MPI: $mpi
 
 LDFLAGS =    $lapack  $gslLibs $pthreadsLib
-CPPFLAGS = -Werror -Wall  -IEngine -IModels/Tj1Orb -IModels/Immm -IModels/HubbardOneOrbital -IModels/FeBasedSc -I$PsimagLite -I$PsimagLite/src $usePthreadsOrNot
+CPPFLAGS = -Werror -Wall -Wstrict-overflow=5 -IEngine \\
+           -IModels/Tj1Orb -IModels/Immm -IModels/HubbardOneOrbital \\
+           -IModels/FeBasedSc -I$PsimagLite -I$PsimagLite/src $usePthreadsOrNot
 EOF
 if ($mpi) {
 	print FOUT "CXX = mpicxx -O3 -DNDEBUG \n";

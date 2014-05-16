@@ -57,6 +57,7 @@ namespace LanczosPlusPlus {
 			if (printMatrix_) {
 				if (nrows > 40)
 					throw PsimagLite::RuntimeError("printMatrix too big\n");
+				std::cout<<"#LanczosPlusPlus: DenseMatrix\n";
 				std::cout<<matrixStored_.toDense();
 				PsimagLite::Matrix<ComplexOrRealType> matrixCopy;
 				VectorRealType eigs(matrixCopy.n_row());

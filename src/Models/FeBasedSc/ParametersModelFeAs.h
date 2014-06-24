@@ -39,7 +39,7 @@ must include the following acknowledgment:
 "This product includes software produced by UT-Battelle,
 LLC under Contract No. DE-AC05-00OR22725  with the
 Department of Energy."
- 
+
 *********************************************************
 DISCLAIMER
 
@@ -88,9 +88,9 @@ namespace LanczosPlusPlus {
 	struct ParametersModelFeAs {
 		// no connections here please!!
 		// connections are handled by the geometry
-		
+
 		template<typename IoInputType>
-		ParametersModelFeAs(IoInputType& io) 
+		ParametersModelFeAs(IoInputType& io)
 		    : feAsMode(0),coulombV(0)
 		{
 			io.readline(orbitals,"Orbitals=");
@@ -109,9 +109,7 @@ namespace LanczosPlusPlus {
 				throw PsimagLite::RuntimeError(str);
 			}
 
-			try {
-				io.readline(feAsMode,"FeAsMode=");
-			} catch (std::exception& e) {}
+			io.readline(feAsMode,"FeAsMode=");
 
 			if (feAsMode > 3)
 				throw PsimagLite::RuntimeError("FeAsMode: expecting 0 or 1 or 2 or 3\n");
@@ -140,7 +138,7 @@ namespace LanczosPlusPlus {
 				}
 			}
 		}
-		
+
 		SizeType orbitals;
 		// Hubbard U values (one for each site)
 		typename PsimagLite::Vector<RealType>::Type hubbardU;
@@ -151,7 +149,7 @@ namespace LanczosPlusPlus {
 		// target number of electrons  in the system
 		int nOfElectrons;
 	}; //struct ParametersModelFeAs
-	
+
 	//! Function that prints model parameters to stream os
 	template<typename RealTypeType>
 	std::ostream& operator<<(std::ostream &os,const ParametersModelFeAs<RealTypeType>& parameters)

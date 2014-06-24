@@ -11,7 +11,7 @@ THE SOFTWARE IS SUPPLIED BY THE COPYRIGHT HOLDERS AND
 CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
 WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-PARTICULAR PURPOSE ARE DISCLAIMED. 
+PARTICULAR PURPOSE ARE DISCLAIMED.
 
 Please see full open source license included in file LICENSE.
 *********************************************************
@@ -30,7 +30,7 @@ namespace LanczosPlusPlus {
 
 	template<typename RealType,typename GeometryType,typename InputType>
 	class FeBasedSc : public ModelBase<RealType,GeometryType,InputType> {
-		
+
 		typedef PsimagLite::Matrix<RealType> MatrixType;
 		typedef ModelBase<RealType,GeometryType,InputType> BaseType;
 
@@ -48,13 +48,13 @@ namespace LanczosPlusPlus {
 		typedef PsimagLite::SparseRow<SparseMatrixType> SparseRowType;
 		enum {TERM_HOPPINGS=0,TERM_J=1};
 		static int const FERMION_SIGN = BasisType::FERMION_SIGN;
-		
-		
+
+
 		FeBasedSc(SizeType nup,SizeType ndown,InputType& io,const GeometryType& geometry)
 		: mp_(io),geometry_(geometry),basis_(geometry,nup,ndown,mp_.orbitals)
 		{
 		}
-		
+
 		~FeBasedSc()
 		{
 			BaseType::deleteGarbage(garbage_);
@@ -71,7 +71,7 @@ namespace LanczosPlusPlus {
 		{
 			setupHamiltonian(matrix,basis_);
 		}
-		
+
 		bool hasNewParts(std::pair<SizeType,SizeType>& newParts,
 		                 SizeType what,
 		                 SizeType spin,
@@ -314,7 +314,7 @@ namespace LanczosPlusPlus {
 				}
 			}
 		}
-		
+
 		void setU2OffDiagonalTerm(
 				SparseRowType &sparseRow,
 				const WordType& ket1,
@@ -456,7 +456,7 @@ namespace LanczosPlusPlus {
 					} else {
 						s += findSImpurity(nsite,ket1,ket2,i,orb,basis);
 					}
-					
+
 					// Potential term
 					s += mp_.potentialV[i+(orb+mp_.orbitals*0)*nsite]*
 							basis.getN(ket1,ket1,i,SPIN_UP,orb) +
@@ -518,16 +518,17 @@ namespace LanczosPlusPlus {
 			// Hubbard term U0
 			RealType s = mp_.hubbardU[0] * basis.isThereAnElectronAt(ket1,ket2,
 									 i,SPIN_UP,orb) * basis.isThereAnElectronAt(ket1,ket2,
-														    i,ProgramGlobals::SPIN_DOWN,orb);
+														    i,SPIN_DOWN,orb);
 
 
-			for (SizeType orb2=orb+1;orb2<mp_.orbitals;orb2++) {
+			for (SizeType orb2=0;orb2<mp_.orbitals;orb2++) {
 				// Hubbard term U1
-				for (SizeType spin = 0; spin < 2; ++spin) 
-					s += mp_.hubbardU[1] *  basis.isThereAnElectronAt(ket1,ket2,i,spin,orb) *
+				if (orb == orb2) continue;
+				for (SizeType spin = 0; spin < 2; ++spin)
+					s += 0.5*mp_.hubbardU[1] *  basis.isThereAnElectronAt(ket1,ket2,i,spin,orb) *
 					       basis.isThereAnElectronAt(ket1,ket2,i,spin,orb2);
 			}
-			
+
 			for (SizeType orb2=0;orb2<mp_.orbitals;orb2++) {
 				if (orb == orb2) continue;
 				// Diagonal U2 term
@@ -602,13 +603,13 @@ namespace LanczosPlusPlus {
 			sz -= basis.isThereAnElectronAt(ket1,ket2,i,ProgramGlobals::SPIN_DOWN,orb);
 			return 0.5*sz;
 		}
-		
+
 		RealType jCoupling(SizeType i,SizeType j) const
 		{
 			if (geometry_.terms()==1) return 0;
 			return geometry_(i,0,j,0,TERM_J);
 		}
-		
+
 		void setOffDiagonalJimpurity(SparseRowType& sparseRow,
 		                         const WordType& ket1,
 								 const WordType& ket2,
@@ -632,15 +633,15 @@ namespace LanczosPlusPlus {
 					if (basis.isThereAnElectronAt(ket1,ket2,i,SPIN_DOWN,orb3)) continue;
 					if (!basis.isThereAnElectronAt(ket1,ket2,i,SPIN_UP,orb2)) continue;
 					if (basis.isThereAnElectronAt(ket1,ket2,i,SPIN_UP,orb1)) continue;
-						
+
 					WordType mask4 = BasisType::bitmask(i*mp_.orbitals+orb4);
 					WordType mask3 = BasisType::bitmask(i*mp_.orbitals+orb3);
 					WordType bra2 =(ket2 ^ mask4) ^ mask3;
-						
+
 					WordType mask2 = BasisType::bitmask(i*mp_.orbitals+orb2);
 					WordType mask1 = BasisType::bitmask(i*mp_.orbitals+orb1);
 					WordType bra1 = (ket1 ^ mask2) ^ mask1;
-					
+
 					RealType x = basis.doSign(ket1,ket2,i,orb1,i,orb2,SPIN_UP);
 					x *= basis.doSign(ket1,ket2,i,orb3,i,orb4,SPIN_DOWN);
 
@@ -655,7 +656,7 @@ namespace LanczosPlusPlus {
 		BasisType basis_;
 		mutable typename PsimagLite::Vector<BasisType*>::Type garbage_;
 	}; // class FeBasedSc
-	
+
 } // namespace LanczosPlusPlus
 #endif
 

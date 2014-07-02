@@ -23,6 +23,13 @@ public:
 
 	typedef ModelBase<RealType,GeometryType, InputType> ModelBaseType;
 
+	/** @class hide_modelselector
+	 - TargetElectronsUp=integer
+	 - TargetElectronsDown=integer
+	 - Model=string One of Tj1Orb HeisenbergSpinOneHalf Immm
+	                       HubbardOneBand HubbardOneBandExtended SuperHubbardExtended 
+	                       FeAsBasedSc FeAsBasedScExtended  
+	*/
 	ModelSelector(InputType& io, const GeometryType& geometry)
 	: modelPtr_(0)
 	{

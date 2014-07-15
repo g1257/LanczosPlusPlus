@@ -156,7 +156,7 @@ public:
 			InternalProductTemplate<ModelType,DefaultSymmetryType> matrix(model_,
 			                                                              *basisNew,
 			                                                              symm);
-			ContinuedFractionType cf;
+			ContinuedFractionType cf(cfCollection.freqType());
 
 			calcSpectral(cf,operatorLabel,modifVector,matrix,type,spins.first,isDiagonal);
 			cfCollection.push(cf);

@@ -26,7 +26,7 @@ PsimagLite::String license = "Copyright (c) 2009-2012, UT-Battelle, LLC\n"
 #include "InternalProductStored.h"
 #include "InputNg.h" // in PsimagLite
 #include "ProgramGlobals.h"
-#include "ContinuedFraction.h" // in PsimagLite 
+#include "ContinuedFraction.h" // in PsimagLite
 #include "ContinuedFractionCollection.h" // in PsimagLite
 #include "DefaultSymmetry.h"
 #include "ReflectionSymmetry.h"
@@ -105,7 +105,7 @@ void mainLoop2(const ModelType& model,
 		        ContinuedFractionCollectionType;
 
 		PsimagLite::IoSimple::Out ioOut(std::cout);
-		ContinuedFractionCollectionType cfCollection;
+		ContinuedFractionCollectionType cfCollection(PsimagLite::FREQ_REAL);
 		SizeType norbitals = maxOrbitals(model);
 		for (SizeType orb1=0;orb1<norbitals;orb1++) {
 			for (SizeType orb2=0;orb2<norbitals;orb2++) {

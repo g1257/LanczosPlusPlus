@@ -1,6 +1,5 @@
-// BEGIN LICENSE BLOCK
 /*
-Copyright (c) 2009, UT-Battelle, LLC
+Copyright (c) 2009-2014, UT-Battelle, LLC
 All rights reserved
 
 [DMRG++, Version 2.0.0]
@@ -68,9 +67,8 @@ DISCLOSED WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
 
 *********************************************************
 
-
 */
-// END LICENSE BLOCK
+
 /** \ingroup DMRG */
 /*@{*/
 
@@ -111,8 +109,8 @@ namespace LanczosPlusPlus {
 
 			io.readline(feAsMode,"FeAsMode=");
 
-			if (feAsMode > 3)
-				throw PsimagLite::RuntimeError("FeAsMode: expecting 0 or 1 or 2 or 3\n");
+			if (feAsMode > 4)
+				throw PsimagLite::RuntimeError("FeAsMode: expecting 0 to 4\n");
 
 			if (feAsMode == 1 || feAsMode == 2) {
 				SizeType tmp = orbitals * orbitals;
@@ -134,6 +132,14 @@ namespace LanczosPlusPlus {
 				if (hubbardU.size() != 4) {
 					PsimagLite::String str("FeAsMode: expecting");
 					str +=  " 4 U values\n";
+					throw PsimagLite::RuntimeError(str);
+				}
+			}
+
+			if (feAsMode == 4) {
+				if (hubbardU.size() != 1) {
+					PsimagLite::String str("FeAsMode: expecting");
+					str +=  " just 1 U values\n";
 					throw PsimagLite::RuntimeError(str);
 				}
 			}

@@ -123,7 +123,7 @@ namespace LanczosPlusPlus {
 						} else if (mp_.feAsMode == 1 || mp_.feAsMode == 2) {
 							setOffDiagonalDecay(sparseRow,ket1,ket2,
 							                    i,orb,basis);
-						} else {
+						} else if (mp_.feAsMode == 3) {
 							setOffDiagonalJimpurity(sparseRow,ket1,ket2,i,orb,basis);
 						}
 					}
@@ -178,7 +178,7 @@ namespace LanczosPlusPlus {
 						} else if (mp_.feAsMode == 1 || mp_.feAsMode == 2) {
 							setOffDiagonalDecay(sparseRow,ket1,ket2,
 							                    i,orb,*basis);
-						} else {
+						} else if (mp_.feAsMode == 3) {
 							setOffDiagonalJimpurity(sparseRow,ket1,ket2,i,orb,*basis);
 						}
 					}
@@ -453,8 +453,10 @@ namespace LanczosPlusPlus {
 						s += findSnoDecay(nsite,ket1,ket2,i,orb,basis);
 					} else if (mp_.feAsMode == 1 || mp_.feAsMode == 2){
 						s += findSdecay(nsite,ket1,ket2,i,orb,basis);
-					} else {
+					} else if (mp_.feAsMode == 3) {
 						s += findSImpurity(nsite,ket1,ket2,i,orb,basis);
+					} else if (mp_.feAsMode == 4) {
+						s += findSkspace(nsite,ket1,ket2,i,orb,basis);
 					}
 
 					// Potential term
@@ -538,6 +540,43 @@ namespace LanczosPlusPlus {
 			}
 
 			return s;
+		}
+
+		RealType findSkspace(SizeType nsite,
+		                     WordType ket1,
+		                     WordType ket2,
+		                     SizeType i,
+		                     SizeType orb,
+		                     const BasisBaseType& basis) const
+		{
+			if (i > 0) return 0.0;
+
+			RealType s = 0.0;
+			SizeType ck1 = basis.isThereAnElectronAt(ket1,ket2,i,SPIN_UP,orb);
+			if (ck1 == 0) return 0.0;
+
+			SizeType orbPlusQ = kPlusQ(orb);
+			SizeType ckpq1 = basis.isThereAnElectronAt(ket1,ket2,i,SPIN_UP,orbPlusQ);
+			if (ckpq1 == 1) return 0.0;
+
+			for (SizeType orb2=0;orb2<mp_.orbitals;orb2++) {
+				SizeType ck2 = basis.isThereAnElectronAt(ket1,ket2,i,SPIN_DOWN,orb2);
+				if (ck2 == 1) continue;
+
+				SizeType orbPlusQ2 = kPlusQ(orb2);
+				SizeType ckpq2 = basis.isThereAnElectronAt(ket1,ket2,i,SPIN_DOWN,orbPlusQ2);
+				if (ckpq2 == 0) continue;
+
+				s++;
+			}
+
+			return s;
+		}
+
+		SizeType kPlusQ(SizeType orb) const
+		{
+			assert(orb < mp_.orbitals);
+			return mp_.orbitals - orb - 1;
 		}
 
 		SizeType splusSminusNonZero(

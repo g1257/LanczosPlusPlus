@@ -100,6 +100,7 @@ public:
 	                      const PsimagLite::Vector<PairType>::Type& spins,
 	                      const PairType& orbs) const
 	{
+		std::cout<<"orbitals="<<orbs.first<<" "<<orbs.second<<"\n";
 		for (SizeType i=0;i<spins.size();i++) {
 			std::cout<<"spins="<<spins[i].first<<" "<<spins[i].second<<"\n";
 			spectralFunction(cfCollection,what2,isite,jsite,spins[i],orbs);

@@ -125,6 +125,8 @@ namespace LanczosPlusPlus {
 							                    i,orb,basis);
 						} else if (mp_.feAsMode == 3) {
 							setOffDiagonalJimpurity(sparseRow,ket1,ket2,i,orb,basis);
+						} else if (mp_.feAsMode == 4) {
+							setOffDiagonalKspace(sparseRow,ket1,ket2,i,orb,basis);
 						}
 					}
 				}
@@ -180,6 +182,8 @@ namespace LanczosPlusPlus {
 							                    i,orb,*basis);
 						} else if (mp_.feAsMode == 3) {
 							setOffDiagonalJimpurity(sparseRow,ket1,ket2,i,orb,*basis);
+						} else if (mp_.feAsMode == 4) {
+							setOffDiagonalKspace(sparseRow,ket1,ket2,i,orb,*basis);
 						}
 					}
 				}
@@ -550,33 +554,17 @@ namespace LanczosPlusPlus {
 		                     const BasisBaseType& basis) const
 		{
 			if (i > 0) return 0.0;
-
-			RealType s = 0.0;
+			RealType s = 0;
 			SizeType ck1 = basis.isThereAnElectronAt(ket1,ket2,i,SPIN_UP,orb);
 			if (ck1 == 0) return 0.0;
 
-			SizeType orbPlusQ = kPlusQ(orb);
-			SizeType ckpq1 = basis.isThereAnElectronAt(ket1,ket2,i,SPIN_UP,orbPlusQ);
-			if (ckpq1 == 1) return 0.0;
-
 			for (SizeType orb2=0;orb2<mp_.orbitals;orb2++) {
 				SizeType ck2 = basis.isThereAnElectronAt(ket1,ket2,i,SPIN_DOWN,orb2);
-				if (ck2 == 1) continue;
-
-				SizeType orbPlusQ2 = kPlusQ(orb2);
-				SizeType ckpq2 = basis.isThereAnElectronAt(ket1,ket2,i,SPIN_DOWN,orbPlusQ2);
-				if (ckpq2 == 0) continue;
-
-				s++;
+				if (ck2 == 0) continue;
+				s ++;
 			}
 
 			return s;
-		}
-
-		SizeType kPlusQ(SizeType orb) const
-		{
-			assert(orb < mp_.orbitals);
-			return mp_.orbitals - orb - 1;
 		}
 
 		SizeType splusSminusNonZero(
@@ -650,11 +638,11 @@ namespace LanczosPlusPlus {
 		}
 
 		void setOffDiagonalJimpurity(SparseRowType& sparseRow,
-		                         const WordType& ket1,
-								 const WordType& ket2,
-								 SizeType i,
-		                                                 SizeType orb1,
-								 const BasisBaseType &basis) const
+		                             const WordType& ket1,
+		                             const WordType& ket2,
+		                             SizeType i,
+		                             SizeType orb1,
+		                             const BasisBaseType &basis) const
 		{
 			if (i > 0) return;
 
@@ -689,6 +677,64 @@ namespace LanczosPlusPlus {
 				}
 			}
 		}
+
+		void setOffDiagonalKspace(SparseRowType& sparseRow,
+		                          const WordType& ket1,
+		                          const WordType& ket2,
+		                          SizeType i,
+		                          SizeType orb1,
+		                          const BasisBaseType &basis) const
+		{
+			if (i > 0) return;
+
+			SizeType orbitals = mp_.orbitals;
+
+			if (basis.isThereAnElectronAt(ket1,ket2,i,SPIN_UP,orb1)) return;
+
+			for (SizeType orb2 = 0; orb2 < orbitals; ++orb2) {
+				if (orb1 == orb2) continue;
+
+				if (!basis.isThereAnElectronAt(ket1,ket2,i,SPIN_UP,orb2)) continue;
+
+				for (SizeType orb3 = 0; orb3 < orbitals; ++orb3) {
+
+					if (basis.isThereAnElectronAt(ket1,ket2,i,SPIN_DOWN,orb3)) continue;
+
+					SizeType orb4 = getMomentum(orb1, orb2, orb3);
+					assert(orb3 != orb4);
+
+					if (!basis.isThereAnElectronAt(ket1,ket2,i,SPIN_DOWN,orb4)) continue;
+
+					WordType mask4 = BasisType::bitmask(i*mp_.orbitals+orb4);
+					WordType mask3 = BasisType::bitmask(i*mp_.orbitals+orb3);
+					WordType bra2 =(ket2 ^ mask4) ^ mask3;
+
+					WordType mask2 = BasisType::bitmask(i*mp_.orbitals+orb2);
+					WordType mask1 = BasisType::bitmask(i*mp_.orbitals+orb1);
+					WordType bra1 = (ket1 ^ mask2) ^ mask1;
+
+					RealType x = basis.doSign(ket1,ket2,i,orb1,i,orb2,SPIN_UP);
+					x *= basis.doSign(ket1,ket2,i,orb3,i,orb4,SPIN_DOWN);
+
+					SizeType temp = basis.perfectIndex(bra1,bra2);
+					sparseRow.add(temp,x * mp_.hubbardU[0]);
+				}
+			}
+		}
+
+		SizeType getMomentum(SizeType orb, SizeType orb2, SizeType orb3) const
+		{
+			assert(orb < mp_.orbitals);
+			assert(orb2 < mp_.orbitals);
+			assert(orb3 < mp_.orbitals);
+
+			SizeType orb4 = 0;
+			throw PsimagLite::RuntimeError("getMomentum needs implementation\n");
+
+			assert(orb4 < mp_.orbitals);
+			return orb4;
+		}
+
 
 		const ParametersModelType mp_;
 		const GeometryType& geometry_;

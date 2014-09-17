@@ -25,6 +25,7 @@ Please see full open source license included in file LICENSE.
 #include "SparseRow.h"
 #include "ParametersModelFeAs.h"
 #include "ModelBase.h"
+#include "GeometryDca.h"
 
 namespace LanczosPlusPlus {
 
@@ -33,6 +34,7 @@ namespace LanczosPlusPlus {
 
 		typedef PsimagLite::Matrix<RealType> MatrixType;
 		typedef ModelBase<RealType,GeometryType,InputType> BaseType;
+		typedef GeometryDca<RealType,GeometryType> GeometryDcaType;
 
 		enum {SPIN_UP = ProgramGlobals::SPIN_UP,
 			  SPIN_DOWN = ProgramGlobals::SPIN_DOWN};
@@ -51,7 +53,10 @@ namespace LanczosPlusPlus {
 
 
 		FeBasedSc(SizeType nup,SizeType ndown,InputType& io,const GeometryType& geometry)
-		: mp_(io),geometry_(geometry),basis_(geometry,nup,ndown,mp_.orbitals)
+		: mp_(io),
+		  geometry_(geometry),
+		  basis_(geometry,nup,ndown,mp_.orbitals),
+		  geometryDca_(geometry,mp_.orbitals)
 		{
 		}
 
@@ -722,14 +727,14 @@ namespace LanczosPlusPlus {
 			}
 		}
 
-		SizeType getMomentum(SizeType orb, SizeType orb2, SizeType orb3) const
+		SizeType getMomentum(SizeType orb1, SizeType orb2, SizeType orb3) const
 		{
-			assert(orb < mp_.orbitals);
+			assert(orb1 < mp_.orbitals);
 			assert(orb2 < mp_.orbitals);
 			assert(orb3 < mp_.orbitals);
 
-			SizeType orb4 = 0;
-			throw PsimagLite::RuntimeError("getMomentum needs implementation\n");
+			SizeType tmp = geometryDca_.kSum(orb3,orb1);
+			SizeType orb4 = geometryDca_.kSustract(tmp,orb2);
 
 			assert(orb4 < mp_.orbitals);
 			return orb4;
@@ -739,6 +744,7 @@ namespace LanczosPlusPlus {
 		const ParametersModelType mp_;
 		const GeometryType& geometry_;
 		BasisType basis_;
+		GeometryDcaType geometryDca_;
 		mutable typename PsimagLite::Vector<BasisType*>::Type garbage_;
 	}; // class FeBasedSc
 

@@ -566,10 +566,10 @@ namespace LanczosPlusPlus {
 			for (SizeType orb2=0;orb2<mp_.orbitals;orb2++) {
 				SizeType ck2 = basis.isThereAnElectronAt(ket1,ket2,i,SPIN_DOWN,orb2);
 				if (ck2 == 0) continue;
-				s ++;
+				s++;
 			}
 
-			return s;
+			return s*mp_.hubbardU[0];
 		}
 
 		SizeType splusSminusNonZero(

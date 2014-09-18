@@ -51,7 +51,7 @@ sub findOffset
 	my $offset = 0;
 	
 	for (my $x = 0; $x < $orbitals; ++$x) {
-		for (my $y = 0; $y < $orbitals; ++$y) {
+		for (my $y = $x; $y < $orbitals; ++$y) {
 			return $offset if ($x == $orb1 and $y == $orb2);
 			my $thisOffset = ($x == $y) ? 2 : 4;
 			$offset += $thisOffset;

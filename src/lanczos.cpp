@@ -108,7 +108,7 @@ void mainLoop2(const ModelType& model,
 		ContinuedFractionCollectionType cfCollection(PsimagLite::FREQ_REAL);
 		SizeType norbitals = maxOrbitals(model);
 		for (SizeType orb1=0;orb1<norbitals;orb1++) {
-			for (SizeType orb2=0;orb2<norbitals;orb2++) {
+			for (SizeType orb2=orb1;orb2<norbitals;orb2++) {
 				engine.spectralFunction(cfCollection,
 				                        gf,
 				                        sites[0],

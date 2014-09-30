@@ -1,4 +1,3 @@
-
 /*
 */
 
@@ -16,6 +15,8 @@ class BasisTj1OrbLanczos : public BasisBase<GeometryType> {
 
 	typedef ProgramGlobals::PairIntType PairIntType;
 
+	enum {SPIN_UP = ProgramGlobals::SPIN_UP, SPIN_DOWN = ProgramGlobals::SPIN_DOWN};
+
 public:
 
 	typedef BasisBase<GeometryType> BaseType;
@@ -24,9 +25,9 @@ public:
 	static VectorWordType bitmask_;
 
 	enum {OPERATOR_NIL=ProgramGlobals::OPERATOR_NIL,
-		  OPERATOR_C=ProgramGlobals::OPERATOR_C,
-		  OPERATOR_SZ=ProgramGlobals::OPERATOR_SZ,
-		  OPERATOR_CDAGGER=ProgramGlobals::OPERATOR_CDAGGER};
+	      OPERATOR_C=ProgramGlobals::OPERATOR_C,
+	      OPERATOR_SZ=ProgramGlobals::OPERATOR_SZ,
+	      OPERATOR_CDAGGER=ProgramGlobals::OPERATOR_CDAGGER};
 
 	static int const FERMION_SIGN = -1;
 
@@ -98,7 +99,7 @@ public:
 
 	SizeType electrons(SizeType what) const
 	{
-		return (what==ProgramGlobals::SPIN_UP) ? nup_ : ndown_;
+		return (what==SPIN_UP) ? nup_ : ndown_;
 	}
 
 	WordType operator()(SizeType i,SizeType spin) const
@@ -107,7 +108,7 @@ public:
 		WordType w = data_[i];
 		WordType mask = (1<<n);
 		mask--;
-		if (spin==ProgramGlobals::SPIN_UP) {
+		if (spin==SPIN_UP) {
 			return (w & mask);
 		}
 
@@ -123,18 +124,22 @@ public:
 	                             SizeType spin,
 	                             SizeType orb) const
 	{
-		return (spin==ProgramGlobals::SPIN_UP) ?
+		return (spin==SPIN_UP) ?
 		            isThereAnElectronAt(ket1,site) : isThereAnElectronAt(ket2,site);
 	}
 
-	SizeType getN(WordType ket1,WordType ket2, SizeType site,SizeType spin, SizeType orb) const
+	SizeType getN(WordType ket1,
+	              WordType ket2,
+	              SizeType site,
+	              SizeType spin,
+	              SizeType orb) const
 	{
-		return (spin==ProgramGlobals::SPIN_UP) ? getN(ket1,site) : getN(ket2,site);
+		return (spin==SPIN_UP) ? getN(ket1,site) : getN(ket2,site);
 	}
 
 	int doSignGf(WordType a, WordType b,SizeType ind,SizeType sector,SizeType orb) const
 	{
-		if (sector==ProgramGlobals::SPIN_UP) {
+		if (sector==SPIN_UP) {
 			if (ind==0) return 1;
 
 			// ind>0 from now on
@@ -171,7 +176,7 @@ public:
 	           SizeType spin) const
 	{
 		assert(i <= j);
-		return (spin==ProgramGlobals::SPIN_UP) ? doSign(ket1,i,j): doSign(ket2,i,j);
+		return (spin==SPIN_UP) ? doSign(ket1,i,j): doSign(ket2,i,j);
 	}
 
 	PairIntType getBraIndex(WordType ket1,
@@ -237,7 +242,7 @@ private:
 		WordType bra2 = ket2;
 		int value = getBra(bra1,operatorLabel,ket1,ket2,site,spin);
 		if (value==0) return PairIntType(-1,value);
-		if (spin!=ProgramGlobals::SPIN_UP) {
+		if (spin!=SPIN_UP) {
 			bra2 = bra1;
 			bra1 = ket1;
 		}
@@ -379,7 +384,7 @@ private:
 	            SizeType site,
 	            SizeType spin) const
 	{
-		if (spin==ProgramGlobals::SPIN_UP) {
+		if (spin==SPIN_UP) {
 			int b1 = getBraC(bra,ket1,what,site);
 			if (b1==0) return 0;
 			return (isDoublyOccupied(bra,ket2)) ? 0 : 1;
@@ -416,7 +421,7 @@ private:
 	                SizeType site,
 	                SizeType spin) const
 	{
-		bra = (spin==ProgramGlobals::SPIN_UP) ? ket1 : ket2;
+		bra = (spin==SPIN_UP) ? ket1 : ket2;
 
 		WordType si= (bra & bitmask_[site]);
 

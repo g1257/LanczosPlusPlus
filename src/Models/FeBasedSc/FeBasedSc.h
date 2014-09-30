@@ -104,7 +104,7 @@ public:
 			SparseRowType sparseRow;
 			matrix.setRow(ispace,nCounter);
 			WordType ket1 = basis(ispace,SPIN_UP);
-			WordType ket2 = basis(ispace,ProgramGlobals::SPIN_DOWN);
+			WordType ket2 = basis(ispace,SPIN_DOWN);
 			// Save diagonal
 			sparseRow.add(ispace,diag[ispace]);
 			for (SizeType i=0;i<nsite;i++) {
@@ -161,7 +161,7 @@ public:
 			SparseRowType sparseRow;
 
 			WordType ket1 = basis->operator ()(ispace,SPIN_UP);
-			WordType ket2 = basis->operator ()(ispace,ProgramGlobals::SPIN_DOWN);
+			WordType ket2 = basis->operator ()(ispace,SPIN_DOWN);
 
 			//x[ispace] += diag[ispace]*y[ispace];
 			for (SizeType i=0;i<nsite;i++) {
@@ -257,7 +257,7 @@ private:
 	{
 		RealType s = mp_.hubbardU[orb+orb*mp_.orbitals] *
 		        basis.isThereAnElectronAt(ket1,ket2,i,SPIN_UP,orb) *
-		        basis.isThereAnElectronAt(ket1,ket2,i,ProgramGlobals::SPIN_DOWN,orb);
+		        basis.isThereAnElectronAt(ket1,ket2,i,SPIN_DOWN,orb);
 
 		for (SizeType orb2=orb+1;orb2<mp_.orbitals;orb2++) {
 			// Hubbard term U1
@@ -313,7 +313,7 @@ private:
 					WordType bra2= ket2 ^(BasisType::bitmask(ii)|BasisType::bitmask(jj));
 					SizeType temp = basis.perfectIndex(ket1,bra2);
 					RealType extraSign = (s2i==1) ? FERMION_SIGN : 1;
-					RealType tmp2 = basis_.doSign(ket1,ket2,i,orb,j,orb2,ProgramGlobals::SPIN_DOWN);
+					RealType tmp2 = basis_.doSign(ket1,ket2,i,orb,j,orb2,SPIN_DOWN);
 					ComplexOrRealType cTemp = h*extraSign*tmp2;
 					sparseRow.add(temp,cTemp);
 				}
@@ -415,7 +415,7 @@ private:
 	{
 		if (i>j) return jTermSign(ket1,ket2,j,orb2,i,orb1,basis);
 		int x = basis.doSign(ket1,ket2,i,orb1,j,orb2,SPIN_UP);
-		x *= basis.doSign(ket1,ket2,i,orb1,j,orb2,ProgramGlobals::SPIN_DOWN);
+		x *= basis.doSign(ket1,ket2,i,orb1,j,orb2,SPIN_DOWN);
 		return x;
 	}
 
@@ -428,7 +428,7 @@ private:
 		// Calculate diagonal elements
 		for (SizeType ispace=0;ispace<hilbert;ispace++) {
 			WordType ket1 = basis(ispace,SPIN_UP);
-			WordType ket2 = basis(ispace,ProgramGlobals::SPIN_DOWN);
+			WordType ket2 = basis(ispace,SPIN_DOWN);
 			diag[ispace]=findS(nsite,ket1,ket2,ispace,basis);
 		}
 	}
@@ -442,7 +442,7 @@ private:
 
 		for (SizeType ispace=0;ispace<hilbert;ispace++) {
 			WordType ket1 = basis->operator()(ispace,SPIN_UP);
-			WordType ket2 = basis->operator()(ispace,ProgramGlobals::SPIN_DOWN);
+			WordType ket2 = basis->operator()(ispace,SPIN_DOWN);
 			x[ispace] += findS(nsite,ket1,ket2,ispace,*basis)*y[ispace];
 		}
 	}
@@ -487,7 +487,7 @@ private:
 	{
 		// Hubbard term U0
 		ComplexOrRealType s = mp_.hubbardU[0]*basis.isThereAnElectronAt(ket1,ket2,i,SPIN_UP,orb)
-		        * basis.isThereAnElectronAt(ket1,ket2,i,ProgramGlobals::SPIN_DOWN,orb);
+		        * basis.isThereAnElectronAt(ket1,ket2,i,SPIN_DOWN,orb);
 
 		for (SizeType orb2=orb+1;orb2<mp_.orbitals;orb2++) {
 			// Hubbard term U1
@@ -582,9 +582,9 @@ private:
 		if (basis.isThereAnElectronAt(ket1,ket2,
 		                              i,SPIN_UP,orb1)==1) return 0;
 		if (basis.isThereAnElectronAt(ket1,ket2,
-		                              i,ProgramGlobals::SPIN_DOWN,orb1)==0) return 0;
+		                              i,SPIN_DOWN,orb1)==0) return 0;
 		if (basis.isThereAnElectronAt(ket1,ket2,
-		                              j,ProgramGlobals::SPIN_DOWN,orb2)==1) return 0;
+		                              j,SPIN_DOWN,orb2)==1) return 0;
 		return 1;
 	}
 
@@ -601,9 +601,9 @@ private:
 		if (basis.isThereAnElectronAt(ket1,ket2,
 		                              i,SPIN_UP,orb1)==1) return 0;
 		if (basis.isThereAnElectronAt(ket1,ket2,
-		                              i,ProgramGlobals::SPIN_DOWN,orb1)==1) return 0;
+		                              i,SPIN_DOWN,orb1)==1) return 0;
 		if (basis.isThereAnElectronAt(ket1,ket2,
-		                              i,ProgramGlobals::SPIN_DOWN,orb2)==0) return 0;
+		                              i,SPIN_DOWN,orb2)==0) return 0;
 		return 1;
 	}
 
@@ -628,7 +628,7 @@ private:
 	        const BasisBaseType& basis) const
 	{
 		RealType sz = basis.isThereAnElectronAt(ket1,ket2,i,SPIN_UP,orb);
-		sz -= basis.isThereAnElectronAt(ket1,ket2,i,ProgramGlobals::SPIN_DOWN,orb);
+		sz -= basis.isThereAnElectronAt(ket1,ket2,i,SPIN_DOWN,orb);
 		return 0.5*sz;
 	}
 

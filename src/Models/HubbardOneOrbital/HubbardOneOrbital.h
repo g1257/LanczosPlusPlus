@@ -112,7 +112,7 @@ public:
 		for (SizeType ispace=0;ispace<hilbert;ispace++) {
 			SparseRowType sparseRow;
 			matrix.setRow(ispace,nCounter);
-			WordType ket1 = basis(ispace,ProgramGlobals::SPIN_UP);
+			WordType ket1 = basis(ispace,SPIN_UP);
 			WordType ket2 = basis(ispace,SPIN_DOWN);
 			// Save diagonal
 			sparseRow.add(ispace,diag[ispace]);
@@ -162,10 +162,10 @@ private:
 	                           SizeType spin,
 	                           const std::pair<SizeType,SizeType>& orbs) const
 	{
-		int newPart1=basis_.electrons(ProgramGlobals::SPIN_UP);
+		int newPart1=basis_.electrons(SPIN_UP);
 		int newPart2=basis_.electrons(SPIN_DOWN);
 		int c = (what==ProgramGlobals::OPERATOR_C) ? -1 : 1;
-		if (spin==ProgramGlobals::SPIN_UP) newPart1 += c;
+		if (spin==SPIN_UP) newPart1 += c;
 		else newPart2 += c;
 
 		if (newPart1<0 || newPart2<0) return false;
@@ -186,7 +186,7 @@ private:
 
 		// Calculate diagonal elements
 		for (SizeType ispace=0;ispace<hilbert;ispace++) {
-			WordType ket1 = basis(ispace,ProgramGlobals::SPIN_UP);
+			WordType ket1 = basis(ispace,SPIN_UP);
 			WordType ket2 = basis(ispace,SPIN_DOWN);
 			ComplexOrRealType s=0;
 			for (SizeType i=0;i<nsite;i++) {

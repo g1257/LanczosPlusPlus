@@ -74,7 +74,7 @@ public:
 	{
 		SizeType y = i/basis1_.size();
 		SizeType x = i%basis1_.size();
-		return (spin==ProgramGlobals::SPIN_UP) ? basis1_[x] : basis2_[y];
+		return (spin==SPIN_UP) ? basis1_[x] : basis2_[y];
 	}
 
 	SizeType perfectIndex(const VectorWordType& kets) const
@@ -99,7 +99,7 @@ public:
 	{
 		SizeType y = i/basis1_.size();
 		SizeType x = i%basis1_.size();
-		return (spin==ProgramGlobals::SPIN_UP) ? basis1_.getN(x,orb) : basis2_.getN(y,orb);
+		return (spin==SPIN_UP) ? basis1_.getN(x,orb) : basis2_.getN(y,orb);
 	}
 
 	SizeType getN(WordType ket1, WordType ket2, SizeType site,SizeType spin,SizeType orb) const
@@ -141,7 +141,7 @@ public:
 			std::cerr<<"AT: "<<__FILE__<<" : "<<__LINE__<<std::endl;
 			throw std::runtime_error("FeBasedSc::doSign(...)\n");
 		}
-		if (spin==ProgramGlobals::SPIN_UP) {
+		if (spin==SPIN_UP) {
 			return basis1_.doSign(ket1,i,orb1,j,orb2);
 		}
 		return basis2_.doSign(ket2,i,orb1,j,orb2);
@@ -149,7 +149,7 @@ public:
 
 	int doSignGf(WordType a, WordType b,SizeType ind,SizeType spin,SizeType orb) const
 	{
-		if (spin==ProgramGlobals::SPIN_UP) return basis1_.doSignGf(a,ind,orb);
+		if (spin==SPIN_UP) return basis1_.doSignGf(a,ind,orb);
 
 		int s=(PsimagLite::BitManip::count(a) & 1) ? -1 : 1; // Parity of up
 		int s2 = basis2_.doSignGf(b,ind,orb);
@@ -163,7 +163,7 @@ public:
 	                             SizeType spin,
 	                             SizeType orb) const
 	{
-		if (spin==ProgramGlobals::SPIN_UP)
+		if (spin==SPIN_UP)
 			return basis1_.isThereAnElectronAt(ket1,site,orb);
 		return basis2_.isThereAnElectronAt(ket2,site,orb);
 	}
@@ -207,7 +207,7 @@ private:
 		WordType bra  =0;
 		bool b = getBraCorCdaggerOrN(bra,ket1,ket2,what,site,spin,orb);
 		if (!b) return -1;
-		return (spin==ProgramGlobals::SPIN_UP) ? perfectIndex(bra,ket2) :
+		return (spin==SPIN_UP) ? perfectIndex(bra,ket2) :
 		       perfectIndex(ket1,bra);
 	}
 
@@ -233,7 +233,7 @@ private:
 		int newPart1=basis1_.electrons();
 		int newPart2=basis2_.electrons();
 
-		if (spin==ProgramGlobals::SPIN_UP) newPart1 = basis1_.newPartCorCdagger(what,orbs.first);
+		if (spin==SPIN_UP) newPart1 = basis1_.newPartCorCdagger(what,orbs.first);
 		else newPart2 = basis2_.newPartCorCdagger(what,orbs.second);
 
 		if (newPart1<0 || newPart2<0) return false;
@@ -270,7 +270,7 @@ private:
 	                         SizeType spin,
 	                         SizeType orb) const
 	{
-		return (spin==ProgramGlobals::SPIN_UP) ? basis1_.getBra(bra,ket1,what,site,orb) :
+		return (spin==SPIN_UP) ? basis1_.getBra(bra,ket1,what,site,orb) :
 		       basis2_.getBra(bra,ket2,what,site,orb);
 	}
 

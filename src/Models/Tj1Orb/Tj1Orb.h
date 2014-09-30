@@ -1,4 +1,3 @@
-
 /*
 */
 
@@ -22,6 +21,8 @@ class Tj1Orb  : public ModelBase<ComplexOrRealType,GeometryType,InputType> {
 	typedef PsimagLite::Matrix<ComplexOrRealType> MatrixType;
 	typedef std::pair<SizeType,SizeType> PairType;
 	typedef ModelBase<ComplexOrRealType,GeometryType,InputType> BaseType;
+
+	enum {SPIN_UP = ProgramGlobals::SPIN_UP, SPIN_DOWN = ProgramGlobals::SPIN_DOWN};
 
 public:
 
@@ -91,8 +92,8 @@ public:
 		for (SizeType ispace=0;ispace<hilbert;ispace++) {
 			SparseRowType sparseRow;
 			matrix.setRow(ispace,nCounter);
-			WordType ket1 = basis(ispace,ProgramGlobals::SPIN_UP);
-			WordType ket2 = basis(ispace,ProgramGlobals::SPIN_DOWN);
+			WordType ket1 = basis(ispace,SPIN_UP);
+			WordType ket2 = basis(ispace,SPIN_DOWN);
 			//				std::cout<<"ket1="<<ket1<<" ket2="<<ket2<<"\n";
 			// Save diagonal
 			sparseRow.add(ispace,diag[ispace]);
@@ -153,10 +154,10 @@ private:
 	                           SizeType spin,
 	                           const PairType& orbs) const
 	{
-		int newPart1=basis_.electrons(ProgramGlobals::SPIN_UP);
-		int newPart2=basis_.electrons(ProgramGlobals::SPIN_DOWN);
+		int newPart1=basis_.electrons(SPIN_UP);
+		int newPart2=basis_.electrons(SPIN_DOWN);
 		int c = (what==ProgramGlobals::OPERATOR_CDAGGER) ? 1 : -1;
-		if (spin==ProgramGlobals::SPIN_UP) newPart1 += c;
+		if (spin==SPIN_UP) newPart1 += c;
 		else newPart2 += c;
 
 		if (newPart1<0 || newPart2<0) return false;
@@ -174,10 +175,10 @@ private:
 	                             SizeType spin,
 	                             const PairType& orbs) const
 	{
-		int newPart1=basis_.electrons(ProgramGlobals::SPIN_UP);
-		int newPart2=basis_.electrons(ProgramGlobals::SPIN_DOWN);
+		int newPart1=basis_.electrons(SPIN_UP);
+		int newPart2=basis_.electrons(SPIN_DOWN);
 		int c = (what==ProgramGlobals::OPERATOR_SPLUS) ? 1 : -1;
-		if (spin==ProgramGlobals::SPIN_UP) {
+		if (spin==SPIN_UP) {
 			newPart1 += c;
 			newPart2 -= c;
 		} else {
@@ -205,14 +206,14 @@ private:
 
 		// Calculate diagonal elements
 		for (SizeType ispace=0;ispace<hilbert;ispace++) {
-			WordType ket1 = basis(ispace,ProgramGlobals::SPIN_UP);
-			WordType ket2 = basis(ispace,ProgramGlobals::SPIN_DOWN);
+			WordType ket1 = basis(ispace,SPIN_UP);
+			WordType ket2 = basis(ispace,SPIN_DOWN);
 			ComplexOrRealType s=0;
 			for (SizeType i=0;i<nsite;i++) {
 
-				int niup = basis.isThereAnElectronAt(ket1,ket2,i,ProgramGlobals::SPIN_UP,orb);
+				int niup = basis.isThereAnElectronAt(ket1,ket2,i,SPIN_UP,orb);
 
-				int nidown = basis.isThereAnElectronAt(ket1,ket2,i,ProgramGlobals::SPIN_DOWN,orb);
+				int nidown = basis.isThereAnElectronAt(ket1,ket2,i,SPIN_DOWN,orb);
 
 				if (i < mp_.potentialV.size()) {
 					s += mp_.potentialV[i]*niup;
@@ -221,8 +222,8 @@ private:
 
 				for (SizeType j=i+1;j<nsite;j++) {
 
-					int njup = basis.isThereAnElectronAt(ket1,ket2,j,ProgramGlobals::SPIN_UP,orb);
-					int njdown = basis.isThereAnElectronAt(ket1,ket2,j,ProgramGlobals::SPIN_DOWN,orb);
+					int njup = basis.isThereAnElectronAt(ket1,ket2,j,SPIN_UP,orb);
+					int njdown = basis.isThereAnElectronAt(ket1,ket2,j,SPIN_DOWN,orb);
 
 					// Sz Sz term:
 					s += (niup-nidown) * (njup - njdown)  * j_(i,j)*0.25;
@@ -265,7 +266,7 @@ private:
 				WordType bra1= ket1 ^(BasisType::bitmask(i)|BasisType::bitmask(j));
 				SizeType temp = basis.perfectIndex(bra1,ket2);
 				RealType extraSign = (s1i==1) ? FERMION_SIGN : 1;
-				RealType tmp2 = basis_.doSign(ket1,ket2,i,orb,j,orb,ProgramGlobals::SPIN_UP);
+				RealType tmp2 = basis_.doSign(ket1,ket2,i,orb,j,orb,SPIN_UP);
 				ComplexOrRealType cTemp = h*extraSign*tmp2;
 				sparseRow.add(temp,cTemp);
 			}
@@ -274,7 +275,7 @@ private:
 				WordType bra2= ket2 ^(BasisType::bitmask(i)|BasisType::bitmask(j));
 				SizeType temp = basis.perfectIndex(ket1,bra2);
 				RealType extraSign = (s2i==1) ? FERMION_SIGN : 1;
-				RealType tmp2 = basis_.doSign(ket1,ket2,i,orb,j,orb,ProgramGlobals::SPIN_DOWN);
+				RealType tmp2 = basis_.doSign(ket1,ket2,i,orb,j,orb,SPIN_DOWN);
 				ComplexOrRealType cTemp = h*extraSign*tmp2;
 				sparseRow.add(temp,cTemp);
 			}

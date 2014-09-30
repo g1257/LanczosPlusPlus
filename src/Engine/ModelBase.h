@@ -11,7 +11,7 @@ THE SOFTWARE IS SUPPLIED BY THE COPYRIGHT HOLDERS AND
 CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
 WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-PARTICULAR PURPOSE ARE DISCLAIMED. 
+PARTICULAR PURPOSE ARE DISCLAIMED.
 
 Please see full open source license included in file LICENSE.
 *********************************************************
@@ -26,18 +26,19 @@ Please see full open source license included in file LICENSE.
 
 namespace LanczosPlusPlus {
 
-template<typename RealType_,typename GeometryType_,typename InputType_>
+template<typename ComplexOrRealType_,typename GeometryType_,typename InputType_>
 
 class ModelBase {
 
 public:
 
+	typedef typename PsimagLite::Real<ComplexOrRealType_>::Type RealType;
 	typedef GeometryType_ GeometryType;
-	typedef RealType_ RealType;
+	typedef ComplexOrRealType_ ComplexOrRealType;
 	typedef InputType_ InputType;
 	typedef BasisBase<GeometryType> BasisBaseType;
-	typedef PsimagLite::CrsMatrix<RealType> SparseMatrixType;
-	typedef typename PsimagLite::Vector<RealType>::Type VectorType;
+	typedef PsimagLite::CrsMatrix<ComplexOrRealType> SparseMatrixType;
+	typedef typename PsimagLite::Vector<ComplexOrRealType>::Type VectorType;
 
 	virtual ~ModelBase() {}
 

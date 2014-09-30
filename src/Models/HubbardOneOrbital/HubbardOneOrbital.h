@@ -15,11 +15,12 @@
 
 namespace LanczosPlusPlus {
 
-	template<typename RealType,typename GeometryType,typename InputType>
-	class HubbardOneOrbital : public ModelBase<RealType,GeometryType,InputType> {
+	template<typename ComplexOrRealType,typename GeometryType,typename InputType>
+	class HubbardOneOrbital : public ModelBase<ComplexOrRealType,GeometryType,InputType> {
 
-		typedef PsimagLite::Matrix<RealType> MatrixType;
-		typedef ModelBase<RealType,GeometryType,InputType> BaseType;
+		typedef typename PsimagLite::Real<ComplexOrRealType>::Type RealType;
+		typedef PsimagLite::Matrix<ComplexOrRealType> MatrixType;
+		typedef ModelBase<ComplexOrRealType,GeometryType,InputType> BaseType;
 
 		enum {TERM_HOPPING=0,TERM_NINJ=1,TERM_SUPER=2};
 
@@ -76,7 +77,7 @@ namespace LanczosPlusPlus {
 			SizeType hilbert=basis.size();
 			typename PsimagLite::Vector<RealType>::Type diag(hilbert);
 			calcDiagonalElements(diag,basis);
-			
+
 			SizeType nsite = geometry_.numberOfSites();
 
 			matrix.resize(hilbert,hilbert);
@@ -161,7 +162,7 @@ namespace LanczosPlusPlus {
 			for (SizeType ispace=0;ispace<hilbert;ispace++) {
 				WordType ket1 = basis(ispace,ProgramGlobals::SPIN_UP);
 				WordType ket2 = basis(ispace,SPIN_DOWN);
-				RealType s=0;
+				ComplexOrRealType s=0;
 				for (SizeType i=0;i<nsite;i++) {
 
 					// Hubbard term U0
@@ -171,23 +172,23 @@ namespace LanczosPlusPlus {
 
 					// SzSz
 					for (SizeType j=0;j<nsite;j++) {
-						RealType value = jCoupling(i,j);
-						if (value==0) continue;
+						ComplexOrRealType value = jCoupling(i,j);
+						if (std::real(value) == 0 && std::imag(value) == 0) continue;
 						s += value*0.5* // double counting i,j
 						        szTerm(ket1,ket2,i,basis)*
 						        szTerm(ket1,ket2,j,basis);
 					}
 
 					// Coulomb
-					SizeType ne = (basis.getN(ket1,ket2,i,SPIN_UP,orb) +
+					RealType ne = (basis.getN(ket1,ket2,i,SPIN_UP,orb) +
 					               basis.getN(ket1,ket2,i,SPIN_DOWN,orb));
 
 					for (SizeType j=0;j<nsite;j++) {
-						RealType value = coulombCoupling(i,j);
-						if (value==0) continue;
-						s += value * ne *
-						        (basis.getN(ket1,ket2,j,SPIN_UP,orb) +
-						         basis.getN(ket1,ket2,j,SPIN_DOWN,orb));
+						ComplexOrRealType value = coulombCoupling(i,j);
+						if (std::real(value) == 0 && std::imag(value) == 0) continue;
+						RealType tmp2 = basis.getN(ket1,ket2,j,SPIN_UP,orb) +
+						                basis.getN(ket1,ket2,j,SPIN_DOWN,orb);
+						s += value * ne * tmp2;
 					}
 
 					// Potential term
@@ -197,7 +198,8 @@ namespace LanczosPlusPlus {
 					if (tmp!=0) s += tmp * ne;
 				}
 
-				diag[ispace]=s;
+				assert(fabs(std::imag(s))<1e-12);
+				diag[ispace] = std::real(s);
 			}
 		}
 
@@ -218,8 +220,8 @@ namespace LanczosPlusPlus {
 			// Hopping term
 			for (SizeType j=0;j<nsite;j++) {
 				if (j<i) continue;
-				RealType h = hoppings_(i,j);
-				if (h==0) continue;
+				ComplexOrRealType h = hoppings_(i,j);
+				if (std::real(h) == 0 && std::imag(h) == 0) continue;
 				WordType s1j= (ket1 & BasisType::bitmask(j));
 				if (s1j>0) s1j=1;
 				WordType s2j= (ket2 & BasisType::bitmask(j));
@@ -228,9 +230,10 @@ namespace LanczosPlusPlus {
 				if (s1i+s1j==1) {
 					WordType bra1= ket1 ^(BasisType::bitmask(i)|BasisType::bitmask(j));
 					SizeType temp = basis.perfectIndex(bra1,ket2);
-					int extraSign = (s1i==1) ? FERMION_SIGN : 1;
-					RealType cTemp = h*extraSign*
-					                 basis.doSign(ket1,ket2,i,orb,j,orb,SPIN_UP);
+					RealType extraSign = (s1i==1) ? FERMION_SIGN : 1;
+					RealType tmp2 = basis.doSign(ket1,ket2,i,orb,j,orb,SPIN_UP);
+					ComplexOrRealType cTemp = h*extraSign*tmp2;
+					if (s1i == 0) cTemp = std::conj(cTemp);
 					assert(temp<basis.size());
 					sparseRow.add(temp,cTemp);
 				}
@@ -238,8 +241,10 @@ namespace LanczosPlusPlus {
 				if (s2i+s2j==1) {
 					WordType bra2= ket2 ^(BasisType::bitmask(i)|BasisType::bitmask(j));
 					SizeType temp = basis.perfectIndex(ket1,bra2);
-					int extraSign = (s2i==1) ? FERMION_SIGN : 1;
-					RealType cTemp = h*extraSign*basis.doSign(ket1,ket2,i,orb,j,orb,SPIN_DOWN);
+					RealType extraSign = (s2i==1) ? FERMION_SIGN : 1;
+					RealType tmp2 = basis.doSign(ket1,ket2,i,orb,j,orb,SPIN_DOWN);
+					ComplexOrRealType cTemp = h*extraSign*tmp2;
+					if (s2i == 0) cTemp = std::conj(cTemp);
 					assert(temp<basis.size());
 					sparseRow.add(temp,cTemp);
 				}
@@ -253,12 +258,12 @@ namespace LanczosPlusPlus {
 		                         const BasisBaseType& basis) const
 		{
 			for (SizeType j=0;j<geometry_.numberOfSites();j++) {
-				RealType value = jCoupling(i,j)*0.5;
-				if (value==0) continue;
+				ComplexOrRealType value = jCoupling(i,j)*0.5;
+				if (std::real(value) == 0 && std::imag(value) == 0) continue;
 				value *= 0.5; // double counting i,j
 				assert(i!=j);
 
-				int sign = jTermSign(ket1,ket2,i,j,basis);
+				RealType sign = jTermSign(ket1,ket2,i,j,basis);
 				setSplusSminus(sparseRow,ket1,ket2,i,j,value*sign,basis);
 				setSplusSminus(sparseRow,ket1,ket2,j,i,value*sign,basis);
 			}
@@ -269,7 +274,7 @@ namespace LanczosPlusPlus {
 		                    const WordType& ket2,
 		                    SizeType i,
 		                    SizeType j,
-		                    RealType value,
+		                    ComplexOrRealType value,
 		                    const BasisBaseType &basis) const
 		{
 			if (splusSminusNonZero(ket1,ket2,i,j,basis)==0) return;
@@ -320,13 +325,13 @@ namespace LanczosPlusPlus {
 			return 0.5*sz;
 		}
 
-		RealType jCoupling(SizeType i,SizeType j) const
+		ComplexOrRealType jCoupling(SizeType i,SizeType j) const
 		{
 			if (geometry_.terms()<3) return 0;
 			return geometry_(i,0,j,0,TERM_SUPER);
 		}
 
-		RealType coulombCoupling(SizeType i,SizeType j) const
+		ComplexOrRealType coulombCoupling(SizeType i,SizeType j) const
 		{
 			if (geometry_.terms()<2) return 0;
 			return geometry_(i,0,j,0,TERM_NINJ);
@@ -335,9 +340,9 @@ namespace LanczosPlusPlus {
 		const ParametersModelType mp_;
 		const GeometryType& geometry_;
 		BasisType basis_;
-		PsimagLite::Matrix<RealType> hoppings_;
+		PsimagLite::Matrix<ComplexOrRealType> hoppings_;
 		mutable typename PsimagLite::Vector<BasisType*>::Type garbage_;
-	}; // class HubbardOneOrbital 
+	}; // class HubbardOneOrbital
 } // namespace LanczosPlusPlus
 #endif
 

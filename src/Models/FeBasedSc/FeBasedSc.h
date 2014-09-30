@@ -29,11 +29,12 @@ Please see full open source license included in file LICENSE.
 
 namespace LanczosPlusPlus {
 
-template<typename RealType,typename GeometryType,typename InputType>
-class FeBasedSc : public ModelBase<RealType,GeometryType,InputType> {
+template<typename ComplexOrRealType,typename GeometryType,typename InputType>
+class FeBasedSc : public ModelBase<ComplexOrRealType,GeometryType,InputType> {
 
-	typedef PsimagLite::Matrix<RealType> MatrixType;
-	typedef ModelBase<RealType,GeometryType,InputType> BaseType;
+	typedef typename PsimagLite::Real<ComplexOrRealType>::Type RealType;
+	typedef PsimagLite::Matrix<ComplexOrRealType> MatrixType;
+	typedef ModelBase<ComplexOrRealType,GeometryType,InputType> BaseType;
 	typedef PsimagLite::GeometryDca<RealType,GeometryType> GeometryDcaType;
 
 	enum {SPIN_UP = ProgramGlobals::SPIN_UP, SPIN_DOWN = ProgramGlobals::SPIN_DOWN};
@@ -267,7 +268,7 @@ private:
 		return s;
 	}
 
-	RealType hoppings(SizeType i,SizeType orb1,SizeType j,SizeType orb2) const
+	ComplexOrRealType hoppings(SizeType i,SizeType orb1,SizeType j,SizeType orb2) const
 	{
 		return -geometry_(i,orb1,j,orb2,TERM_HOPPINGS);
 	}
@@ -292,8 +293,8 @@ private:
 			if (j<i) continue;
 			for (SizeType orb2=0;orb2<mp_.orbitals;orb2++) {
 				SizeType jj = j*mp_.orbitals+orb2;
-				RealType h = hoppings(i,orb,j,orb2);
-				if (h==0) continue;
+				ComplexOrRealType h = hoppings(i,orb,j,orb2);
+				if (std::real(h) == 0 && std::imag(h) == 0) continue;
 				WordType s1j= (ket1 & BasisType::bitmask(jj));
 				if (s1j>0) s1j=1;
 				WordType s2j= (ket2 & BasisType::bitmask(jj));
@@ -302,18 +303,18 @@ private:
 				if (s1i+s1j==1) {
 					WordType bra1= ket1 ^(BasisType::bitmask(ii)|BasisType::bitmask(jj));
 					SizeType temp = basis.perfectIndex(bra1,ket2);
-					int extraSign = (s1i==1) ? FERMION_SIGN : 1;
-					RealType cTemp = h*extraSign*basis_.doSign(
-					            ket1,ket2,i,orb,j,orb2,SPIN_UP);
+					RealType extraSign = (s1i==1) ? FERMION_SIGN : 1;
+					RealType tmp2 = basis_.doSign(ket1,ket2,i,orb,j,orb2,SPIN_UP);
+					ComplexOrRealType cTemp = h*extraSign*tmp2;
 					sparseRow.add(temp,cTemp);
 
 				}
 				if (s2i+s2j==1) {
 					WordType bra2= ket2 ^(BasisType::bitmask(ii)|BasisType::bitmask(jj));
 					SizeType temp = basis.perfectIndex(ket1,bra2);
-					int extraSign = (s2i==1) ? FERMION_SIGN : 1;
-					RealType cTemp = h*extraSign*basis_.doSign(
-					            ket1,ket2,i,orb,j,orb2,ProgramGlobals::SPIN_DOWN);
+					RealType extraSign = (s2i==1) ? FERMION_SIGN : 1;
+					RealType tmp2 = basis_.doSign(ket1,ket2,i,orb,j,orb2,ProgramGlobals::SPIN_DOWN);
+					ComplexOrRealType cTemp = h*extraSign*tmp2;
 					sparseRow.add(temp,cTemp);
 				}
 			}
@@ -346,7 +347,7 @@ private:
 	        SizeType orb1,
 	        SizeType j,
 	        SizeType orb2,
-	        RealType value,
+	        ComplexOrRealType value,
 	        const BasisBaseType &basis) const
 	{
 		if (splusSminusNonZero(ket1,ket2,i,orb1,j,orb2,basis)==0) return;
@@ -390,17 +391,15 @@ private:
 	        const BasisBaseType& basis) const
 	{
 		for (SizeType j=0;j<geometry_.numberOfSites();j++) {
-			RealType value = jCoupling(i,j)*0.5;
-			if (value==0) continue;
+			ComplexOrRealType value = jCoupling(i,j)*0.5;
+			if (std::real(value) == 0 && std::imag(value) == 0) continue;
 			value *= 0.5; // RealType counting i,j
 			assert(i!=j);
 			for (SizeType orb2=0;orb2<mp_.orbitals;orb2++) {
 				//if (orb2!=orb) continue; // testing only!!
-				int sign = jTermSign(ket1,ket2,i,orb,j,orb2,basis);
-				setSplusSminus(sparseRow,ket1,ket2,
-				               i,orb,j,orb2,value*sign,basis);
-				setSplusSminus(sparseRow,ket1,ket2,
-				               j,orb2,i,orb,value*sign,basis);
+				RealType sign = jTermSign(ket1,ket2,i,orb,j,orb2,basis);
+				setSplusSminus(sparseRow,ket1,ket2,i,orb,j,orb2,value*sign,basis);
+				setSplusSminus(sparseRow,ket1,ket2,j,orb2,i,orb,value*sign,basis);
 			}
 		}
 	}
@@ -487,7 +486,7 @@ private:
 	                      const BasisBaseType& basis) const
 	{
 		// Hubbard term U0
-		RealType s = mp_.hubbardU[0]*basis.isThereAnElectronAt(ket1,ket2,i,SPIN_UP,orb)
+		ComplexOrRealType s = mp_.hubbardU[0]*basis.isThereAnElectronAt(ket1,ket2,i,SPIN_UP,orb)
 		        * basis.isThereAnElectronAt(ket1,ket2,i,ProgramGlobals::SPIN_DOWN,orb);
 
 		for (SizeType orb2=orb+1;orb2<mp_.orbitals;orb2++) {
@@ -504,15 +503,16 @@ private:
 		// JNN and JNNN diagonal part
 		for (SizeType j=0;j<nsite;j++) {
 			for (SizeType orb2=0;orb2<mp_.orbitals;orb2++) {
-				RealType value = jCoupling(i,j);
-				if (value==0) continue;
+				ComplexOrRealType value = jCoupling(i,j);
+				if (std::real(value) == 0 && std::imag(value) == 0) continue;
 				s += value*0.5* // RealType counting i,j
 				        szTerm(ket1,ket2,i,orb,basis)*
 				        szTerm(ket1,ket2,j,orb2,basis);
 			}
 		}
 
-		return s;
+		assert(fabs(std::imag(s))<1e-12);
+		return std::real(s);
 	}
 
 	RealType findSImpurity(SizeType nsite,
@@ -632,9 +632,9 @@ private:
 		return 0.5*sz;
 	}
 
-	RealType jCoupling(SizeType i,SizeType j) const
+	ComplexOrRealType jCoupling(SizeType i,SizeType j) const
 	{
-		if (geometry_.terms()==1) return 0;
+		if (geometry_.terms()==1) return 0.0;
 		return geometry_(i,0,j,0,TERM_J);
 	}
 

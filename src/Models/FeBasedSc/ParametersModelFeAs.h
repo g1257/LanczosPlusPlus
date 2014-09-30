@@ -82,8 +82,9 @@ DISCLOSED WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
 
 namespace LanczosPlusPlus {
 	//! FeAs Model Parameters
-	template<typename RealType>
+	template<typename ComplexOrRealType>
 	struct ParametersModelFeAs {
+		typedef typename PsimagLite::Real<ComplexOrRealType>::Type RealType;
 		// no connections here please!!
 		// connections are handled by the geometry
 

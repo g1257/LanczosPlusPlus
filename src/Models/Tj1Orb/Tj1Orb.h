@@ -15,12 +15,13 @@
 
 namespace LanczosPlusPlus {
 
-template<typename RealType,typename GeometryType,typename InputType>
-class Tj1Orb  : public ModelBase<RealType,GeometryType,InputType> {
+template<typename ComplexOrRealType,typename GeometryType,typename InputType>
+class Tj1Orb  : public ModelBase<ComplexOrRealType,GeometryType,InputType> {
 
-	typedef PsimagLite::Matrix<RealType> MatrixType;
+	typedef typename PsimagLite::Real<ComplexOrRealType>::Type RealType;
+	typedef PsimagLite::Matrix<ComplexOrRealType> MatrixType;
 	typedef std::pair<SizeType,SizeType> PairType;
-	typedef ModelBase<RealType,GeometryType,InputType> BaseType;
+	typedef ModelBase<ComplexOrRealType,GeometryType,InputType> BaseType;
 
 public:
 
@@ -206,7 +207,7 @@ private:
 		for (SizeType ispace=0;ispace<hilbert;ispace++) {
 			WordType ket1 = basis(ispace,ProgramGlobals::SPIN_UP);
 			WordType ket2 = basis(ispace,ProgramGlobals::SPIN_DOWN);
-			RealType s=0;
+			ComplexOrRealType s=0;
 			for (SizeType i=0;i<nsite;i++) {
 
 				int niup = basis.isThereAnElectronAt(ket1,ket2,i,ProgramGlobals::SPIN_UP,orb);
@@ -230,7 +231,9 @@ private:
 					s+= (niup+nidown) * (njup + njdown) * w_(i,j);
 				}
 			}
-			diag[ispace]=s;
+
+			assert(fabs(std::imag(s))<1e-12);
+			diag[ispace] = std::real(s);
 		}
 	}
 
@@ -251,8 +254,8 @@ private:
 		// Hopping term
 		for (SizeType j=0;j<nsite;j++) {
 			if (j<i) continue;
-			RealType h = hoppings_(i,j);
-			if (h==0) continue;
+			ComplexOrRealType h = hoppings_(i,j);
+			if (std::real(h) == 0 && std::imag(h) == 0) continue;
 			WordType s1j= (ket1 & BasisType::bitmask(j));
 			if (s1j>0) s1j=1;
 			WordType s2j= (ket2 & BasisType::bitmask(j));
@@ -261,17 +264,18 @@ private:
 			if (s1i+s1j==1 && !(s1j==0 && s2j>0) && !(s1j>0 && s2i>0)) {
 				WordType bra1= ket1 ^(BasisType::bitmask(i)|BasisType::bitmask(j));
 				SizeType temp = basis.perfectIndex(bra1,ket2);
-				int extraSign = (s1i==1) ? FERMION_SIGN : 1;
-				RealType cTemp = h*extraSign*basis_.doSign(ket1,ket2,i,orb,j,orb,ProgramGlobals::SPIN_UP);
+				RealType extraSign = (s1i==1) ? FERMION_SIGN : 1;
+				RealType tmp2 = basis_.doSign(ket1,ket2,i,orb,j,orb,ProgramGlobals::SPIN_UP);
+				ComplexOrRealType cTemp = h*extraSign*tmp2;
 				sparseRow.add(temp,cTemp);
 			}
 
 			if (s2i+s2j==1 && !(s2j==0 && s1j>0) && !(s2j>0 && s1i>0)) {
 				WordType bra2= ket2 ^(BasisType::bitmask(i)|BasisType::bitmask(j));
 				SizeType temp = basis.perfectIndex(ket1,bra2);
-				int extraSign = (s2i==1) ? FERMION_SIGN : 1;
-				RealType cTemp = h*extraSign*
-				                 basis_.doSign(ket1,ket2,i,orb,j,orb,ProgramGlobals::SPIN_DOWN);
+				RealType extraSign = (s2i==1) ? FERMION_SIGN : 1;
+				RealType tmp2 = basis_.doSign(ket1,ket2,i,orb,j,orb,ProgramGlobals::SPIN_DOWN);
+				ComplexOrRealType cTemp = h*extraSign*tmp2;
 				sparseRow.add(temp,cTemp);
 			}
 		}
@@ -293,8 +297,8 @@ private:
 		// Hopping term
 		for (SizeType j=0;j<nsite;j++) {
 			if (j<i) continue;
-			RealType h = j_(i,j)*0.5;
-			if (h==0) continue;
+			ComplexOrRealType h = j_(i,j)*0.5;
+			if (std::real(h) == 0 && std::imag(h) == 0) continue;
 			WordType s1j= (ket1 & BasisType::bitmask(j));
 			if (s1j>0) s1j=1;
 			WordType s2j= (ket2 & BasisType::bitmask(j));
@@ -320,10 +324,10 @@ private:
 		}
 	}
 
-	int signSplusSminus(SizeType i,
-	                    SizeType j,
-	                    const WordType& bra1,
-	                    const WordType& bra2) const
+	RealType signSplusSminus(SizeType i,
+	                         SizeType j,
+	                         const WordType& bra1,
+	                         const WordType& bra2) const
 	{
 		SizeType n = geometry_.numberOfSites();
 		int s = 1;
@@ -354,9 +358,9 @@ private:
 	const ParametersModelType mp_;
 	const GeometryType& geometry_;
 	BasisType basis_;
-	PsimagLite::Matrix<RealType> hoppings_;
-	PsimagLite::Matrix<RealType> j_;
-	PsimagLite::Matrix<RealType> w_;
+	PsimagLite::Matrix<ComplexOrRealType> hoppings_;
+	PsimagLite::Matrix<ComplexOrRealType> j_;
+	PsimagLite::Matrix<ComplexOrRealType> w_;
 	mutable typename PsimagLite::Vector<BasisType*>::Type garbage_;
 }; // class Tj1Orb
 } // namespace LanczosPlusPlus

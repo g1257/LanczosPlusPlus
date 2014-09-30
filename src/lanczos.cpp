@@ -41,12 +41,22 @@ typedef double RealType;
 #else
 typedef float RealType;
 #endif
+
 typedef std::complex<RealType> ComplexType;
+
+#ifdef USE_COMPLEX
+typedef ComplexType ComplexOrRealType;
+#else
+typedef RealType ComplexOrRealType;
+#endif
+
 typedef PsimagLite::Concurrency ConcurrencyType;
 typedef PsimagLite::InputNg<InputCheck> InputNgType;
-typedef PsimagLite::Geometry<RealType,InputNgType::Readable,ProgramGlobals> GeometryType;
+typedef PsimagLite::Geometry<ComplexOrRealType,
+                             InputNgType::Readable,
+                             ProgramGlobals> GeometryType;
 typedef std::pair<SizeType,SizeType> PairType;
-typedef ModelSelector<RealType,GeometryType,InputNgType::Readable> ModelSelectorType;
+typedef ModelSelector<ComplexOrRealType,GeometryType,InputNgType::Readable> ModelSelectorType;
 typedef typename ModelSelectorType::ModelBaseType ModelBaseType;
 
 void fillOrbsOrSpin(PsimagLite::Vector<PairType>::Type& spinV,
@@ -124,8 +134,7 @@ void mainLoop2(const ModelType& model,
 	for (SizeType cicji=0;cicji<cicjV.size();cicji++) {
 		SizeType cicj = cicjV[cicji];
 		SizeType total = geometry.numberOfSites();
-		typedef typename SpecialSymmetryType::VectorType::value_type ValueType;
-		PsimagLite::Matrix<ValueType> cicjMatrix(total,total);
+		PsimagLite::Matrix<ComplexOrRealType> cicjMatrix(total,total);
 		SizeType norbitals = maxOrbitals(model);
 		for (SizeType orb1=0;orb1<norbitals;orb1++) {
 			for (SizeType orb2=0;orb2<norbitals;orb2++) {

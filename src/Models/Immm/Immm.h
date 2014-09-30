@@ -11,7 +11,7 @@ THE SOFTWARE IS SUPPLIED BY THE COPYRIGHT HOLDERS AND
 CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
 WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-PARTICULAR PURPOSE ARE DISCLAIMED. 
+PARTICULAR PURPOSE ARE DISCLAIMED.
 
 Please see full open source license included in file LICENSE.
 *********************************************************
@@ -28,12 +28,13 @@ Please see full open source license included in file LICENSE.
 
 namespace LanczosPlusPlus {
 
-template<typename RealType,typename GeometryType,typename InputType>
+template<typename ComplexOrRealType,typename GeometryType,typename InputType>
 
-class Immm : public ModelBase<RealType,GeometryType,InputType> {
+class Immm : public ModelBase<ComplexOrRealType,GeometryType,InputType> {
 
-		typedef PsimagLite::Matrix<RealType> MatrixType;
-		typedef ModelBase<RealType,GeometryType,InputType> BaseType;
+	typedef typename PsimagLite::Real<ComplexOrRealType>::Type RealType;
+		typedef PsimagLite::Matrix<ComplexOrRealType> MatrixType;
+		typedef ModelBase<ComplexOrRealType,GeometryType,InputType> BaseType;
 
 	public:
 
@@ -183,12 +184,12 @@ class Immm : public ModelBase<RealType,GeometryType,InputType> {
 
 	private:
 
-		RealType hoppings(SizeType i,SizeType orb1,SizeType j,SizeType orb2) const
+		ComplexOrRealType hoppings(SizeType i,SizeType orb1,SizeType j,SizeType orb2) const
 		{
 			return geometry_(i,orb1,j,orb2,0);
 		}
 
-		RealType Upd(SizeType i,SizeType j) const
+		ComplexOrRealType Upd(SizeType i,SizeType j) const
 		{
 			return geometry_(i,0,j,0,1);
 		}
@@ -213,8 +214,8 @@ class Immm : public ModelBase<RealType,GeometryType,InputType> {
 			for (SizeType j=i;j<nsite;j++) {
 				for (SizeType orb2=0;orb2<basis.orbsPerSite(j);orb2++) {
 					SizeType jj = j*basis.orbs()+orb2;
-					RealType h = hoppings(i,orb,j,orb2);
-					if (h==0) continue;
+					ComplexOrRealType h = hoppings(i,orb,j,orb2);
+					if (std::real(h) == 0 && std::imag(h) == 0) continue;
 					WordType s1j= (ket1 & BasisType::bitmask(jj));
 					if (s1j>0) s1j=1;
 					WordType s2j= (ket2 & BasisType::bitmask(jj));
@@ -223,17 +224,18 @@ class Immm : public ModelBase<RealType,GeometryType,InputType> {
 					if (s1i+s1j==1) {
 						WordType bra1= ket1 ^(BasisType::bitmask(ii)|BasisType::bitmask(jj));
 						SizeType temp = basis.perfectIndex(bra1,ispace,ProgramGlobals::SPIN_UP);
-						int extraSign = (s1i==1) ? FERMION_SIGN : 1;
-						RealType cTemp = h*extraSign*basis.doSign(ket1,ket2,i,orb,j,orb2,ProgramGlobals::SPIN_UP);
+						RealType extraSign = (s1i==1) ? FERMION_SIGN : 1;
+						RealType tmp2 = basis.doSign(ket1,ket2,i,orb,j,orb2,ProgramGlobals::SPIN_UP);
+						ComplexOrRealType cTemp = h*extraSign*tmp2;
 						sparseRow.add(temp,cTemp);
 					}
 
 					if (s2i+s2j==1) {
 						WordType bra2= ket2 ^(BasisType::bitmask(ii)|BasisType::bitmask(jj));
 						SizeType temp = basis.perfectIndex(bra2,ispace,ProgramGlobals::SPIN_DOWN);
-						int extraSign = (s2i==1) ? FERMION_SIGN : 1;
-						RealType cTemp = h*extraSign*basis.doSign(
-							ket1,ket2,i,orb,j,orb2,ProgramGlobals::SPIN_DOWN);
+						RealType extraSign = (s2i==1) ? FERMION_SIGN : 1;
+						RealType tmp2 = basis.doSign(ket1,ket2,i,orb,j,orb2,ProgramGlobals::SPIN_DOWN);
+						ComplexOrRealType cTemp = h*extraSign*tmp2;
 						sparseRow.add(temp,cTemp);
 					}
 				}
@@ -250,7 +252,7 @@ class Immm : public ModelBase<RealType,GeometryType,InputType> {
 			for (SizeType ispace=0;ispace<hilbert;ispace++) {
 				WordType ket1 = basis(ispace,ProgramGlobals::SPIN_UP);
 				WordType ket2 = basis(ispace,ProgramGlobals::SPIN_DOWN);
-				RealType s=0;
+				ComplexOrRealType s=0;
 				for (SizeType i=0;i<nsite;i++) {
 					for (SizeType orb=0;orb<basis.orbsPerSite(i);orb++) {
 
@@ -278,7 +280,9 @@ class Immm : public ModelBase<RealType,GeometryType,InputType> {
 						}
 					}
 				}
-				diag[ispace]=s;
+
+				assert(fabs(std::imag(s))<1e-12);
+				diag[ispace] = std::real(s);
 			}
 		}
 

@@ -11,7 +11,7 @@ THE SOFTWARE IS SUPPLIED BY THE COPYRIGHT HOLDERS AND
 CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
 WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-PARTICULAR PURPOSE ARE DISCLAIMED. 
+PARTICULAR PURPOSE ARE DISCLAIMED.
 
 Please see full open source license included in file LICENSE.
 *********************************************************
@@ -54,10 +54,10 @@ namespace LanczosPlusPlus {
 		return (item1.i==item2.i && item1.j==item2.j);
 	}
 
-	template<typename GeometryType,typename BasisType>
+	template<typename GeometryType_,typename BasisType>
 	class ReflectionSymmetry  {
 
-		typedef typename GeometryType::ComplexOrRealType ComplexOrRealType;
+		typedef typename GeometryType_::ComplexOrRealType ComplexOrRealType;
 		typedef PsimagLite::Matrix<ComplexOrRealType> MatrixType;
 		typedef typename PsimagLite::Real<ComplexOrRealType>::Type RealType;
 		typedef ProgramGlobals::WordType WordType;
@@ -65,8 +65,10 @@ namespace LanczosPlusPlus {
 
 	public:
 
-		typedef PsimagLite::CrsMatrix<RealType> SparseMatrixType;
-		typedef typename PsimagLite::Vector<RealType>::Type VectorType;
+		typedef GeometryType_ GeometryType;
+		typedef PsimagLite::CrsMatrix<ComplexOrRealType> SparseMatrixType;
+		typedef typename PsimagLite::Vector<ComplexOrRealType>::Type VectorType;
+		typedef typename PsimagLite::Vector<RealType>::Type VectorRealType;
 
 		ReflectionSymmetry(const BasisType& basis,
 		                   const GeometryType& geometry,
@@ -145,7 +147,7 @@ namespace LanczosPlusPlus {
 		{
 			SparseMatrixType rT;
 			transposeConjugate(rT,transform_);
-			
+
 			if (matrix.row()<40) printFullMatrix(matrix,"originalHam");
 			SparseMatrixType tmp;
 			multiply(tmp,matrix,rT);
@@ -159,7 +161,7 @@ namespace LanczosPlusPlus {
 
 		void transformGs(VectorType& gs,SizeType offset)
 		{
-			typename PsimagLite::Vector<RealType>::Type gstmp(transform_.row(),0);
+			VectorType gstmp(transform_.row(),0);
 
 			for (SizeType i=0;i<gs.size();i++) {
 				assert(i+offset<gstmp.size());
@@ -178,21 +180,21 @@ namespace LanczosPlusPlus {
 
 		PsimagLite::String name() const { return "reflection"; }
 
-		void fullDiag(VectorType& eigs,MatrixType& fm) const
+		void fullDiag(VectorRealType& eigs,MatrixType& fm) const
 		{
 			if (matrixStored_[pointer_].row() > 1000)
 				throw PsimagLite::RuntimeError("fullDiag too big\n");
 
 			fm = matrixStored_[pointer_].toDense();
 			diag(fm,eigs,'V');
-			
+
 			if (!printMatrix_) return;
 
 			for (SizeType i=0;i<eigs.size();i++)
 				std::cout<<eigs[i]<<"\n";
 			std::cout<<fm;
                 }
-	
+
 		template<typename SomeVectorType>
 		void matrixVectorProduct(SomeVectorType &x, SomeVectorType const &y) const
 		{
@@ -305,14 +307,14 @@ namespace LanczosPlusPlus {
 				matrixA.setRow(i,counter);
 				for (int k=matrix.getRowPtr(i);k<matrix.getRowPtr(i+1);k++) {
 					SizeType col = matrix.getCol(k);
-					RealType val = matrix.getValue(k);
+					ComplexOrRealType val = matrix.getValue(k);
 					if (col<plusSector_) {
 						matrixA.pushCol(col);
 						matrixA.pushValue(val);
 						counter++;
 						continue;
 					}
-					if (!isAlmostZero(val)) {
+					if (std::norm(val)>1e-12) {
 						PsimagLite::String s(__FILE__);
 						s += " Hamiltonian has no reflection symmetry.";
 						throw std::runtime_error(s.c_str());
@@ -329,14 +331,14 @@ namespace LanczosPlusPlus {
 				matrixB.setRow(i-plusSector_,counter);
 				for (int k=matrix.getRowPtr(i);k<matrix.getRowPtr(i+1);k++) {
 					SizeType col = matrix.getCol(k);
-					RealType val = matrix.getValue(k);
+					ComplexOrRealType val = matrix.getValue(k);
 					if (col>=plusSector_) {
 						matrixB.pushCol(col-plusSector_);
 						matrixB.pushValue(val);
 						counter++;
 						continue;
 					}
-					if (!isAlmostZero(val)) {
+					if (std::norm(val)>1e-12) {
 						PsimagLite::String s(__FILE__);
 						s += " Hamiltonian has no reflection symmetry.";
 						throw std::runtime_error(s.c_str());

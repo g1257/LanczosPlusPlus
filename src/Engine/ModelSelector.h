@@ -11,24 +11,25 @@
 
 namespace LanczosPlusPlus {
 
-template<typename RealType,typename GeometryType,typename InputType>
+template<typename ComplexOrRealType,typename GeometryType,typename InputType>
 class ModelSelector {
 
-	typedef Tj1Orb<RealType,GeometryType, InputType> Tj1OrbType;
-	typedef Immm<RealType,GeometryType, InputType> ImmmType;
-	typedef HubbardOneOrbital<RealType,GeometryType, InputType> HubbardOneOrbitalType;
-	typedef FeBasedSc<RealType,GeometryType, InputType> FeBasedScType;
+	typedef Tj1Orb<ComplexOrRealType,GeometryType, InputType> Tj1OrbType;
+	typedef Immm<ComplexOrRealType,GeometryType, InputType> ImmmType;
+	typedef HubbardOneOrbital<ComplexOrRealType,GeometryType, InputType> HubbardOneOrbitalType;
+	typedef FeBasedSc<ComplexOrRealType,GeometryType, InputType> FeBasedScType;
+	typedef typename PsimagLite::Real<ComplexOrRealType>::Type RealType;
 
 public:
 
-	typedef ModelBase<RealType,GeometryType, InputType> ModelBaseType;
+	typedef ModelBase<ComplexOrRealType,GeometryType, InputType> ModelBaseType;
 
 	/** @class hide_modelselector
 	 - TargetElectronsUp=integer
 	 - TargetElectronsDown=integer
 	 - Model=string One of Tj1Orb HeisenbergSpinOneHalf Immm
-	                       HubbardOneBand HubbardOneBandExtended SuperHubbardExtended 
-	                       FeAsBasedSc FeAsBasedScExtended  
+	                       HubbardOneBand HubbardOneBandExtended SuperHubbardExtended
+	                       FeAsBasedSc FeAsBasedScExtended
 	*/
 	ModelSelector(InputType& io, const GeometryType& geometry)
 	: modelPtr_(0)

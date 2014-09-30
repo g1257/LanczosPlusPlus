@@ -38,7 +38,7 @@ must include the following acknowledgment:
 "This product includes software produced by UT-Battelle,
 LLC under Contract No. DE-AC05-00OR22725  with the
 Department of Energy."
- 
+
 *********************************************************
 DISCLAIMER
 
@@ -87,14 +87,14 @@ namespace LanczosPlusPlus {
 	template<typename ModelType,typename SpecialSymmetryType_>
 	class InternalProductStored {
 
-	public:	
+	public:
 
 		typedef SpecialSymmetryType_ SpecialSymmetryType;
 		typedef typename ModelType::BasisBaseType BasisType;
 		typedef typename SpecialSymmetryType::SparseMatrixType SparseMatrixType;
 		typedef typename ModelType::RealType RealType;
 		typedef typename ModelType::GeometryType GeometryType;
-		typedef typename SparseMatrixType::value_type ComplexOrRealType;
+		typedef typename GeometryType::ComplexOrRealType ComplexOrRealType;
 		typedef PsimagLite::Matrix<ComplexOrRealType> MatrixType;
 		typedef typename PsimagLite::Vector<RealType>::Type VectorRealType;
 

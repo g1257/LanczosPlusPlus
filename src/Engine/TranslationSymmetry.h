@@ -11,7 +11,7 @@ THE SOFTWARE IS SUPPLIED BY THE COPYRIGHT HOLDERS AND
 CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
 WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-PARTICULAR PURPOSE ARE DISCLAIMED. 
+PARTICULAR PURPOSE ARE DISCLAIMED.
 
 Please see full open source license included in file LICENSE.
 *********************************************************
@@ -177,22 +177,24 @@ private:
 //	PsimagLite::Vector<SizeType>::Type reps_;
 };
 
-	template<typename GeometryType,typename BasisType>
+	template<typename GeometryType_,typename BasisType>
 	class TranslationSymmetry  {
 
-		typedef typename GeometryType::ComplexOrRealType ComplexOrRealType;
+		typedef typename GeometryType_::ComplexOrRealType ComplexOrRealType;
 		typedef PsimagLite::Matrix<ComplexOrRealType> MatrixType;
 		typedef typename PsimagLite::Real<ComplexOrRealType>::Type RealType;
 		typedef ProgramGlobals::WordType WordType;
 		typedef PsimagLite::SparseVector<ComplexOrRealType> SparseVectorType;
 		typedef Kspace<RealType> KspaceType;
-		typedef ClassRepresentatives<GeometryType,BasisType,KspaceType> ClassRepresentativesType;
+		typedef ClassRepresentatives<GeometryType_,BasisType,KspaceType> ClassRepresentativesType;
 		typedef std::pair<PsimagLite::Vector<SizeType>::Type ,SizeType> BufferItemType;
 
 	public:
 
+		typedef GeometryType_ GeometryType;
 		typedef PsimagLite::CrsMatrix<ComplexOrRealType> SparseMatrixType;
 		typedef typename PsimagLite::Vector<ComplexOrRealType>::Type VectorType;
+		typedef typename PsimagLite::Vector<RealType>::Type VectorRealType;
 
 		TranslationSymmetry(const BasisType& basis,
 		                    const GeometryType& geometry,
@@ -233,7 +235,7 @@ private:
 		template<typename SomeModelType>
 		void init(const SomeModelType& model,const BasisType& basis)
 		{
-			PsimagLite::CrsMatrix<RealType> matrix2;
+			SparseMatrixType matrix2;
 			model.setupHamiltonian(matrix2,basis);
 			transformMatrix(matrixStored_,matrix2);
 
@@ -255,11 +257,11 @@ private:
 		}
 
 		void transformMatrix(typename PsimagLite::Vector<SparseMatrixType>::Type& matrix1,
-		                     const PsimagLite::CrsMatrix<RealType>& matrix) const
+		                     const SparseMatrixType& matrix) const
 		{
 			SparseMatrixType rT;
 			transposeConjugate(rT,transform_);
-			
+
 			if (matrix.row()<40) printFullMatrix(matrix,"originalHam");
 			SparseMatrixType tmp;
 			multiply(tmp,matrix,rT);
@@ -295,7 +297,7 @@ private:
 
 		PsimagLite::String name() const { return "translation"; }
 
-		void fullDiag(VectorType& eigs,MatrixType& fm) const
+		void fullDiag(VectorRealType& eigs,MatrixType& fm) const
 		{
 			if (matrixStored_[pointer_].row() > 1000)
 				throw PsimagLite::RuntimeError("fullDiag too big\n");

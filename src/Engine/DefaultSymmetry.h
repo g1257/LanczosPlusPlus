@@ -11,7 +11,7 @@ THE SOFTWARE IS SUPPLIED BY THE COPYRIGHT HOLDERS AND
 CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
 WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-PARTICULAR PURPOSE ARE DISCLAIMED. 
+PARTICULAR PURPOSE ARE DISCLAIMED.
 
 Please see full open source license included in file LICENSE.
 *********************************************************
@@ -29,10 +29,10 @@ Please see full open source license included in file LICENSE.
 namespace LanczosPlusPlus {
 
 
-	template<typename GeometryType,typename BasisType>
+	template<typename GeometryType_,typename BasisType>
 	class DefaultSymmetry  {
 
-		typedef typename GeometryType::ComplexOrRealType ComplexOrRealType;
+		typedef typename GeometryType_::ComplexOrRealType ComplexOrRealType;
 		typedef typename PsimagLite::Real<ComplexOrRealType>::Type RealType;
 		typedef ProgramGlobals::WordType WordType;
 		typedef PsimagLite::Matrix<ComplexOrRealType> MatrixType;
@@ -40,8 +40,9 @@ namespace LanczosPlusPlus {
 
 	public:
 
-		typedef PsimagLite::CrsMatrix<RealType> SparseMatrixType;
-		typedef typename PsimagLite::Vector<RealType>::Type VectorType;
+		typedef GeometryType_ GeometryType;
+		typedef PsimagLite::CrsMatrix<ComplexOrRealType> SparseMatrixType;
+		typedef typename PsimagLite::Vector<ComplexOrRealType>::Type VectorType;
 
 		DefaultSymmetry(const BasisType& basis,
 		                const GeometryType& geometry,
@@ -53,6 +54,7 @@ namespace LanczosPlusPlus {
 		void init(const SomeModelType& model,const BasisType& basis)
 		{
 			model.setupHamiltonian(matrixStored_,basis);
+			assert(isHermitian(matrixStored_));
 			bool nrows = matrixStored_.row();
 			if (printMatrix_) {
 				if (nrows > 40)
@@ -65,7 +67,7 @@ namespace LanczosPlusPlus {
 			}
 		}
 
-		void fullDiag(VectorType& eigs,MatrixType& fm) const
+		void fullDiag(VectorRealType& eigs,MatrixType& fm) const
 		{
 			if (matrixStored_.row() > 1000)
 				throw PsimagLite::RuntimeError("fullDiag too big\n");

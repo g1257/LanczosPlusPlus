@@ -11,7 +11,7 @@ THE SOFTWARE IS SUPPLIED BY THE COPYRIGHT HOLDERS AND
 CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
 WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-PARTICULAR PURPOSE ARE DISCLAIMED. 
+PARTICULAR PURPOSE ARE DISCLAIMED.
 
 Please see full open source license included in file LICENSE.
 *********************************************************
@@ -43,27 +43,26 @@ public:
 
 	typedef ModelType_ ModelType;
 	typedef typename ModelType::InputType InputType;
-	typedef typename ModelType::RealType RealType;
-	typedef typename std::complex<RealType> ComplexType;
-	typedef typename SpecialSymmetryType::VectorType VectorType;
 	typedef typename ModelType::SparseMatrixType SparseMatrixType;
-	typedef typename VectorType::value_type FieldType;
 	typedef typename ModelType::BasisBaseType BasisType;
 	typedef InternalProductTemplate<ModelType,SpecialSymmetryType> InternalProductType;
 	typedef DefaultSymmetry<typename ModelType::GeometryType,BasisType> DefaultSymmetryType;
 	typedef InternalProductTemplate<ModelType,DefaultSymmetryType> InternalProductDefaultType;
-
+	typedef typename SpecialSymmetryType::GeometryType GeometryType;
+	typedef typename GeometryType::ComplexOrRealType ComplexOrRealType;
+	typedef typename PsimagLite::Real<ComplexOrRealType>::Type RealType;
 	typedef PsimagLite::Random48<RealType> RandomType;
 	typedef PsimagLite::ParametersForSolver<RealType> ParametersForSolverType;
+	typedef typename PsimagLite::Vector<ComplexOrRealType>::Type VectorType;
 	typedef PsimagLite::LanczosSolver<ParametersForSolverType,
 	                                  InternalProductType,
 	                                  VectorType> LanczosSolverType;
 	typedef PsimagLite::LanczosSolver<ParametersForSolverType,
 	                                  InternalProductDefaultType,
 	                                  VectorType> LanczosSolverDefaultType;
-	typedef PsimagLite::Matrix<FieldType> MatrixType;
-	typedef typename LanczosSolverType::TridiagonalMatrixType
-	TridiagonalMatrixType;
+	typedef PsimagLite::Matrix<ComplexOrRealType> MatrixType;
+	typedef PsimagLite::Matrix<RealType> MatrixRealType;
+	typedef typename LanczosSolverType::TridiagonalMatrixType TridiagonalMatrixType;
 	typedef std::pair<SizeType,SizeType> PairType;
 	typedef typename PsimagLite::Vector<RealType>::Type VectorRealType;
 
@@ -352,9 +351,9 @@ private:
 			} catch (std::exception& e) {
 
 				std::cerr<<"Engine: Lanczos Solver failed ";
-				std::cerr<<" trying exact diagonalization...\n";	
+				std::cerr<<" trying exact diagonalization...\n";
 				VectorRealType eigs(hamiltonian.rank());
-				PsimagLite::Matrix<FieldType> fm;
+				MatrixType fm;
 				hamiltonian.fullDiag(eigs,fm);
 				for (SizeType j = 0; j < eigs.size(); ++j)
 					gsVector1[j] = fm(j,0);
@@ -370,7 +369,7 @@ private:
 			currentOffset +=  gsVector1.size();
 		}
 		rs.transformGs(gsVector_,offset);
-		std::cout<<"#GSNorm="<<(gsVector_*gsVector_)<<"\n";
+		std::cout<<"#GSNorm="<<std::real(gsVector_*gsVector_)<<"\n";
 	}
 
 	template<typename ContinuedFractionType>
@@ -400,7 +399,7 @@ private:
 		RealType diagonalFactor = (isDiagonal) ? 1 : 0.5;
 		s2 *= diagonalFactor;
 
-		const MatrixType& reortho = lanczosSolver.reorthogonalizationMatrix();
+		const MatrixRealType& reortho = lanczosSolver.reorthogonalizationMatrix();
 
 		cf.set(ab,reortho,gsEnergy_,std::real(weight*s2),s);
 

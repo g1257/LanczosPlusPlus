@@ -90,7 +90,7 @@ struct ParametersModelHubbard {
 
 	ParametersModelHubbard(InputType& io)
 	{
-
+		io.readline(model,"Model=");
 		io.read(hubbardU,"hubbardU");
 		io.read(potentialV,"potentialV");
 		timeFactor = 0;
@@ -100,6 +100,7 @@ struct ParametersModelHubbard {
 		} catch (std::exception& e) {}
 	}
 
+	PsimagLite::String model;
 	// Do not include here connection parameters
 	// those are handled by the Geometry
 	// Hubbard U values (one for each site)

@@ -44,8 +44,23 @@ public:
 	    : mp_(mp),
 	      geometry_(geometry),
 	      basis_(geometry,nup,ndown),
-	      hoppings_(geometry_.numberOfSites(),geometry_.numberOfSites())
+	      hoppings_(geometry_.numberOfSites(),geometry_.numberOfSites()),
+	      hasJcoupling_(false),
+	      hasCoulombCoupling_(false)
 	{
+		if (mp_.model == "HubbardOneBandExtended" ||
+		    mp_.model == "SuperHubbardExtended") hasCoulombCoupling_ = true;
+
+		if (mp_.model == "SuperHubbardExtended") hasJcoupling_ = true;
+
+		if (hasCoulombCoupling_ && geometry_.terms()<2) {
+			PsimagLite::RuntimeError("HubbardOneOrbital::ctor(): ColoumbCoupling\n");
+		}
+
+		if (hasJcoupling_ && geometry_.terms()<3) {
+			PsimagLite::RuntimeError("HubbardOneOrbital::ctor(): jCoupling\n");
+		}
+
 		SizeType n = geometry_.numberOfSites();
 		for (SizeType i=0;i<n;i++)
 			for (SizeType j=0;j<n;j++)
@@ -325,13 +340,13 @@ private:
 
 	ComplexOrRealType jCoupling(SizeType i,SizeType j) const
 	{
-		if (geometry_.terms()<3) return 0;
+		if (!hasJcoupling_) return 0;
 		return geometry_(i,0,j,0,TERM_SUPER);
 	}
 
 	ComplexOrRealType coulombCoupling(SizeType i,SizeType j) const
 	{
-		if (geometry_.terms()<2) return 0;
+		if (!hasCoulombCoupling_) return 0;
 		return geometry_(i,0,j,0,TERM_NINJ);
 	}
 
@@ -339,6 +354,8 @@ private:
 	const GeometryType& geometry_;
 	BasisType basis_;
 	PsimagLite::Matrix<ComplexOrRealType> hoppings_;
+	bool hasJcoupling_;
+	bool hasCoulombCoupling_;
 	mutable typename PsimagLite::Vector<BasisType*>::Type garbage_;
 }; // class HubbardOneOrbital
 } // namespace LanczosPlusPlus

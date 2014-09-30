@@ -176,6 +176,7 @@ class TranslationSymmetry  {
 	typedef Kspace<RealType> KspaceType;
 	typedef ClassRepresentatives<GeometryType_,BasisType,KspaceType> ClassRepresentativesType;
 	typedef std::pair<PsimagLite::Vector<SizeType>::Type ,SizeType> BufferItemType;
+	typedef typename PsimagLite::Vector<SparseVectorType>::Type VectorSparseVectorType;
 
 public:
 
@@ -197,7 +198,7 @@ public:
 		ClassRepresentativesType reps(basis,geometry,kspace_);
 
 		SizeType hilbert = basis.size();
-		VectorType bag;
+		VectorSparseVectorType bag;
 		for (SizeType k=0;k<kspace_.size();k++) {
 			SizeType blockSize = 0;
 			for (SizeType ispace=0;ispace<hilbert;ispace++) {
@@ -309,7 +310,7 @@ private:
 		yy |= mask;
 	}
 
-	void setTransform(const VectorType& bag)
+	void setTransform(const VectorSparseVectorType& bag)
 	{
 		SizeType counter = 0;
 		for (SizeType row=0;row<bag.size();row++) {
@@ -348,7 +349,7 @@ private:
 	}
 
 	bool checkForOrthogonality(const SparseVectorType& sparseV,
-	                           const VectorType& bag) const
+	                           const VectorSparseVectorType& bag) const
 	{
 		for (SizeType i=0;i<bag.size();i++) {
 			ComplexOrRealType sp = sparseV.scalarProduct(bag[i]);

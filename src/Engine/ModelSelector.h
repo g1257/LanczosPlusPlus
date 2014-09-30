@@ -58,7 +58,8 @@ public:
 			modelPtr_ = new ImmmType(nup,ndown,io,geometry);
 		} else if (model=="HubbardOneBand" ||
 		           model=="HubbardOneBandExtended" ||
-		           model=="SuperHubbardExtended") {
+		           model=="SuperHubbardExtended" ||
+		           model=="KaneMeleHubbard") {
 			modelPtr_ = new HubbardOneOrbitalType(nup,ndown,io,geometry);
 		} else if (model=="FeAsBasedSc" || model=="FeAsBasedScExtended") {
 			modelPtr_ = new FeBasedScType(nup,ndown,io,geometry);

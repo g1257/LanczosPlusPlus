@@ -23,6 +23,8 @@ class HubbardOneOrbital : public ModelBase<ComplexOrRealType,GeometryType,InputT
 
 	enum {TERM_HOPPING=0,TERM_NINJ=1,TERM_SUPER=2};
 
+	enum {SO_HOPPING_TERM = 1};
+
 	enum {SPIN_UP = ProgramGlobals::SPIN_UP, SPIN_DOWN = ProgramGlobals::SPIN_DOWN};
 
 public:
@@ -53,18 +55,28 @@ public:
 
 		if (mp_.model == "SuperHubbardExtended") hasJcoupling_ = true;
 
+		bool hasSpinOrbitKaneMele = (mp_.model == "KaneMeleHubbard");
+
 		if (hasCoulombCoupling_ && geometry_.terms()<2) {
-			PsimagLite::RuntimeError("HubbardOneOrbital::ctor(): ColoumbCoupling\n");
+			throw PsimagLite::RuntimeError("HubbardOneOrbital::ctor(): ColoumbCoupling\n");
 		}
 
 		if (hasJcoupling_ && geometry_.terms()<3) {
-			PsimagLite::RuntimeError("HubbardOneOrbital::ctor(): jCoupling\n");
+			throw PsimagLite::RuntimeError("HubbardOneOrbital::ctor(): jCoupling\n");
+		}
+
+		if (hasSpinOrbitKaneMele && geometry_.terms() != 2) {
+			throw PsimagLite::RuntimeError("HubbardOneOrbital::ctor(): KaneMeleHubbard");
 		}
 
 		SizeType n = geometry_.numberOfSites();
-		for (SizeType i=0;i<n;i++)
-			for (SizeType j=0;j<n;j++)
+		for (SizeType i=0;i<n;i++) {
+			for (SizeType j=0;j<n;j++) {
 				hoppings_(i,j) = geometry_(i,0,j,0,TERM_HOPPING);
+				if (hasSpinOrbitKaneMele)
+					hoppings_(i,j) += geometry_(i,0,j,0,SO_HOPPING_TERM);
+			}
+		}
 	}
 
 	~HubbardOneOrbital()

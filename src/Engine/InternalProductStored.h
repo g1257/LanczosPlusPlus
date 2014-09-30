@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2010-2012, UT-Battelle, LLC
+Copyright (c) 2010-2014, UT-Battelle, LLC
 All rights reserved
 
 [Lanczos++, Version 1.0.0]
@@ -67,7 +67,6 @@ DISCLOSED WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
 
 *********************************************************
 
-
 */
 
 /** \ingroup LanczosPlusPlus */
@@ -75,7 +74,8 @@ DISCLOSED WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
 
 /*! \file InternalProductStored.h
  *
- *  A class to encapsulate the product x+=Hy, where x and y are vectors and H is the Hamiltonian matrix
+ *  A class to encapsulate the product x+=Hy,
+ *  where x and y are vectors and H is the Hamiltonian matrix
  *
  */
 #ifndef InternalProductStored_HEADER_H
@@ -84,55 +84,55 @@ DISCLOSED WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
 #include <vector>
 
 namespace LanczosPlusPlus {
-	template<typename ModelType,typename SpecialSymmetryType_>
-	class InternalProductStored {
+template<typename ModelType,typename SpecialSymmetryType_>
+class InternalProductStored {
 
-	public:
+public:
 
-		typedef SpecialSymmetryType_ SpecialSymmetryType;
-		typedef typename ModelType::BasisBaseType BasisType;
-		typedef typename SpecialSymmetryType::SparseMatrixType SparseMatrixType;
-		typedef typename ModelType::RealType RealType;
-		typedef typename ModelType::GeometryType GeometryType;
-		typedef typename GeometryType::ComplexOrRealType ComplexOrRealType;
-		typedef PsimagLite::Matrix<ComplexOrRealType> MatrixType;
-		typedef typename PsimagLite::Vector<RealType>::Type VectorRealType;
+	typedef SpecialSymmetryType_ SpecialSymmetryType;
+	typedef typename ModelType::BasisBaseType BasisType;
+	typedef typename SpecialSymmetryType::SparseMatrixType SparseMatrixType;
+	typedef typename ModelType::RealType RealType;
+	typedef typename ModelType::GeometryType GeometryType;
+	typedef typename GeometryType::ComplexOrRealType ComplexOrRealType;
+	typedef PsimagLite::Matrix<ComplexOrRealType> MatrixType;
+	typedef typename PsimagLite::Vector<RealType>::Type VectorRealType;
 
-		InternalProductStored(const ModelType& model,
-				      const BasisType& basis,
-					  SpecialSymmetryType& rs)
-		: rs_(rs)
-		{
-			rs_.init(model,basis);
-		}
+	InternalProductStored(const ModelType& model,
+	                      const BasisType& basis,
+	                      SpecialSymmetryType& rs)
+	    : rs_(rs)
+	{
+		rs_.init(model,basis);
+	}
 
-		InternalProductStored(const ModelType& model,
-							  SpecialSymmetryType& rs)
-		: rs_(rs)
-		{
-			rs_.init(model,model.basis());
-		}
+	InternalProductStored(const ModelType& model,
+	                      SpecialSymmetryType& rs)
+	    : rs_(rs)
+	{
+		rs_.init(model,model.basis());
+	}
 
-		SizeType rank() const { return rs_.rank(); }
+	SizeType rank() const { return rs_.rank(); }
 
-		template<typename SomeVectorType>
-		void matrixVectorProduct(SomeVectorType &x, SomeVectorType const &y) const
-		{
-			rs_.matrixVectorProduct(x,y);
-		}
+	template<typename SomeVectorType>
+	void matrixVectorProduct(SomeVectorType &x, SomeVectorType const &y) const
+	{
+		rs_.matrixVectorProduct(x,y);
+	}
 
-		void specialSymmetrySector(SizeType p) { rs_.setPointer(p); }
+	void specialSymmetrySector(SizeType p) { rs_.setPointer(p); }
 
-		void fullDiag(VectorRealType& eigs,
-		              MatrixType& z)
-		{
-			rs_.fullDiag(eigs,z);
-		}
+	void fullDiag(VectorRealType& eigs,
+	              MatrixType& z)
+	{
+		rs_.fullDiag(eigs,z);
+	}
 
-	private:
+private:
 
-		SpecialSymmetryType& rs_;
-	}; // class InternalProductStored
+	SpecialSymmetryType& rs_;
+}; // class InternalProductStored
 } // namespace LanczosPlusPlus
 
 /*@}*/

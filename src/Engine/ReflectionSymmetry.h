@@ -1,7 +1,5 @@
-
 /*
-// BEGIN LICENSE BLOCK
-Copyright (c) 2009 , UT-Battelle, LLC
+Copyright (c) 2009-2014, UT-Battelle, LLC
 All rights reserved
 
 [Lanczos++, Version 1.0.0]
@@ -27,334 +25,332 @@ Please see full open source license included in file LICENSE.
 
 namespace LanczosPlusPlus {
 
-	class ReflectionItem {
+class ReflectionItem {
 
-	public:
+public:
 
-		enum { DIAGONAL,PLUS,MINUS};
+	enum { DIAGONAL,PLUS,MINUS};
 
-		ReflectionItem(SizeType ii)
-		: i(ii),j(ii),type(DIAGONAL)
-		{}
+	ReflectionItem(SizeType ii)
+	    : i(ii),j(ii),type(DIAGONAL)
+	{}
 
-		ReflectionItem(SizeType ii,SizeType jj,SizeType type1)
-		: i(ii),j(jj),type(type1)
-		{}
+	ReflectionItem(SizeType ii,SizeType jj,SizeType type1)
+	    : i(ii),j(jj),type(type1)
+	{}
 
-		SizeType i,j,type;
+	SizeType i,j,type;
 
-	}; // class ReflectionItem
+}; // class ReflectionItem
 
-	bool operator==(const ReflectionItem& item1,const ReflectionItem& item2)
+bool operator==(const ReflectionItem& item1,const ReflectionItem& item2)
+{
+	if (item1.type!=item2.type) return false;
+
+	if (item1.i==item2.j && item1.j==item2.i) return true;
+
+	return (item1.i==item2.i && item1.j==item2.j);
+}
+
+template<typename GeometryType_,typename BasisType>
+class ReflectionSymmetry  {
+
+	typedef typename GeometryType_::ComplexOrRealType ComplexOrRealType;
+	typedef PsimagLite::Matrix<ComplexOrRealType> MatrixType;
+	typedef typename PsimagLite::Real<ComplexOrRealType>::Type RealType;
+	typedef ProgramGlobals::WordType WordType;
+	typedef ReflectionItem ItemType;
+
+public:
+
+	typedef GeometryType_ GeometryType;
+	typedef PsimagLite::CrsMatrix<ComplexOrRealType> SparseMatrixType;
+	typedef typename PsimagLite::Vector<ComplexOrRealType>::Type VectorType;
+	typedef typename PsimagLite::Vector<RealType>::Type VectorRealType;
+
+	ReflectionSymmetry(const BasisType& basis,
+	                   const GeometryType& geometry,
+	                   bool printMatrix)
+	    : progress_("ReflectionSymmetry"),
+	      transform_(basis.size(),basis.size()),
+	      plusSector_(0),
+	      matrixStored_(2),
+	      pointer_(0),
+	      printMatrix_(printMatrix)
 	{
-		if (item1.type!=item2.type) return false;
+		SizeType hilbert = basis.size();
+		SizeType numberOfDofs = basis.dofs();
+		SizeType numberOfSites = geometry.numberOfSites();
+		SizeType termId = 0;
+		//			SizeType counter=0;
+		PsimagLite::Vector<ItemType>::Type buffer;
+		for (SizeType ispace=0;ispace<hilbert;ispace++) {
+			typename PsimagLite::Vector<WordType>::Type y(numberOfDofs,0);
+			for (SizeType dof=0;dof<numberOfDofs;dof++) {
+				WordType x = basis(ispace,dof);
+				for (SizeType site=0;site<numberOfSites;site++) {
+					SizeType reflectedSite = geometry.findReflection(site,termId);
+					SizeType thisSiteContent = x & 1;
+					x >>=1; // go to next site
+					addTo(y[dof],thisSiteContent,reflectedSite);
+					if (!x) break;
+				}
+			}
 
-		if (item1.i==item2.j && item1.j==item2.i) return true;
+			SizeType yIndex = basis.perfectIndex(y);
+			//				s_.setRow(ispace,counter);
+			//				s_.pushCol(yIndex);
+			//				s_.pushValue(1.0);
+			//				counter++;
+			if (yIndex==ispace) { // then S|psi> = |psi>
+				ItemType item1(ispace);
+				buffer.push_back(item1);
+				continue;
+			}
+			// S|psi> != |psi>
+			// Add normalized +
+			ItemType item2(ispace,yIndex,ItemType::PLUS);
+			buffer.push_back(item2);
 
-		return (item1.i==item2.i && item1.j==item2.j);
+			// Add normalized -
+			ItemType item3(ispace,yIndex,ItemType::MINUS);
+			buffer.push_back(item3);
+		}
+		//			s_.setRow(s_.rank(),counter);
+		setTransform(buffer);
+		//			checkTransform();
 	}
 
-	template<typename GeometryType_,typename BasisType>
-	class ReflectionSymmetry  {
+	template<typename SomeModelType>
+	void init(const SomeModelType& model,const BasisType& basis)
+	{
+		SparseMatrixType matrix2;
+		model.setupHamiltonian(matrix2,basis);
+		transformMatrix(matrixStored_,matrix2);
 
-		typedef typename GeometryType_::ComplexOrRealType ComplexOrRealType;
-		typedef PsimagLite::Matrix<ComplexOrRealType> MatrixType;
-		typedef typename PsimagLite::Real<ComplexOrRealType>::Type RealType;
-		typedef ProgramGlobals::WordType WordType;
-		typedef ReflectionItem ItemType;
+		if (matrixStored_.size() == 0) return;
 
-	public:
-
-		typedef GeometryType_ GeometryType;
-		typedef PsimagLite::CrsMatrix<ComplexOrRealType> SparseMatrixType;
-		typedef typename PsimagLite::Vector<ComplexOrRealType>::Type VectorType;
-		typedef typename PsimagLite::Vector<RealType>::Type VectorRealType;
-
-		ReflectionSymmetry(const BasisType& basis,
-		                   const GeometryType& geometry,
-		                   bool printMatrix)
-		: progress_("ReflectionSymmetry"),
-		  transform_(basis.size(),basis.size()),
-		  plusSector_(0),
-		  matrixStored_(2),
-		  pointer_(0),
-		  printMatrix_(printMatrix)
-		{
-			SizeType hilbert = basis.size();
-			SizeType numberOfDofs = basis.dofs();
-			SizeType numberOfSites = geometry.numberOfSites();
-			SizeType termId = 0;
-//			SizeType counter=0;
-			PsimagLite::Vector<ItemType>::Type buffer;
-			for (SizeType ispace=0;ispace<hilbert;ispace++) {
-				typename PsimagLite::Vector<WordType>::Type y(numberOfDofs,0);
-				for (SizeType dof=0;dof<numberOfDofs;dof++) {
-					WordType x = basis(ispace,dof);
-					for (SizeType site=0;site<numberOfSites;site++) {
-						SizeType reflectedSite = geometry.findReflection(site,termId);
-						SizeType thisSiteContent = x & 1;
-						x >>=1; // go to next site
-						addTo(y[dof],thisSiteContent,reflectedSite);
-						if (!x) break;
-					}
-				}
-
-				SizeType yIndex = basis.perfectIndex(y);
-//				s_.setRow(ispace,counter);
-//				s_.pushCol(yIndex);
-//				s_.pushValue(1.0);
-//				counter++;
-				if (yIndex==ispace) { // then S|psi> = |psi>
-					ItemType item1(ispace);
-					buffer.push_back(item1);
-					continue;
-				}
-				// S|psi> != |psi>
-				// Add normalized +
-				ItemType item2(ispace,yIndex,ItemType::PLUS);
-				buffer.push_back(item2);
-
-				// Add normalized -
-				ItemType item3(ispace,yIndex,ItemType::MINUS);
-				buffer.push_back(item3);
-			}
-//			s_.setRow(s_.rank(),counter);
-			setTransform(buffer);
-//			checkTransform();
-		}
-
-		template<typename SomeModelType>
-		void init(const SomeModelType& model,const BasisType& basis)
-		{
-			SparseMatrixType matrix2;
-			model.setupHamiltonian(matrix2,basis);
-			transformMatrix(matrixStored_,matrix2);
-
-			if (matrixStored_.size() == 0) return;
-
-			bool nrows = matrixStored_[0].row();
-			if (printMatrix_) {
-				if (nrows > 40)
-					throw PsimagLite::RuntimeError("printMatrix too big\n");
+		bool nrows = matrixStored_[0].row();
+		if (printMatrix_) {
+			if (nrows > 40)
+				throw PsimagLite::RuntimeError("printMatrix too big\n");
 			std::cout<<matrixStored_[0].toDense();
-			}
 		}
+	}
 
-		SizeType rank() const { return matrixStored_[pointer_].row(); }
+	SizeType rank() const { return matrixStored_[pointer_].row(); }
 
-		void transformMatrix(typename PsimagLite::Vector<SparseMatrixType>::Type& matrix1,
-		                     const SparseMatrixType& matrix) const
-		{
-			SparseMatrixType rT;
-			transposeConjugate(rT,transform_);
+	void transformMatrix(typename PsimagLite::Vector<SparseMatrixType>::Type& matrix1,
+	                     const SparseMatrixType& matrix) const
+	{
+		SparseMatrixType rT;
+		transposeConjugate(rT,transform_);
 
-			if (matrix.row()<40) printFullMatrix(matrix,"originalHam");
-			SparseMatrixType tmp;
-			multiply(tmp,matrix,rT);
+		if (matrix.row()<40) printFullMatrix(matrix,"originalHam");
+		SparseMatrixType tmp;
+		multiply(tmp,matrix,rT);
 
-			SparseMatrixType matrix2;
-			multiply(matrix2,transform_,tmp);
+		SparseMatrixType matrix2;
+		multiply(matrix2,transform_,tmp);
 
-			assert(matrix1.size()==2);
-			split(matrix1[0],matrix1[1],matrix2);
+		assert(matrix1.size()==2);
+		split(matrix1[0],matrix1[1],matrix2);
+	}
+
+	void transformGs(VectorType& gs,SizeType offset)
+	{
+		VectorType gstmp(transform_.row(),0);
+
+		for (SizeType i=0;i<gs.size();i++) {
+			assert(i+offset<gstmp.size());
+			gstmp[i+offset]=gs[i];
 		}
+		SparseMatrixType rT;
+		transposeConjugate(rT,transform_);
+		gs.clear();
+		gs.resize(transform_.row());
+		multiply(gs,rT,gstmp);
+	}
 
-		void transformGs(VectorType& gs,SizeType offset)
-		{
-			VectorType gstmp(transform_.row(),0);
+	SizeType sectors() const { return 2; }
 
-			for (SizeType i=0;i<gs.size();i++) {
-				assert(i+offset<gstmp.size());
-				gstmp[i+offset]=gs[i];
-			}
-			SparseMatrixType rT;
-			transposeConjugate(rT,transform_);
-			gs.clear();
-			gs.resize(transform_.row());
-			multiply(gs,rT,gstmp);
-		}
+	void setPointer(SizeType p) { pointer_=p; }
 
-		SizeType sectors() const { return 2; }
+	PsimagLite::String name() const { return "reflection"; }
 
-		void setPointer(SizeType p) { pointer_=p; }
+	void fullDiag(VectorRealType& eigs,MatrixType& fm) const
+	{
+		if (matrixStored_[pointer_].row() > 1000)
+			throw PsimagLite::RuntimeError("fullDiag too big\n");
 
-		PsimagLite::String name() const { return "reflection"; }
+		fm = matrixStored_[pointer_].toDense();
+		diag(fm,eigs,'V');
 
-		void fullDiag(VectorRealType& eigs,MatrixType& fm) const
-		{
-			if (matrixStored_[pointer_].row() > 1000)
-				throw PsimagLite::RuntimeError("fullDiag too big\n");
+		if (!printMatrix_) return;
 
-			fm = matrixStored_[pointer_].toDense();
-			diag(fm,eigs,'V');
+		for (SizeType i=0;i<eigs.size();i++)
+			std::cout<<eigs[i]<<"\n";
+		std::cout<<fm;
+	}
 
-			if (!printMatrix_) return;
+	template<typename SomeVectorType>
+	void matrixVectorProduct(SomeVectorType &x, SomeVectorType const &y) const
+	{
+		return matrixStored_[pointer_].matrixVectorProduct(x,y);
+	}
 
-			for (SizeType i=0;i<eigs.size();i++)
-				std::cout<<eigs[i]<<"\n";
-			std::cout<<fm;
-                }
+private:
 
-		template<typename SomeVectorType>
-		void matrixVectorProduct(SomeVectorType &x, SomeVectorType const &y) const
-		{
-			return matrixStored_[pointer_].matrixVectorProduct(x,y);
-		}
+	void addTo(WordType& yy,SizeType what,SizeType site) const
+	{
+		if (what==0) return;
+		WordType mask = (1<<site);
+		yy |= mask;
+	}
 
-	private:
-
-		void addTo(WordType& yy,SizeType what,SizeType site) const
-		{
-			if (what==0) return;
-			WordType mask = (1<<site);
-			yy |= mask;
-		}
-
-		void setTransform(const PsimagLite::Vector<ItemType>::Type& buffer2)
-		{
-			PsimagLite::Vector<ItemType>::Type buffer;
-			makeUnique(buffer,buffer2);
-			assert(buffer.size()==transform_.row());
-			SizeType counter = 0;
-			RealType oneOverSqrt2 = 1.0/sqrt(2.0);
-			RealType sign = 1.0;
-			SizeType row = 0;
-			for (SizeType i=0;i<buffer.size();i++) {
-				if (buffer[i].type==ItemType::MINUS) continue;
-				transform_.setRow(row++,counter);
-				switch(buffer[i].type) {
-				case ItemType::DIAGONAL:
-					transform_.pushCol(buffer[i].i);
-					transform_.pushValue(1);
-					counter++;
-					break;
-				case ItemType::PLUS:
-					transform_.pushCol(buffer[i].i);
-					transform_.pushValue(oneOverSqrt2);
-					counter++;
-					transform_.pushCol(buffer[i].j);
-					transform_.pushValue(oneOverSqrt2);
-					counter++;
-					break;
-				}
-			}
-
-			for (SizeType i=0;i<buffer.size();i++) {
-				if (buffer[i].type!=ItemType::MINUS) continue;
-				transform_.setRow(row++,counter);
+	void setTransform(const PsimagLite::Vector<ItemType>::Type& buffer2)
+	{
+		PsimagLite::Vector<ItemType>::Type buffer;
+		makeUnique(buffer,buffer2);
+		assert(buffer.size()==transform_.row());
+		SizeType counter = 0;
+		RealType oneOverSqrt2 = 1.0/sqrt(2.0);
+		RealType sign = 1.0;
+		SizeType row = 0;
+		for (SizeType i=0;i<buffer.size();i++) {
+			if (buffer[i].type==ItemType::MINUS) continue;
+			transform_.setRow(row++,counter);
+			switch(buffer[i].type) {
+			case ItemType::DIAGONAL:
 				transform_.pushCol(buffer[i].i);
-				transform_.pushValue(oneOverSqrt2*sign);
+				transform_.pushValue(1);
+				counter++;
+				break;
+			case ItemType::PLUS:
+				transform_.pushCol(buffer[i].i);
+				transform_.pushValue(oneOverSqrt2);
 				counter++;
 				transform_.pushCol(buffer[i].j);
-				transform_.pushValue(-oneOverSqrt2*sign);
+				transform_.pushValue(oneOverSqrt2);
 				counter++;
+				break;
 			}
-			transform_.setRow(transform_.row(),counter);
-			transform_.checkValidity();
 		}
 
-		void makeUnique(PsimagLite::Vector<ItemType>::Type& dest,const PsimagLite::Vector<ItemType>::Type& src)
-		{
-			SizeType zeros=0;
-			SizeType pluses=0;
-			SizeType minuses=0;
-			for (SizeType i=0;i<src.size();i++) {
-				ItemType item = src[i];
-				int x =  PsimagLite::isInVector(dest,item);
-				if (x>=0) continue;
-//				if (item.type ==ItemType::PLUS) {
-//					SizeType i = item.i;
-//					SizeType j = item.j;
-//					ItemType item2(j,i,ItemType::PLUS);
-//					x = PsimagLite::isInVector(dest,item2);
-//					if (x>=0) continue;
-//				}
-				if (item.type==ItemType::DIAGONAL) zeros++;
-				if (item.type==ItemType::PLUS) pluses++;
-				if (item.type==ItemType::MINUS) minuses++;
-
-				dest.push_back(item);
-			}
-			PsimagLite::OstringStream msg;
-			msg<<pluses<<" +, "<<minuses<<" -, "<<zeros<<" zeros.";
-			progress_.printline(msg,std::cout);
-			plusSector_ = zeros + pluses;
+		for (SizeType i=0;i<buffer.size();i++) {
+			if (buffer[i].type!=ItemType::MINUS) continue;
+			transform_.setRow(row++,counter);
+			transform_.pushCol(buffer[i].i);
+			transform_.pushValue(oneOverSqrt2*sign);
+			counter++;
+			transform_.pushCol(buffer[i].j);
+			transform_.pushValue(-oneOverSqrt2*sign);
+			counter++;
 		}
+		transform_.setRow(transform_.row(),counter);
+		transform_.checkValidity();
+	}
 
-		void isIdentity(const SparseMatrixType& s,const PsimagLite::String& label) const
-		{
-			std::cerr<<"Checking label="<<label<<"\n";
-			for (SizeType i=0;i<s.rank();i++) {
-				for (int k=s.getRowPtr(i);k<s.getRowPtr(i+1);k++) {
-					SizeType col = s.getCol(k);
-					RealType val = s.getValue(k);
-					if (col==i) assert(isAlmostZero(val-1.0));
-					else assert(isAlmostZero(val));
+	void makeUnique(PsimagLite::Vector<ItemType>::Type& dest,
+	                const PsimagLite::Vector<ItemType>::Type& src)
+	{
+		SizeType zeros=0;
+		SizeType pluses=0;
+		SizeType minuses=0;
+		for (SizeType i=0;i<src.size();i++) {
+			ItemType item = src[i];
+			int x =  PsimagLite::isInVector(dest,item);
+			if (x>=0) continue;
+			if (item.type==ItemType::DIAGONAL) zeros++;
+			if (item.type==ItemType::PLUS) pluses++;
+			if (item.type==ItemType::MINUS) minuses++;
+
+			dest.push_back(item);
+		}
+		PsimagLite::OstringStream msg;
+		msg<<pluses<<" +, "<<minuses<<" -, "<<zeros<<" zeros.";
+		progress_.printline(msg,std::cout);
+		plusSector_ = zeros + pluses;
+	}
+
+	void isIdentity(const SparseMatrixType& s,
+	                const PsimagLite::String& label) const
+	{
+		std::cerr<<"Checking label="<<label<<"\n";
+		for (SizeType i=0;i<s.rank();i++) {
+			for (int k=s.getRowPtr(i);k<s.getRowPtr(i+1);k++) {
+				SizeType col = s.getCol(k);
+				RealType val = s.getValue(k);
+				if (col==i) assert(isAlmostZero(val-1.0));
+				else assert(isAlmostZero(val));
+			}
+		}
+	}
+
+	bool isAlmostZero(const RealType& x) const
+	{
+		return (fabs(x)<1e-6);
+	}
+
+	void split(SparseMatrixType& matrixA,
+	           SparseMatrixType& matrixB,
+	           const SparseMatrixType& matrix) const
+	{
+		SizeType counter = 0;
+		matrixA.resize(plusSector_,plusSector_);
+		for (SizeType i=0;i<plusSector_;i++) {
+			matrixA.setRow(i,counter);
+			for (int k=matrix.getRowPtr(i);k<matrix.getRowPtr(i+1);k++) {
+				SizeType col = matrix.getCol(k);
+				ComplexOrRealType val = matrix.getValue(k);
+				if (col<plusSector_) {
+					matrixA.pushCol(col);
+					matrixA.pushValue(val);
+					counter++;
+					continue;
+				}
+				if (std::norm(val)>1e-12) {
+					PsimagLite::String s(__FILE__);
+					s += " Hamiltonian has no reflection symmetry.";
+					throw std::runtime_error(s.c_str());
 				}
 			}
 		}
+		matrixA.setRow(plusSector_,counter);
 
-		bool isAlmostZero(const RealType& x) const
-		{
-			return (fabs(x)<1e-6);
-		}
-
-		void split(SparseMatrixType& matrixA,SparseMatrixType& matrixB,const SparseMatrixType& matrix) const
-		{
-			SizeType counter = 0;
-			matrixA.resize(plusSector_,plusSector_);
-			for (SizeType i=0;i<plusSector_;i++) {
-				matrixA.setRow(i,counter);
-				for (int k=matrix.getRowPtr(i);k<matrix.getRowPtr(i+1);k++) {
-					SizeType col = matrix.getCol(k);
-					ComplexOrRealType val = matrix.getValue(k);
-					if (col<plusSector_) {
-						matrixA.pushCol(col);
-						matrixA.pushValue(val);
-						counter++;
-						continue;
-					}
-					if (std::norm(val)>1e-12) {
-						PsimagLite::String s(__FILE__);
-						s += " Hamiltonian has no reflection symmetry.";
-						throw std::runtime_error(s.c_str());
-					}
+		SizeType rank = matrix.row();
+		SizeType minusSector=rank-plusSector_;
+		matrixB.resize(minusSector,minusSector);
+		counter=0;
+		for (SizeType i=plusSector_;i<rank;i++) {
+			matrixB.setRow(i-plusSector_,counter);
+			for (int k=matrix.getRowPtr(i);k<matrix.getRowPtr(i+1);k++) {
+				SizeType col = matrix.getCol(k);
+				ComplexOrRealType val = matrix.getValue(k);
+				if (col>=plusSector_) {
+					matrixB.pushCol(col-plusSector_);
+					matrixB.pushValue(val);
+					counter++;
+					continue;
+				}
+				if (std::norm(val)>1e-12) {
+					PsimagLite::String s(__FILE__);
+					s += " Hamiltonian has no reflection symmetry.";
+					throw std::runtime_error(s.c_str());
 				}
 			}
-			matrixA.setRow(plusSector_,counter);
-
-			SizeType rank = matrix.row();
-			SizeType minusSector=rank-plusSector_;
-			matrixB.resize(minusSector,minusSector);
-			counter=0;
-			for (SizeType i=plusSector_;i<rank;i++) {
-				matrixB.setRow(i-plusSector_,counter);
-				for (int k=matrix.getRowPtr(i);k<matrix.getRowPtr(i+1);k++) {
-					SizeType col = matrix.getCol(k);
-					ComplexOrRealType val = matrix.getValue(k);
-					if (col>=plusSector_) {
-						matrixB.pushCol(col-plusSector_);
-						matrixB.pushValue(val);
-						counter++;
-						continue;
-					}
-					if (std::norm(val)>1e-12) {
-						PsimagLite::String s(__FILE__);
-						s += " Hamiltonian has no reflection symmetry.";
-						throw std::runtime_error(s.c_str());
-					}
-				}
-			}
-			matrixB.setRow(minusSector,counter);
 		}
+		matrixB.setRow(minusSector,counter);
+	}
 
-		PsimagLite::ProgressIndicator progress_;
-		SparseMatrixType transform_;
-		SizeType plusSector_;
-		typename PsimagLite::Vector<SparseMatrixType>::Type matrixStored_;
-		SizeType pointer_;
-		bool printMatrix_;
-	}; // class ReflectionSymmetry
+	PsimagLite::ProgressIndicator progress_;
+	SparseMatrixType transform_;
+	SizeType plusSector_;
+	typename PsimagLite::Vector<SparseMatrixType>::Type matrixStored_;
+	SizeType pointer_;
+	bool printMatrix_;
+}; // class ReflectionSymmetry
 } // namespace Dmrg
 
 #endif  // REFLECTION_SYMM_H
+

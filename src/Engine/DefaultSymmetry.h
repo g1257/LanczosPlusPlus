@@ -1,7 +1,5 @@
-
 /*
-// BEGIN LICENSE BLOCK
-Copyright (c) 2009 , UT-Battelle, LLC
+Copyright (c) 2009-2014, UT-Battelle, LLC
 All rights reserved
 
 [Lanczos++, Version 1.0.0]
@@ -28,89 +26,89 @@ Please see full open source license included in file LICENSE.
 
 namespace LanczosPlusPlus {
 
+template<typename GeometryType_,typename BasisType>
+class DefaultSymmetry  {
 
-	template<typename GeometryType_,typename BasisType>
-	class DefaultSymmetry  {
+	typedef typename GeometryType_::ComplexOrRealType ComplexOrRealType;
+	typedef typename PsimagLite::Real<ComplexOrRealType>::Type RealType;
+	typedef ProgramGlobals::WordType WordType;
+	typedef PsimagLite::Matrix<ComplexOrRealType> MatrixType;
+	typedef typename PsimagLite::Vector<RealType>::Type VectorRealType;
 
-		typedef typename GeometryType_::ComplexOrRealType ComplexOrRealType;
-		typedef typename PsimagLite::Real<ComplexOrRealType>::Type RealType;
-		typedef ProgramGlobals::WordType WordType;
-		typedef PsimagLite::Matrix<ComplexOrRealType> MatrixType;
-		typedef typename PsimagLite::Vector<RealType>::Type VectorRealType;
+public:
 
-	public:
+	typedef GeometryType_ GeometryType;
+	typedef PsimagLite::CrsMatrix<ComplexOrRealType> SparseMatrixType;
+	typedef typename PsimagLite::Vector<ComplexOrRealType>::Type VectorType;
 
-		typedef GeometryType_ GeometryType;
-		typedef PsimagLite::CrsMatrix<ComplexOrRealType> SparseMatrixType;
-		typedef typename PsimagLite::Vector<ComplexOrRealType>::Type VectorType;
+	DefaultSymmetry(const BasisType& basis,
+	                const GeometryType& geometry,
+	                bool printMatrix)
+	    : printMatrix_(printMatrix)
+	{}
 
-		DefaultSymmetry(const BasisType& basis,
-		                const GeometryType& geometry,
-		                bool printMatrix)
-		: printMatrix_(printMatrix)
-		{}
-
-		template<typename SomeModelType>
-		void init(const SomeModelType& model,const BasisType& basis)
-		{
-			model.setupHamiltonian(matrixStored_,basis);
-			assert(isHermitian(matrixStored_));
-			bool nrows = matrixStored_.row();
-			if (printMatrix_) {
-				if (nrows > 40)
-					throw PsimagLite::RuntimeError("printMatrix too big\n");
-				std::cout<<"#LanczosPlusPlus: DenseMatrix\n";
-				std::cout<<matrixStored_.toDense();
-				PsimagLite::Matrix<ComplexOrRealType> matrixCopy;
-				VectorRealType eigs(matrixCopy.n_row());
-				fullDiag(eigs,matrixCopy);
-			}
+	template<typename SomeModelType>
+	void init(const SomeModelType& model,const BasisType& basis)
+	{
+		model.setupHamiltonian(matrixStored_,basis);
+		assert(isHermitian(matrixStored_));
+		bool nrows = matrixStored_.row();
+		if (printMatrix_) {
+			if (nrows > 40)
+				throw PsimagLite::RuntimeError("printMatrix too big\n");
+			std::cout<<"#LanczosPlusPlus: DenseMatrix\n";
+			std::cout<<matrixStored_.toDense();
+			PsimagLite::Matrix<ComplexOrRealType> matrixCopy;
+			VectorRealType eigs(matrixCopy.n_row());
+			fullDiag(eigs,matrixCopy);
 		}
+	}
 
-		void fullDiag(VectorRealType& eigs,MatrixType& fm) const
-		{
-			if (matrixStored_.row() > 1000)
-				throw PsimagLite::RuntimeError("fullDiag too big\n");
+	void fullDiag(VectorRealType& eigs,MatrixType& fm) const
+	{
+		if (matrixStored_.row() > 1000)
+			throw PsimagLite::RuntimeError("fullDiag too big\n");
 
-			fm = matrixStored_.toDense();
-			diag(fm,eigs,'V');
+		fm = matrixStored_.toDense();
+		diag(fm,eigs,'V');
 
-			if (!printMatrix_) return;
+		if (!printMatrix_) return;
 
-			for (SizeType i=0;i<eigs.size();i++)
-				std::cout<<eigs[i]<<"\n";
-			std::cout<<fm;
-		}
+		for (SizeType i=0;i<eigs.size();i++)
+			std::cout<<eigs[i]<<"\n";
+		std::cout<<fm;
+	}
 
-		void transformMatrix(typename PsimagLite::Vector<SparseMatrixType>::Type& matrix1,
-		                     const SparseMatrixType& matrix) const
-		{
-			throw std::runtime_error("DefaultSymmetry: cannot call transformMatrix\n");
-		}
+	void transformMatrix(typename PsimagLite::Vector<SparseMatrixType>::Type& matrix1,
+	                     const SparseMatrixType& matrix) const
+	{
+		throw std::runtime_error("DefaultSymmetry: cannot call transformMatrix\n");
+	}
 
-		void transformGs(VectorType& gs,SizeType offset)
-		{
-		}
+	void transformGs(VectorType& gs,SizeType offset)
+	{
+	}
 
-		SizeType sectors() const { return 1; }
+	SizeType sectors() const { return 1; }
 
-		void setPointer(SizeType p) { }
+	void setPointer(SizeType p) { }
 
-		PsimagLite::String name() const { return "default"; }
+	PsimagLite::String name() const { return "default"; }
 
-		SizeType rank() const { return matrixStored_.row(); }
+	SizeType rank() const { return matrixStored_.row(); }
 
-		template<typename SomeVectorType>
-		void matrixVectorProduct(SomeVectorType &x, SomeVectorType const &y) const
-		{
-			return matrixStored_.matrixVectorProduct(x,y);
-		}
+	template<typename SomeVectorType>
+	void matrixVectorProduct(SomeVectorType &x, SomeVectorType const &y) const
+	{
+		return matrixStored_.matrixVectorProduct(x,y);
+	}
 
-	private:
+private:
 
-		SparseMatrixType matrixStored_;
-		bool printMatrix_;
-	}; // class DefaultSymmetry
+	SparseMatrixType matrixStored_;
+	bool printMatrix_;
+}; // class DefaultSymmetry
 } // namespace Dmrg
 
 #endif  // DEFAULT_SYMM_H
+

@@ -57,7 +57,7 @@ typedef PsimagLite::Geometry<ComplexOrRealType,
                              ProgramGlobals> GeometryType;
 typedef std::pair<SizeType,SizeType> PairType;
 typedef ModelSelector<ComplexOrRealType,GeometryType,InputNgType::Readable> ModelSelectorType;
-typedef typename ModelSelectorType::ModelBaseType ModelBaseType;
+typedef ModelSelectorType::ModelBaseType ModelBaseType;
 
 void fillOrbsOrSpin(PsimagLite::Vector<PairType>::Type& spinV,
                     const PsimagLite::Vector<PsimagLite::String>::Type& strV)

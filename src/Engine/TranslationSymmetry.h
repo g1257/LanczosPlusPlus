@@ -373,7 +373,7 @@ private:
 				SizeType globalRow = row + offset;
 				SizeType start = matrix2.getRowPtr(globalRow);
 				SizeType end = matrix2.getRowPtr(globalRow+1);
-				for (int k=start;k<end;k++) {
+				for (SizeType k=start;k<end;k++) {
 					ComplexOrRealType val = matrix2.getValue(k);
 					if (std::norm(val)<1e-8) continue;
 					SizeType globalCol = matrix2.getCol(k);

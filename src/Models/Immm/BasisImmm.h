@@ -82,7 +82,7 @@ public:
 		return (spin==SPIN_UP) ? basis1_[x] : basis2_[y];
 	}
 
-	SizeType perfectIndex(const VectorWordType& ket1) const
+	SizeType perfectIndex(const VectorWordType&) const
 	{
 		throw std::runtime_error("Wrong way!\n");
 	}

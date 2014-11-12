@@ -102,7 +102,7 @@ struct ParametersTj1Orb {
 //! Function that prints model parameters to stream os
 template<typename FieldType,typename InputType>
 std::ostream& operator<<(std::ostream &os,
-                         const ParametersTj1Orb<FieldType,InputType>& parameters)
+                         const ParametersTj1Orb<FieldType,InputType>&)
 {
 	return os;
 }

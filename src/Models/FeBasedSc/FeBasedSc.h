@@ -65,7 +65,7 @@ public:
 
 	SizeType size() const { return basis_.size(); }
 
-	SizeType orbitals(SizeType site) const
+	SizeType orbitals(SizeType) const
 	{
 		return mp_.orbitals;
 	}
@@ -214,7 +214,7 @@ private:
 	                         const WordType& ket1,
 	                         const WordType& ket2,
 	                         SizeType i,
-	                         SizeType orb,
+	                         SizeType,
 	                         const BasisBaseType &basis) const
 	{
 		for (SizeType spin1 = 0; spin1 < 2; ++spin1) {
@@ -248,7 +248,7 @@ private:
 		}
 	}
 
-	RealType findSdecay(SizeType nsite,
+	RealType findSdecay(SizeType,
 	                    WordType ket1,
 	                    WordType ket2,
 	                    SizeType i,
@@ -450,7 +450,7 @@ private:
 	RealType findS(SizeType nsite,
 	               WordType ket1,
 	               WordType ket2,
-	               SizeType ispace,
+	               SizeType,
 	               const BasisBaseType& basis) const
 	{
 		RealType s = 0;
@@ -515,7 +515,7 @@ private:
 		return std::real(s);
 	}
 
-	RealType findSImpurity(SizeType nsite,
+	RealType findSImpurity(SizeType,
 	                       WordType ket1,
 	                       WordType ket2,
 	                       SizeType i,
@@ -547,7 +547,7 @@ private:
 		return s;
 	}
 
-	RealType findSkspace(SizeType nsite,
+	RealType findSkspace(SizeType,
 	                     WordType ket1,
 	                     WordType ket2,
 	                     SizeType i,

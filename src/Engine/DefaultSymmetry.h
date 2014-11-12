@@ -41,8 +41,8 @@ public:
 	typedef PsimagLite::CrsMatrix<ComplexOrRealType> SparseMatrixType;
 	typedef typename PsimagLite::Vector<ComplexOrRealType>::Type VectorType;
 
-	DefaultSymmetry(const BasisType& basis,
-	                const GeometryType& geometry,
+	DefaultSymmetry(const BasisType&,
+	                const GeometryType&,
 	                bool printMatrix)
 	    : printMatrix_(printMatrix)
 	{}
@@ -85,13 +85,13 @@ public:
 		throw std::runtime_error("DefaultSymmetry: cannot call transformMatrix\n");
 	}
 
-	void transformGs(VectorType& gs,SizeType offset)
+	void transformGs(VectorType&,SizeType)
 	{
 	}
 
 	SizeType sectors() const { return 1; }
 
-	void setPointer(SizeType p) { }
+	void setPointer(SizeType) { }
 
 	PsimagLite::String name() const { return "default"; }
 

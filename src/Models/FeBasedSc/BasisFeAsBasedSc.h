@@ -88,9 +88,9 @@ public:
 		return basis1_.perfectIndex(ket1) + basis2_.perfectIndex(ket2)*basis1_.size();
 	}
 
-	SizeType perfectIndex(WordType newKet,
-	                      SizeType ispace,
-	                      SizeType spinOfNew) const
+	SizeType perfectIndex(WordType,
+	                      SizeType,
+	                      SizeType) const
 	{
 		throw PsimagLite::RuntimeError("perfectIndex\n");
 	}
@@ -184,7 +184,7 @@ public:
 		throw std::runtime_error(str.c_str());
 	}
 
-	SizeType orbsPerSite(SizeType i) const
+	SizeType orbsPerSite(SizeType) const
 	{
 		throw PsimagLite::RuntimeError("orbsPerSite\n");
 	}

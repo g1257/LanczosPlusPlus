@@ -125,7 +125,7 @@ public:
 
 	void check(const PsimagLite::String& label,
 	           const PsimagLite::String& val,
-	           SizeType line)
+	           SizeType)
 	{
 		if (label!="SolverOptions") return;
 		PsimagLite::Vector<PsimagLite::String>::Type registerOpts;

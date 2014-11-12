@@ -73,7 +73,7 @@ sub createMakefile
 	my $cppflags= " -IEngine  ";
 	$cppflags .= "  -I$PsimagLite/src -I$PsimagLite $usePthreadsOrNot $floating";
 
-	Make::make($fh,\@drivers,"DMRG++",$platform,$mpi,"$lapack $pthreadsLib",
+	Make::make($fh,\@drivers,"Lanczos++",$platform,$mpi,"$lapack $pthreadsLib",
 	"$compiler $optimizations",$cppflags,$strip,"Engine/Version.h",
 	"Engine/Version.h gitrev","");
 	local *FH = $fh;

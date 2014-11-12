@@ -122,7 +122,7 @@ public:
 	                             WordType ket2,
 	                             SizeType site,
 	                             SizeType spin,
-	                             SizeType orb) const
+	                             SizeType) const
 	{
 		return (spin==SPIN_UP) ?
 		            isThereAnElectronAt(ket1,site) : isThereAnElectronAt(ket2,site);
@@ -132,12 +132,12 @@ public:
 	              WordType ket2,
 	              SizeType site,
 	              SizeType spin,
-	              SizeType orb) const
+	              SizeType) const
 	{
 		return (spin==SPIN_UP) ? getN(ket1,site) : getN(ket2,site);
 	}
 
-	int doSignGf(WordType a, WordType b,SizeType ind,SizeType sector,SizeType orb) const
+	int doSignGf(WordType a, WordType b,SizeType ind,SizeType sector,SizeType) const
 	{
 		if (sector==SPIN_UP) {
 			if (ind==0) return 1;
@@ -170,9 +170,9 @@ public:
 	int doSign(WordType ket1,
 	           WordType ket2,
 	           SizeType i,
-	           SizeType orb1,
+	           SizeType,
 	           SizeType j,
-	           SizeType orb2,
+	           SizeType,
 	           SizeType spin) const
 	{
 		assert(i <= j);
@@ -216,11 +216,11 @@ public:
 		return getBraIndex_(ket1,ket2,operatorLabel,site,spin,orb);
 	}
 
-	SizeType orbsPerSite(SizeType i) const { return 1; }
+	SizeType orbsPerSite(SizeType) const { return 1; }
 
 	SizeType orbs() const { return 1; }
 
-	SizeType perfectIndex(WordType newKet,SizeType ispace,SizeType spinOfNew) const
+	SizeType perfectIndex(WordType,SizeType,SizeType) const
 	{
 		throw PsimagLite::RuntimeError("perfectIndex\n");
 	}
@@ -236,7 +236,7 @@ private:
 	                         SizeType operatorLabel,
 	                         SizeType site,
 	                         SizeType spin,
-	                         SizeType orb) const
+	                         SizeType) const
 	{
 		WordType bra1 = ket1;
 		WordType bra2 = ket2;
@@ -417,7 +417,7 @@ private:
 	int getBraSzOrN(WordType& bra,
 	                const WordType& ket1,
 	                const WordType& ket2,
-	                SizeType operatorLabel,
+	                SizeType,
 	                SizeType site,
 	                SizeType spin) const
 	{

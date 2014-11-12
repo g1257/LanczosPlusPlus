@@ -86,7 +86,7 @@ public:
 
 	SizeType size() const { return basis_.size(); }
 
-	SizeType orbitals(SizeType site) const
+	SizeType orbitals(SizeType) const
 	{
 		return 1;
 	}
@@ -160,7 +160,7 @@ private:
 	bool hasNewPartsCorCdagger(std::pair<SizeType,SizeType>& newParts,
 	                           SizeType what,
 	                           SizeType spin,
-	                           const std::pair<SizeType,SizeType>& orbs) const
+	                           const std::pair<SizeType,SizeType>&) const
 	{
 		int newPart1=basis_.electrons(SPIN_UP);
 		int newPart2=basis_.electrons(SPIN_DOWN);

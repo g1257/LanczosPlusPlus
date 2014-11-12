@@ -51,9 +51,9 @@ public:
 		        basis2_.perfectIndex(ket2)*basis1_.size();
 	}
 
-	virtual SizeType perfectIndex(WordType newKet,
-	                              SizeType ispace,
-	                              SizeType spinOfNew) const
+	virtual SizeType perfectIndex(WordType,
+	                              SizeType,
+	                              SizeType) const
 	{
 		throw PsimagLite::RuntimeError("perfectIndex\n");
 	}
@@ -74,7 +74,7 @@ public:
 	                             WordType ket2,
 	                             SizeType site,
 	                             SizeType spin,
-	                             SizeType orb) const
+	                             SizeType) const
 	{
 		if (spin==SPIN_UP)
 			return basis1_.isThereAnElectronAt(ket1,site);
@@ -85,7 +85,7 @@ public:
 	              WordType ket2,
 	              SizeType site,
 	              SizeType spin,
-	              SizeType orb) const
+	              SizeType) const
 	{
 		return (spin==SPIN_UP) ? basis1_.getN(ket1,site) : basis2_.getN(ket2,site);
 	}
@@ -94,7 +94,7 @@ public:
 	             WordType b,
 	             SizeType ind,
 	             SizeType sector,
-	             SizeType orb) const
+	             SizeType) const
 	{
 		if (sector==SPIN_UP) {
 			if (ind==0) return 1;
@@ -126,9 +126,9 @@ public:
 	int doSign(WordType ket1,
 	           WordType ket2,
 	           SizeType i,
-	           SizeType orb1,
+	           SizeType,
 	           SizeType j,
-	           SizeType orb2,
+	           SizeType,
 	           SizeType spin) const
 	{
 		assert(i <= j);
@@ -140,7 +140,7 @@ public:
 	                        SizeType what,
 	                        SizeType site,
 	                        SizeType spin,
-	                        SizeType orb) const
+	                        SizeType) const
 	{
 		WordType bra = 0;
 		bool b = getBra(bra,ket1,ket2,what,site,spin);
@@ -161,7 +161,7 @@ public:
 		                         basis2_.getBra(bra,ket2,what,site);
 	}
 
-	SizeType orbsPerSite(SizeType i) const { return 1; }
+	SizeType orbsPerSite(SizeType) const { return 1; }
 
 	SizeType orbs() const { return 1; }
 

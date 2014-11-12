@@ -73,7 +73,7 @@ public:
 	enum {PLUS,MINUS};
 
 	Engine(const ModelType& model,
-	       SizeType numberOfSites,
+	       SizeType,
 	       InputType& io)
 	    : model_(model),
 	      progress_("Engine"),
@@ -378,7 +378,7 @@ private:
 	                  const VectorType& modifVector,
 	                  const InternalProductDefaultType& matrix,
 	                  SizeType type,
-	                  SizeType spin,
+	                  SizeType,
 	                  bool isDiagonal) const
 	{
 		typedef typename ContinuedFractionType::TridiagonalMatrixType

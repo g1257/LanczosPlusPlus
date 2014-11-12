@@ -11,7 +11,7 @@ THE SOFTWARE IS SUPPLIED BY THE COPYRIGHT HOLDERS AND
 CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
 WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-PARTICULAR PURPOSE ARE DISCLAIMED. 
+PARTICULAR PURPOSE ARE DISCLAIMED.
 
 Please see full open source license included in file LICENSE.
 *********************************************************
@@ -30,7 +30,7 @@ namespace LanczosPlusPlus {
 	class BasisOneSpinImmm {
 
 	public:
-		
+
 		typedef ProgramGlobals::WordType WordType;
 
 		enum {OPERATOR_NIL=ProgramGlobals::OPERATOR_NIL,
@@ -41,13 +41,13 @@ namespace LanczosPlusPlus {
 		static int const FERMION_SIGN  = -1;
 		static SizeType nsite_;
 		static PsimagLite::Matrix<SizeType> comb_;
-		static PsimagLite::Vector<WordType>::Type bitmask_; 
+		static PsimagLite::Vector<WordType>::Type bitmask_;
 
 		BasisOneSpinImmm(const PsimagLite::Vector<SizeType>::Type& orbsPerSite, SizeType npart)
 		: orbsPerSite_(orbsPerSite),npart_(npart)
 		{
 			if (nsite_>0 && orbsPerSite.size()!=nsite_) {
-				PsimagLite::String s =  
+				PsimagLite::String s =
 					"BasisOneSpinImmm: All basis must have same number of sites\n";
 				throw std::runtime_error(s.c_str());
 			}
@@ -67,8 +67,8 @@ namespace LanczosPlusPlus {
 				levels += orbsPerSite_[i];
 			SizeType tmp = comb_(levels,npart);
 			data_.resize(tmp);
-			
-			levels = orbsPerSite_.size()*orbs();			
+
+			levels = orbsPerSite_.size()*orbs();
 			tmp = comb_(levels,npart);
 			reordering_.resize(tmp);
 
@@ -92,8 +92,8 @@ namespace LanczosPlusPlus {
 		{
 			return data_[i];
 		}
-		
-		void print(std::ostream& os) const
+
+		void print(std::ostream&) const
 		{
 			std::cerr<<"--------------npart="<<npart_<<"\n";
 			for (SizeType i=0;i<data_.size();i++)
@@ -107,7 +107,7 @@ namespace LanczosPlusPlus {
 				if (data_[i]==ket) return i;
 			print(std::cout);
 			assert(false);
-			return 0; 
+			return 0;
 // 			WordType ketA=0,ketB=0;
 // 			uncollateKet(ketA,ketB,ket);
 // 			// p(ket) = \sum_{na'=0}^{na'<na} S_na' * S_nb'
@@ -149,7 +149,7 @@ namespace LanczosPlusPlus {
 			return PsimagLite::BitManip::count(ketB);
 		}
 
-		SizeType getN(SizeType i) const
+		SizeType getN(SizeType) const
 		{
 // 			SizeType c = 0;
 // 			for (SizeType orb=0;orb<orbsPerSite_[i];orb++)
@@ -206,7 +206,7 @@ namespace LanczosPlusPlus {
 
 			return (sum & 1) ? FERMION_SIGN : 1;
 		}
-		
+
 		int doSignGf(WordType a,SizeType ind,SizeType orb) const
 		{
 			WordType ketA=0,ketB=0;
@@ -254,7 +254,7 @@ namespace LanczosPlusPlus {
 			return true;
 		}
 
-		int newPartCorCdagger(SizeType what,SizeType orb) const
+		int newPartCorCdagger(SizeType what,SizeType) const
 		{
 			int newPart1=npart_;
 

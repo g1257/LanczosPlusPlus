@@ -205,7 +205,7 @@ public:
 		return npart_;
 	}
 
-	int newPartCorCdagger(SizeType what,SizeType orb) const
+	int newPartCorCdagger(SizeType what,SizeType) const
 	{
 		int newPart1=npart_;
 
@@ -219,7 +219,7 @@ public:
 		return newPart1;
 	}
 
-	int hasNewPartsSplusOrSminus(int c,SizeType orb) const
+	int hasNewPartsSplusOrSminus(int c,SizeType) const
 	{
 		int newPart1=npart_;
 

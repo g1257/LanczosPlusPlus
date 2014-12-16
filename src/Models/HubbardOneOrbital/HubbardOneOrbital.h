@@ -70,11 +70,23 @@ public:
 		}
 
 		SizeType n = geometry_.numberOfSites();
-		for (SizeType i=0;i<n;i++) {
-			for (SizeType j=0;j<n;j++) {
-				hoppings_(i,j) = geometry_(i,0,j,0,TERM_HOPPING);
-				if (hasSpinOrbitKaneMele)
-					hoppings_(i,j) += geometry_(i,0,j,0,SO_HOPPING_TERM);
+		for (SizeType j=0;j<n;j++) {
+			for (SizeType i=0;i<j;i++) {
+				SizeType imin = (i < j) ? i : j;
+				RealType soSign = (imin & 1) ? -1.0 : 1.0;
+				ComplexOrRealType tmp = geometry_(i,0,j,0,TERM_HOPPING);
+				bool isCross = (geometry_.calcDir(TERM_HOPPING,i,j) > 1);
+				if (hasSpinOrbitKaneMele && isCross) tmp *= soSign;
+				hoppings_(i,j) = tmp;
+				if (hasSpinOrbitKaneMele) {
+					hoppings_(i,j) += soSign * geometry_(i,0,j,0,SO_HOPPING_TERM);
+				}
+			}
+		}
+
+		for (SizeType j=0;j<n;j++) {
+			for (SizeType i=j+1;i<n;i++) {
+				hoppings_(i,j) = std::conj(hoppings_(i,j));
 			}
 		}
 	}
@@ -123,6 +135,7 @@ public:
 
 			nCounter += sparseRow.finalize(matrix);
 		}
+
 		matrix.setRow(hilbert,nCounter);
 	}
 

@@ -158,6 +158,10 @@ public:
 			                                                              symm);
 			ContinuedFractionType cf(cfCollection.freqType());
 
+			if (PsimagLite::norm(modifVector)<1e-10) {
+				std::cerr<<"spectralFunction: modifVector==0, ignoring type="<<type<<"\n";
+				continue;
+			}
 			calcSpectral(cf,operatorLabel,modifVector,matrix,type,spins.first,isDiagonal);
 			cfCollection.push(cf);
 		}

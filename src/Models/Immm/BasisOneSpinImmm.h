@@ -93,12 +93,9 @@ namespace LanczosPlusPlus {
 			return data_[i];
 		}
 
-		void print(std::ostream&) const
+		void print(std::ostream& os) const
 		{
-			std::cerr<<"--------------npart="<<npart_<<"\n";
-			for (SizeType i=0;i<data_.size();i++)
-				std::cerr<<data_[i]<<"\n";
-			std::cerr<<"--------------\n";
+			ProgramGlobals::printBasisVector(os,1,data_);
 		}
 
 		SizeType perfectIndex(WordType ket) const

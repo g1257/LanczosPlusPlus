@@ -38,7 +38,7 @@ must include the following acknowledgment:
 "This product includes software produced by UT-Battelle,
 LLC under Contract No. DE-AC05-00OR22725  with the
 Department of Energy."
- 
+
 *********************************************************
 DISCLAIMER
 
@@ -78,9 +78,11 @@ DISCLOSED WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
  *
  */
 #ifndef LANCZOS_PROGRAM_LIMITS_H
-#define LANCZOS_PROGRAM_LIMITS_H 
+#define LANCZOS_PROGRAM_LIMITS_H
 #include "String.h"
 #include "TypeToString.h"
+#include <bitset>
+#include <climits>
 
 namespace LanczosPlusPlus {
 struct ProgramGlobals {
@@ -93,12 +95,12 @@ struct ProgramGlobals {
 	enum {SPIN_UP,SPIN_DOWN};
 
 	enum {OPERATOR_NIL,
-	      OPERATOR_C,
-	      OPERATOR_SZ,
-	      OPERATOR_CDAGGER,
-	      OPERATOR_N,
-	      OPERATOR_SPLUS,
-	      OPERATOR_SMINUS};
+		  OPERATOR_C,
+		  OPERATOR_SZ,
+		  OPERATOR_CDAGGER,
+		  OPERATOR_N,
+		  OPERATOR_SPLUS,
+		  OPERATOR_SMINUS};
 
 	static bool needsNewBasis(SizeType what)
 	{
@@ -172,6 +174,40 @@ struct ProgramGlobals {
 		if (operatorLabel==OPERATOR_SMINUS)
 			return OPERATOR_SPLUS;
 		return operatorLabel;
+	}
+
+	template<typename T>
+	static void binRep(std::ostream& os,
+	                   SizeType n,
+	                   const T& a)
+	{
+		const char* beg = reinterpret_cast<const char*>(&a);
+		SizeType len = sizeof(a);
+		const char* end = beg + len;
+		PsimagLite::String buffer("");
+
+		while(beg != end) {
+			PsimagLite::String str(std::bitset<CHAR_BIT>(*(end-1)).to_string());
+			buffer += str;
+			end--;
+		}
+
+		SizeType lmn = buffer.length();
+		if (lmn>n) lmn -= n;
+		os<<buffer.substr(lmn,n);
+	}
+
+	template<typename VectorWordType>
+	static void printBasisVector(std::ostream& os,
+	                             SizeType n,
+	                             VectorWordType& data)
+	{
+		for (SizeType i=0;i<data.size();i++) {
+			binRep(os,n,data[i]);
+			os<<"\n";
+		}
+
+		os<<"--------------\n";
 	}
 }; // ProgramGlobals
 

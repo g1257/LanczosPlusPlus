@@ -9,23 +9,23 @@
 #include "ProgramGlobals.h"
 
 namespace LanczosPlusPlus {
-	
+
 	class BasisOneSpin {
 
 	public:
-		
+
 		static int const FERMION_SIGN  = -1;
 		typedef ProgramGlobals::WordType WordType;
 		static SizeType nsite_;
 		static PsimagLite::Matrix<SizeType> comb_;
-		static PsimagLite::Vector<WordType>::Type bitmask_; 
+		static PsimagLite::Vector<WordType>::Type bitmask_;
 
 		enum {OPERATOR_NIL=ProgramGlobals::OPERATOR_NIL,
 		      OPERATOR_C=ProgramGlobals::OPERATOR_C,
 		      OPERATOR_SZ=ProgramGlobals::OPERATOR_SZ,
 		      OPERATOR_CDAGGER=ProgramGlobals::OPERATOR_CDAGGER};
 
-		BasisOneSpin(SizeType nsite, SizeType npart) 
+		BasisOneSpin(SizeType nsite, SizeType npart)
 		: npart_(npart)
 		{
 			if (nsite_>0 && nsite!=nsite_)
@@ -51,7 +51,7 @@ namespace LanczosPlusPlus {
 				size_ = 1;
 				return;
 			}
-			
+
 			/* define basis states */
 			WordType ket = (1ul<<npart)-1;
 			for (SizeType i=0;i<hilbert;i++) {
@@ -63,15 +63,15 @@ namespace LanczosPlusPlus {
 				ket = ((ket+1)<<n) ^ ((1<<m)-1);
 			}
 			size_ = hilbert;
-		} 
-		
+		}
 
-		SizeType size() const { return size_; } 
+
+		SizeType size() const { return size_; }
 
 		const WordType& operator[](SizeType i) const
 		{
 			return data_[i];
-		} 
+		}
 
 		SizeType perfectIndex(WordType state) const
 		{
@@ -81,7 +81,7 @@ namespace LanczosPlusPlus {
 
 			assert(n<data_.size());
 			return n;
-		} 
+		}
 
 		static const WordType& bitmask(SizeType i)
 		{
@@ -94,7 +94,7 @@ namespace LanczosPlusPlus {
 		{
 			return (ket & bitmask_[site]) ? 1 : 0;
 		}
-		
+
 		SizeType getN(WordType ket,SizeType site) const
 		{
 			return isThereAnElectronAt(ket,site);
@@ -156,7 +156,14 @@ namespace LanczosPlusPlus {
 			PsimagLite::String str = ProgramGlobals::unknownOperator(what);
 			throw std::runtime_error(str.c_str());
 		}
-	
+
+		void print(std::ostream& os) const
+		{
+			SizeType hilbert = 1;
+			hilbert <<= nsite_;
+			ProgramGlobals::printBasisVector(os,hilbert,data_);
+		}
+
 	private:
 
 		SizeType getNbyKet(SizeType ket,SizeType from,SizeType upto) const
@@ -198,7 +205,7 @@ namespace LanczosPlusPlus {
 				for (;m<=n/2;m++,cnm=cnm*j/i,i++,j--)
 					comb_(n,m) = comb_(n,n-m) = cnm;
 			}
-		} 
+		}
 
 		void doBitmask()
 		{
@@ -206,20 +213,20 @@ namespace LanczosPlusPlus {
 			bitmask_[0]=1ul;
 			for (SizeType i=1;i<nsite_;i++)
 				bitmask_[i] = bitmask_[i-1]<<1;
-		} 
-		
-		
+		}
+
+
 		SizeType size_;
 		SizeType npart_;
 		PsimagLite::Vector<WordType>::Type data_;
-		
+
 	}; // class BasisOneSpin
 
 	SizeType BasisOneSpin::nsite_=0;
 
 	PsimagLite::Matrix<SizeType> BasisOneSpin::comb_;
 
-	PsimagLite::Vector<BasisOneSpin::WordType>::Type BasisOneSpin::bitmask_; 
+	PsimagLite::Vector<BasisOneSpin::WordType>::Type BasisOneSpin::bitmask_;
 
 } // namespace LanczosPlusPlus
 #endif // BASIS_ONE_SPIN_H

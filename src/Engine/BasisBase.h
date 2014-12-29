@@ -85,6 +85,8 @@ public:
 	                      SizeType site,
 	                      SizeType spin,
 	                      SizeType orb) const = 0;
+
+	virtual void print(std::ostream&) const = 0;
 }; // class BasisBase
 
 } // namespace LanczosPlusPlus

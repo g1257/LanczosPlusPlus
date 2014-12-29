@@ -225,6 +225,13 @@ public:
 		throw PsimagLite::RuntimeError("perfectIndex\n");
 	}
 
+	void print(std::ostream& os) const
+	{
+		SizeType hilbert = 1;
+		hilbert <<= geometry_.numberOfSites();
+		ProgramGlobals::printBasisVector(os,hilbert,data_);
+	}
+
 	template<typename GeometryType2>
 	friend std::ostream& operator<<(std::ostream& os,
 	                                const BasisTj1OrbLanczos<GeometryType2>& basis);

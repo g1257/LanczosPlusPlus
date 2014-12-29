@@ -55,7 +55,9 @@ public:
 		bool nrows = matrixStored_.row();
 		if (printMatrix_) {
 			if (nrows > 40)
-				throw PsimagLite::RuntimeError("printMatrix too big\n");
+				throw PsimagLite::RuntimeError("printMatrix: too big\n");
+			std::cout<<"#LanczosPlusPlus: Basis for matrix\n";
+			basis.print(std::cout);
 			std::cout<<"#LanczosPlusPlus: DenseMatrix\n";
 			std::cout<<matrixStored_.toDense();
 			PsimagLite::Matrix<ComplexOrRealType> matrixCopy;
@@ -74,6 +76,7 @@ public:
 
 		if (!printMatrix_) return;
 
+		std::cout<<"#Eigenvalues\n";
 		for (SizeType i=0;i<eigs.size();i++)
 			std::cout<<eigs[i]<<"\n";
 		std::cout<<fm;

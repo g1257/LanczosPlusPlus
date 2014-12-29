@@ -246,6 +246,13 @@ public:
 		return (sum & 1) ? FERMION_SIGN : 1;
 	}
 
+	void print(std::ostream& os) const
+	{
+		SizeType hilbert = 1;
+		hilbert <<= (orbitals_*nsite_);
+		ProgramGlobals::printBasisVector(os,hilbert,data_);
+	}
+
 private:
 
 	void fillPartialBasis(PsimagLite::Vector<WordType>::Type& partialBasis,SizeType npart)

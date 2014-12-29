@@ -210,6 +210,14 @@ public:
 		throw std::runtime_error(str.c_str());
 	}
 
+	void print(std::ostream& os) const
+	{
+		os<<"\tUp sector\n";
+		basis1_.print(os);
+		os<<"\tDown sector\n";
+		basis2_.print(os);
+	}
+
 private:
 
 	bool hasNewPartsCorCdagger(std::pair<SizeType,SizeType>& newParts,

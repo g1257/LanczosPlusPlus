@@ -165,6 +165,14 @@ public:
 
 	SizeType orbs() const { return 1; }
 
+	void print(std::ostream& os) const
+	{
+		os<<"\tUp sector\n";
+		basis1_.print(os);
+		os<<"\tDown sector\n";
+		basis2_.print(os);
+	}
+
 private:
 
 	BasisType basis1_,basis2_;

@@ -287,7 +287,7 @@ private:
 				RealType extraSign = (s2i==1) ? FERMION_SIGN : 1;
 				RealType tmp2 = basis.doSign(ket1,ket2,i,orb,j,orb,SPIN_DOWN);
 				ComplexOrRealType cTemp = h*extraSign*tmp2;
-				if (s2i == 0) cTemp = std::conj(cTemp);
+				if (s2j == 0) cTemp = std::conj(cTemp);
 				assert(temp<basis.size());
 				sparseRow.add(temp,cTemp);
 			}

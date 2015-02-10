@@ -193,7 +193,7 @@ struct ProgramGlobals {
 		}
 
 		SizeType lmn = buffer.length();
-		if (lmn>n) lmn -= n;
+		if (lmn >= n) lmn -= n;
 		os<<buffer.substr(lmn,n);
 	}
 

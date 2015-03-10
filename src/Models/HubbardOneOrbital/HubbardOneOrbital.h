@@ -75,16 +75,8 @@ public:
 
 				hoppings_(i,j) = geometry_(i,0,j,0,TERM_HOPPING);
 
-				if (hasSpinOrbitKaneMele) {
-					SizeType imin = (i < j) ? i : j;
-					SizeType iminOver2 = static_cast<SizeType>(imin/2);
-					SizeType iminPlusOneOver2 = static_cast<SizeType>((imin+1)/2);
-					bool case1 = !(imin & 1) && !(iminOver2 & 1);
-					bool case2 = (imin & 1) && !(iminPlusOneOver2 & 1);
-					RealType soSign = (case1 | case2) ? -1.0 : 1.0;
-					if (geometry_.options(SO_HOPPING_TERM) == "none") soSign = 1.0;
-					hoppings_(i,j) += soSign * geometry_(i,0,j,0,SO_HOPPING_TERM);
-				}
+				if (hasSpinOrbitKaneMele)
+					hoppings_(i,j) += geometry_(i,0,j,0,SO_HOPPING_TERM);
 			}
 		}
 

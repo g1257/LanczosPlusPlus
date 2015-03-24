@@ -36,17 +36,18 @@ public:
 	{
 		SizeType nup = 0;
 		SizeType ndown = 0;
+		SizeType ntotal = 0;
 
 		try {
 			io.readline(nup,"TargetElectronsUp=");
 			io.readline(ndown,"TargetElectronsDown=");
+			ntotal = nup + ndown;
 		} catch (std::exception& e) {
-			typename PsimagLite::Vector<RealType>::Type v;
-			io.read(v,"TargetQuantumNumbers");
-			if (v.size() < 2)
-				throw PsimagLite::RuntimeError("TargetQuantumNumbers\n");
-			nup = static_cast<SizeType>(v[0]*geometry.numberOfSites());
-			ndown = static_cast<SizeType>(v[1]*geometry.numberOfSites());
+			io.read(ntotal,"TargetElectronsTotal=");
+			io.read(nup,"TargetSzPlusConst=");
+
+			assert(ntotal >= nup);
+			ndown = ntotal - nup;
 		}
 
 		PsimagLite::String model("");

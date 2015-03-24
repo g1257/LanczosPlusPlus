@@ -44,17 +44,24 @@ public:
 	      geometry_(geometry),
 	      basis_(geometry,nup,ndown),
 	      hoppings_(geometry_.numberOfSites(),geometry_.numberOfSites()),
-	      j_(geometry_.numberOfSites(),geometry_.numberOfSites()),
+	      jpm_(geometry_.numberOfSites(),geometry_.numberOfSites()),
+	      jzz_(geometry_.numberOfSites(),geometry_.numberOfSites()),
 	      w_(geometry_.numberOfSites(),geometry_.numberOfSites())
 	{
 		SizeType n = geometry_.numberOfSites();
-		bool h = (geometry_.terms() == 1);
+		bool h = (geometry_.terms() == 2);
+
+		if (!h && geometry_.terms() != 4) {
+			PsimagLite::String msg("Tj1Orb: must have either 2 or 4 terms\n");
+			throw PsimagLite::RuntimeError(msg);
+		}
 
 		for (SizeType i=0;i<n;i++) {
 			for (SizeType j=0;j<n;j++) {
 				hoppings_(i,j) = (h) ? 0 : geometry_(i,0,j,0,0);
-				j_(i,j) = (h) ? geometry_(i,0,j,0,0) : geometry_(i,0,j,0,1);
-				w_(i,j) = (h) ? 0 : geometry_(i,0,j,0,2);
+				jpm_(i,j) = (h) ? geometry_(i,0,j,0,0) : geometry_(i,0,j,0,1);
+				jzz_(i,j) = (h) ? geometry_(i,0,j,0,1) : geometry_(i,0,j,0,2);
+				w_(i,j) = (h) ? 0 : geometry_(i,0,j,0,3);
 			}
 		}
 	}
@@ -226,7 +233,7 @@ private:
 					int njdown = basis.isThereAnElectronAt(ket1,ket2,j,SPIN_DOWN,orb);
 
 					// Sz Sz term:
-					s += (niup-nidown) * (njup - njdown)  * j_(i,j)*0.25;
+					s += (niup-nidown) * (njup - njdown)  * jzz_(i,j)*0.25;
 
 					// ni nj term
 					s+= (niup+nidown) * (njup + njdown) * w_(i,j);
@@ -298,7 +305,7 @@ private:
 		// Hopping term
 		for (SizeType j=0;j<nsite;j++) {
 			if (j<i) continue;
-			ComplexOrRealType h = j_(i,j)*0.5;
+			ComplexOrRealType h = jpm_(i,j)*0.5;
 			if (std::real(h) == 0 && std::imag(h) == 0) continue;
 			WordType s1j= (ket1 & BasisType::bitmask(j));
 			if (s1j>0) s1j=1;
@@ -360,7 +367,8 @@ private:
 	const GeometryType& geometry_;
 	BasisType basis_;
 	PsimagLite::Matrix<ComplexOrRealType> hoppings_;
-	PsimagLite::Matrix<ComplexOrRealType> j_;
+	PsimagLite::Matrix<ComplexOrRealType> jpm_;
+	PsimagLite::Matrix<ComplexOrRealType> jzz_;
 	PsimagLite::Matrix<ComplexOrRealType> w_;
 	mutable typename PsimagLite::Vector<BasisType*>::Type garbage_;
 }; // class Tj1Orb

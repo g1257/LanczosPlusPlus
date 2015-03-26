@@ -27,7 +27,7 @@ public:
 	/** @class hide_modelselector
 	 - TargetElectronsUp=integer
 	 - TargetElectronsDown=integer
-	 - Model=string One of Tj1Orb HeisenbergSpinOneHalf Immm
+	 - Model=string One of Tj1Orb Heisenberg Immm
 	                       HubbardOneBand HubbardOneBandExtended SuperHubbardExtended
 	                       FeAsBasedSc FeAsBasedScExtended
 	*/
@@ -53,7 +53,7 @@ public:
 		PsimagLite::String model("");
 		io.readline(model,"Model=");
 
-		if (model=="Tj1Orb" || model == "HeisenbergSpinOneHalf") {
+		if (model=="Tj1Orb" || model == "Heisenberg") {
 			modelPtr_ = new Tj1OrbType(nup,ndown,io,geometry);
 		} else if (model=="Immm") {
 			modelPtr_ = new ImmmType(nup,ndown,io,geometry);

@@ -8,6 +8,7 @@
 #include "../Models/Immm/Immm.h"
 #include "../Models/HubbardOneOrbital/HubbardOneOrbital.h"
 #include "../Models/FeBasedSc/FeBasedSc.h"
+#include "../Models/Heisenberg/Heisenberg.h"
 
 namespace LanczosPlusPlus {
 
@@ -18,6 +19,7 @@ class ModelSelector {
 	typedef Immm<ComplexOrRealType,GeometryType, InputType> ImmmType;
 	typedef HubbardOneOrbital<ComplexOrRealType,GeometryType, InputType> HubbardOneOrbitalType;
 	typedef FeBasedSc<ComplexOrRealType,GeometryType, InputType> FeBasedScType;
+	typedef Heisenberg<ComplexOrRealType,GeometryType, InputType> HeisenbergType;
 	typedef typename PsimagLite::Real<ComplexOrRealType>::Type RealType;
 
 public:
@@ -64,6 +66,8 @@ public:
 			modelPtr_ = new HubbardOneOrbitalType(nup,ndown,io,geometry);
 		} else if (model=="FeAsBasedSc" || model=="FeAsBasedScExtended") {
 			modelPtr_ = new FeBasedScType(nup,ndown,io,geometry);
+		} else if (model=="_Heisenberg") {
+			modelPtr_ = new HeisenbergType(nup,ndown,io,geometry);
 		} else {
 			PsimagLite::String str("No known model " + model + "\n");
 			throw PsimagLite::RuntimeError(str);

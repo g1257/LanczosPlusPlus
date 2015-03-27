@@ -36,13 +36,12 @@ public:
 
 	static int const FERMION_SIGN = BasisType::FERMION_SIGN;
 
-	Heisenberg(SizeType nup,
-	       SizeType ndown,
-	       InputType& io,
-	       const GeometryType& geometry)
+	Heisenberg(SizeType szPlusConst,
+	           InputType& io,
+	           const GeometryType& geometry)
 	    : mp_(io),
 	      geometry_(geometry),
-	      basis_(geometry,nup,ndown),
+	      basis_(geometry,mp_.twiceTheSpin,szPlusConst),
 	      jpm_(geometry_.numberOfSites(),geometry_.numberOfSites()),
 	      jzz_(geometry_.numberOfSites(),geometry_.numberOfSites())
 	{
@@ -119,7 +118,7 @@ public:
 			return false;
 
 		if (what == ProgramGlobals::OPERATOR_SPLUS ||
-		    what == ProgramGlobals::OPERATOR_SMINUS)
+		        what == ProgramGlobals::OPERATOR_SMINUS)
 			return hasNewPartsSplusOrMinus(newParts,what,spin,orbs);
 
 		PsimagLite::String str(__FILE__);
@@ -165,28 +164,26 @@ private:
 		SizeType hilbert=basis.size();
 		SizeType nsite = geometry_.numberOfSites();
 		SizeType orb = 0;
+		SizeType dummy = 0;
 
 		// Calculate diagonal elements
 		for (SizeType ispace=0;ispace<hilbert;ispace++) {
-			WordType ket1 = basis(ispace,SPIN_UP);
-			WordType ket2 = basis(ispace,SPIN_DOWN);
+			WordType ket = basis(ispace,dummy);
 			ComplexOrRealType s=0;
 			for (SizeType i=0;i<nsite;i++) {
 
-				int niup = basis.isThereAnElectronAt(ket1,ket2,i,SPIN_UP,orb);
+				SizeType val1 = basis.getN(ket,dummy,i,dummy,orb);
+				RealType tmp1 = val1 - mp_.twiceTheSpin/2.0;
 
-				int nidown = basis.isThereAnElectronAt(ket1,ket2,i,SPIN_DOWN,orb);
-
-				if (i < mp_.magneticField.size())
-					s += mp_.magneticField[i]*(niup-nidown);
+				if (i < mp_.magneticField.size()) s += mp_.magneticField[i]*tmp1;
 
 				for (SizeType j=i+1;j<nsite;j++) {
 
-					int njup = basis.isThereAnElectronAt(ket1,ket2,j,SPIN_UP,orb);
-					int njdown = basis.isThereAnElectronAt(ket1,ket2,j,SPIN_DOWN,orb);
+					SizeType val2 = basis.getN(ket,dummy,i,dummy,orb);
+					RealType tmp2 = val2 - mp_.twiceTheSpin/2.0;
 
 					// Sz Sz term:
-					s += (niup-nidown) * (njup - njdown)  * jzz_(i,j)*0.25;
+					s += tmp1*tmp2*jzz_(i,j)*0.25;
 				}
 			}
 

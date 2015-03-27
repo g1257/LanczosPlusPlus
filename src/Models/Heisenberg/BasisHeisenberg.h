@@ -28,11 +28,28 @@ public:
 	BasisHeisenberg(const GeometryType& geometry,
 	                SizeType twiceS,
 	                SizeType szPlusConst)
-	    : geometry_(geometry), twiceS_(twiceS), szPlusConst_(szPlusConst)
+	    : geometry_(geometry),
+	      twiceS_(twiceS),
+	      szPlusConst_(szPlusConst),
+	      bits_(0)
 	{
-		assert(bitmask_.size()==0 || bitmask_.size()==geometry_.numberOfSites());
+		SizeType sites = geometry_.numberOfSites();
+		assert(bitmask_.size()==0 || bitmask_.size()== sites);
 		if (bitmask_.size()==0) doBitmask();
-		throw PsimagLite::RuntimeError("BasisHeisenberg::ctor: setup data here\n");
+		WordType searchTotal = 1;
+		assert(twiceS > 0);
+		bits_ = 1 + static_cast<SizeType>(logBase2(twiceS + 1));
+		if (twiceS & 1) bits_--;
+		searchTotal <<= (bits_ * sites);
+
+		WordType mask = getMask();
+
+		for (WordType lui = 0; lui < searchTotal; ++lui) {
+			if (mOf(lui,mask) != szPlusConst) continue;
+			data_.push_back(lui);
+		}
+
+		std::cerr<<(*this);
 	}
 
 	static const WordType& bitmask(SizeType i)
@@ -42,7 +59,6 @@ public:
 
 	SizeType size() const { return data_.size(); }
 
-	//! Spins
 	SizeType dofs() const { return twiceS_ + 1; }
 
 	SizeType perfectIndex(const VectorWordType& kets) const
@@ -55,9 +71,9 @@ public:
 		throw PsimagLite::RuntimeError("BasisHeisenberg::perfectIndex ket1 ket2\n");
 	}
 
-	WordType operator()(SizeType i,SizeType spin) const
+	WordType operator()(SizeType i, SizeType) const
 	{
-		throw PsimagLite::RuntimeError("BasisHeisenberg::operator()\n");
+		return data_[i];
 	}
 
 	SizeType isThereAnElectronAt(WordType ket1,
@@ -70,12 +86,14 @@ public:
 	}
 
 	SizeType getN(WordType ket1,
-	              WordType ket2,
+	              WordType,
 	              SizeType site,
-	              SizeType spin,
+	              SizeType,
 	              SizeType) const
 	{
-		throw PsimagLite::RuntimeError("BasisHeisenberg::getN");
+		WordType mask = getMask();
+		ket1 >>= (bits_ * site);
+		return (ket1 & mask);
 	}
 
 	int doSignGf(WordType a, WordType b,SizeType ind,SizeType sector,SizeType) const
@@ -133,6 +151,39 @@ public:
 
 private:
 
+	WordType getMask() const
+	{
+		SizeType mask = 1;
+		for (SizeType i = 0; i < bits_; ++i)
+			mask |= bitmask_[i];
+		return mask;
+	}
+
+	int mOf(WordType lui, WordType mask) const
+	{
+		SizeType m = 0;
+		bool allowed = true;
+		while (lui != 0) {
+			WordType tmp = (lui & mask);
+			if (!mOfIsAllowed(tmp)) {
+				allowed = false;
+				break;
+			}
+
+			m += tmp;
+			lui >>= bits_;
+		}
+
+		return (allowed) ? m : -1;
+	}
+
+	bool mOfIsAllowed(WordType val) const
+	{
+		if (twiceS_ & 1) return true;
+
+		return (val <= twiceS_);
+	}
+
 	PairIntType getBraIndex_(const WordType& ket1,
 	                         const WordType& ket2,
 	                         SizeType operatorLabel,
@@ -184,9 +235,17 @@ private:
 		throw PsimagLite::RuntimeError("BasisHeisenberg::doSign \n");
 	}
 
+	SizeType logBase2(SizeType x) const
+	{
+		int ret = 0;
+		while (x >>= 1) ++ret;
+		return ret;
+	}
+
 	const GeometryType& geometry_;
 	SizeType twiceS_;
 	SizeType szPlusConst_;
+	SizeType bits_;
 	VectorWordType data_;
 }; // class BasisHeisenberg
 

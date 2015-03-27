@@ -38,18 +38,13 @@ public:
 	{
 		SizeType nup = 0;
 		SizeType ndown = 0;
-		SizeType ntotal = 0;
+		SizeType szPlusConst = 0;
 
 		try {
 			io.readline(nup,"TargetElectronsUp=");
 			io.readline(ndown,"TargetElectronsDown=");
-			ntotal = nup + ndown;
 		} catch (std::exception& e) {
-			io.read(ntotal,"TargetElectronsTotal=");
-			io.read(nup,"TargetSzPlusConst=");
-
-			assert(ntotal >= nup);
-			ndown = ntotal - nup;
+			io.read(szPlusConst,"TargetSzPlusConst=");
 		}
 
 		PsimagLite::String model("");
@@ -67,7 +62,7 @@ public:
 		} else if (model=="FeAsBasedSc" || model=="FeAsBasedScExtended") {
 			modelPtr_ = new FeBasedScType(nup,ndown,io,geometry);
 		} else if (model=="_Heisenberg") {
-			modelPtr_ = new HeisenbergType(nup,ndown,io,geometry);
+			modelPtr_ = new HeisenbergType(szPlusConst,io,geometry);
 		} else {
 			PsimagLite::String str("No known model " + model + "\n");
 			throw PsimagLite::RuntimeError(str);

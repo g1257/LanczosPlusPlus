@@ -50,7 +50,7 @@ public:
 		PsimagLite::String model("");
 		io.readline(model,"Model=");
 
-		if (model=="Tj1Orb" || model == "Heisenberg") {
+		if (model=="Tj1Orb") {
 			modelPtr_ = new Tj1OrbType(nup,ndown,io,geometry);
 		} else if (model=="Immm") {
 			modelPtr_ = new ImmmType(nup,ndown,io,geometry);
@@ -61,7 +61,7 @@ public:
 			modelPtr_ = new HubbardOneOrbitalType(nup,ndown,io,geometry);
 		} else if (model=="FeAsBasedSc" || model=="FeAsBasedScExtended") {
 			modelPtr_ = new FeBasedScType(nup,ndown,io,geometry);
-		} else if (model=="_Heisenberg") {
+		} else if (model=="Heisenberg") {
 			modelPtr_ = new HeisenbergType(szPlusConst,io,geometry);
 		} else {
 			PsimagLite::String str("No known model " + model + "\n");

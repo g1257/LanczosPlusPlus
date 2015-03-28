@@ -86,6 +86,15 @@ public:
 	                      SizeType spin,
 	                      SizeType orb) const = 0;
 
+	virtual WordType getBra(WordType,
+	                        SizeType,
+	                        SizeType,
+	                        SizeType,
+	                        SizeType) const
+	{
+		throw PsimagLite::RuntimeError("getBra unimplemented in base class\n");
+	}
+
 	virtual void print(std::ostream&) const = 0;
 }; // class BasisBase
 

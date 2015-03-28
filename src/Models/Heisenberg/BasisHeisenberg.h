@@ -66,9 +66,13 @@ public:
 		throw PsimagLite::RuntimeError("BasisHeisenberg::perfectIndex kets\n");
 	}
 
-	SizeType perfectIndex(WordType ket1,WordType ket2) const
+	SizeType perfectIndex(WordType ket,WordType) const
 	{
-		throw PsimagLite::RuntimeError("BasisHeisenberg::perfectIndex ket1 ket2\n");
+		for (SizeType i = 0; i < data_.size(); ++i) {
+			if (ket == data_[i]) return i;
+		}
+
+		throw PsimagLite::RuntimeError("perfectIndex: no index found\n");
 	}
 
 	WordType operator()(SizeType i, SizeType) const
@@ -143,6 +147,32 @@ public:
 		SizeType hilbert = 1;
 		hilbert <<= geometry_.numberOfSites();
 		ProgramGlobals::printBasisVector(os,hilbert,data_);
+	}
+
+	WordType getBra(WordType ket,
+	                SizeType site1,
+	                SizeType val1,
+	                SizeType site2,
+	                SizeType val2) const
+	{
+		WordType bra = ket;
+		WordType mask1 = getMask();
+		WordType mask2 = mask1;
+		mask1 <<= (site1*bits_);
+		bra &= (~mask1);
+
+		mask2 <<= (site2*bits_);
+		bra &= (~mask2);
+
+		mask1 = val1;
+		mask1 <<= (site1*bits_);
+		bra |= mask1;
+
+		mask2 = val2;
+		mask2 <<= (site2*bits_);
+		bra |= mask2;
+
+		return bra;
 	}
 
 	template<typename GeometryType2>

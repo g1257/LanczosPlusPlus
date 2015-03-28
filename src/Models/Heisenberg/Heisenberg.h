@@ -86,6 +86,8 @@ public:
 		calcDiagonalElements(diag,basis);
 
 		SizeType nsite = geometry_.numberOfSites();
+		SizeType dummy = 0;
+		SizeType orb = 0;
 
 		matrix.resize(hilbert,hilbert);
 		// Calculate off-diagonal elements AND store matrix
@@ -93,17 +95,20 @@ public:
 		for (SizeType ispace=0;ispace<hilbert;ispace++) {
 			SparseRowType sparseRow;
 			matrix.setRow(ispace,nCounter);
-			WordType ket1 = basis(ispace,SPIN_UP);
-			WordType ket2 = basis(ispace,SPIN_DOWN);
-			//				std::cout<<"ket1="<<ket1<<" ket2="<<ket2<<"\n";
+
+			WordType ket = basis(ispace,dummy);
 			// Save diagonal
 			sparseRow.add(ispace,diag[ispace]);
 			for (SizeType i=0;i<nsite;i++) {
-				setSplusSminus(sparseRow,ket1,ket2,i,basis);
+				SizeType val1 = basis.getN(ket,dummy,i,dummy,orb);
+				if (val1 == mp_.twiceTheSpin) continue;
+				val1++;
+				setSplusSminus(sparseRow,ket,i,val1,basis);
 			}
 
 			nCounter += sparseRow.finalize(matrix);
 		}
+
 		matrix.setRow(hilbert,nCounter);
 		matrix.checkValidity();
 		assert(isHermitian(matrix));
@@ -173,17 +178,19 @@ private:
 			for (SizeType i=0;i<nsite;i++) {
 
 				SizeType val1 = basis.getN(ket,dummy,i,dummy,orb);
+				assert(val1<2);
 				RealType tmp1 = val1 - mp_.twiceTheSpin/2.0;
 
 				if (i < mp_.magneticField.size()) s += mp_.magneticField[i]*tmp1;
 
 				for (SizeType j=i+1;j<nsite;j++) {
 
-					SizeType val2 = basis.getN(ket,dummy,i,dummy,orb);
+					SizeType val2 = basis.getN(ket,dummy,j,dummy,orb);
+					assert(val2<2);
 					RealType tmp2 = val2 - mp_.twiceTheSpin/2.0;
 
 					// Sz Sz term:
-					s += tmp1*tmp2*jzz_(i,j)*0.25;
+					s += tmp1*tmp2*jzz_(i,j);
 				}
 			}
 
@@ -193,45 +200,25 @@ private:
 	}
 
 	void setSplusSminus(SparseRowType &sparseRow,
-	                    const WordType& ket1,
-	                    const WordType& ket2,
+	                    const WordType& ket,
 	                    SizeType i,
+	                    SizeType val1,
 	                    const BasisBaseType &basis) const
 	{
-		WordType s1i=(ket1 & BasisType::bitmask(i));
-		if (s1i>0) s1i=1;
-		WordType s2i=(ket2 & BasisType::bitmask(i));
-		if (s2i>0) s2i=1;
-
 		SizeType nsite = geometry_.numberOfSites();
+		SizeType dummy = 0;
+		SizeType orb = 0;
 
-		// Hopping term
 		for (SizeType j=0;j<nsite;j++) {
-			if (j<i) continue;
-			ComplexOrRealType h = jpm_(i,j)*0.5;
-			if (std::real(h) == 0 && std::imag(h) == 0) continue;
-			WordType s1j= (ket1 & BasisType::bitmask(j));
-			if (s1j>0) s1j=1;
-			WordType s2j= (ket2 & BasisType::bitmask(j));
-			if (s2j>0) s2j=1;
+			if (i == j) continue;
+			if (jpm_(i,j) == 0) continue;
 
-			if (s1i==1 && s1j==0 && s2i==0 && s2j==1) {
-				WordType bra1= ket1 ^ BasisType::bitmask(i);
-				bra1 |= BasisType::bitmask(j);
-				WordType bra2= ket2 | BasisType::bitmask(i);
-				bra2 ^= BasisType::bitmask(j);
-				SizeType temp = basis.perfectIndex(bra1,bra2);
-				sparseRow.add(temp,h*signSplusSminus(i,j,bra1,bra2));
-			}
-
-			if (s1i==0 && s1j==1 && s2i==1 && s2j==0) {
-				WordType bra1= ket1 | BasisType::bitmask(i);
-				bra1 ^= BasisType::bitmask(j);
-				WordType bra2= ket2 ^ BasisType::bitmask(i);
-				bra2 |= BasisType::bitmask(j);
-				SizeType temp = basis.perfectIndex(bra1,bra2);
-				sparseRow.add(temp,h*signSplusSminus(i,j,bra1,bra2));
-			}
+			SizeType val2 = basis.getN(ket,dummy,j,dummy,orb);
+			if (val2 == 0) continue;
+			val2--;
+			WordType bra = basis.getBra(ket,i,val1,j,val2);
+			SizeType temp = basis.perfectIndex(bra,dummy);
+			sparseRow.add(temp,0.5*jpm_(i,j));
 		}
 	}
 

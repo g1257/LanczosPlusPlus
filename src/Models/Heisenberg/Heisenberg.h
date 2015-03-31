@@ -178,16 +178,14 @@ private:
 			for (SizeType i=0;i<nsite;i++) {
 
 				SizeType val1 = basis.getN(ket,dummy,i,dummy,orb);
-				assert(val1<2);
-				RealType tmp1 = val1 - mp_.twiceTheSpin/2.0;
+				RealType tmp1 = val1 - mp_.twiceTheSpin*0.5;
 
 				if (i < mp_.magneticField.size()) s += mp_.magneticField[i]*tmp1;
 
 				for (SizeType j=i+1;j<nsite;j++) {
 
 					SizeType val2 = basis.getN(ket,dummy,j,dummy,orb);
-					assert(val2<2);
-					RealType tmp2 = val2 - mp_.twiceTheSpin/2.0;
+					RealType tmp2 = val2 - mp_.twiceTheSpin*0.5;
 
 					// Sz Sz term:
 					s += tmp1*tmp2*jzz_(i,j);
@@ -208,6 +206,7 @@ private:
 		SizeType nsite = geometry_.numberOfSites();
 		SizeType dummy = 0;
 		SizeType orb = 0;
+		RealType spin = mp_.twiceTheSpin*0.5;
 
 		for (SizeType j=0;j<nsite;j++) {
 			if (i == j) continue;
@@ -215,10 +214,14 @@ private:
 
 			SizeType val2 = basis.getN(ket,dummy,j,dummy,orb);
 			if (val2 == 0) continue;
+			RealType m2 = val2 - spin;
 			val2--;
+			RealType m1 = val2 - spin;
 			WordType bra = basis.getBra(ket,i,val1,j,val2);
 			SizeType temp = basis.perfectIndex(bra,dummy);
-			sparseRow.add(temp,0.5*jpm_(i,j));
+			RealType tmp = sqrt(spin*(spin+1.0) - m1*(m1+1.0));
+			tmp *= sqrt(spin*(spin+1.0) - m2*(m2-1.0));
+			sparseRow.add(temp,0.5*tmp*jpm_(i,j));
 		}
 	}
 

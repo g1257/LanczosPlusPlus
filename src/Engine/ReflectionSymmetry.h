@@ -70,13 +70,13 @@ public:
 
 	ReflectionSymmetry(const BasisType& basis,
 	                   const GeometryType& geometry,
-	                   bool printMatrix)
+	                   PsimagLite::String options)
 	    : progress_("ReflectionSymmetry"),
 	      transform_(basis.size(),basis.size()),
 	      plusSector_(0),
 	      matrixStored_(2),
 	      pointer_(0),
-	      printMatrix_(printMatrix)
+	      printMatrix_(options.find("printmatrix")!=PsimagLite::String::npos)
 	{
 		SizeType hilbert = basis.size();
 		SizeType numberOfDofs = basis.dofs();

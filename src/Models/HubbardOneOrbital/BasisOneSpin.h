@@ -157,11 +157,15 @@ namespace LanczosPlusPlus {
 			throw std::runtime_error(str.c_str());
 		}
 
-		void print(std::ostream& os) const
+		void print(std::ostream& os,bool isBinary) const
 		{
 			SizeType hilbert = 1;
 			hilbert <<= nsite_;
-			ProgramGlobals::printBasisVector(os,hilbert,data_);
+			if (isBinary) {
+				ProgramGlobals::printBasisBinary(os,hilbert,data_);
+			} else {
+				ProgramGlobals::printBasisDecimal(os,40,data_);
+			}
 		}
 
 	private:

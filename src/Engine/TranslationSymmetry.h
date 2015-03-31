@@ -187,13 +187,13 @@ public:
 
 	TranslationSymmetry(const BasisType& basis,
 	                    const GeometryType& geometry,
-	                    bool printMatrix)
+	                    PsimagLite::String options)
 	    : progress_("TranslationSymmetry"),
 	      transform_(basis.size(),basis.size()),
 	      kspace_(geometry.length(1,0)),
 	      matrixStored_(kspace_.size()),
 	      pointer_(0),
-	      printMatrix_(printMatrix)
+	      printMatrix_(options.find("printmatrix")!=PsimagLite::String::npos)
 	{
 		ClassRepresentativesType reps(basis,geometry,kspace_);
 

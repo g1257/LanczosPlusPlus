@@ -29,6 +29,8 @@ class BasisBase {
 
 public:
 
+	enum PrintEnum {PRINT_BINARY, PRINT_DECIMAL};
+
 	typedef ProgramGlobals::PairIntType PairIntType;
 	typedef ProgramGlobals::WordType WordType;
 	typedef typename PsimagLite::Vector<WordType>::Type VectorWordType;
@@ -95,7 +97,7 @@ public:
 		throw PsimagLite::RuntimeError("getBra unimplemented in base class\n");
 	}
 
-	virtual void print(std::ostream&) const = 0;
+	virtual void print(std::ostream&,PrintEnum) const = 0;
 }; // class BasisBase
 
 } // namespace LanczosPlusPlus

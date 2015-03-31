@@ -48,8 +48,6 @@ public:
 			if (mOf(lui,mask) != szPlusConst) continue;
 			data_.push_back(lui);
 		}
-
-		std::cerr<<(*this);
 	}
 
 	static const WordType& bitmask(SizeType i)
@@ -142,11 +140,15 @@ public:
 		throw PsimagLite::RuntimeError("BasisHeisenberg::perfectIndex\n");
 	}
 
-	void print(std::ostream& os) const
+	void print(std::ostream& os, typename BaseType::PrintEnum binaryOrDecimal) const
 	{
 		SizeType hilbert = 1;
 		hilbert <<= geometry_.numberOfSites();
-		ProgramGlobals::printBasisVector(os,hilbert,data_);
+		if (binaryOrDecimal == BaseType::PRINT_BINARY) {
+			ProgramGlobals::printBasisBinary(os,hilbert,data_);
+		} else {
+			ProgramGlobals::printBasisDecimal(os,40,data_);
+		}
 	}
 
 	WordType getBra(WordType ket,

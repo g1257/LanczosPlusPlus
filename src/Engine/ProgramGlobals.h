@@ -198,7 +198,7 @@ struct ProgramGlobals {
 	}
 
 	template<typename VectorWordType>
-	static void printBasisVector(std::ostream& os,
+	static void printBasisBinary(std::ostream& os,
 	                             SizeType n,
 	                             VectorWordType& data)
 	{
@@ -208,6 +208,19 @@ struct ProgramGlobals {
 		}
 
 		os<<"--------------\n";
+	}
+
+	template<typename VectorWordType>
+	static void printBasisDecimal(std::ostream& os,
+	                              SizeType n,
+	                              VectorWordType& data)
+	{
+		for (SizeType i=0;i<data.size();i++) {
+			os<<data[i]<<" ";
+			if (i > 0 && i%n == 0) std::cout<<"\n";
+		}
+
+		os<<"\n--------------\n";
 	}
 }; // ProgramGlobals
 

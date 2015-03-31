@@ -246,11 +246,15 @@ public:
 		return (sum & 1) ? FERMION_SIGN : 1;
 	}
 
-	void print(std::ostream& os) const
+	void print(std::ostream& os, bool isBinary) const
 	{
 		SizeType hilbert = 1;
 		hilbert <<= (orbitals_*nsite_);
-		ProgramGlobals::printBasisVector(os,hilbert,data_);
+		if (isBinary) {
+			ProgramGlobals::printBasisBinary(os,hilbert,data_);
+		} else {
+			ProgramGlobals::printBasisDecimal(os,40,data_);
+		}
 	}
 
 private:

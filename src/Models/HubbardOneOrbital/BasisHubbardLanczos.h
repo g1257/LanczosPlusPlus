@@ -165,12 +165,13 @@ public:
 
 	SizeType orbs() const { return 1; }
 
-	void print(std::ostream& os) const
+	void print(std::ostream& os, typename BaseType::PrintEnum binaryOrDecimal) const
 	{
+		bool isBinary = (binaryOrDecimal == BaseType::PRINT_BINARY);
 		os<<"\tUp sector\n";
-		basis1_.print(os);
+		basis1_.print(os,isBinary);
 		os<<"\tDown sector\n";
-		basis2_.print(os);
+		basis2_.print(os,isBinary);
 	}
 
 private:

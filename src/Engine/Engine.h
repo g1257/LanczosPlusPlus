@@ -77,11 +77,10 @@ public:
 	       InputType& io)
 	    : model_(model),
 	      progress_("Engine"),
-	      io_(io)
+	      io_(io),
+	      options_("")
 	{
-		// printHeader();
-		// task 1: Compute Hamiltonian and
-		// task 2: Compute ground state |phi>
+		io_.readline(options_,"SolverOptions=");
 		computeGroundState();
 	}
 
@@ -152,7 +151,7 @@ public:
 			                 spins.first,
 			                 orbs);
 
-			DefaultSymmetryType symm(*basisNew,model_.geometry(),false);
+			DefaultSymmetryType symm(*basisNew,model_.geometry(),"");
 			InternalProductTemplate<ModelType,DefaultSymmetryType> matrix(model_,
 			                                                              *basisNew,
 			                                                              symm);
@@ -333,10 +332,7 @@ private:
 
 	void computeGroundState()
 	{
-		PsimagLite::String str;
-		io_.readline(str,"SolverOptions=");
-		bool printMatrix = (str.find("printmatrix") != PsimagLite::String::npos);
-		SpecialSymmetryType rs(model_.basis(),model_.geometry(),printMatrix);
+		SpecialSymmetryType rs(model_.basis(),model_.geometry(),options_);
 		InternalProductType hamiltonian(model_,rs);
 		ParametersForSolverType params(io_,"Lanczos");
 		LanczosSolverType lanczosSolver(hamiltonian,params);
@@ -412,6 +408,7 @@ private:
 	const ModelType& model_;
 	PsimagLite::ProgressIndicator progress_;
 	InputType& io_;
+	PsimagLite::String options_;
 	RealType gsEnergy_;
 	VectorType gsVector_;
 }; // class ContinuedFraction

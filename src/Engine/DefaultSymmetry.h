@@ -43,8 +43,9 @@ public:
 
 	DefaultSymmetry(const BasisType&,
 	                const GeometryType&,
-	                bool printMatrix)
-	    : printMatrix_(printMatrix)
+	                PsimagLite::String options)
+	    : printMatrix_(options.find("printmatrix")!=PsimagLite::String::npos),
+	      dumpMatrix_(options.find("dumpmatrix")!=PsimagLite::String::npos)
 	{}
 
 	template<typename SomeModelType>
@@ -53,33 +54,41 @@ public:
 		model.setupHamiltonian(matrixStored_,basis);
 		assert(isHermitian(matrixStored_));
 		bool nrows = matrixStored_.row();
-		if (printMatrix_) {
-			if (nrows > 40)
+		if (printMatrix_ && nrows > 40)
 				throw PsimagLite::RuntimeError("printMatrix: too big\n");
+
+		if (printMatrix_ || dumpMatrix_) {
 			std::cout<<"#LanczosPlusPlus: Basis for matrix\n";
-			basis.print(std::cout);
-			std::cout<<"#LanczosPlusPlus: DenseMatrix\n";
-			std::cout<<matrixStored_.toDense();
+
+			if (printMatrix_) {
+				basis.print(std::cout,BasisType::PRINT_BINARY);
+				std::cout<<"#LanczosPlusPlus: DenseMatrix\n";
+				std::cout<<matrixStored_.toDense();
+			} else {
+				basis.print(std::cout,BasisType::PRINT_DECIMAL);
+			}
+
 			PsimagLite::Matrix<ComplexOrRealType> matrixCopy;
-			VectorRealType eigs(matrixCopy.n_row());
+			VectorRealType eigs;
 			fullDiag(eigs,matrixCopy);
 		}
 	}
 
 	void fullDiag(VectorRealType& eigs,MatrixType& fm) const
 	{
-		if (matrixStored_.row() > 1000)
+		if (matrixStored_.row() > 4900)
 			throw PsimagLite::RuntimeError("fullDiag too big\n");
 
 		fm = matrixStored_.toDense();
 		diag(fm,eigs,'V');
 
-		if (!printMatrix_) return;
-
-		std::cout<<"#Eigenvalues\n";
-		for (SizeType i=0;i<eigs.size();i++)
-			std::cout<<eigs[i]<<"\n";
-		std::cout<<fm;
+		if (printMatrix_ || dumpMatrix_) {
+			std::cout<<"#Eigenvalues\n";
+			for (SizeType i=0;i<eigs.size();i++)
+				std::cout<<eigs[i]<<"\n";
+			std::cout<<"#Eigenvectors\n";
+			std::cout<<fm;
+		}
 	}
 
 	void transformMatrix(typename PsimagLite::Vector<SparseMatrixType>::Type& matrix1,
@@ -110,6 +119,7 @@ private:
 
 	SparseMatrixType matrixStored_;
 	bool printMatrix_;
+	bool dumpMatrix_;
 }; // class DefaultSymmetry
 } // namespace Dmrg
 

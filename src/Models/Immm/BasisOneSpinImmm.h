@@ -93,16 +93,20 @@ namespace LanczosPlusPlus {
 			return data_[i];
 		}
 
-		void print(std::ostream& os) const
+		void print(std::ostream& os,bool isBinary) const
 		{
-			ProgramGlobals::printBasisVector(os,1,data_);
+			if (isBinary) {
+				ProgramGlobals::printBasisBinary(os,1,data_);
+			} else {
+				ProgramGlobals::printBasisDecimal(os,40,data_);
+			}
 		}
 
 		SizeType perfectIndex(WordType ket) const
 		{
 			for (SizeType i=0;i<data_.size();i++)
 				if (data_[i]==ket) return i;
-			print(std::cout);
+			print(std::cout,true);
 			assert(false);
 			return 0;
 // 			WordType ketA=0,ketB=0;

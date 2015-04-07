@@ -45,7 +45,8 @@ public:
 		WordType mask = getMask();
 
 		for (WordType lui = 0; lui < searchTotal; ++lui) {
-			if (mOf(lui,mask) != szPlusConst) continue;
+			int tmp = mOf(lui,mask);
+			if (tmp < 0 || static_cast<SizeType>(tmp) != szPlusConst) continue;
 			data_.push_back(lui);
 		}
 	}

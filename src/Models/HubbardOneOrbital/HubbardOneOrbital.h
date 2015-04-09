@@ -31,8 +31,10 @@ public:
 
 	typedef ParametersModelHubbard<RealType,InputType> ParametersModelType;
 	typedef BasisHubbardLanczos<GeometryType> BasisType;
+	typedef typename BasisType::PairIntType PairIntType;
 	typedef typename BasisType::BaseType BasisBaseType;
 	typedef typename BasisType::WordType WordType;
+	typedef typename BaseType::VectorSizeType VectorSizeType;
 	typedef typename BaseType::SparseMatrixType SparseMatrixType;
 	typedef typename BaseType::VectorType VectorType;
 	typedef PsimagLite::SparseRow<SparseMatrixType> SparseRowType;
@@ -164,7 +166,89 @@ public:
 
 	void print(std::ostream& os) const { os<<mp_; }
 
+	void printOperators(std::ostream&) const
+	{
+		SizeType spin = SPIN_UP;
+		SizeType site = 0;
+		SizeType nup = 0;
+		SizeType ndown = 0;
+		if (nup == 0) {
+			std::cout<<"#Operator_c_"<<spin<<"_"<<site<<"\n";
+			std::cout<<"0 0\n";
+			return;
+		}
+
+		BasisType*  basis = createBasis(nup-1, ndown);
+		VectorSizeType opt(2,0);
+		opt[0] = site;
+		opt[1] = spin;
+		SparseMatrixType matrix;
+		setupOperator(matrix,*basis,"c",opt);
+		MatrixType fm;
+		crsMatrixToFullMatrix(fm,matrix);
+		std::cout<<"#Operator_c_"<<spin<<"_"<<site<<"\n";
+		std::cout<<fm;
+	}
+
 private:
+
+	void setupOperator(SparseMatrixType& matrix,
+	                   const BasisBaseType& basis,
+	                   PsimagLite::String operatorName,
+	                   const VectorSizeType& operatorOptions) const
+	{
+		SizeType hilbert=basis.size();
+		SizeType nsite = geometry_.numberOfSites();
+		if (operatorOptions.size() < 2) {
+			if (operatorName != "i") {
+				PsimagLite::String str(__FILE__);
+				str += " " + ttos(__LINE__) + "\n";
+				str += "operator "+ operatorName + " needs at least two options\n";
+				throw PsimagLite::RuntimeError(str);
+			}
+
+			matrix.makeDiagonal(hilbert,1.0);
+			return;
+		}
+
+		SizeType site = operatorOptions[0];
+		if (site >= nsite) {
+			PsimagLite::String str(__FILE__);
+			str += " " + ttos(__LINE__) + "\n";
+			str += "site requested " + ttos(site);
+			str += " but number of sites= " + ttos(nsite) + "\n";
+			throw PsimagLite::RuntimeError(str);
+		}
+
+		SizeType id = 0;
+		if (operatorName == "c") {
+			id = ProgramGlobals::OPERATOR_C;
+		} else {
+			PsimagLite::String str(__FILE__);
+			str += " " + ttos(__LINE__) + "\n";
+			str += "operator " + operatorName + " is unimplemented for this model\n";
+			throw PsimagLite::RuntimeError(str);
+		}
+
+		SizeType spin = operatorOptions[1];
+		matrix.resize(hilbert,hilbert);
+		// Calculate off-diagonal elements AND store matrix
+		SizeType nCounter=0;
+		for (SizeType ispace=0;ispace<hilbert;ispace++) {
+			SparseRowType sparseRow;
+			matrix.setRow(ispace,nCounter);
+			WordType ket1 = basis(ispace,SPIN_UP);
+			WordType ket2 = basis(ispace,SPIN_DOWN);
+			// assumes OPERATOR_C
+			PairIntType bra = basis.getBraIndex(ket1,ket2,id,site,spin,0);
+			if (bra.first < 0) continue;
+			sparseRow.add(bra.first,bra.second);
+			nCounter += sparseRow.finalize(matrix);
+		}
+
+		matrix.setRow(hilbert,nCounter);
+		matrix.checkValidity();
+	}
 
 	bool hasNewPartsCorCdagger(std::pair<SizeType,SizeType>& newParts,
 	                           SizeType what,

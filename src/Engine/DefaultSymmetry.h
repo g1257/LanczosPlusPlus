@@ -66,6 +66,7 @@ public:
 				std::cout<<matrixStored_.toDense();
 			} else {
 				basis.print(std::cout,BasisType::PRINT_DECIMAL);
+				model.printOperators(std::cout);
 			}
 
 			PsimagLite::Matrix<ComplexOrRealType> matrixCopy;
@@ -84,8 +85,7 @@ public:
 
 		if (printMatrix_ || dumpMatrix_) {
 			std::cout<<"#Eigenvalues\n";
-			for (SizeType i=0;i<eigs.size();i++)
-				std::cout<<eigs[i]<<"\n";
+			std::cout<<eigs;
 			std::cout<<"#Eigenvectors\n";
 			std::cout<<fm;
 		}

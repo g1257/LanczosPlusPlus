@@ -39,6 +39,7 @@ public:
 	typedef BasisBase<GeometryType> BasisBaseType;
 	typedef PsimagLite::CrsMatrix<ComplexOrRealType> SparseMatrixType;
 	typedef typename PsimagLite::Vector<ComplexOrRealType>::Type VectorType;
+	typedef typename PsimagLite::Vector<SizeType>::Type VectorSizeType;
 
 	virtual ~ModelBase() {}
 
@@ -65,6 +66,14 @@ public:
 	virtual BasisBaseType* createBasis(SizeType nup, SizeType ndown) const = 0;
 
 	virtual void print(std::ostream& os) const = 0;
+
+	virtual void printOperators(std::ostream&) const
+	{
+		PsimagLite::String str(__FILE__);
+		str += " " + ttos(__LINE__) +  "\n";
+		str += PsimagLite::String("Function printOperators unimplemented\n");
+		throw std::runtime_error(str.c_str());
+	}
 
 protected:
 

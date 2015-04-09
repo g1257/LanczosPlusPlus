@@ -27,9 +27,12 @@ sub createInput
 {
 	my ($spc,$total,$nup,$ndown) = @_;
 	my $inputFile = "Input$spc.inp";
+	
+	my $hubbardU = createVector($total,1);
+	my $potentialV = createVector($total,0);
 	open(FOUT,">$inputFile") or die "$0: Cannot write to $output: $!\n";
 	open(FILE,"$templateInput") or die "$0: Cannot open $templateInput: $!\n";
-
+	
 	while(<FILE>) {
 		next if (/^#/);
 		if (/\$([a-zA-Z0-9\[\]]+)/) {
@@ -57,3 +60,15 @@ sub runThis
 	print STDERR "$0: Execing $cmd\n";
 	system($cmd);
 }
+
+sub createVector
+{
+	my ($n,$val) = @_;
+	my $a = "$n ";
+	for (my $i = 0; $i < $n; ++$i) {
+		$a .= "$val ";
+	}
+
+	return $a;
+}
+

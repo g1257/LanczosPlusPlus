@@ -11,12 +11,11 @@ namespace LanczosPlusPlus {
 template<typename GeometryType>
 class BasisHubbardLanczos : public BasisBase<GeometryType> {
 
-	typedef ProgramGlobals::PairIntType PairIntType;
-
 	enum {SPIN_UP = ProgramGlobals::SPIN_UP, SPIN_DOWN = ProgramGlobals::SPIN_DOWN};
 
 public:
 
+	typedef ProgramGlobals::PairIntType PairIntType;
 	typedef BasisOneSpin BasisType;
 	typedef BasisBase<GeometryType> BaseType;
 	typedef typename BaseType::WordType WordType;

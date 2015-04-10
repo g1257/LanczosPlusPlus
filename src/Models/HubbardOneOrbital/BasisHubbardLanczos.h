@@ -66,6 +66,8 @@ public:
 	{
 		SizeType y = i/basis1_.size();
 		SizeType x = i%basis1_.size();
+		assert(x < basis1_.size());
+		assert(y < basis2_.size());
 		return (spin==SPIN_UP) ? basis1_[x] : basis2_[y];
 	}
 

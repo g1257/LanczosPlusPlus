@@ -166,15 +166,15 @@ public:
 
 	void print(std::ostream& os) const { os<<mp_; }
 
-	void printOperators(std::ostream&) const
+	void printOperators(std::ostream& os) const
 	{
 		SizeType spin = SPIN_UP;
 		SizeType site = 0;
-		SizeType nup = 0;
-		SizeType ndown = 0;
+		SizeType nup = basis_.electrons(SPIN_UP);
+		SizeType ndown = basis_.electrons(SPIN_DOWN);
 		if (nup == 0) {
-			std::cout<<"#Operator_c_"<<spin<<"_"<<site<<"\n";
-			std::cout<<"0 0\n";
+			os<<"#Operator_c_"<<spin<<"_"<<site<<"\n";
+			os<<"0 0\n";
 			return;
 		}
 
@@ -186,8 +186,8 @@ public:
 		setupOperator(matrix,*basis,"c",opt);
 		MatrixType fm;
 		crsMatrixToFullMatrix(fm,matrix);
-		std::cout<<"#Operator_c_"<<spin<<"_"<<site<<"\n";
-		std::cout<<fm;
+		os<<"#Operator_c_"<<spin<<"_"<<site<<"\n";
+		os<<fm;
 	}
 
 private:
@@ -237,8 +237,8 @@ private:
 		for (SizeType ispace=0;ispace<hilbert;ispace++) {
 			SparseRowType sparseRow;
 			matrix.setRow(ispace,nCounter);
-			WordType ket1 = basis(ispace,SPIN_UP);
-			WordType ket2 = basis(ispace,SPIN_DOWN);
+			WordType ket1 = basis_(ispace,SPIN_UP);
+			WordType ket2 = basis_(ispace,SPIN_DOWN);
 			// assumes OPERATOR_C
 			PairIntType bra = basis.getBraIndex(ket1,ket2,id,site,spin,0);
 			if (bra.first < 0) continue;

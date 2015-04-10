@@ -2,6 +2,7 @@
 #include "IoSimple.h"
 #include "Matrix.h"
 #include "BLAS.h"
+#include "Tokenizer.h"
 
 typedef double RealType;
 typedef PsimagLite::Matrix<RealType> MatrixType;
@@ -72,13 +73,16 @@ typedef PsimagLite::Vector<OneSector*>::Type VectorOneSectorType;
 
 struct ThermalOptions {
 	ThermalOptions(PsimagLite::String operatorName_,
-	               RealType beta_)
+	               RealType beta_,
+	               const VectorSizeType& sites_)
 	    : operatorName(operatorName_),
-	      beta(beta_)
+	      beta(beta_),
+	      sites(sites_)
 	{}
 
 	PsimagLite::String operatorName;
 	RealType beta;
+	VectorSizeType sites;
 };
 
 //Compute X^(s,s')_{n,n'} = \sum_{t,t'}U^{s*}_{n,t}A_{t,t'}^(s,s')U^{s'}_{t',n'}
@@ -106,12 +110,13 @@ SizeType findJnd(const VectorOneSectorType& sectors, const VectorSizeType& jndVe
 
 void findOperatorAndMatrix(MatrixType& a,
                            SizeType& jnd,
+                           SizeType siteIndex,
                            SizeType ind,
-                           PsimagLite::String operatorName,
+                           const ThermalOptions& opt,
                            const VectorOneSectorType& sectors,
                            InputType& io)
 {
-	if (operatorName == "i") {
+	if (opt.operatorName == "i") {
 		jnd = ind;
 		SizeType n = sectors[ind]->size();
 		a.resize(n,n);
@@ -120,8 +125,19 @@ void findOperatorAndMatrix(MatrixType& a,
 			a(i,i) = 1.0;
 
 		return;
+	} else if (opt.operatorName != "c") {
+		PsimagLite::String str(__FILE__);
+		str += " " + ttos(__LINE__) + "\n";
+		str += "findOperatorAndMatrix: unknown operator " + opt.operatorName + "\n";
+		throw PsimagLite::RuntimeError(str);
 	}
 
+	SizeType spin = 0;
+	assert(opt.sites.size() > siteIndex);
+	SizeType site = opt.sites[siteIndex];
+	PsimagLite::String label = "#Operator_c_";
+	label += ttos(spin) + "_" + ttos(site);
+	io.advance(label,0);
 	VectorSizeType jndVector;
 	io.read(jndVector,"#SectorDest");
 	if (jndVector.size() == 0) return;
@@ -137,7 +153,7 @@ RealType computeThisSector(SizeType ind,
 {
 	SizeType jnd = 0;
 	MatrixType a;
-	findOperatorAndMatrix(a,jnd,ind,opt.operatorName,sectors,io);
+	findOperatorAndMatrix(a,jnd,0,ind,opt,sectors,io);
 
 	SizeType n = a.n_row();
 	if (n == 0) return 0.0;
@@ -148,7 +164,22 @@ RealType computeThisSector(SizeType ind,
 	if (m == 0) return 0.0;
 
 	//Read operator 2   --> B
-	MatrixType b = a;
+	MatrixType b;
+	assert(opt.sites.size() == 2);
+	if (opt.sites[0] == opt.sites[1]) {
+		b = a;
+	} else {
+		assert(opt.sites[0] < opt.sites[1]);
+		SizeType knd = 0;
+		findOperatorAndMatrix(b,knd,1,ind,opt,sectors,io);
+
+		if (jnd != knd) {
+			PsimagLite::String str(__FILE__);
+			str += " " + ttos(__LINE__) + "\n";
+			str += "computeThisSector: too many destination sectors\n";
+			throw PsimagLite::RuntimeError(str);
+		}
+	}
 
 	//Compute X^(s,s')_{n,n'} = \sum_{t,t'}U^{s*}_{n,t}A_{t,t'}^(s,s')U^{s'}_{t',n'}
 	MatrixType x(n,m);
@@ -158,14 +189,17 @@ RealType computeThisSector(SizeType ind,
 	computeX(y,b,*(sectors[ind]),*(sectors[jnd]));
 	// Result is
 	// \sum_{n,n'} X_{n,n'} Y_{n',n} exp(-i(E_n'-E_n)t))exp(-beta E_n)
-	MatrixType z(n,n);
-	psimag::BLAS::GEMM('N','C',n,n,m,1.0,&(x(0,0)),n,&(y(0,0)),n,0.0,&(z(0,0)),n);
 	RealType sum = 0.0;
 	for (SizeType i = 0; i < n; ++i) {
-		sum += z(i,i) * exp(-opt.beta*sectors[ind]->eig(i));
+		for (SizeType j = 0; j < m; ++j) {
+			RealType e1 = sectors[ind]->eig(i);
+			RealType e2 = sectors[jnd]->eig(j);
+			RealType val = x(i,j)*std::conj(b(i,j))* exp(-opt.beta*e1);
+			std::cout<<(e1-e2)<<" "<<val<<"\n";
+			sum += val;
+		}
 	}
 
-	std::cerr<<"--> "<<sum<<" n="<<n<<"\n";
 	return sum;
 }
 
@@ -177,13 +211,14 @@ void computeAverageFor(const ThermalOptions& opt,
 	for (SizeType i = 0; i < sectors.size(); ++i)
 		sum += computeThisSector(i,opt,sectors,io);
 
-	std::cout<<"operator="<<opt.operatorName;
-	std::cout<<" beta="<<opt.beta<<" sum="<<sum<<"\n";
+	std::cerr<<"operator="<<opt.operatorName;
+	std::cerr<<" beta="<<opt.beta<<" sum="<<sum<<"\n";
 }
 
-void usage(char *name)
+void usage(char *name, PsimagLite::String msg = "")
 {
-	std::cerr<<"USAGE: "<<name<<" -f file -c operator\n";
+	if (msg != "") std::cerr<<name<<": "<<msg<<"\n";
+	std::cerr<<"USAGE: "<<name<<" -f file -c operator -b beta -s site1[,site2]\n";
 }
 
 int main(int argc, char**argv)
@@ -191,8 +226,11 @@ int main(int argc, char**argv)
 	int opt = 0;
 	PsimagLite::String operatorName;
 	PsimagLite::String file;
+	PsimagLite::Vector<PsimagLite::String>::Type tokens;
+	VectorSizeType sites(2,0);
 	RealType beta = 0;
-	while ((opt = getopt(argc, argv, "f:c:b:")) != -1) {
+
+	while ((opt = getopt(argc, argv, "f:c:b:s:")) != -1) {
 		switch (opt) {
 		case 'c':
 			operatorName = optarg;
@@ -203,6 +241,9 @@ int main(int argc, char**argv)
 		case 'b':
 			beta = atof(optarg);
 			break;
+		case 's':
+			PsimagLite::tokenizer(optarg,tokens,",");
+			break;
 		default: /* '?' */
 			usage(argv[0]);
 			return 1;
@@ -211,7 +252,19 @@ int main(int argc, char**argv)
 
 	if (file == "" || operatorName == "") {
 		usage(argv[0]);
-		return 1;
+		return 2;
+	}
+
+	if (tokens.size() > sites.size()) {
+		usage(argv[0],"Too many sites");
+		return 3;
+	}
+
+	for (SizeType i = 0; i < tokens.size(); ++i)
+		sites[i] = atoi(tokens[i].c_str());
+
+	if (sites[1] < sites[0]) {
+		usage(argv[0],"site1 must be smaller than site2");
 	}
 
 	InputType io(file);
@@ -221,10 +274,10 @@ int main(int argc, char**argv)
 
 	for (SizeType i = 0; i < sectors.size(); ++i) {
 		sectors[i] = new OneSector(io);
-		sectors[i]->info(std::cout);
+		//sectors[i]->info(std::cout);
 	}
 
-	ThermalOptions options(operatorName,beta);
+	ThermalOptions options(operatorName,beta,sites);
 	io.rewind();
 	computeAverageFor(options,sectors,io);
 

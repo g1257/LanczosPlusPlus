@@ -168,11 +168,20 @@ public:
 
 	void printOperators(std::ostream& os) const
 	{
-		SizeType spin = SPIN_UP;
-		SizeType site = 0;
 		SizeType nup = basis_.electrons(SPIN_UP);
 		SizeType ndown = basis_.electrons(SPIN_DOWN);
 		os<<"#SectorSource 2 "<<nup<<" "<<ndown<<"\n";
+		SizeType spin = SPIN_UP;
+		for (SizeType site = 0; site < geometry_.numberOfSites(); ++site)
+			printOperatorC(site,spin,os);
+	}
+
+private:
+
+	void printOperatorC(SizeType site, SizeType spin, std::ostream& os) const
+	{
+		SizeType nup = basis_.electrons(SPIN_UP);
+		SizeType ndown = basis_.electrons(SPIN_DOWN);
 		if (nup == 0) {
 			os<<"#Operator_c_"<<spin<<"_"<<site<<"\n";
 			os<<"#SectorDest 0\n"; //bogus

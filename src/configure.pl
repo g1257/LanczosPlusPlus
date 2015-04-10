@@ -24,7 +24,7 @@ use Make;
 
 my $mpi=0;
 my $platform=guessPlatform();
-my @drivers = ("lanczos","thermal");
+my @drivers = ("lanczos","thermal","lorentzian");
 my $lapack=Make::findLapack();
 my $PsimagLite="../../PsimagLite";
 my ($pthreads,$pthreadsLib)=(0,"");

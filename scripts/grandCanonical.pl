@@ -3,8 +3,8 @@
 use strict;
 use warnings;
 
-my ($output,$templateInput,$total) = @ARGV;
-defined($total) or die "USAGE: $0 outputFile inputTemplate total\n";
+my ($model,$output,$templateInput,$total) = @ARGV;
+defined($total) or die "USAGE: $0 model outputFile inputTemplate total\n";
 
 if (-e "$output") {
 	print "$output file exists, delete? ";
@@ -14,14 +14,40 @@ if (-e "$output") {
 }
 
 unlink($output);
-my $totalSector = "#TotalSectors=".($total+1);
+my $sectors = 0;
+for (my $nup = 0; $nup <= $total; ++$nup) {
+	for (my $ndown = 0; $ndown <= $total; ++$ndown) {
+		if ($model eq "Heisenberg") {
+			next if ($nup + $ndown != $total);
+		}
+
+		if ($model eq "tj") {
+			next if ($nup + $ndown >= $total);
+		}
+
+		$sectors++;
+	}
+}
+
+my $totalSector = "#TotalSectors=$sectors";
 system("echo \"$totalSector\" > $output");
 
-for (my $spc = 0; $spc <= $total; ++$spc) {
-	my $ndown = $total - $spc;
-	my $input = createInput($spc,$total,$spc,$ndown);
-	runThis($output,$input);
-	print STDERR "$0: Appended run $spc in $output\n";
+my $counter = 0;
+for (my $nup = 0; $nup <= $total; ++$nup) {
+	for (my $ndown = 0; $ndown <= $total; ++$ndown) {
+		if ($model eq "Heisenberg") {
+			next if ($nup + $ndown != $total);
+		}
+
+		if ($model eq "tj") {
+			next if ($nup + $ndown >= $total);
+		}
+
+		$counter++;
+		my $input = createInput($counter,$total,$nup,$ndown);
+		runThis($output,$input);
+		print STDERR "$0: Appended run $nup $ndown in $output\n";
+	}
 }
 
 sub createInput
@@ -45,7 +71,6 @@ sub createInput
 		}
 
 		print FOUT;
-
 	}
 
 	close(FILE);

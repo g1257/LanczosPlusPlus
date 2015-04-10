@@ -33,6 +33,8 @@ public:
 		os<<"vecs="<<vecs_.n_row()<<"x"<<vecs_.n_col()<<"\n";
 	}
 
+	SizeType size() const { return eigs_.size(); }
+
 	void multiplyRight(MatrixType& x,const MatrixType& a) const
 	{
 		SizeType n = a.n_row();
@@ -77,17 +79,43 @@ SizeType findJnd(const VectorOneSectorType& sectors, const VectorSizeType& jndVe
 	throw PsimagLite::RuntimeError(str);
 }
 
-void computeThisSector(SizeType ind, const VectorOneSectorType& sectors, InputType& io)
+void findOperatorAndMatrix(MatrixType& a,
+                           SizeType& jnd,
+                           SizeType ind,
+                           PsimagLite::String operatorName,
+                           const VectorOneSectorType& sectors,
+                           InputType& io)
 {
+	if (operatorName == "i") {
+		jnd = ind;
+		SizeType n = sectors[ind]->size();
+		a.resize(n,n);
+		a.setTo(0);
+		for (SizeType i = 0; i < n; ++i)
+			a(i,i) = 1.0;
+
+		return;
+	}
+
 	VectorSizeType jndVector;
 	io.read(jndVector,"#SectorDest");
 	if (jndVector.size() == 0) return;
-	SizeType jnd = findJnd(sectors,jndVector);
+	jnd = findJnd(sectors,jndVector);
 
-	MatrixType a;
 	io.readMatrix(a,"#Matrix");
+}
+
+RealType computeThisSector(SizeType ind,
+                           PsimagLite::String operatorName,
+                           const VectorOneSectorType& sectors,
+                           InputType& io)
+{
+	SizeType jnd = 0;
+	MatrixType a;
+	findOperatorAndMatrix(a,jnd,ind,operatorName,sectors,io);
 	SizeType n = a.n_row();
-	if (n == 0) return;
+	if (n == 0) return 0.0;
+
 	//Read operator 2   --> B
 	MatrixType b = a;
 
@@ -99,19 +127,55 @@ void computeThisSector(SizeType ind, const VectorOneSectorType& sectors, InputTy
 	computeX(y,b,*(sectors[ind]),*(sectors[jnd]));
 	// Result is
 	// \sum_{n,n'} X_{n,n'} Y_{n',n} exp(-i(E_n'-E_n)t))exp(-beta E_n)
+	MatrixType z(n,n);
+	psimag::BLAS::GEMM('N','N',n,n,n,1.0,&(x(0,0)),n,&(y(0,0)),n,0.0,&(z(0,0)),n);
+	RealType sum = 0.0;
+	for (SizeType i = 0; i < n; ++i) sum += z(i,i);
+	std::cerr<<"--> "<<sum<<" n="<<n<<"\n";
+	return sum;
 }
 
-void computeAverageFor(const VectorOneSectorType& sectors, InputType& io)
+void computeAverageFor(PsimagLite::String operatorName,
+                       const VectorOneSectorType& sectors,
+                       InputType& io)
 {
+	RealType sum = 0.0;
 	for (SizeType i = 0; i < sectors.size(); ++i)
-		computeThisSector(i,sectors,io);
+		sum += computeThisSector(i,operatorName,sectors,io);
+
+	std::cout<<"operator="<<operatorName<<" sum="<<sum<<"\n";
+}
+
+void usage(char *name)
+{
+	std::cerr<<"USAGE: "<<name<<" -f file -c operator\n";
 }
 
 int main(int argc, char**argv)
 {
-	if (argc < 2) return 1;
+	int opt = 0;
+	PsimagLite::String operatorName;
+	PsimagLite::String file;
+	while ((opt = getopt(argc, argv, "f:c:")) != -1) {
+		switch (opt) {
+		case 'c':
+			operatorName = optarg;
+			break;
+		case 'f':
+			file = optarg;
+			break;
+		default: /* '?' */
+			usage(argv[0]);
+			return 1;
+		}
+	}
 
-	InputType io(argv[1]);
+	if (file == "" || operatorName == "") {
+		usage(argv[0]);
+		return 1;
+	}
+
+	InputType io(file);
 	SizeType total = 0;
 	io.readline(total,"#TotalSectors=");
 	VectorOneSectorType sectors(total);
@@ -121,8 +185,8 @@ int main(int argc, char**argv)
 		sectors[i]->info(std::cout);
 	}
 
-	InputType io2(argv[1]);
-	computeAverageFor(sectors,io2);
+	io.rewind();
+	computeAverageFor(operatorName,sectors,io);
 
 	for (SizeType i = 0; i < sectors.size(); ++i)
 		delete sectors[i];

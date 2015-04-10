@@ -14,7 +14,8 @@ if (-e "$output") {
 }
 
 unlink($output);
-system("touch $output");
+my $totalSector = "#TotalSectors=".($total+1);
+system("echo \"$totalSector\" > $output");
 
 for (my $spc = 0; $spc <= $total; ++$spc) {
 	my $ndown = $total - $spc;
@@ -27,12 +28,12 @@ sub createInput
 {
 	my ($spc,$total,$nup,$ndown) = @_;
 	my $inputFile = "Input$spc.inp";
-	
+
 	my $hubbardU = createVector($total,1);
 	my $potentialV = createVector($total,0);
 	open(FOUT,">$inputFile") or die "$0: Cannot write to $output: $!\n";
 	open(FILE,"$templateInput") or die "$0: Cannot open $templateInput: $!\n";
-	
+
 	while(<FILE>) {
 		next if (/^#/);
 		if (/\$([a-zA-Z0-9\[\]]+)/) {

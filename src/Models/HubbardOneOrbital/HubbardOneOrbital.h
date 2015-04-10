@@ -172,8 +172,11 @@ public:
 		SizeType site = 0;
 		SizeType nup = basis_.electrons(SPIN_UP);
 		SizeType ndown = basis_.electrons(SPIN_DOWN);
+		os<<"#SectorSource 2 "<<nup<<" "<<ndown<<"\n";
 		if (nup == 0) {
 			os<<"#Operator_c_"<<spin<<"_"<<site<<"\n";
+			os<<"#SectorDest 0\n"; //bogus
+			os<<"#Matrix\n";
 			os<<"0 0\n";
 			return;
 		}
@@ -182,33 +185,39 @@ public:
 		VectorSizeType opt(2,0);
 		opt[0] = site;
 		opt[1] = spin;
-		SparseMatrixType matrix;
+		MatrixType matrix;
 		setupOperator(matrix,*basis,"c",opt);
-		MatrixType fm;
-		crsMatrixToFullMatrix(fm,matrix);
 		os<<"#Operator_c_"<<spin<<"_"<<site<<"\n";
-		os<<fm;
+		os<<"#SectorDest 2 "<<(nup-1)<<" "<<ndown<<"\n";
+		os<<"#Matrix\n";
+		os<<matrix;
 	}
 
 private:
 
-	void setupOperator(SparseMatrixType& matrix,
+	void setupOperator(MatrixType& matrix,
 	                   const BasisBaseType& basis,
 	                   PsimagLite::String operatorName,
 	                   const VectorSizeType& operatorOptions) const
 	{
-		SizeType hilbert=basis.size();
+		SizeType hilbertDest = basis.size();
+		SizeType hilbertSrc = basis_.size();
 		SizeType nsite = geometry_.numberOfSites();
-		if (operatorOptions.size() < 2) {
-			if (operatorName != "i") {
-				PsimagLite::String str(__FILE__);
-				str += " " + ttos(__LINE__) + "\n";
-				str += "operator "+ operatorName + " needs at least two options\n";
-				throw PsimagLite::RuntimeError(str);
-			}
+		SizeType id = 0;
+		if (operatorName == "c") {
+			id = ProgramGlobals::OPERATOR_C;
+		} else {
+			PsimagLite::String str(__FILE__);
+			str += " " + ttos(__LINE__) + "\n";
+			str += "operator " + operatorName + " is unimplemented for this model\n";
+			throw PsimagLite::RuntimeError(str);
+		}
 
-			matrix.makeDiagonal(hilbert,1.0);
-			return;
+		if (operatorOptions.size() < 2) {
+			PsimagLite::String str(__FILE__);
+			str += " " + ttos(__LINE__) + "\n";
+			str += "operator "+ operatorName + " needs at least two options\n";
+			throw PsimagLite::RuntimeError(str);
 		}
 
 		SizeType site = operatorOptions[0];
@@ -220,34 +229,18 @@ private:
 			throw PsimagLite::RuntimeError(str);
 		}
 
-		SizeType id = 0;
-		if (operatorName == "c") {
-			id = ProgramGlobals::OPERATOR_C;
-		} else {
-			PsimagLite::String str(__FILE__);
-			str += " " + ttos(__LINE__) + "\n";
-			str += "operator " + operatorName + " is unimplemented for this model\n";
-			throw PsimagLite::RuntimeError(str);
-		}
-
 		SizeType spin = operatorOptions[1];
-		matrix.resize(hilbert,hilbert);
-		// Calculate off-diagonal elements AND store matrix
-		SizeType nCounter=0;
-		for (SizeType ispace=0;ispace<hilbert;ispace++) {
-			SparseRowType sparseRow;
-			matrix.setRow(ispace,nCounter);
+		matrix.resize(hilbertSrc,hilbertDest);
+		matrix.setTo(0.0);
+
+		for (SizeType ispace=0;ispace<hilbertSrc;ispace++) {
 			WordType ket1 = basis_(ispace,SPIN_UP);
 			WordType ket2 = basis_(ispace,SPIN_DOWN);
 			// assumes OPERATOR_C
 			PairIntType bra = basis.getBraIndex(ket1,ket2,id,site,spin,0);
 			if (bra.first < 0) continue;
-			sparseRow.add(bra.first,bra.second);
-			nCounter += sparseRow.finalize(matrix);
+			matrix(ispace,bra.first) = bra.second;
 		}
-
-		matrix.setRow(hilbert,nCounter);
-		matrix.checkValidity();
 	}
 
 	bool hasNewPartsCorCdagger(std::pair<SizeType,SizeType>& newParts,

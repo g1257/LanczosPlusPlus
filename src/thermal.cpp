@@ -38,13 +38,27 @@ public:
 	void multiplyRight(MatrixType& x,const MatrixType& a) const
 	{
 		SizeType n = a.n_row();
-		psimag::BLAS::GEMM('N','N',n,n,n,1.0,&(a(0,0)),n,&(vecs_(0,0)),n,0.0,&(x(0,0)),n);
+		SizeType m = a.n_col();
+		assert(vecs_.n_row() == m);
+		assert(vecs_.n_col() == m);
+		assert(x.n_row() == n);
+		assert(x.n_col() == m);
+		assert(m > 0 && n > 0);
+		psimag::BLAS::GEMM('N','N',n,m,m,1.0,&(a(0,0)),n,&(vecs_(0,0)),m,0.0,&(x(0,0)),n);
 	}
 
 	void multiplyLeft(MatrixType& x,const MatrixType& a) const
 	{
 		SizeType n = a.n_row();
-		psimag::BLAS::GEMM('N','N',n,n,n,1.0,&(vecs_(0,0)),n,&(a(0,0)),n,0.0,&(x(0,0)),n);
+		SizeType m = a.n_col();
+		assert(vecs_.n_row() == n);
+		psimag::BLAS::GEMM('C','N',n,m,n,1.0,&(vecs_(0,0)),n,&(a(0,0)),n,0.0,&(x(0,0)),n);
+	}
+
+	const RealType& eig(SizeType i) const
+	{
+		assert(i < eigs_.size());
+		return eigs_[i];
 	}
 
 private:
@@ -55,6 +69,17 @@ private:
 };
 
 typedef PsimagLite::Vector<OneSector*>::Type VectorOneSectorType;
+
+struct ThermalOptions {
+	ThermalOptions(PsimagLite::String operatorName_,
+	               RealType beta_)
+	    : operatorName(operatorName_),
+	      beta(beta_)
+	{}
+
+	PsimagLite::String operatorName;
+	RealType beta;
+};
 
 //Compute X^(s,s')_{n,n'} = \sum_{t,t'}U^{s*}_{n,t}A_{t,t'}^(s,s')U^{s'}_{t',n'}
 void computeX(MatrixType& x,
@@ -106,44 +131,54 @@ void findOperatorAndMatrix(MatrixType& a,
 }
 
 RealType computeThisSector(SizeType ind,
-                           PsimagLite::String operatorName,
+                           const ThermalOptions& opt,
                            const VectorOneSectorType& sectors,
                            InputType& io)
 {
 	SizeType jnd = 0;
 	MatrixType a;
-	findOperatorAndMatrix(a,jnd,ind,operatorName,sectors,io);
+	findOperatorAndMatrix(a,jnd,ind,opt.operatorName,sectors,io);
+
 	SizeType n = a.n_row();
 	if (n == 0) return 0.0;
+	assert(n == sectors[ind]->size());
+
+	SizeType m = a.n_col();
+	assert(m == sectors[jnd]->size());
+	if (m == 0) return 0.0;
 
 	//Read operator 2   --> B
 	MatrixType b = a;
 
 	//Compute X^(s,s')_{n,n'} = \sum_{t,t'}U^{s*}_{n,t}A_{t,t'}^(s,s')U^{s'}_{t',n'}
-	MatrixType x(n,n);
+	MatrixType x(n,m);
 	computeX(x,a,*(sectors[ind]),*(sectors[jnd]));
 	// Same for Y from B
-	MatrixType y(n,n);
+	MatrixType y(n,m);
 	computeX(y,b,*(sectors[ind]),*(sectors[jnd]));
 	// Result is
 	// \sum_{n,n'} X_{n,n'} Y_{n',n} exp(-i(E_n'-E_n)t))exp(-beta E_n)
 	MatrixType z(n,n);
-	psimag::BLAS::GEMM('N','N',n,n,n,1.0,&(x(0,0)),n,&(y(0,0)),n,0.0,&(z(0,0)),n);
+	psimag::BLAS::GEMM('N','C',n,n,m,1.0,&(x(0,0)),n,&(y(0,0)),n,0.0,&(z(0,0)),n);
 	RealType sum = 0.0;
-	for (SizeType i = 0; i < n; ++i) sum += z(i,i);
+	for (SizeType i = 0; i < n; ++i) {
+		sum += z(i,i) * exp(-opt.beta*sectors[ind]->eig(i));
+	}
+
 	std::cerr<<"--> "<<sum<<" n="<<n<<"\n";
 	return sum;
 }
 
-void computeAverageFor(PsimagLite::String operatorName,
+void computeAverageFor(const ThermalOptions& opt,
                        const VectorOneSectorType& sectors,
                        InputType& io)
 {
 	RealType sum = 0.0;
 	for (SizeType i = 0; i < sectors.size(); ++i)
-		sum += computeThisSector(i,operatorName,sectors,io);
+		sum += computeThisSector(i,opt,sectors,io);
 
-	std::cout<<"operator="<<operatorName<<" sum="<<sum<<"\n";
+	std::cout<<"operator="<<opt.operatorName;
+	std::cout<<" beta="<<opt.beta<<" sum="<<sum<<"\n";
 }
 
 void usage(char *name)
@@ -156,13 +191,17 @@ int main(int argc, char**argv)
 	int opt = 0;
 	PsimagLite::String operatorName;
 	PsimagLite::String file;
-	while ((opt = getopt(argc, argv, "f:c:")) != -1) {
+	RealType beta = 0;
+	while ((opt = getopt(argc, argv, "f:c:b:")) != -1) {
 		switch (opt) {
 		case 'c':
 			operatorName = optarg;
 			break;
 		case 'f':
 			file = optarg;
+			break;
+		case 'b':
+			beta = atof(optarg);
 			break;
 		default: /* '?' */
 			usage(argv[0]);
@@ -185,8 +224,9 @@ int main(int argc, char**argv)
 		sectors[i]->info(std::cout);
 	}
 
+	ThermalOptions options(operatorName,beta);
 	io.rewind();
-	computeAverageFor(operatorName,sectors,io);
+	computeAverageFor(options,sectors,io);
 
 	for (SizeType i = 0; i < sectors.size(); ++i)
 		delete sectors[i];

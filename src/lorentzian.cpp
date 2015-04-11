@@ -4,8 +4,10 @@
 #include <unistd.h>
 #include "Vector.h"
 #include "Sort.h"
+#include "TypeToString.h"
 
 typedef double RealType;
+typedef std::complex<RealType> ComplexType;
 typedef PsimagLite::Vector<SizeType>::Type VectorSizeType;
 typedef typename PsimagLite::Vector<RealType>::Type VectorRealType;
 
@@ -80,43 +82,79 @@ void prune(VectorRealType& e,
 	std::cerr<<"prune: "<<e.size()<<" values remain after pruning\n";
 }
 
-RealType lorentzian(RealType omega,
-                    const VectorRealType& e,
-                    const VectorRealType& w,
-                    RealType eps)
+ComplexType lorentzian(ComplexType z,
+                       const VectorRealType& e,
+                       const VectorRealType& w)
 {
-	RealType eps2 = eps*eps;
-	RealType sum = 0;
+	ComplexType sum = 0;
 	for (SizeType i = 0; i < e.size(); ++i) {
-		RealType tmp = (omega - e[i]);
-		sum += w[i]/(tmp*tmp+eps2);
+		ComplexType tmp = (z - e[i]);
+		sum += w[i]/tmp;
 	}
 
 	return sum;
 }
 
+ComplexType findOmega(SizeType ind,
+                      SizeType total,
+                      RealType omegaStep,
+                      RealType omegaInit,
+                      RealType eps,
+                      RealType beta,
+                      PsimagLite::String mode)
+{
+	if (mode == "real") return ComplexType(ind*omegaStep + omegaInit,eps);
+	if (mode == "matsubara") {
+		SizeType totalOver2 = static_cast<SizeType>(total*0.5);
+		assert(beta > 0);
+		RealType factor = 2.0*M_PI/beta;
+		if (ind < totalOver2) {
+			RealType tmp = (totalOver2 - ind);
+			return ComplexType(eps,-factor*tmp);
+		}
+
+		RealType tmp = (1 + ind) - totalOver2;
+		return ComplexType(eps,factor*tmp);
+	}
+
+	PsimagLite::String str(__FILE__);
+	str += " " + ttos(__LINE__) + "\n";
+	str += "findOmega: Uknown mode " + mode + "\n";
+	throw PsimagLite::RuntimeError(str);
+}
+
 void usage(char *name, PsimagLite::String msg = "")
 {
 	if (msg != "") std::cerr<<name<<": "<<msg<<"\n";
-	std::cerr<<"USAGE: "<<name<<" -f file -e eps -t total\n";
+	std::cerr<<"USAGE: "<<name<<" -f file -t total -m mode [-e eps] [-b beta]\n";
+	std::cerr<<"\tmode is either real or matsubara\n";
+	std::cerr<<"\tbeta is mandatory in matsubara mode\n";
 }
 
 int main(int argc, char **argv)
 {
 	PsimagLite::String file;
+	PsimagLite::String mode;
 	RealType eps = 0.1;
 	SizeType total = 0;
+	RealType beta = 0.0;
 	int opt = 0;
-	while ((opt = getopt(argc, argv, "f:e:t:")) != -1) {
+	while ((opt = getopt(argc, argv, "f:t:m:e:b:")) != -1) {
 		switch (opt) {
 		case 'f':
 			file = optarg;
 			break;
+		case 't':
+			total = atoi(optarg);
+			break;
+		case 'm':
+			mode = optarg;
+			break;
 		case 'e':
 			eps = atof(optarg);
 			break;
-		case 't':
-			total = atoi(optarg);
+		case 'b':
+			beta = atof(optarg);
 			break;
 		default: /* '?' */
 			usage(argv[0]);
@@ -124,8 +162,13 @@ int main(int argc, char **argv)
 		}
 	}
 
-	if (file == "" || total == 0) {
+	if (file == "" || total == 0 || mode == "") {
 		usage(argv[0]);
+		return 2;
+	}
+
+	if (mode == "matsubara" && beta == 0) {
+		usage(argv[0],"beta cannot be zero in matsubara mode");
 		return 2;
 	}
 
@@ -143,13 +186,14 @@ int main(int argc, char **argv)
 
 	RealType omegaInit = emin; // FIXME: allow override
 	RealType omegaStep = (emax-omegaInit)/(total-1); // FIXME: allow override
-	RealType factor = eps/wabsmax;
+	RealType factor = 1.0/wabsmax;
 
 	for (SizeType i = 0; i < total; ++i) {
-		RealType omega = i*omegaStep + omegaInit;
-		RealType val = lorentzian(omega,e,w,eps);
+		ComplexType z = findOmega(i,total,omegaStep,omegaInit,eps,beta,mode);
+		RealType omega = (mode == "real") ? std::real(z) : std::imag(z);
+		ComplexType val = lorentzian(z,e,w);
 		val *= factor;
-		std::cout<<omega<<" "<<val<<"\n";
+		std::cout<<omega<<" "<<std::real(val)<<" "<<std::imag(val)<<"\n";
 	}
 }
 

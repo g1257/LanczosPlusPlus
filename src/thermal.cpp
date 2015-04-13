@@ -87,7 +87,8 @@ void findOperatorAndMatrix(MatrixType& a,
 RealType computeThisSector(SizeType ind,
                            const ThermalOptions& opt,
                            const VectorOneSectorType& sectors,
-                           InputType& io)
+                           InputType& io,
+                           RealType zInverse)
 {
 	SizeType jnd = 0;
 	MatrixType a;
@@ -132,8 +133,8 @@ RealType computeThisSector(SizeType ind,
 		for (SizeType j = 0; j < m; ++j) {
 			RealType e1 = sectors[ind]->eig(i);
 			RealType e2 = sectors[jnd]->eig(j);
-			RealType val = x(i,j)*std::conj(y(i,j))* exp(-opt.beta*e1);
-			std::cout<<(e1-e2)<<" "<<val<<"\n";
+			RealType val = x(i,j)*std::conj(y(i,j))* exp(-opt.beta*e1)*zInverse;
+			if (opt.operatorName != "i") std::cout<<(e1-e2)<<" "<<val<<"\n";
 			sum += val;
 		}
 	}
@@ -146,8 +147,12 @@ void computeAverageFor(const ThermalOptions& opt,
                        InputType& io)
 {
 	RealType sum = 0.0;
-	for (SizeType i = 0; i < sectors.size(); ++i)
-		sum += computeThisSector(i,opt,sectors,io);
+	ThermalOptions optZ = opt;
+	optZ.operatorName = "i";
+	for (SizeType i = 0; i < sectors.size(); ++i) {
+		RealType zPartition = computeThisSector(i,optZ,sectors,io,1);
+		sum += computeThisSector(i,opt,sectors,io,1.0/zPartition);
+	}
 
 	std::cerr<<"operator="<<opt.operatorName;
 	std::cerr<<" beta="<<opt.beta<<" sum="<<sum<<"\n";

@@ -126,20 +126,24 @@ ComplexType findOmega(SizeType ind,
 void usage(char *name, PsimagLite::String msg = "")
 {
 	if (msg != "") std::cerr<<name<<": "<<msg<<"\n";
-	std::cerr<<"USAGE: "<<name<<" -f file -t total -m mode [-e eps] [-b beta]\n";
+	std::cerr<<"USAGE: "<<name<<" -f file -t total -m mode [-e eps] [-b beta] [-s step] [-S start]\n";
 	std::cerr<<"\tmode is either real or matsubara\n";
 	std::cerr<<"\tbeta is mandatory in matsubara mode\n";
 }
 
 int main(int argc, char **argv)
 {
+	int opt = 0;
 	PsimagLite::String file;
 	PsimagLite::String mode;
 	RealType eps = 0.1;
 	SizeType total = 0;
 	RealType beta = 0.0;
-	int opt = 0;
-	while ((opt = getopt(argc, argv, "f:t:m:e:b:")) != -1) {
+	RealType start = 0;
+	RealType step = 0;
+	bool hasStart = false;
+	bool hasStep = false;
+	while ((opt = getopt(argc, argv, "f:t:m:e:b:s:S:")) != -1) {
 		switch (opt) {
 		case 'f':
 			file = optarg;
@@ -155,6 +159,14 @@ int main(int argc, char **argv)
 			break;
 		case 'b':
 			beta = atof(optarg);
+			break;
+		case 's':
+			step = atof(optarg);
+			hasStep = true;
+			break;
+		case 'S':
+			start = atof(optarg);
+			hasStart = true;
 			break;
 		default: /* '?' */
 			usage(argv[0]);
@@ -184,8 +196,9 @@ int main(int argc, char **argv)
 	RealType wabsmax = 0;
 	prune(e,w,emin,emax,wabsmax);
 
-	RealType omegaInit = emin; // FIXME: allow override
-	RealType omegaStep = (emax-omegaInit)/(total-1); // FIXME: allow override
+	RealType omegaInit = (hasStart) ? start : emin;
+	RealType omegaStep = (emax-omegaInit)/(total-1);
+	if (hasStep) omegaStep = step;
 	RealType factor = 1.0/wabsmax;
 
 	for (SizeType i = 0; i < total; ++i) {

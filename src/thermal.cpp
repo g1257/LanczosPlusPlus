@@ -132,7 +132,7 @@ RealType computeThisSector(SizeType ind,
 		for (SizeType j = 0; j < m; ++j) {
 			RealType e1 = sectors[ind]->eig(i);
 			RealType e2 = sectors[jnd]->eig(j);
-			RealType val = x(i,j)*std::conj(b(i,j))* exp(-opt.beta*e1);
+			RealType val = x(i,j)*std::conj(y(i,j))* exp(-opt.beta*e1);
 			std::cout<<(e1-e2)<<" "<<val<<"\n";
 			sum += val;
 		}

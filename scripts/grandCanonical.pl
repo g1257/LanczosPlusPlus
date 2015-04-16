@@ -9,6 +9,7 @@ defined($total) or die "USAGE: $0 model outputFile inputTemplate total\n";
 if (-e "$output") {
 	print "$output file exists, delete? ";
 	$_=<STDIN>;
+	die "$0: No reply\n" unless (defined($_));
 	chomp;
 	$_ eq "y" or $_ eq "yes" or die "$0: Aborted by user\n";
 }

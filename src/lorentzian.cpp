@@ -9,7 +9,7 @@
 typedef double RealType;
 typedef std::complex<RealType> ComplexType;
 typedef PsimagLite::Vector<SizeType>::Type VectorSizeType;
-typedef typename PsimagLite::Vector<RealType>::Type VectorRealType;
+typedef PsimagLite::Vector<RealType>::Type VectorRealType;
 
 void load(VectorRealType& e, VectorRealType& w,PsimagLite::String file)
 {

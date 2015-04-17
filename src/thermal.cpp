@@ -145,7 +145,7 @@ RealType computeThisSector(SizeType ind,
 			RealType arg = opt.beta*(factor-e1);
 			RealType val = x(i,j)*std::conj(y(i,j))* exp(arg)*zInverse;
 			if (opt.operatorName != "i" && fabs(val)>1e-12) {
-				std::cout<<(e1-e2)<<" "<<val<<"\n";
+				std::cout<<(e1-e2+opt.mu)<<" "<<val<<"\n";
 				counter++;
 			}
 
@@ -167,6 +167,7 @@ void computeAverageFor(const ThermalOptions& opt,
 	VectorRealType muFactors(sectors.size(),0);
 
 	RealType zPartition = 0.0;
+	RealType numerator = 0.0;
 	for (SizeType i = 0; i < sectors.size(); ++i) {
 		io.read(nupAndDown,"#SectorSource");
 		if (nupAndDown.size() != 2) {
@@ -174,8 +175,12 @@ void computeAverageFor(const ThermalOptions& opt,
 		}
 
 		muFactors[i] = opt.mu*(nupAndDown[0] + nupAndDown[1])+opt.constant;
-		zPartition += computeThisSector(i,optZ,sectors,io,muFactors[i],1);
+		RealType tmp = computeThisSector(i,optZ,sectors,io,muFactors[i],1);
+		numerator += tmp*(nupAndDown[0] + nupAndDown[1]);
+		zPartition += tmp;
 	}
+
+	std::cerr<<"density="<<(numerator/zPartition)<<"\n";
 
 	io.rewind();
 	RealType sum = 0.0;

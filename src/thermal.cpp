@@ -6,20 +6,27 @@ typedef double RealType;
 typedef PsimagLite::IoSimple::In InputType;
 typedef LanczosPlusPlus::OneSector<RealType,InputType> OneSectorType;
 typedef PsimagLite::Vector<OneSectorType*>::Type VectorOneSectorType;
+typedef PsimagLite::Vector<RealType>::Type VectorRealType;
 typedef OneSectorType::VectorSizeType VectorSizeType;
 typedef OneSectorType::MatrixType MatrixType;
 
 struct ThermalOptions {
 	ThermalOptions(PsimagLite::String operatorName_,
 	               RealType beta_,
+	               RealType mu_,
+	               RealType constant_,
 	               const VectorSizeType& sites_)
 	    : operatorName(operatorName_),
 	      beta(beta_),
+	      mu(mu_),
+	      constant(constant_),
 	      sites(sites_)
 	{}
 
 	PsimagLite::String operatorName;
 	RealType beta;
+	RealType mu;
+	RealType constant;
 	VectorSizeType sites;
 };
 
@@ -88,6 +95,7 @@ RealType computeThisSector(SizeType ind,
                            const ThermalOptions& opt,
                            const VectorOneSectorType& sectors,
                            InputType& io,
+                           RealType factor,
                            RealType zInverse)
 {
 	SizeType jnd = 0;
@@ -129,16 +137,23 @@ RealType computeThisSector(SizeType ind,
 	// Result is
 	// \sum_{n,n'} X_{n,n'} Y_{n',n} exp(-i(E_n'-E_n)t))exp(-beta E_n)
 	RealType sum = 0.0;
+	SizeType counter = 0;
 	for (SizeType i = 0; i < n; ++i) {
 		for (SizeType j = 0; j < m; ++j) {
 			RealType e1 = sectors[ind]->eig(i);
 			RealType e2 = sectors[jnd]->eig(j);
-			RealType val = x(i,j)*std::conj(y(i,j))* exp(-opt.beta*e1)*zInverse;
-			if (opt.operatorName != "i" && fabs(val)>1e-12) std::cout<<(e1-e2)<<" "<<val<<"\n";
+			RealType arg = opt.beta*(factor-e1);
+			RealType val = x(i,j)*std::conj(y(i,j))* exp(arg)*zInverse;
+			if (opt.operatorName != "i" && fabs(val)>1e-12) {
+				std::cout<<(e1-e2)<<" "<<val<<"\n";
+				counter++;
+			}
+
 			sum += val;
 		}
 	}
 
+	std::cerr<<"Sector "<<ind<<" found "<<counter<<" values\n";
 	return sum;
 }
 
@@ -146,22 +161,38 @@ void computeAverageFor(const ThermalOptions& opt,
                        const VectorOneSectorType& sectors,
                        InputType& io)
 {
-	RealType sum = 0.0;
 	ThermalOptions optZ = opt;
 	optZ.operatorName = "i";
+	VectorSizeType nupAndDown;
+	VectorRealType muFactors(sectors.size(),0);
+
+	RealType zPartition = 0.0;
 	for (SizeType i = 0; i < sectors.size(); ++i) {
-		RealType zPartition = computeThisSector(i,optZ,sectors,io,1);
-		sum += computeThisSector(i,opt,sectors,io,1.0/zPartition);
+		io.read(nupAndDown,"#SectorSource");
+		if (nupAndDown.size() != 2) {
+			throw PsimagLite::RuntimeError("#SectorSource\n");
+		}
+
+		muFactors[i] = opt.mu*(nupAndDown[0] + nupAndDown[1])+opt.constant;
+		zPartition += computeThisSector(i,optZ,sectors,io,muFactors[i],1);
+	}
+
+	io.rewind();
+	RealType sum = 0.0;
+	for (SizeType i = 0; i < sectors.size(); ++i) {
+		sum += computeThisSector(i,opt,sectors,io,muFactors[i],1.0/zPartition);
 	}
 
 	std::cerr<<"operator="<<opt.operatorName;
-	std::cerr<<" beta="<<opt.beta<<" sum="<<sum<<"\n";
+	std::cerr<<" beta="<<opt.beta<<" mu="<<opt.mu;
+	std::cerr<<" partition="<<zPartition<<" sum="<<sum<<"\n";
 }
 
 void usage(char *name, PsimagLite::String msg = "")
 {
 	if (msg != "") std::cerr<<name<<": "<<msg<<"\n";
-	std::cerr<<"USAGE: "<<name<<" -f file -c operator -b beta -s site1[,site2]\n";
+	std::cerr<<"USAGE: "<<name<<" -f file -c operator -b beta ";
+	std::cerr<<" -s site1[,site2] [-m mu] [-C constant]\n";
 }
 
 int main(int argc, char**argv)
@@ -172,8 +203,10 @@ int main(int argc, char**argv)
 	PsimagLite::Vector<PsimagLite::String>::Type tokens;
 	VectorSizeType sites(2,0);
 	RealType beta = 0;
+	RealType mu = 0;
+	RealType constant = 0;
 
-	while ((opt = getopt(argc, argv, "f:c:b:s:")) != -1) {
+	while ((opt = getopt(argc, argv, "f:c:b:s:m:C:")) != -1) {
 		switch (opt) {
 		case 'c':
 			operatorName = optarg;
@@ -186,6 +219,12 @@ int main(int argc, char**argv)
 			break;
 		case 's':
 			PsimagLite::tokenizer(optarg,tokens,",");
+			break;
+		case 'm':
+			mu = atof(optarg);
+			break;
+		case 'C':
+			constant = atof(optarg);
 			break;
 		default: /* '?' */
 			usage(argv[0]);
@@ -220,7 +259,7 @@ int main(int argc, char**argv)
 		//sectors[i]->info(std::cout);
 	}
 
-	ThermalOptions options(operatorName,beta,sites);
+	ThermalOptions options(operatorName,beta,mu,constant,sites);
 	io.rewind();
 	computeAverageFor(options,sectors,io);
 

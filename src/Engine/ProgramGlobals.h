@@ -79,7 +79,6 @@ DISCLOSED WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
  */
 #ifndef LANCZOS_PROGRAM_LIMITS_H
 #define LANCZOS_PROGRAM_LIMITS_H
-#include "String.h"
 #include "TypeToString.h"
 #include <bitset>
 #include <climits>

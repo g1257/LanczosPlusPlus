@@ -2,7 +2,6 @@
 #define LANCZOS_MODEL_SELECTOR_H
 
 #include "Vector.h"
-#include "String.h"
 #include "ModelBase.h"
 #include "../Models/Tj1Orb/Tj1Orb.h"
 #include "../Models/Immm/Immm.h"

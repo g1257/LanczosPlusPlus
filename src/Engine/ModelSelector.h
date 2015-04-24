@@ -43,7 +43,7 @@ public:
 			io.readline(nup,"TargetElectronsUp=");
 			io.readline(ndown,"TargetElectronsDown=");
 		} catch (std::exception& e) {
-			io.read(szPlusConst,"TargetSzPlusConst=");
+			io.readline(szPlusConst,"TargetSzPlusConst=");
 		}
 
 		PsimagLite::String model("");

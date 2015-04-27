@@ -236,6 +236,16 @@ public:
 		}
 	}
 
+	virtual bool getBra(WordType&,
+	                    WordType,
+	                    WordType,
+	                    SizeType,
+	                    SizeType,
+	                    SizeType) const
+	{
+		throw PsimagLite::RuntimeError("BasisTj1OrbLanczos: getBra\n");
+	}
+
 	template<typename GeometryType2>
 	friend std::ostream& operator<<(std::ostream& os,
 	                                const BasisTj1OrbLanczos<GeometryType2>& basis);

@@ -219,6 +219,16 @@ public:
 		basis2_.print(os,isBinary);
 	}
 
+	virtual bool getBra(WordType&,
+	                    WordType,
+	                    WordType,
+	                    SizeType,
+	                    SizeType,
+	                    SizeType) const
+	{
+		throw PsimagLite::RuntimeError("BasisImmm: getBra\n");
+	}
+
 private:
 
 	bool hasNewPartsCorCdagger(std::pair<SizeType,SizeType>& newParts,

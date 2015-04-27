@@ -217,7 +217,8 @@ private:
 			RealType m2 = val2 - spin;
 			val2--;
 			RealType m1 = val2 - spin;
-			WordType bra = basis.getBra(ket,i,val1,j,val2);
+			WordType bra;
+			basis.getBra(bra,ket,i,val1,j,val2);
 			SizeType temp = basis.perfectIndex(bra,dummy);
 			RealType tmp = sqrt(spin*(spin+1.0) - m1*(m1+1.0));
 			tmp *= sqrt(spin*(spin+1.0) - m2*(m2-1.0));

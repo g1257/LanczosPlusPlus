@@ -52,19 +52,19 @@ public:
 	                              SizeType spinOfNew) const = 0;
 
 	virtual PairIntType getBraIndex(WordType ket1,
-	                        WordType ket2,
-	                        SizeType what,
-	                        SizeType site,
-	                        SizeType spin,
-	                        SizeType orb) const = 0;
+	                                WordType ket2,
+	                                SizeType what,
+	                                SizeType site,
+	                                SizeType spin,
+	                                SizeType orb) const = 0;
 
 	virtual int doSign(WordType ket1,
-	           WordType ket2,
-	           SizeType i,
-	           SizeType orb1,
-	           SizeType j,
-	           SizeType orb2,
-	           SizeType spin) const = 0;
+	                   WordType ket2,
+	                   SizeType i,
+	                   SizeType orb1,
+	                   SizeType j,
+	                   SizeType orb2,
+	                   SizeType spin) const = 0;
 
 	virtual int doSignGf(WordType a,
 	                     WordType b,
@@ -88,14 +88,12 @@ public:
 	                      SizeType spin,
 	                      SizeType orb) const = 0;
 
-	virtual WordType getBra(WordType,
-	                        SizeType,
-	                        SizeType,
-	                        SizeType,
-	                        SizeType) const
-	{
-		throw PsimagLite::RuntimeError("getBra unimplemented in base class\n");
-	}
+	virtual bool getBra(WordType&,
+	                    WordType,
+	                    WordType,
+	                    SizeType,
+	                    SizeType,
+	                    SizeType) const = 0;
 
 	virtual void print(std::ostream&,PrintEnum) const = 0;
 }; // class BasisBase

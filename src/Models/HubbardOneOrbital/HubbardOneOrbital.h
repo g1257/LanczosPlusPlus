@@ -202,8 +202,6 @@ private:
 		os<<matrix;
 	}
 
-private:
-
 	void setupOperator(MatrixType& matrix,
 	                   const BasisBaseType& basis,
 	                   PsimagLite::String operatorName,
@@ -241,14 +239,18 @@ private:
 		SizeType spin = operatorOptions[1];
 		matrix.resize(hilbertSrc,hilbertDest);
 		matrix.setTo(0.0);
+		SizeType orb = 0;
 
 		for (SizeType ispace=0;ispace<hilbertSrc;ispace++) {
 			WordType ket1 = basis_(ispace,SPIN_UP);
 			WordType ket2 = basis_(ispace,SPIN_DOWN);
+			WordType bra = ket1;
 			// assumes OPERATOR_C
-			PairIntType bra = basis.getBraIndex(ket1,ket2,id,site,spin,0);
-			if (bra.first < 0) continue;
-			matrix(ispace,bra.first) = bra.second;
+			bool b = basis.getBra(bra,ket1,ket2,id,site,spin);
+			if (!b) continue;
+			SizeType index = basis.perfectIndex(bra,ket2);
+
+			matrix(ispace,index) = basis.doSignGf(bra,ket2,site,spin,orb);
 		}
 	}
 

@@ -152,13 +152,14 @@ public:
 		}
 	}
 
-	WordType getBra(WordType ket,
-	                SizeType site1,
-	                SizeType val1,
-	                SizeType site2,
-	                SizeType val2) const
+	bool getBra(WordType& bra,
+	            WordType ket,
+	            SizeType site1,
+	            SizeType val1,
+	            SizeType site2,
+	            SizeType val2) const
 	{
-		WordType bra = ket;
+		bra = ket;
 		WordType mask1 = getMask();
 		WordType mask2 = mask1;
 		mask1 <<= (site1*bits_);
@@ -175,7 +176,17 @@ public:
 		mask2 <<= (site2*bits_);
 		bra |= mask2;
 
-		return bra;
+		return true;
+	}
+
+	virtual bool getBra(WordType&,
+	                    WordType,
+	                    WordType,
+	                    SizeType,
+	                    SizeType,
+	                    SizeType) const
+	{
+		throw PsimagLite::RuntimeError("BasisHeisenberg: getBra\n");
 	}
 
 	template<typename GeometryType2>

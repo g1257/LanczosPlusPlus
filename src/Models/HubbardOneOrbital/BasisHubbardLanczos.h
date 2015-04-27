@@ -152,8 +152,8 @@ public:
 	}
 
 	bool getBra(WordType& bra,
-	            const WordType& ket1,
-	            const WordType& ket2,
+	            WordType ket1,
+	            WordType ket2,
 	            SizeType what,
 	            SizeType site,
 	            SizeType spin) const

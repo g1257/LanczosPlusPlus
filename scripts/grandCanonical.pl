@@ -17,7 +17,7 @@ if (-e "$output") {
 unlink($output);
 my $sectors = 0;
 for (my $nup = 0; $nup <= $total; ++$nup) {
-	for (my $ndown = $nup; $ndown <= $total; ++$ndown) {
+	for (my $ndown = 0; $ndown <= $total; ++$ndown) {
 		if ($model eq "Heisenberg") {
 			next if ($nup + $ndown != $total);
 		}
@@ -35,7 +35,7 @@ system("echo \"$totalSector\" > $output");
 
 my $counter = 0;
 for (my $nup = 0; $nup <= $total; ++$nup) {
-	for (my $ndown = $nup; $ndown <= $total; ++$ndown) {
+	for (my $ndown = 0; $ndown <= $total; ++$ndown) {
 		if ($model eq "Heisenberg") {
 			next if ($nup + $ndown != $total);
 		}

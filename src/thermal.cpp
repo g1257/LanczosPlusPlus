@@ -153,7 +153,7 @@ RealType computeThisSector(SizeType ind,
 		}
 	}
 
-	std::cerr<<"Sector "<<ind<<" found "<<counter<<" values\n";
+	std::cerr<<"Sector "<<ind<<" found "<<counter<<" values, sum="<<sum<<"\n";
 	return sum;
 }
 
@@ -180,12 +180,13 @@ void computeAverageFor(const ThermalOptions& opt,
 		zPartition += tmp;
 	}
 
-	std::cerr<<"density="<<(numerator/zPartition)<<"\n";
+	RealType zInverse = 1.0/zPartition;
+	std::cerr<<"density="<<(numerator*zInverse)<<" zPartition="<<zPartition<<"\n";
 
 	io.rewind();
 	RealType sum = 0.0;
 	for (SizeType i = 0; i < sectors.size(); ++i) {
-		sum += computeThisSector(i,opt,sectors,io,muFactors[i],1.0/zPartition);
+		sum += computeThisSector(i,opt,sectors,io,muFactors[i],zInverse);
 	}
 
 	std::cerr<<"operator="<<opt.operatorName;

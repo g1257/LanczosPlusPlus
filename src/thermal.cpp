@@ -91,6 +91,22 @@ void findOperatorAndMatrix(MatrixType& a,
 	io.readMatrix(a,"#Matrix");
 }
 
+RealType computePartialDen(SizeType ind,
+                           const ThermalOptions& opt,
+                           const VectorOneSectorType& sectors,
+                           RealType factor)
+{
+	SizeType n = sectors[ind]->size();
+	RealType sum = 0.0;
+	for (SizeType i = 0; i < n; ++i) {
+		RealType e1 = sectors[ind]->eig(i);
+		RealType arg = opt.beta*(factor-e1);
+		sum += exp(arg);
+	}
+
+	return sum;
+}
+
 RealType computeThisSector(SizeType ind,
                            const ThermalOptions& opt,
                            const VectorOneSectorType& sectors,
@@ -175,7 +191,7 @@ void computeAverageFor(const ThermalOptions& opt,
 		}
 
 		muFactors[i] = opt.mu*(nupAndDown[0] + nupAndDown[1])+opt.constant;
-		RealType tmp = computeThisSector(i,optZ,sectors,io,muFactors[i],1);
+		RealType tmp = computePartialDen(i,optZ,sectors,muFactors[i]);
 		numerator += tmp*(nupAndDown[0] + nupAndDown[1]);
 		zPartition += tmp;
 	}

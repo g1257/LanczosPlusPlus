@@ -64,10 +64,10 @@ public:
 				basis.print(std::cout,BasisType::PRINT_BINARY);
 				std::cout<<"#LanczosPlusPlus: DenseMatrix\n";
 				std::cout<<matrixStored_.toDense();
-			} else {
-				basis.print(std::cout,BasisType::PRINT_DECIMAL);
-				model.printOperators(std::cout);
 			}
+
+			basis.print(std::cout,BasisType::PRINT_DECIMAL);
+			model.printOperators(std::cout);
 
 			PsimagLite::Matrix<ComplexOrRealType> matrixCopy;
 			VectorRealType eigs;

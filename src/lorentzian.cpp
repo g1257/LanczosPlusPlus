@@ -17,6 +17,7 @@ void load(VectorRealType& e, VectorRealType& w,PsimagLite::String file)
 	RealType tmp = 0;
 	while (!fin.eof() && !fin.bad() && fin.good()) {
 		fin>>tmp;
+		if (fin.eof() || fin.bad() || !fin.good()) break;
 		e.push_back(tmp);
 		fin>>tmp;
 		w.push_back(tmp);

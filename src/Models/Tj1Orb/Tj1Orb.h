@@ -50,19 +50,18 @@ public:
 	      w_(geometry_.numberOfSites(),geometry_.numberOfSites())
 	{
 		SizeType n = geometry_.numberOfSites();
-		bool h = (geometry_.terms() == 2);
 
-		if (!h && geometry_.terms() != 4) {
-			PsimagLite::String msg("Tj1Orb: must have either 2 or 4 terms\n");
+		if (geometry_.terms() != 4) {
+			PsimagLite::String msg("Tj1Orb: must have 4 terms\n");
 			throw PsimagLite::RuntimeError(msg);
 		}
 
 		for (SizeType i=0;i<n;i++) {
 			for (SizeType j=0;j<n;j++) {
-				hoppings_(i,j) = (h) ? 0 : geometry_(i,0,j,0,0);
-				jpm_(i,j) = (h) ? geometry_(i,0,j,0,0) : geometry_(i,0,j,0,1);
-				jzz_(i,j) = (h) ? geometry_(i,0,j,0,1) : geometry_(i,0,j,0,2);
-				w_(i,j) = (h) ? 0 : geometry_(i,0,j,0,3);
+				hoppings_(i,j) = geometry_(i,0,j,0,0);
+				jpm_(i,j) = geometry_(i,0,j,0,1);
+				jzz_(i,j) = geometry_(i,0,j,0,2);
+				w_(i,j) = geometry_(i,0,j,0,3);
 			}
 		}
 	}

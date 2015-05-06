@@ -236,14 +236,24 @@ public:
 		}
 	}
 
-	virtual bool getBra(WordType&,
-	                    WordType,
-	                    WordType,
-	                    SizeType,
-	                    SizeType,
-	                    SizeType) const
+	bool getBra(WordType& bra,
+	            WordType ket1,
+	            WordType ket2,
+	            SizeType operatorLabel,
+	            SizeType site,
+	            SizeType spin) const
 	{
-		throw PsimagLite::RuntimeError("BasisTj1OrbLanczos: getBra\n");
+		switch(operatorLabel) {
+		case ProgramGlobals::OPERATOR_C:
+		case ProgramGlobals::OPERATOR_CDAGGER:
+			return getBraC(bra,ket1,ket2,operatorLabel,site,spin);
+		case ProgramGlobals::OPERATOR_SZ:
+		case ProgramGlobals::OPERATOR_N:
+			return getBraSzOrN(bra,ket1,ket2,operatorLabel,site,spin);
+		}
+
+		assert(false);
+		return 0;
 	}
 
 	template<typename GeometryType2>
@@ -270,26 +280,6 @@ private:
 
 		int tmp = perfectIndex(bra1,bra2);
 		return PairIntType(tmp,value);
-	}
-
-	int getBra(WordType& bra,
-	           SizeType operatorLabel,
-	           const WordType& ket1,
-	           const WordType& ket2,
-	           //		            SizeType what,
-	           SizeType site,
-	           SizeType spin) const
-	{
-		switch(operatorLabel) {
-		case ProgramGlobals::OPERATOR_C:
-		case ProgramGlobals::OPERATOR_CDAGGER:
-			return getBraC(bra,ket1,ket2,operatorLabel,site,spin);
-		case ProgramGlobals::OPERATOR_SZ:
-		case ProgramGlobals::OPERATOR_N:
-			return getBraSzOrN(bra,ket1,ket2,operatorLabel,site,spin);
-		}
-		assert(false);
-		return 0;
 	}
 
 	bool isDoublyOccupied(const WordType& ket1,const WordType& ket2) const

@@ -3,8 +3,13 @@
 use strict;
 use warnings;
 
-my ($model,$output,$templateInput,$total) = @ARGV;
+my ($model,$output,$templateInput,$total,$ntotal) = @ARGV;
 defined($total) or die "USAGE: $0 model outputFile inputTemplate total\n";
+if ($model eq "canonical") {
+	defined($ntotal) or die "USAGE: $0 model outputFile inputTemplate total [ntotal]\n";
+} else {
+	$ntotal = $total;
+}
 
 if (-e "$output") {
 	print "$output file exists, delete? ";
@@ -18,8 +23,8 @@ unlink($output);
 my $sectors = 0;
 for (my $nup = 0; $nup <= $total; ++$nup) {
 	for (my $ndown = 0; $ndown <= $total; ++$ndown) {
-		if ($model eq "Heisenberg") {
-			next if ($nup + $ndown != $total);
+		if ($model eq "Heisenberg" || $model eq "canonical") {
+			next if ($nup + $ndown != $ntotal);
 		}
 
 		if ($model eq "tj") {
@@ -36,8 +41,8 @@ system("echo \"$totalSector\" > $output");
 my $counter = 0;
 for (my $nup = 0; $nup <= $total; ++$nup) {
 	for (my $ndown = 0; $ndown <= $total; ++$ndown) {
-		if ($model eq "Heisenberg") {
-			next if ($nup + $ndown != $total);
+		if ($model eq "Heisenberg"|| $model eq "canonical") {
+			next if ($nup + $ndown != $ntotal);
 		}
 
 		if ($model eq "tj") {

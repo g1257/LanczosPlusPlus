@@ -91,7 +91,7 @@ void findOperatorAndMatrix(MatrixType& a,
 	io.readMatrix(a,"#Matrix");
 }
 
-RealType computePartialDen(SizeType ind,
+RealType computePartialZ(SizeType ind,
                            const ThermalOptions& opt,
                            const VectorOneSectorType& sectors,
                            RealType factor)
@@ -102,6 +102,22 @@ RealType computePartialDen(SizeType ind,
 		RealType e1 = sectors[ind]->eig(i);
 		RealType arg = opt.beta*(factor-e1);
 		sum += exp(arg);
+	}
+
+	return sum;
+}
+
+RealType computePartialE(SizeType ind,
+                           const ThermalOptions& opt,
+                           const VectorOneSectorType& sectors,
+                           RealType factor)
+{
+	SizeType n = sectors[ind]->size();
+	RealType sum = 0.0;
+	for (SizeType i = 0; i < n; ++i) {
+		RealType e1 = sectors[ind]->eig(i);
+		RealType arg = opt.beta*(factor-e1);
+		sum += exp(arg)*e1;
 	}
 
 	return sum;
@@ -184,6 +200,7 @@ void computeAverageFor(const ThermalOptions& opt,
 
 	RealType zPartition = 0.0;
 	RealType numerator = 0.0;
+	RealType energy = 0.0;
 	for (SizeType i = 0; i < sectors.size(); ++i) {
 		io.read(nupAndDown,"#SectorSource");
 		if (nupAndDown.size() != 2) {
@@ -191,13 +208,17 @@ void computeAverageFor(const ThermalOptions& opt,
 		}
 
 		muFactors[i] = opt.mu*(nupAndDown[0] + nupAndDown[1])+opt.constant;
-		RealType tmp = computePartialDen(i,optZ,sectors,muFactors[i]);
+		RealType tmp = computePartialZ(i,optZ,sectors,muFactors[i]);
 		numerator += tmp*(nupAndDown[0] + nupAndDown[1]);
+		energy += computePartialE(i,optZ,sectors,muFactors[i]);
 		zPartition += tmp;
 	}
 
 	RealType zInverse = 1.0/zPartition;
 	std::cerr<<"density="<<(numerator*zInverse)<<" zPartition="<<zPartition<<"\n";
+	std::cerr<<"energy="<<(energy*zInverse)<<" zPartition="<<zPartition<<"\n";
+
+	if (opt.sites.size() < 2) return;
 
 	io.rewind();
 	RealType sum = 0.0;
@@ -264,10 +285,12 @@ int main(int argc, char**argv)
 		return 3;
 	}
 
+	if (tokens.size() == 0) sites.clear();
+
 	for (SizeType i = 0; i < tokens.size(); ++i)
 		sites[i] = atoi(tokens[i].c_str());
 
-	if (sites[1] < sites[0]) {
+	if (sites.size() > 0 && sites[1] < sites[0]) {
 		usage(argv[0],"site1 must be smaller than site2");
 	}
 

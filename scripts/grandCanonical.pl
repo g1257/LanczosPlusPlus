@@ -3,8 +3,12 @@
 use strict;
 use warnings;
 
-my ($model,$output,$templateInput,$total,$ntotal) = @ARGV;
-defined($total) or die "USAGE: $0 model outputFile inputTemplate total\n";
+my ($model,$output,$templateInput,$ntotal) = @ARGV;
+defined($templateInput) or die "USAGE: $0 model outputFile inputTemplate";
+
+my $total = readLabel($templateInput,"TotalNumberOfSites=");
+print STDERR "TotalNumberOfSites=$total\n";
+
 if ($model eq "canonical") {
 	defined($ntotal) or die "USAGE: $0 model outputFile inputTemplate total [ntotal]\n";
 } else {
@@ -12,14 +16,9 @@ if ($model eq "canonical") {
 }
 
 if (-e "$output") {
-	print "$output file exists, delete? ";
-	$_=<STDIN>;
-	die "$0: No reply\n" unless (defined($_));
-	chomp;
-	$_ eq "y" or $_ eq "yes" or die "$0: Aborted by user\n";
+	unlink($output);
 }
 
-unlink($output);
 my $sectors = 0;
 for (my $nup = 0; $nup <= $total; ++$nup) {
 	for (my $ndown = 0; $ndown <= $total; ++$ndown) {
@@ -104,3 +103,21 @@ sub createVector
 	return $a;
 }
 
+sub readLabel
+{
+	my ($file,$label)=@_;
+	my $ret;
+	open(FILE,$file) or die "Cannot open $file: $!\n";
+	while(<FILE>) {
+		chomp;
+		if (/^$label(.*$)/) {
+			$ret=$1;
+			last;
+		}
+	}
+
+	close(FILE);
+
+	defined($ret) or die "readLabel: Not found $label in $file\n";
+	return $ret;
+}

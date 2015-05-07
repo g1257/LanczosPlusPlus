@@ -23,7 +23,7 @@ public:
 	static VectorWordType bitmask_;
 
 	enum {OPERATOR_NIL=ProgramGlobals::OPERATOR_NIL,
-	      OPERATOR_SZ=ProgramGlobals::OPERATOR_SZ};
+		  OPERATOR_SZ=ProgramGlobals::OPERATOR_SZ};
 
 	BasisHeisenberg(const GeometryType& geometry,
 	                SizeType twiceS,
@@ -60,7 +60,7 @@ public:
 
 	SizeType dofs() const { return twiceS_ + 1; }
 
-	SizeType perfectIndex(const VectorWordType& kets) const
+	SizeType perfectIndex(const VectorWordType&) const
 	{
 		throw PsimagLite::RuntimeError("BasisHeisenberg::perfectIndex kets\n");
 	}
@@ -79,10 +79,10 @@ public:
 		return data_[i];
 	}
 
-	SizeType isThereAnElectronAt(WordType ket1,
-	                             WordType ket2,
-	                             SizeType site,
-	                             SizeType spin,
+	SizeType isThereAnElectronAt(WordType,
+	                             WordType,
+	                             SizeType,
+	                             SizeType,
 	                             SizeType) const
 	{
 		throw PsimagLite::RuntimeError("BasisHeisenberg::isThereAnElectronAt\n");
@@ -99,18 +99,18 @@ public:
 		return (ket1 & mask);
 	}
 
-	int doSignGf(WordType a, WordType b,SizeType ind,SizeType sector,SizeType) const
+	int doSignGf(WordType, WordType,SizeType,SizeType,SizeType) const
 	{
 		throw PsimagLite::RuntimeError("BasisHeisenberg::doSignGf\n");
 	}
 
-	int doSign(WordType ket1,
-	           WordType ket2,
-	           SizeType i,
+	int doSign(WordType,
+	           WordType,
 	           SizeType,
-	           SizeType j,
 	           SizeType,
-	           SizeType spin) const
+	           SizeType,
+	           SizeType,
+	           SizeType) const
 	{
 		throw PsimagLite::RuntimeError("BasisHeisenberg::doSign\n");
 	}
@@ -154,7 +154,7 @@ public:
 
 	bool getBra(WordType& bra,
 	            WordType ket,
-	            SizeType site1,
+	            WordType site1,
 	            SizeType val1,
 	            SizeType site2,
 	            SizeType val2) const
@@ -179,15 +179,7 @@ public:
 		return true;
 	}
 
-	virtual bool getBra(WordType&,
-	                    WordType,
-	                    WordType,
-	                    SizeType,
-	                    SizeType,
-	                    SizeType) const
-	{
-		throw PsimagLite::RuntimeError("BasisHeisenberg: getBra\n");
-	}
+	SizeType szPlusConst() const { return szPlusConst_; }
 
 	template<typename GeometryType2>
 	friend std::ostream& operator<<(std::ostream& os,
@@ -228,31 +220,14 @@ private:
 		return (val <= twiceS_);
 	}
 
-	PairIntType getBraIndex_(const WordType& ket1,
-	                         const WordType& ket2,
-	                         SizeType operatorLabel,
-	                         SizeType site,
-	                         SizeType spin,
+	PairIntType getBraIndex_(const WordType&,
+	                         const WordType&,
+	                         SizeType,
+	                         SizeType,
+	                         SizeType,
 	                         SizeType) const
 	{
 		throw PsimagLite::RuntimeError("BasisHeisenberg::getBraIndex_ \n");
-	}
-
-	int getBra(WordType& bra,
-	           SizeType operatorLabel,
-	           const WordType& ket1,
-	           const WordType& ket2,
-	           //		            SizeType what,
-	           SizeType site,
-	           SizeType spin) const
-	{
-		switch(operatorLabel) {
-		case ProgramGlobals::OPERATOR_SZ:
-			return getBraSzOrN(bra,ket1,ket2,operatorLabel,site,spin);
-		}
-
-		assert(false);
-		return 0;
 	}
 
 	void doBitmask()
@@ -262,21 +237,6 @@ private:
 		bitmask_[0]=1ul;
 		for (SizeType i=1;i<n;i++)
 			bitmask_[i] = bitmask_[i-1]<<1;
-	}
-
-	int doSign(WordType ket,SizeType i,SizeType j) const
-	{
-		throw PsimagLite::RuntimeError("BasisHeisenberg::doSign \n");
-	}
-
-	int getBraSzOrN(WordType& bra,
-	                const WordType& ket1,
-	                const WordType& ket2,
-	                SizeType,
-	                SizeType site,
-	                SizeType spin) const
-	{
-		throw PsimagLite::RuntimeError("BasisHeisenberg::doSign \n");
 	}
 
 	SizeType logBase2(SizeType x) const

@@ -340,10 +340,10 @@ private:
 		}
 	}
 
-	void eikrTr(typename PsimagLite::Vector<RealType>::Type& v,
-	            SizeType ispace,
-	            SizeType k,
-	            const ClassRepresentativesType& reps) const
+	void eikrTr(typename PsimagLite::Vector<RealType>::Type&,
+	            SizeType,
+	            SizeType,
+	            const ClassRepresentativesType&) const
 	{
 		throw PsimagLite::RuntimeError("eikrTr: not for real template\n");
 	}

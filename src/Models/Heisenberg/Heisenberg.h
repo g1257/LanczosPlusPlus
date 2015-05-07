@@ -153,11 +153,71 @@ public:
 
 	void print(std::ostream& os) const { os<<mp_; }
 
+	void printOperators(std::ostream& os) const
+	{
+		SizeType sites = geometry_.numberOfSites();
+		SizeType nup = basis_.szPlusConst();
+		SizeType ndown = sites - nup;
+		os<<"#SectorSource 2 "<<nup<<" "<<ndown<<"\n";
+		for (SizeType site = 0; site < sites; ++site)
+			printOperatorSz(site,os);
+	}
+
 private:
 
-	bool hasNewPartsSplusOrMinus(std::pair<SizeType,SizeType>& newParts,
-	                             SizeType what,
-	                             SizeType spin,
+	void printOperatorSz(SizeType site, std::ostream& os) const
+	{
+		SizeType sites = geometry_.numberOfSites();
+		SizeType nup = basis_.szPlusConst();
+		SizeType ndown = sites - nup;
+		MatrixType matrix;
+		setupOperator(matrix,"sz",site);
+		os<<"#Operator_Sz_"<<"_"<<site<<"\n";
+		os<<"#SectorDest 2 "<<nup<<" "<<ndown<<"\n";
+		os<<"#Matrix\n";
+		os<<matrix;
+	}
+
+	void setupOperator(MatrixType& matrix,
+	                   PsimagLite::String operatorName,
+	                   SizeType site) const
+	{
+		SizeType hilbert = basis_.size();
+		SizeType nsite = geometry_.numberOfSites();
+
+		if (operatorName != "sz") {
+			PsimagLite::String str(__FILE__);
+			str += " " + ttos(__LINE__) + "\n";
+			str += "operator " + operatorName + " is unimplemented for this model\n";
+			throw PsimagLite::RuntimeError(str);
+		}
+
+		if (site >= nsite) {
+			PsimagLite::String str(__FILE__);
+			str += " " + ttos(__LINE__) + "\n";
+			str += "site requested " + ttos(site);
+			str += " but number of sites= " + ttos(nsite) + "\n";
+			throw PsimagLite::RuntimeError(str);
+		}
+
+		matrix.resize(hilbert,hilbert);
+		matrix.setTo(0.0);
+
+		SizeType orb = 0;
+		SizeType dummy = 0;
+		for (SizeType ispace=0;ispace<hilbert;ispace++) {
+			WordType ket = basis_(ispace,dummy);
+			// assumes OPERATOR_SZ
+			SizeType val1 = basis_.getN(ket,dummy,site,dummy,orb);
+			RealType tmp = val1 - mp_.twiceTheSpin*0.5;
+
+			matrix(ispace,ispace) = tmp;
+		}
+	}
+
+	bool hasNewPartsSplusOrMinus(std::pair<SizeType,SizeType>&,
+	                             SizeType,
+	                             SizeType,
 	                             const PairType&) const
 	{
 		throw PsimagLite::RuntimeError("BasisHeisenberg::hasNewPartsSplusOrMinus\n");
@@ -218,6 +278,7 @@ private:
 			val2--;
 			RealType m1 = val2 - spin;
 			WordType bra;
+
 			basis.getBra(bra,ket,i,val1,j,val2);
 			SizeType temp = basis.perfectIndex(bra,dummy);
 			RealType tmp = sqrt(spin*(spin+1.0) - m1*(m1+1.0));

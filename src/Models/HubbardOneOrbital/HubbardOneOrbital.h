@@ -142,8 +142,12 @@ public:
 	                 SizeType spin,
 	                 const std::pair<SizeType,SizeType>& orbs) const
 	{
-		if (what==ProgramGlobals::OPERATOR_C || what==ProgramGlobals::OPERATOR_CDAGGER)
+		if (what==ProgramGlobals::OPERATOR_C ||
+		        what==ProgramGlobals::OPERATOR_CDAGGER)
 			return hasNewPartsCorCdagger(newParts,what,spin,orbs);
+		if (what==ProgramGlobals::OPERATOR_SPLUS ||
+		        what==ProgramGlobals::OPERATOR_SMINUS)
+			return hasNewPartsSplusOrSminus(newParts,what,spin,orbs);
 		PsimagLite::String str(__FILE__);
 		str += " " + ttos(__LINE__) +  "\n";
 		str += PsimagLite::String("hasNewParts: unsupported operator ");
@@ -269,6 +273,29 @@ private:
 		SizeType nsite = geometry_.numberOfSites();
 		if (SizeType(newPart1)>nsite || SizeType(newPart2)>nsite) return false;
 		if (newPart1==0 && newPart2==0) return false;
+		newParts.first = SizeType(newPart1);
+		newParts.second = SizeType(newPart2);
+		return true;
+	}
+
+	bool hasNewPartsSplusOrSminus(std::pair<SizeType,SizeType>& newParts,
+	                              SizeType what,
+	                              SizeType,
+	                              const std::pair<SizeType,SizeType>&) const
+	{
+		int newPart1=basis_.electrons(SPIN_UP);
+		int newPart2=basis_.electrons(SPIN_DOWN);
+
+		int c = (what == ProgramGlobals::OPERATOR_SPLUS) ? 1 : -1;
+		newPart1 += c;
+		newPart2 -= c;
+
+		if (newPart1 < 0 || newPart2 < 0) return false;
+
+		SizeType nsite = geometry_.numberOfSites();
+		if (static_cast<SizeType>(newPart1) > nsite ||
+		      static_cast<SizeType>(newPart2) > nsite  ) return false;
+
 		newParts.first = SizeType(newPart1);
 		newParts.second = SizeType(newPart2);
 		return true;

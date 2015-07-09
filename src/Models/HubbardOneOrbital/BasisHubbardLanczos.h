@@ -143,23 +143,16 @@ public:
 	                        SizeType spin,
 	                        SizeType) const
 	{
+		if (what == ProgramGlobals::OPERATOR_SPLUS ||
+		        what == ProgramGlobals::OPERATOR_SMINUS)
+			return getBraIndexSplusSminus(ket1,ket2,what,site);
+
 		WordType bra = 0;
 		bool b = getBra(bra,ket1,ket2,what,site,spin);
 		if (!b) return PairIntType(-1,1);
 		int tmp = (spin==SPIN_UP) ? perfectIndex(bra,ket2) :
 		                            perfectIndex(ket1,bra);
 		return PairIntType(tmp,1);
-	}
-
-	bool getBra(WordType& bra,
-	            WordType ket1,
-	            WordType ket2,
-	            SizeType what,
-	            SizeType site,
-	            SizeType spin) const
-	{
-		return (spin==SPIN_UP) ? basis1_.getBra(bra,ket1,what,site) :
-		                         basis2_.getBra(bra,ket2,what,site);
 	}
 
 	SizeType orbsPerSite(SizeType) const { return 1; }
@@ -176,6 +169,37 @@ public:
 	}
 
 private:
+
+	bool getBra(WordType& bra,
+	            WordType ket1,
+	            WordType ket2,
+	            SizeType what,
+	            SizeType site,
+	            SizeType spin) const
+	{
+		return (spin==SPIN_UP) ? basis1_.getBra(bra,ket1,what,site) :
+		                         basis2_.getBra(bra,ket2,what,site);
+	}
+
+	PairIntType getBraIndexSplusSminus(WordType ket1,
+	                                   WordType ket2,
+	                                   SizeType what,
+	                                   SizeType site) const
+	{
+		SizeType spin = (what == ProgramGlobals::OPERATOR_SPLUS) ? SPIN_UP : SPIN_DOWN;
+
+		WordType brar1 = 0;
+		bool b = getBra(brar1,ket1,ket2,ProgramGlobals::OPERATOR_CDAGGER,site,spin);
+		if (!b) return PairIntType(-1,1);
+
+		WordType brar2 = 0;
+		b = getBra(brar2,ket1,ket2,ProgramGlobals::OPERATOR_C,site,1 - spin);
+		if (!b) return PairIntType(-1,1);
+
+		int tmp = (spin==SPIN_UP) ? perfectIndex(brar1,brar2) :
+		                            perfectIndex(brar2,brar1);
+		return PairIntType(tmp,1);
+	}
 
 	BasisType basis1_,basis2_;
 

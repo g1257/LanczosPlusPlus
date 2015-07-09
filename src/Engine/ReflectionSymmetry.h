@@ -130,7 +130,7 @@ public:
 
 		if (matrixStored_.size() == 0) return;
 
-		bool nrows = matrixStored_[0].row();
+		int nrows = matrixStored_[0].row();
 		if (printMatrix_) {
 			if (nrows > 40)
 				throw PsimagLite::RuntimeError("printMatrix too big\n");

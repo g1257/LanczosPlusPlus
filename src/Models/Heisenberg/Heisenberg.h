@@ -34,8 +34,6 @@ public:
 	typedef typename BaseType::VectorType VectorType;
 	typedef PsimagLite::SparseRow<SparseMatrixType> SparseRowType;
 
-	static int const FERMION_SIGN = BasisType::FERMION_SIGN;
-
 	Heisenberg(SizeType szPlusConst,
 	           InputType& io,
 	           const GeometryType& geometry)

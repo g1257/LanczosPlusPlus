@@ -53,7 +53,7 @@ public:
 	{
 		model.setupHamiltonian(matrixStored_,basis);
 		assert(isHermitian(matrixStored_));
-		bool nrows = matrixStored_.row();
+		int nrows = matrixStored_.row();
 		if (printMatrix_ && nrows > 40)
 				throw PsimagLite::RuntimeError("printMatrix: too big\n");
 
@@ -91,8 +91,8 @@ public:
 		}
 	}
 
-	void transformMatrix(typename PsimagLite::Vector<SparseMatrixType>::Type& matrix1,
-	                     const SparseMatrixType& matrix) const
+	void transformMatrix(typename PsimagLite::Vector<SparseMatrixType>::Type&,
+	                     const SparseMatrixType&) const
 	{
 		throw std::runtime_error("DefaultSymmetry: cannot call transformMatrix\n");
 	}

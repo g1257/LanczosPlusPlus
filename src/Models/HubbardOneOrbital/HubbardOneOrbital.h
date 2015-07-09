@@ -148,6 +148,7 @@ public:
 		if (what==ProgramGlobals::OPERATOR_SPLUS ||
 		        what==ProgramGlobals::OPERATOR_SMINUS)
 			return hasNewPartsSplusOrSminus(newParts,what,spin,orbs);
+		if (what==ProgramGlobals::OPERATOR_SZ) return false;
 		PsimagLite::String str(__FILE__);
 		str += " " + ttos(__LINE__) +  "\n";
 		str += PsimagLite::String("hasNewParts: unsupported operator ");

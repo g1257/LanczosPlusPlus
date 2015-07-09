@@ -147,6 +147,9 @@ public:
 		        what == ProgramGlobals::OPERATOR_SMINUS)
 			return getBraIndexSplusSminus(ket1,ket2,what,site);
 
+		if (what == ProgramGlobals::OPERATOR_SZ)
+			return getBraIndexSz(ket1,ket2,site);
+
 		WordType bra = 0;
 		bool b = getBra(bra,ket1,ket2,what,site,spin);
 		if (!b) return PairIntType(-1,1);
@@ -179,6 +182,19 @@ private:
 	{
 		return (spin==SPIN_UP) ? basis1_.getBra(bra,ket1,what,site) :
 		                         basis2_.getBra(bra,ket2,what,site);
+	}
+
+	PairIntType getBraIndexSz(WordType ket1,
+	                          WordType ket2,
+	                          SizeType site) const
+	{
+		WordType bra = 0;
+		bool b1 = basis1_.getBra(bra,ket1,ProgramGlobals::OPERATOR_N,site);
+		bool b2 = basis2_.getBra(bra,ket2,ProgramGlobals::OPERATOR_N,site);
+		if (!b1 && !b2) return PairIntType(-1,1);
+		if (b1 && b2) return PairIntType(-1,1);
+		int tmp = (b1) ? 1 : -1;
+		return PairIntType(tmp,1);
 	}
 
 	PairIntType getBraIndexSplusSminus(WordType ket1,

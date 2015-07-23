@@ -39,9 +39,9 @@ for (my $wi =0; $wi < $omegasTotal; ++$wi) {
 		for (my $i = 0; $i < $total; ++$i) {
 			$_ = $data[$i];
 			my @t = @$_;
-			my $t = $t[0];
+			my $t = $t[$wi];
 			my @temp = @$t;
-			next unless ($temp[0] == $omegas[$wi]);
+			next unless ($temp[0] == $omegas[$wi]->[0]);
 			my $arg = $q*($i-$centralSite);
 			my $cosval = cos($arg);
 			my $sinval = sin($arg);
@@ -49,7 +49,7 @@ for (my $wi =0; $wi < $omegasTotal; ++$wi) {
 			$sumi += $temp[1]*$sinval + $temp[2]*$cosval;
 		}
 
-		print "$sumr $sumi ";
+		print "$sumi ";
 	}
 
 	print "\n";
@@ -72,7 +72,7 @@ sub readData
 
 	close(FILE);
 
-	print "$0: Read $counter rows from $file\n";
+	print STDERR "$0: Read $counter rows from $file\n";
 }
 
 sub createInput

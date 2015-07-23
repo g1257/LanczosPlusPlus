@@ -194,7 +194,8 @@ private:
 		if (!b1 && !b2) return PairIntType(-1,1);
 		if (b1 && b2) return PairIntType(-1,1);
 		int tmp = (b1) ? 1 : -1;
-		return PairIntType(tmp,1);
+		SizeType index = perfectIndex(ket1,ket2);
+		return PairIntType(index,tmp);
 	}
 
 	PairIntType getBraIndexSplusSminus(WordType ket1,
@@ -214,6 +215,7 @@ private:
 
 		int tmp = (spin==SPIN_UP) ? perfectIndex(brar1,brar2) :
 		                            perfectIndex(brar2,brar1);
+
 		return PairIntType(tmp,1);
 	}
 

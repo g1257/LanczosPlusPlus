@@ -495,7 +495,7 @@ private:
 			        nix(ket1,ket2,i,orb2,basis);
 
 			// Diagonal U2 term
-			s+= mp_.hubbardU[2]*
+			s+= mp_.hubbardU[4]*
 			        szTerm(ket1,ket2,i,orb,basis)*
 			        szTerm(ket1,ket2,i,orb2,basis);
 		}
@@ -539,7 +539,7 @@ private:
 		for (SizeType orb2=0;orb2<mp_.orbitals;orb2++) {
 			if (orb == orb2) continue;
 			// Diagonal U2 term
-			s+= mp_.hubbardU[2]*
+			s+= mp_.hubbardU[4]*
 			        basis.isThereAnElectronAt(ket1,ket2,i,SPIN_UP,orb)
 			        *basis.isThereAnElectronAt(ket1,ket2,i,SPIN_DOWN,orb2);
 		}

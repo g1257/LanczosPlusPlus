@@ -37,6 +37,7 @@ for (my $wi =0; $wi < $omegasTotal; ++$wi) {
 		my ($sumr, $sumi) = (0,0);
 		my $q = 2.0*pi*$m/$total;
 		for (my $i = 0; $i < $total; ++$i) {
+			my $factor = ($i == $centralSite) ? 0.5 : 1;
 			$_ = $data[$i];
 			my @t = @$_;
 			my $t = $t[$wi];
@@ -44,9 +45,8 @@ for (my $wi =0; $wi < $omegasTotal; ++$wi) {
 			next unless ($temp[0] == $omegas[$wi]->[0]);
 			my $arg = $q*($i-$centralSite);
 			my $cosval = cos($arg);
-			my $sinval = sin($arg);
-			$sumi += $temp[1]*$cosval - $temp[2]*$sinval;
-			$sumr += $temp[1]*$sinval + $temp[2]*$cosval;
+			$sumi += $temp[1]*$cosval*$factor;
+			$sumr += $temp[2]*$cosval*$factor;
 		}
 
 		print "$sumi ";
@@ -122,3 +122,4 @@ sub readLabel
 	defined($value) or die "$0: Label $label not found in $file\n";
 	return $value;
 }
+

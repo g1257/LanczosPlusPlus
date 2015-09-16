@@ -45,8 +45,8 @@ for (my $wi =0; $wi < $omegasTotal; ++$wi) {
 			my $arg = $q*($i-$centralSite);
 			my $cosval = cos($arg);
 			my $sinval = sin($arg);
-			$sumr += $temp[1]*$cosval - $temp[2]*$sinval;
-			$sumi += $temp[1]*$sinval + $temp[2]*$cosval;
+			$sumi += $temp[1]*$cosval - $temp[2]*$sinval;
+			$sumr += $temp[1]*$sinval + $temp[2]*$cosval;
 		}
 
 		print "$sumi ";

@@ -1,5 +1,6 @@
  
-Licensing
+# Licensing
+
 The full software license for LanczosPlusPlus++ version 1.0.0 
 can be found in
 file LICENSE. 
@@ -9,15 +10,15 @@ You are welcomed to use it and publish data
 obtained with Lanczos++. If you do, please cite this
 work .
 
--------------------------------------------------------------------------------
+# Code Integrity
 
 Hash of the latest commit is also posted at
-
 https://web.ornl.gov/~gz1/hashes.html
 
--------------------------------------------------------------------------------
+Latest commit should always be signed.
+Keys at https://web.ornl.gov/~gz1/keys.html
 
-How To Cite This Work
+# How To Cite This Work
 
 @article{re:alvarez09,
 author="G. Alvarez",
@@ -39,9 +40,7 @@ Publisher = {\url{http://www.ornl.gov/~gz1/dmrgPlusPlus}} }
 Building and Running Lanczos++
 TBW.
 
--------------------------------------------------------------------------------
-
-DISCLAIMER
+# DISCLAIMER
 
 THE SOFTWARE IS SUPPLIED BY THE COPYRIGHT HOLDERS AND
 CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
@@ -66,12 +65,11 @@ ANY OF THEIR EMPLOYEES, REPRESENTS THAT THE USE OF ANY
 INFORMATION, DATA, APPARATUS, PRODUCT, OR PROCESS
 DISCLOSED WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
 
--------------------------------------------------------------------------------
 
-Required Software
+# Required Software
 
-* (required) GNU C++
-* (required) The LAPACK and BLAS libraries
+- (required) GNU C++
+- (required) The LAPACK and BLAS libraries
 This library is available for most platforms.
 The configure.pl script will ask for the LDFLAGS variable 
 to pass to the compiler/linker. If the linux platform was
@@ -80,13 +78,13 @@ If the osx platform was chosen the default/suggested LDFLAGS will
 include  -framework Accelerate.
 For other platforms the appropriate linker flags must be given.
 More information on LAPACK is here: http://netlib.org/lapack/
-* (required) PsimagLite. This is here \url{https://github.com/g1257/PsimagLite/}.
+- (required) PsimagLite. This is here \url{https://github.com/g1257/PsimagLite/}.
 You can do \verb=git clone https://github.com/g1257/PsimagLite.git= in a separate directory
 outside of the DMRG++ distribution. \verb=configure.pl= will ask you where you put it.
-* (optional) make or gmake (only needed to use the Makefile)
-* (optional) perl (only needed to run the configure.pl script)
+- (optional) make or gmake (only needed to use the Makefile)
+- (optional) perl (only needed to run the configure.pl script)
 
-Quick Start
-TBW.
+# Quick Start
 
--------------------------------------------------------------------------------
+See https://web.ornl.gov/~gz1/LanczosPlusPlus/
+

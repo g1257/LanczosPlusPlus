@@ -157,6 +157,17 @@ public:
 		return s*s2;
 	}
 
+	int doSignSpSm(WordType a, WordType b,SizeType ind,SizeType spin,SizeType orb) const
+	{
+		if (spin==SPIN_UP) { // spin here means S^\dagger
+			// FIXME: Count over a (up)
+			return basis1_.doSignGf(a,ind,orb)*basis2_.doSignGf(b,ind,orb);
+		}
+
+		// FIXME: Count over a + 1
+		return basis1_.doSignGf(a,ind,orb)*basis2_.doSignGf(b,ind,orb);
+	}
+
 	SizeType isThereAnElectronAt(WordType ket1,
 	                             WordType ket2,
 	                             SizeType site,

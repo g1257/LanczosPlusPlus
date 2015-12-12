@@ -223,7 +223,7 @@ public:
 				if (isite==jsite) sum += result(isite,isite);
 			}
 		}
-		std::cout<<"Total Electrons = "<<sum<<"\n";
+		std::cout<<"MatrixDiagonal = "<<sum<<"\n";
 	}
 
 private:
@@ -263,6 +263,9 @@ private:
 			if (temp<0) continue;
 			int mysign = (ProgramGlobals::isFermionic(operatorLabel)) ?
 			            model_.basis().doSignGf(ket1,ket2,site,spin,orb) : 1;
+			if (operatorLabel == ProgramGlobals::OPERATOR_SPLUS || operatorLabel == ProgramGlobals::OPERATOR_SMINUS)
+				mysign *= model_.basis().doSignSpSm(ket1,ket2,site,spin,orb);
+
 			z[temp] += isign*mysign*value*gsVector[ispace];
 		}
 	}

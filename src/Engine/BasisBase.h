@@ -72,6 +72,15 @@ public:
 	                     SizeType spin,
 	                     SizeType orb) const = 0;
 
+	virtual int doSignSpSm(WordType a,
+                             WordType b,
+                             SizeType ind,
+                             SizeType spin,
+                             SizeType orb) const
+	{
+		return 1;
+	}
+
 	virtual SizeType isThereAnElectronAt(WordType ket1,
 	                                     WordType ket2,
 	                                     SizeType site,

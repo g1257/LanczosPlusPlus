@@ -72,7 +72,7 @@ public:
 		PsimagLite::String str(__FILE__);
 		str += " " + ttos(__LINE__) +  "\n";
 		str += PsimagLite::String("Function printOperators unimplemented\n");
-		throw std::runtime_error(str.c_str());
+		std::cerr<<str.c_str();
 	}
 
 protected:

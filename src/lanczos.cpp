@@ -204,8 +204,9 @@ int main(int argc,char *argv[])
 	PsimagLite::Vector<PairType>::Type spins(1,PairType(0,0));
 	PsimagLite::Vector<PsimagLite::String>::Type str;
 	InputCheck inputCheck;
+	int precision = 6;
 
-	while ((opt = getopt(argc, argv, "g:c:f:s:")) != -1) {
+	while ((opt = getopt(argc, argv, "g:c:f:s:p:")) != -1) {
 		switch (opt) {
 		case 'g':
 			gf.push_back(ProgramGlobals::operator2id(optarg));
@@ -220,6 +221,11 @@ int main(int argc,char *argv[])
 			PsimagLite::tokenizer(optarg,str,";");
 			fillOrbsOrSpin(spins,str);
 			str.clear();
+			break;
+		case 'p':
+			precision = atoi(optarg);
+			std::cout.precision(precision);
+			std::cerr.precision(precision);
 			break;
 		default: /* '?' */
 			inputCheck.usage(argv[0]);

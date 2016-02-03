@@ -37,7 +37,6 @@ createMakefile();
 
 sub createMakefile
 {
-	unlink("Engine/Version.h");
 	Make::backupMakefile();
 	if (!(-r "Config.make")) {
 		my $cmd = "cp ../TestSuite/inputs/Config.make Config.make";
@@ -48,18 +47,7 @@ sub createMakefile
 	my $fh;
 	open($fh,">Makefile") or die "Cannot open Makefile for writing: $!\n";
 
-	Make::newMake($fh,\@drivers,"Lanczos++","Engine/Version.h",
-	"Engine/Version.h gitrev","");
-	local *FH = $fh;
-print FH<<EOF;
-
-gitrev: gitrev.cpp
-	\$(CXX) \$(CPPFLAGS) gitrev.cpp -o gitrev
-
-Engine/Version.h: gitrev
-	./gitrev > Engine/Version.h
-
-EOF
+	Make::newMake($fh,\@drivers,"Lanczos++"," "," ","");
 
 	close($fh);
 	print STDERR "File Makefile has been written\n";

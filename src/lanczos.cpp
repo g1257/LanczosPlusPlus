@@ -1,10 +1,12 @@
 #include "AllocatorCpu.h"
+#include "Version.h"
+#include "../../PsimagLite/src/Version.h"
 PsimagLite::String license = "Copyright (c) 2009-2012, UT-Battelle, LLC\n"
         "All rights reserved\n"
         "\n"
-        "[Lanczos++, Version 1.0.0]\n"
+        "[Lanczos++, Version 1.0]\n"
         "\n"
-        "*********************************************************\n"
+        "-------------------------------------------------------------\n"
         "THE SOFTWARE IS SUPPLIED BY THE COPYRIGHT HOLDERS AND\n"
         "CONTRIBUTORS \"AS IS\" AND ANY EXPRESS OR IMPLIED\n"
         "WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED\n"
@@ -12,7 +14,7 @@ PsimagLite::String license = "Copyright (c) 2009-2012, UT-Battelle, LLC\n"
         "PARTICULAR PURPOSE ARE DISCLAIMED. \n"
         "\n"
         "Please see full open source license included in file LICENSE.\n"
-        "*********************************************************\n"
+        "-------------------------------------------------------------\n"
         "\n";
 
 #include <unistd.h>
@@ -205,8 +207,9 @@ int main(int argc,char *argv[])
 	PsimagLite::Vector<PsimagLite::String>::Type str;
 	InputCheck inputCheck;
 	int precision = 6;
+	bool versionOnly = false;
 
-	while ((opt = getopt(argc, argv, "g:c:f:s:p:")) != -1) {
+	while ((opt = getopt(argc, argv, "g:c:f:s:p:V")) != -1) {
 		switch (opt) {
 		case 'g':
 			gf.push_back(ProgramGlobals::operator2id(optarg));
@@ -227,13 +230,16 @@ int main(int argc,char *argv[])
 			std::cout.precision(precision);
 			std::cerr.precision(precision);
 			break;
+		case 'V':
+			versionOnly = true;
+			break;
 		default: /* '?' */
 			inputCheck.usage(argv[0]);
 			return 1;
 		}
 	}
 
-	if (file == "") {
+	if (file == "" && !versionOnly) {
 		inputCheck.usage(argv[0]);
 		return 1;
 	}
@@ -242,15 +248,21 @@ int main(int argc,char *argv[])
 	SizeType npthreads = 1;
 	ConcurrencyType concurrency(&argc,&argv,npthreads);
 
+	// print license
+	if (ConcurrencyType::root()) {
+		std::cerr<<license;
+		std::cerr<<"Lanczos++ Version "<<LANCZOSPP_VERSION<<"\n";
+		std::cerr<<"PsimagLite version "<<PSIMAGLITE_VERSION<<"\n";
+	}
+
+	if (versionOnly) return 0;
+
 	//Setup the Geometry
 	InputNgType::Writeable ioWriteable(file,inputCheck);
 	InputNgType::Readable io(ioWriteable);
 	GeometryType geometry(io);
 
 	std::cout<<geometry;
-
-	// print license
-	if (ConcurrencyType::root()) std::cerr<<license;
 
 	ModelSelectorType modelSelector(io,geometry);
 	const ModelBaseType& modelPtr = modelSelector();

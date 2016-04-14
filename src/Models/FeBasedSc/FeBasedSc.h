@@ -48,7 +48,7 @@ public:
 	typedef typename BaseType::SparseMatrixType SparseMatrixType;
 	typedef typename BaseType::VectorType VectorType;
 	typedef PsimagLite::SparseRow<SparseMatrixType> SparseRowType;
-	enum {TERM_HOPPINGS=0,TERM_J=1};
+	enum {TERM_HOPPINGS = 0,TERM_J_PM = 1, TERM_J_ZZ = 2};
 	static int const FERMION_SIGN = BasisType::FERMION_SIGN;
 
 	FeBasedSc(SizeType nup,SizeType ndown,InputType& io,const GeometryType& geometry)
@@ -391,7 +391,7 @@ private:
 	        const BasisBaseType& basis) const
 	{
 		for (SizeType j=0;j<geometry_.numberOfSites();j++) {
-			ComplexOrRealType value = jCoupling(i,j)*0.5;
+			ComplexOrRealType value = jCoupling(i,j,TERM_J_PM)*0.5;
 			if (std::real(value) == 0 && std::imag(value) == 0) continue;
 			value *= 0.5; // RealType counting i,j
 			assert(i!=j);
@@ -503,7 +503,7 @@ private:
 		// JNN and JNNN diagonal part
 		for (SizeType j=0;j<nsite;j++) {
 			for (SizeType orb2=0;orb2<mp_.orbitals;orb2++) {
-				ComplexOrRealType value = jCoupling(i,j);
+				ComplexOrRealType value = jCoupling(i,j,TERM_J_ZZ);
 				if (std::real(value) == 0 && std::imag(value) == 0) continue;
 				s += value*0.5* // RealType counting i,j
 				        szTerm(ket1,ket2,i,orb,basis)*
@@ -632,10 +632,10 @@ private:
 		return 0.5*sz;
 	}
 
-	ComplexOrRealType jCoupling(SizeType i,SizeType j) const
+	ComplexOrRealType jCoupling(SizeType i,SizeType j, SizeType term) const
 	{
 		if (geometry_.terms()==1) return 0.0;
-		return geometry_(i,0,j,0,TERM_J);
+		return geometry_(i,0,j,0,term);
 	}
 
 	void setOffDiagonalJimpurity(SparseRowType& sparseRow,

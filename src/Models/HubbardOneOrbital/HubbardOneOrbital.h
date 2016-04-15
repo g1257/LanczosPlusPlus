@@ -53,7 +53,7 @@ public:
 	      hasCoulombCoupling_(false)
 	{
 		if (mp_.model == "HubbardOneBandExtended" ||
-		    mp_.model == "SuperHubbardExtended") hasCoulombCoupling_ = true;
+		        mp_.model == "SuperHubbardExtended") hasCoulombCoupling_ = true;
 
 		if (mp_.model == "SuperHubbardExtended") hasJcoupling_ = true;
 
@@ -135,6 +135,36 @@ public:
 		}
 
 		matrix.setRow(hilbert,nCounter);
+	}
+
+	void matrixVectorProduct(VectorType &x,VectorType const &y) const
+	{
+		matrixVectorProduct(x,y,basis_);
+	}
+
+	void matrixVectorProduct(VectorType &x,
+	                         VectorType const &y,
+	                         const BasisBaseType& basis) const
+	{
+		SizeType hilbert=basis.size();
+		typename PsimagLite::Vector<RealType>::Type diag(hilbert);
+		calcDiagonalElements(diag,basis);
+		for (SizeType ispace=0;ispace<hilbert;ispace++)
+			x[ispace] += diag[ispace]*y[ispace];
+		diag.clear();
+
+		SizeType nsite = geometry_.numberOfSites();
+		// Calculate off-diagonal elements AND store matrix
+		for (SizeType ispace=0;ispace<hilbert;ispace++) {
+			SparseRowType sparseRow;
+			WordType ket1 = basis(ispace,SPIN_UP);
+			WordType ket2 = basis(ispace,SPIN_DOWN);
+			for (SizeType i=0;i<nsite;i++) {
+				setHoppingTerm(sparseRow,ket1,ket2,i,basis);
+				setJTermOffDiagonal(sparseRow,ket1,ket2,i,basis);
+			}
+			x[ispace] += sparseRow.finalize(y);
+		}
 	}
 
 	bool hasNewParts(std::pair<SizeType,SizeType>& newParts,
@@ -295,7 +325,7 @@ private:
 
 		SizeType nsite = geometry_.numberOfSites();
 		if (static_cast<SizeType>(newPart1) > nsite ||
-		      static_cast<SizeType>(newPart2) > nsite  ) return false;
+		        static_cast<SizeType>(newPart2) > nsite  ) return false;
 
 		newParts.first = SizeType(newPart1);
 		newParts.second = SizeType(newPart2);

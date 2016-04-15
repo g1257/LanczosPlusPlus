@@ -131,7 +131,7 @@ public:
 
 		registerOpts.push_back("none");
 		registerOpts.push_back("InternalProductStored");
-		registerOpts.push_back("InternalProductKron");
+		registerOpts.push_back("InternalProductOnTheFly");
 		registerOpts.push_back("printmatrix");
 
 		PsimagLite::Options::Writeable optWriteable(registerOpts,

@@ -1,9 +1,9 @@
 // BEGIN LICENSE BLOCK
 /*
-Copyright (c) 2009, UT-Battelle, LLC
+Copyright (c) 2009-2016, UT-Battelle, LLC
 All rights reserved
 
-[DMRG++, Version 2.0.0]
+[Lanczos, Version 2.0.0]
 [by G.A., Oak Ridge National Laboratory]
 
 UT Battelle Open Source Software License 11242008
@@ -39,7 +39,7 @@ must include the following acknowledgment:
 "This product includes software produced by UT-Battelle,
 LLC under Contract No. DE-AC05-00OR22725  with the
 Department of Energy."
- 
+
 *********************************************************
 DISCLAIMER
 
@@ -86,52 +86,61 @@ DISCLOSED WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
 #include <cassert>
 
 namespace LanczosPlusPlus {
-	template<typename ModelType,typename ReflectionSymmetryType_>
-	class InternalProductOnTheFly {
+template<typename ModelType,typename SpecialSymmetryType_>
+class InternalProductOnTheFly {
 
-	public:
+public:
 
-		typedef ReflectionSymmetryType_ ReflectionSymmetryType;
-		typedef typename ModelType::BasisType BasisType;
-		typedef typename ModelType::SparseMatrixType SparseMatrixType;
-		typedef typename ModelType::RealType RealType;
+	typedef SpecialSymmetryType_ SpecialSymmetryType;
+	typedef typename ModelType::BasisBaseType BasisType;
+	typedef typename SpecialSymmetryType::SparseMatrixType SparseMatrixType;
+	typedef typename ModelType::RealType RealType;
+	typedef typename ModelType::GeometryType GeometryType;
+	typedef typename GeometryType::ComplexOrRealType ComplexOrRealType;
+	typedef PsimagLite::Matrix<ComplexOrRealType> MatrixType;
+	typedef typename PsimagLite::Vector<RealType>::Type VectorRealType;
 
-		InternalProductOnTheFly(const ModelType& model,
-					const BasisType& basis,
-					const ReflectionSymmetryType* rs=0)
-		: model_(model),basis_(&basis)
-		{
-			//model.setupHamiltonian(matrixStored_,b1,b2);
+	InternalProductOnTheFly(const ModelType& model,
+	                        const BasisType& basis,
+	                        SpecialSymmetryType&)
+	    : model_(model),basis_(&basis)
+	{
+		//model.setupHamiltonian(matrixStored_,b1,b2);
+	}
+
+	InternalProductOnTheFly(const ModelType& model,
+	                        SpecialSymmetryType&)
+	    : model_(model),basis_(0)
+	{
+		//model.setupHamiltonian(matrixStored_);
+	}
+
+	SizeType rank() const { return model_.size(); }
+
+	template<typename SomeVectorType>
+	void matrixVectorProduct(SomeVectorType &x,SomeVectorType const &y) const
+	{
+		if (basis_==0) {
+			model_.matrixVectorProduct(x,y);
+		} else {
+			model_.matrixVectorProduct(x,y,*basis_);
 		}
+	}
 
-		InternalProductOnTheFly(const ModelType& model,
-					const ReflectionSymmetryType* rs=0)
-		: model_(model),basis_(0)
-		{
-			//model.setupHamiltonian(matrixStored_);
-		}
+	SizeType reflectionSector() const { return 0; }
 
-		SizeType rank() const { return model_.size(); }
+	void specialSymmetrySector(SizeType p) {  }
+	void fullDiag(VectorRealType&,
+	              MatrixType&)
+	{
+		throw PsimagLite::RuntimeError("no fullDiag possible when on the fly\n");
+	}
 
-		template<typename SomeVectorType>
-		void matrixVectorProduct(SomeVectorType &x,SomeVectorType const &y) const
-		{
-			if (basis_==0) {
-				model_.matrixVectorProduct(x,y);
-			} else {
-				model_.matrixVectorProduct(x,y,basis_);
-			}
-		}
+private:
 
-		SizeType reflectionSector() const { return 0; }
-
-		void reflectionSector(SizeType p) {  }
-
-	private:
-
-		const ModelType& model_;
-		const BasisType* basis_;
-	}; // class InternalProductOnTheFly
+	const ModelType& model_;
+	const BasisType* basis_;
+}; // class InternalProductOnTheFly
 } // namespace LanczosPlusPlus
 
 /*@}*/

@@ -59,6 +59,20 @@ public:
 	virtual void setupHamiltonian(SparseMatrixType& matrix,
 	                              const BasisBaseType& basis) const =0;
 
+	virtual void matrixVectorProduct(VectorType&,const VectorType&) const
+	{
+		throw PsimagLite::RuntimeError
+		        ("ModelBase::matrixVectorProduct(2) not impl. for this model\n");
+	}
+
+	virtual void matrixVectorProduct(VectorType&,
+	                                 const VectorType&,
+	                                 const BasisBaseType&) const
+	{
+		throw PsimagLite::RuntimeError
+		        ("ModelBase::matrixVectorProduct(3) not impl. for this model\n");
+	}
+
 	virtual const BasisBaseType& basis() const = 0;
 
 	virtual PsimagLite::String name() const  = 0;

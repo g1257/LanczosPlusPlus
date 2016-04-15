@@ -2,20 +2,20 @@
 #include "Version.h"
 #include "../../PsimagLite/src/Version.h"
 PsimagLite::String license = "Copyright (c) 2009-2012, UT-Battelle, LLC\n"
-        "All rights reserved\n"
-        "\n"
-        "[Lanczos++, Version 1.0]\n"
-        "\n"
-        "-------------------------------------------------------------\n"
-        "THE SOFTWARE IS SUPPLIED BY THE COPYRIGHT HOLDERS AND\n"
-        "CONTRIBUTORS \"AS IS\" AND ANY EXPRESS OR IMPLIED\n"
-        "WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED\n"
-        "WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A\n"
-        "PARTICULAR PURPOSE ARE DISCLAIMED. \n"
-        "\n"
-        "Please see full open source license included in file LICENSE.\n"
-        "-------------------------------------------------------------\n"
-        "\n";
+                             "All rights reserved\n"
+                             "\n"
+                             "[Lanczos++, Version 1.0]\n"
+                             "\n"
+                             "-------------------------------------------------------------\n"
+                             "THE SOFTWARE IS SUPPLIED BY THE COPYRIGHT HOLDERS AND\n"
+                             "CONTRIBUTORS \"AS IS\" AND ANY EXPRESS OR IMPLIED\n"
+                             "WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED\n"
+                             "WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A\n"
+                             "PARTICULAR PURPOSE ARE DISCLAIMED. \n"
+                             "\n"
+                             "Please see full open source license included in file LICENSE.\n"
+                             "-------------------------------------------------------------\n"
+                             "\n";
 
 #include <unistd.h>
 #include <cstdlib>
@@ -25,6 +25,7 @@ PsimagLite::String license = "Copyright (c) 2009-2012, UT-Battelle, LLC\n"
 #include "ProgramGlobals.h"
 #include "ModelSelector.h"
 #include "Geometry/Geometry.h"
+#include "InternalProductOnTheFly.h"
 #include "InternalProductStored.h"
 #include "InputNg.h" // in PsimagLite
 #include "ProgramGlobals.h"
@@ -55,8 +56,8 @@ typedef RealType ComplexOrRealType;
 typedef PsimagLite::Concurrency ConcurrencyType;
 typedef PsimagLite::InputNg<InputCheck> InputNgType;
 typedef PsimagLite::Geometry<ComplexOrRealType,
-                             InputNgType::Readable,
-                             ProgramGlobals> GeometryType;
+InputNgType::Readable,
+ProgramGlobals> GeometryType;
 typedef std::pair<SizeType,SizeType> PairType;
 typedef ModelSelector<ComplexOrRealType,GeometryType,InputNgType::Readable> ModelSelectorType;
 typedef ModelSelectorType::ModelBaseType ModelBaseType;
@@ -86,15 +87,17 @@ SizeType maxOrbitals(const ModelType& model)
 	return res;
 }
 
-template<typename ModelType,typename SpecialSymmetryType>
-void mainLoop2(const ModelType& model,
+template<typename ModelType,
+         typename SpecialSymmetryType,
+         template<typename,typename> class InternalProductTemplate>
+void mainLoop3(const ModelType& model,
                InputNgType::Readable& io,
                const PsimagLite::Vector<SizeType>::Type& gfV,
                PsimagLite::Vector<SizeType>::Type& sites,
                const PsimagLite::Vector<SizeType>::Type& cicjV,
                const PsimagLite::Vector<PairType>::Type& spins)
 {
-	typedef Engine<ModelType,InternalProductStored,SpecialSymmetryType> EngineType;
+	typedef Engine<ModelType,InternalProductTemplate,SpecialSymmetryType> EngineType;
 	typedef typename EngineType::TridiagonalMatrixType TridiagonalMatrixType;
 
 	const GeometryType& geometry = model.geometry();
@@ -124,9 +127,9 @@ void mainLoop2(const ModelType& model,
 				engine.spectralFunction(cfCollection,
 				                        gf,
 				                        sites[0],
-				                        sites[1],
-				                        spins,
-				                        std::pair<SizeType,SizeType>(orb1,orb2));
+				        sites[1],
+				        spins,
+				        std::pair<SizeType,SizeType>(orb1,orb2));
 			}
 		}
 
@@ -147,6 +150,36 @@ void mainLoop2(const ModelType& model,
 				std::cout<<cicjMatrix;
 			}
 		}
+	}
+}
+
+
+template<typename ModelType,typename SpecialSymmetryType>
+void mainLoop2(const ModelType& model,
+               InputNgType::Readable& io,
+               const PsimagLite::Vector<SizeType>::Type& gfV,
+               PsimagLite::Vector<SizeType>::Type& sites,
+               const PsimagLite::Vector<SizeType>::Type& cicjV,
+               const PsimagLite::Vector<PairType>::Type& spins)
+{
+	PsimagLite::String tmp;
+	io.readline(tmp,"SolverOptions=");
+	bool onthefly = (tmp.find("InternalProductOnTheFly") != PsimagLite::String::npos);
+
+	if (onthefly) {
+		mainLoop3<ModelType,SpecialSymmetryType,InternalProductOnTheFly>(model,
+		                                                                 io,
+		                                                                 gfV,
+		                                                                 sites,
+		                                                                 cicjV,
+		                                                                 spins);
+	} else {
+		mainLoop3<ModelType,SpecialSymmetryType,InternalProductStored>(model,
+		                                                               io,
+		                                                               gfV,
+		                                                               sites,
+		                                                               cicjV,
+		                                                               spins);
 	}
 }
 
@@ -175,25 +208,25 @@ void mainLoop(InputNgType::Readable& io,
 
 	if (useTranslationSymmetry) {
 		mainLoop2<ModelType,TranslationSymmetry<GeometryType,BasisBaseType> >(model,
+		                                                                      io,
+		                                                                      gf,
+		                                                                      sites,
+		                                                                      cicj,
+		                                                                      spins);
+	} else if (useReflectionSymmetry) {
+		mainLoop2<ModelType,ReflectionSymmetry<GeometryType,BasisBaseType> >(model,
+		                                                                     io,
+		                                                                     gf,
+		                                                                     sites,
+		                                                                     cicj,
+		                                                                     spins);
+	} else {
+		mainLoop2<ModelType,DefaultSymmetry<GeometryType,BasisBaseType> >(model,
 		                                                                  io,
 		                                                                  gf,
 		                                                                  sites,
 		                                                                  cicj,
 		                                                                  spins);
-	} else if (useReflectionSymmetry) {
-		mainLoop2<ModelType,ReflectionSymmetry<GeometryType,BasisBaseType> >(model,
-		                                                                 io,
-		                                                                 gf,
-		                                                                 sites,
-		                                                                 cicj,
-		                                                                 spins);
-	} else {
-		mainLoop2<ModelType,DefaultSymmetry<GeometryType,BasisBaseType> >(model,
-		                                                              io,
-		                                                              gf,
-		                                                              sites,
-		                                                              cicj,
-		                                                              spins);
 	}
 }
 

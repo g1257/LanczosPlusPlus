@@ -26,12 +26,14 @@ Please see full open source license included in file LICENSE.
 #include "ParametersModelFeAs.h"
 #include "ModelBase.h"
 #include "Geometry/GeometryDca.h"
+#include "Parallelizer.h"
 
 namespace LanczosPlusPlus {
 
 template<typename ComplexOrRealType,typename GeometryType,typename InputType>
 class FeBasedSc : public ModelBase<ComplexOrRealType,GeometryType,InputType> {
 
+	typedef FeBasedSc<ComplexOrRealType,GeometryType,InputType> ThisType;
 	typedef typename PsimagLite::Real<ComplexOrRealType>::Type RealType;
 	typedef PsimagLite::Matrix<ComplexOrRealType> MatrixType;
 	typedef ModelBase<ComplexOrRealType,GeometryType,InputType> BaseType;
@@ -39,14 +41,85 @@ class FeBasedSc : public ModelBase<ComplexOrRealType,GeometryType,InputType> {
 
 	enum {SPIN_UP = ProgramGlobals::SPIN_UP, SPIN_DOWN = ProgramGlobals::SPIN_DOWN};
 
-public:
-
 	typedef ParametersModelFeAs<RealType> ParametersModelType;
 	typedef BasisFeAsBasedSc<GeometryType> BasisType;
 	typedef typename BasisType::BaseType BasisBaseType;
 	typedef typename BasisType::WordType WordType;
 	typedef typename BaseType::SparseMatrixType SparseMatrixType;
 	typedef typename BaseType::VectorType VectorType;
+
+	class MatrixVectorHelper {
+
+		typedef PsimagLite::Concurrency ConcurrencyType;
+
+	public:
+
+		MatrixVectorHelper(SizeType nthreads,
+		                   VectorType &x,
+		                   const VectorType& y,
+		                   const BasisType& basis,
+		                   const ThisType& myself)
+		    : nthreads_(nthreads),x_(x),y_(y),basis_(basis),myself_(myself)
+		{}
+
+		void thread_function_(SizeType threadNum,
+		                      SizeType blockSize,
+		                      SizeType total,
+		                      ConcurrencyType::MutexType*)
+		{
+			SizeType nsite = myself_.geometry_.numberOfSites();
+			for (SizeType p=0;p<blockSize;p++) {
+				SizeType ispace = threadNum*blockSize + p;
+				if (ispace>=total) break;
+				SparseRowType sparseRow;
+
+				WordType ket1 = basis_.operator()(ispace,SPIN_UP);
+				WordType ket2 = basis_.operator()(ispace,SPIN_DOWN);
+
+				x_[ispace] += myself_.findS(nsite,ket1,ket2,ispace,basis_)*y_[ispace];
+
+				for (SizeType i=0;i<nsite;i++) {
+					for (SizeType orb=0;orb<myself_.mp_.orbitals;orb++) {
+						myself_.setHoppingTerm(sparseRow,ket1,ket2,
+						               i,orb,basis_);
+
+						if (myself_.mp_.feAsMode == 0) {
+							myself_.setU2OffDiagonalTerm(sparseRow,ket1,ket2,
+							                     i,orb,basis_);
+
+							for (SizeType orb2=orb+1;orb2<myself_.mp_.orbitals;orb2++) {
+								myself_.setU3Term(sparseRow,ket1,ket2,
+								          i,orb,orb2,basis_);
+							}
+
+							myself_.setJTermOffDiagonal(sparseRow,ket1,ket2,
+							                    i,orb,basis_);
+						} else if (myself_.mp_.feAsMode == 1 || myself_.mp_.feAsMode == 2) {
+							myself_.setOffDiagonalDecay(sparseRow,ket1,ket2,
+							                    i,orb,basis_);
+						} else if (myself_.mp_.feAsMode == 3) {
+							myself_.setOffDiagonalJimpurity(sparseRow,ket1,ket2,i,orb,basis_);
+						} else if (myself_.mp_.feAsMode == 4) {
+							myself_.setOffDiagonalKspace(sparseRow,ket1,ket2,i,orb,basis_);
+						}
+					}
+				}
+
+				x_[ispace] += sparseRow.finalize(y_);
+			}
+		}
+
+	private:
+
+		SizeType nthreads_;
+		VectorType &x_;
+        const VectorType& y_;
+		const BasisType& basis_;
+        const ThisType& myself_;
+	}; // class MatrixVectorHelper
+
+public:
+
 	typedef PsimagLite::SparseRow<SparseMatrixType> SparseRowType;
 	enum {TERM_HOPPINGS = 0,TERM_J_PM = 1, TERM_J_ZZ = 2};
 	static int const FERMION_SIGN = BasisType::FERMION_SIGN;
@@ -142,57 +215,25 @@ public:
 
 	void matrixVectorProduct(VectorType &x,const VectorType& y) const
 	{
-		matrixVectorProduct(x,y,&basis_);
+		matrixVectorProduct(x,y,basis_);
 	}
 
 	void matrixVectorProduct(VectorType &x,
 	                         const VectorType& y,
-	                         const BasisType* basis) const
+	                         const BasisType& basis) const
 	{
-		// Calculate diagonal elements AND count non-zero matrix elements
-		SizeType hilbert=basis->size();
-		calcDiagonalElements(x,y,basis);
-
-		SizeType nsite = geometry_.numberOfSites();
+		SizeType hilbert=basis.size();
 
 		// Calculate off-diagonal elements AND store matrix
+		typedef MatrixVectorHelper HelperType;
+		typedef PsimagLite::Parallelizer<HelperType> ParallelizerType;
+		ParallelizerType threadObject(PsimagLite::Concurrency::npthreads,
+		                              PsimagLite::MPI::COMM_WORLD);
+		HelperType helper(PsimagLite::Concurrency::npthreads,x,y,basis,*this);
 
-		for (SizeType ispace=0;ispace<hilbert;ispace++) {
-			SparseRowType sparseRow;
-
-			WordType ket1 = basis->operator ()(ispace,SPIN_UP);
-			WordType ket2 = basis->operator ()(ispace,SPIN_DOWN);
-
-			//x[ispace] += diag[ispace]*y[ispace];
-			for (SizeType i=0;i<nsite;i++) {
-				for (SizeType orb=0;orb<mp_.orbitals;orb++) {
-					setHoppingTerm(sparseRow,ket1,ket2,
-					               i,orb,*basis);
-
-					if (mp_.feAsMode == 0) {
-						setU2OffDiagonalTerm(sparseRow,ket1,ket2,
-						                     i,orb,*basis);
-
-						for (SizeType orb2=orb+1;orb2<mp_.orbitals;orb2++) {
-							setU3Term(sparseRow,ket1,ket2,
-							          i,orb,orb2,*basis);
-						}
-
-						setJTermOffDiagonal(sparseRow,ket1,ket2,
-						                    i,orb,*basis);
-					} else if (mp_.feAsMode == 1 || mp_.feAsMode == 2) {
-						setOffDiagonalDecay(sparseRow,ket1,ket2,
-						                    i,orb,*basis);
-					} else if (mp_.feAsMode == 3) {
-						setOffDiagonalJimpurity(sparseRow,ket1,ket2,i,orb,*basis);
-					} else if (mp_.feAsMode == 4) {
-						setOffDiagonalKspace(sparseRow,ket1,ket2,i,orb,*basis);
-					}
-				}
-			}
-
-			x[ispace] += sparseRow.finalize(y);
-		}
+		std::cout<<"Using "<<threadObject.name();
+		std::cout<<" with "<<threadObject.threads()<<" threads.\n";
+		threadObject.loopCreate(hilbert,helper);
 	}
 
 	const BasisType& basis() const { return basis_; }
@@ -430,20 +471,6 @@ private:
 			WordType ket1 = basis(ispace,SPIN_UP);
 			WordType ket2 = basis(ispace,SPIN_DOWN);
 			diag[ispace]=findS(nsite,ket1,ket2,ispace,basis);
-		}
-	}
-
-	void calcDiagonalElements(VectorType &x,
-	                          const VectorType& y,
-	                          const BasisType* basis) const
-	{
-		SizeType hilbert=basis->size();
-		SizeType nsite = geometry_.numberOfSites();
-
-		for (SizeType ispace=0;ispace<hilbert;ispace++) {
-			WordType ket1 = basis->operator()(ispace,SPIN_UP);
-			WordType ket2 = basis->operator()(ispace,SPIN_DOWN);
-			x[ispace] += findS(nsite,ket1,ket2,ispace,*basis)*y[ispace];
 		}
 	}
 

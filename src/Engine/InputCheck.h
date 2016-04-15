@@ -147,7 +147,7 @@ public:
 	void checkForThreads(SizeType nthreads) const
 	{
 		if (nthreads==1) return;
-
+#ifndef USE_PTHREADS
 		PsimagLite::String message1(__FILE__);
 		message1 += " FATAL: You are requesting nthreads>0 ";
 		message1 += "but you did not compile with USE_PTHREADS enabled\n";
@@ -156,6 +156,7 @@ public:
 		message1 += " add -DUSE_PTHREADS to the CPP_FLAGS in your Makefile ";
 		message1 += "and recompile\n";
 		throw PsimagLite::RuntimeError(message1.c_str());
+#endif
 	}
 
 	void usage(const char *progName)

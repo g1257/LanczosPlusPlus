@@ -295,6 +295,13 @@ int main(int argc,char *argv[])
 	InputNgType::Readable io(ioWriteable);
 	GeometryType geometry(io);
 
+	try {
+		io.readline(npthreads,"Threads=");
+		ConcurrencyType::npthreads = npthreads;
+	} catch (std::exception&) {}
+
+	inputCheck.checkForThreads(ConcurrencyType::npthreads);
+
 	std::cout<<geometry;
 
 	ModelSelectorType modelSelector(io,geometry);

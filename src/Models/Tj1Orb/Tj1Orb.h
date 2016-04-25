@@ -444,12 +444,11 @@ private:
 	                         const WordType& bra1,
 	                         const WordType& bra2) const
 	{
-		SizeType n = geometry_.numberOfSites()*mp_.orbitals;
 		int s = 1;
-		if (j>0) s *= parityFrom(0,j-1,bra2);
-		if (i>0) s *= parityFrom(0,i-1,bra2);
-		if (i<n-1) s *= parityFrom(i+1,n-1,bra1);
-		if (j<n-1) s *= parityFrom(j+1,n-1,bra1);
+		if (j > 0) s *= parityFrom(0,j-1,bra2);
+		if (i > 0) s *= parityFrom(0,i-1,bra2);
+		if (i > 0) s *= parityFrom(0,i-1,bra1);
+		if (j > 0) s *= parityFrom(0,j-1,bra1);
 		return s;
 	}
 

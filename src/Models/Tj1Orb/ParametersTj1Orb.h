@@ -92,18 +92,22 @@ struct ParametersTj1Orb {
 		try {
 			io.read(potentialV,"potentialV");
 		} catch(std::exception& e) {}
+
+		io.read(orbitals,"Orbitals=");
 	}
 
 	// Do not include here connection parameters
 	// those are handled by the Geometry
+	SizeType orbitals;
 	typename PsimagLite::Vector<Field>::Type potentialV;
 };
 
 //! Function that prints model parameters to stream os
 template<typename FieldType,typename InputType>
 std::ostream& operator<<(std::ostream &os,
-                         const ParametersTj1Orb<FieldType,InputType>&)
+                         const ParametersTj1Orb<FieldType,InputType>& p)
 {
+	os<<"Orbitals="<<p.orbitals<<"\n";
 	return os;
 }
 } // namespace LanczosPlusPlus

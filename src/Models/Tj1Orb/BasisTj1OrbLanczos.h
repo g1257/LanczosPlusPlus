@@ -31,8 +31,11 @@ public:
 
 	static int const FERMION_SIGN = -1;
 
-	BasisTj1OrbLanczos(const GeometryType& geometry, SizeType nup,SizeType ndown)
-	    : geometry_(geometry),nup_(nup),ndown_(ndown)
+	BasisTj1OrbLanczos(const GeometryType& geometry,
+	                   SizeType nup,
+	                   SizeType ndown,
+	                   SizeType orbitals)
+	    : geometry_(geometry),nup_(nup),ndown_(ndown),orbitals_(orbitals)
 	{
 		assert(bitmask_.size()==0 || bitmask_.size()==geometry_.numberOfSites());
 		if (bitmask_.size()==0) doBitmask();
@@ -57,7 +60,7 @@ public:
 	SizeType perfectIndex(const VectorWordType& kets) const
 	{
 		assert(kets.size()==2);
-		return perfectIndex(kets[0],kets[1]);
+		return (orbitals_ == 1) ? perfectIndex(kets[0],kets[1]) : bruteForce(kets[0],kets[1]);
 	}
 
 	SizeType perfectIndex(WordType ket1,WordType ket2) const
@@ -97,6 +100,19 @@ public:
 		return 0;
 	}
 
+	SizeType bruteForce(WordType ket1,WordType ket2) const
+	{
+		SizeType n = geometry_.numberOfSites()*orbitals_;
+		WordType ket = ket2;
+		ket <<= n;
+		ket |= ket1;
+		for (SizeType i = 0; i < data_.size(); ++i)
+			if (ket == data_[i]) return i;
+
+		assert(false);
+		return 0;
+	}
+
 	SizeType electrons(SizeType what) const
 	{
 		return (what==SPIN_UP) ? nup_ : ndown_;
@@ -104,7 +120,7 @@ public:
 
 	WordType operator()(SizeType i,SizeType spin) const
 	{
-		SizeType n = geometry_.numberOfSites();
+		SizeType n = geometry_.numberOfSites()*orbitals_;
 		WordType w = data_[i];
 		WordType mask = (1<<n);
 		mask--;
@@ -122,23 +138,25 @@ public:
 	                             WordType ket2,
 	                             SizeType site,
 	                             SizeType spin,
-	                             SizeType) const
+	                             SizeType orb) const
 	{
 		return (spin==SPIN_UP) ?
-		            isThereAnElectronAt(ket1,site) : isThereAnElectronAt(ket2,site);
+		            isThereAnElectronAt(ket1,site*orbitals_+orb) :
+		            isThereAnElectronAt(ket2,site*orbitals_+orb);
 	}
 
 	SizeType getN(WordType ket1,
 	              WordType ket2,
 	              SizeType site,
 	              SizeType spin,
-	              SizeType) const
+	              SizeType orb) const
 	{
-		return (spin==SPIN_UP) ? getN(ket1,site) : getN(ket2,site);
+		return (spin==SPIN_UP) ? getN(ket1,site*orbitals_+orb) : getN(ket2,site*orbitals_+orb);
 	}
 
 	int doSignGf(WordType a, WordType b,SizeType ind,SizeType sector,SizeType) const
 	{
+		assert(orbitals_ == 1);
 		if (sector==SPIN_UP) {
 			if (ind==0) return 1;
 
@@ -175,6 +193,7 @@ public:
 	           SizeType,
 	           SizeType spin) const
 	{
+		assert(orbitals_ == 1);
 		assert(i <= j);
 		return (spin==SPIN_UP) ? doSign(ket1,i,j): doSign(ket2,i,j);
 	}
@@ -186,6 +205,7 @@ public:
 	                        SizeType spin,
 	                        SizeType orb) const
 	{
+		assert(orbitals_ == 1);
 		if (operatorLabel == ProgramGlobals::OPERATOR_SPLUS) {
 			WordType bra1 = ket1;
 			WordType bra2 = ket2;
@@ -216,9 +236,9 @@ public:
 		return getBraIndex_(ket1,ket2,operatorLabel,site,spin,orb);
 	}
 
-	SizeType orbsPerSite(SizeType) const { return 1; }
+	SizeType orbsPerSite(SizeType) const { return orbitals_; }
 
-	SizeType orbs() const { return 1; }
+	SizeType orbs() const { return orbitals_; }
 
 	SizeType perfectIndex(WordType,SizeType,SizeType) const
 	{
@@ -243,6 +263,7 @@ public:
 	            SizeType site,
 	            SizeType spin) const
 	{
+		assert(orbitals_ == 1);
 		switch(operatorLabel) {
 		case ProgramGlobals::OPERATOR_C:
 		case ProgramGlobals::OPERATOR_CDAGGER:
@@ -269,6 +290,7 @@ private:
 	                         SizeType spin,
 	                         SizeType) const
 	{
+		assert(orbitals_ == 1);
 		WordType bra1 = ket1;
 		WordType bra2 = ket2;
 		int value = getBra(bra1,operatorLabel,ket1,ket2,site,spin);
@@ -292,7 +314,7 @@ private:
 	{
 		/* compute size of basis */
 		SizeType hilbert=1;
-		int n=geometry_.numberOfSites();
+		int n=geometry_.numberOfSites()*orbitals_;
 		SizeType m=1;
 		for (;m<=npart;n--,m++)
 			hilbert=hilbert*n/m;
@@ -328,7 +350,7 @@ private:
 		for (SizeType i=0;i<data1.size();i++) {
 			for (SizeType j=0;j<data2.size();j++) {
 				tmp = (data1[i] & data2[j]);
-				if (tmp>0) continue; // there's one or more RealType occupied
+				if (tmp>0) continue; // there's one or more doubly occupied
 				tmp2 = data2[j];
 				tmp2 <<= n;
 				data_.push_back(tmp2 | data1[i]);
@@ -348,7 +370,7 @@ private:
 
 	void doBitmask()
 	{
-		SizeType n = geometry_.numberOfSites();
+		SizeType n = geometry_.numberOfSites()*orbitals_;
 		bitmask_.resize(n);
 		bitmask_[0]=1ul;
 		for (SizeType i=1;i<n;i++)
@@ -357,6 +379,7 @@ private:
 
 	int doSign(WordType ket,SizeType i,SizeType j) const
 	{
+		assert(orbitals_ == 1);
 		assert(i <= j);
 		SizeType x0 = (i+1); // i+1 cannot be the last site, 'cause i<j
 		SizeType x1 = j;
@@ -378,6 +401,7 @@ private:
 
 	SizeType getNbyKet(SizeType ket,SizeType from,SizeType upto) const
 	{
+		assert(orbitals_ == 1);
 		SizeType sum = 0;
 		SizeType counter = from;
 		while (counter<upto) {
@@ -395,6 +419,7 @@ private:
 	            SizeType site,
 	            SizeType spin) const
 	{
+		assert(orbitals_ == 1);
 		if (spin==SPIN_UP) {
 			int b1 = getBraC(bra,ket1,what,site);
 			if (b1==0) return 0;
@@ -408,6 +433,7 @@ private:
 
 	int getBraC(WordType& bra,const WordType& ket,SizeType what,SizeType site) const
 	{
+		assert(orbitals_ == 1);
 		WordType si=(ket & bitmask_[site]);
 		if (what==OPERATOR_C) {
 			if (si>0) {
@@ -432,6 +458,7 @@ private:
 	                SizeType site,
 	                SizeType spin) const
 	{
+		assert(orbitals_ == 1);
 		bra = (spin==SPIN_UP) ? ket1 : ket2;
 
 		WordType si= (bra & bitmask_[site]);
@@ -442,6 +469,7 @@ private:
 	const GeometryType& geometry_;
 	SizeType nup_;
 	SizeType ndown_;
+	SizeType orbitals_;
 	VectorWordType data_;
 }; // class BasisTj1OrbLanczos
 

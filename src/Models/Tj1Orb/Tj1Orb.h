@@ -105,7 +105,7 @@ public:
 			SparseRowType sparseRow;
 			matrix.setRow(ispace,nCounter);
 			WordType ket1 = basis(ispace,SPIN_UP);
-			WordType ket2 = basis(ispace,SPIN_DOWN);
+			WordType ket2 = basis( ispace,SPIN_DOWN);
 			//				std::cout<<"ket1="<<ket1<<" ket2="<<ket2<<"\n";
 			// Save diagonal
 			sparseRow.add(ispace,diag[ispace]);
@@ -418,7 +418,10 @@ private:
 					WordType bra2= ket2 | BasisType::bitmask(i*mp_.orbitals+orb);
 					bra2 ^= BasisType::bitmask(j*mp_.orbitals+orb2);
 					SizeType temp = basis.perfectIndex(bra1,bra2);
-					sparseRow.add(temp,h*signSplusSminus(i,j,bra1,bra2));
+					sparseRow.add(temp,h*signSplusSminus(i*mp_.orbitals+orb,
+					                                     j*mp_.orbitals+orb2,
+					                                     bra1,
+					                                     bra2));
 				}
 
 				if (s1i==0 && s1j==1 && s2i==1 && s2j==0) {
@@ -427,7 +430,10 @@ private:
 					WordType bra2= ket2 ^ BasisType::bitmask(i*mp_.orbitals+orb);
 					bra2 |= BasisType::bitmask(j*mp_.orbitals+orb2);
 					SizeType temp = basis.perfectIndex(bra1,bra2);
-					sparseRow.add(temp,h*signSplusSminus(i,j,bra1,bra2));
+					sparseRow.add(temp,h*signSplusSminus(i*mp_.orbitals+orb,
+					                                     j*mp_.orbitals+orb2,
+					                                     bra1,
+					                                     bra2));
 				}
 			}
 		}
@@ -438,7 +444,7 @@ private:
 	                         const WordType& bra1,
 	                         const WordType& bra2) const
 	{
-		SizeType n = geometry_.numberOfSites();
+		SizeType n = geometry_.numberOfSites()*mp_.orbitals;
 		int s = 1;
 		if (j>0) s *= parityFrom(0,j-1,bra2);
 		if (i>0) s *= parityFrom(0,i-1,bra2);

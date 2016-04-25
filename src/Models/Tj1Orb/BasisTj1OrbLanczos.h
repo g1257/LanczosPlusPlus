@@ -65,6 +65,8 @@ public:
 
 	SizeType perfectIndex(WordType ket1,WordType ket2) const
 	{
+		if (orbitals_ > 1) return  bruteForce(ket1, ket2);
+
 		assert(SizeType(PsimagLite::BitManip::count(ket1))==nup_);
 		assert(SizeType(PsimagLite::BitManip::count(ket2))==ndown_);
 		SizeType n = geometry_.numberOfSites();
@@ -188,14 +190,14 @@ public:
 	int doSign(WordType ket1,
 	           WordType ket2,
 	           SizeType i,
-	           SizeType,
+	           SizeType orb,
 	           SizeType j,
-	           SizeType,
+	           SizeType orb2,
 	           SizeType spin) const
 	{
-		assert(orbitals_ == 1);
-		assert(i <= j);
-		return (spin==SPIN_UP) ? doSign(ket1,i,j): doSign(ket2,i,j);
+		assert(i*orbitals_+orb <= j*orbitals_+orb2);
+		return (spin==SPIN_UP) ? doSign(ket1,i*orbitals_+orb,j*orbitals_+orb2):
+		                         doSign(ket2,i*orbitals_+orb,j*orbitals_+orb2);
 	}
 
 	PairIntType getBraIndex(WordType ket1,
@@ -346,7 +348,7 @@ private:
 	{
 		WordType tmp = 0;
 		WordType tmp2 = 0;
-		SizeType n=geometry_.numberOfSites();
+		SizeType n=geometry_.numberOfSites()*orbitals_;
 		for (SizeType i=0;i<data1.size();i++) {
 			for (SizeType j=0;j<data2.size();j++) {
 				tmp = (data1[i] & data2[j]);
@@ -379,7 +381,6 @@ private:
 
 	int doSign(WordType ket,SizeType i,SizeType j) const
 	{
-		assert(orbitals_ == 1);
 		assert(i <= j);
 		SizeType x0 = (i+1); // i+1 cannot be the last site, 'cause i<j
 		SizeType x1 = j;
@@ -401,7 +402,6 @@ private:
 
 	SizeType getNbyKet(SizeType ket,SizeType from,SizeType upto) const
 	{
-		assert(orbitals_ == 1);
 		SizeType sum = 0;
 		SizeType counter = from;
 		while (counter<upto) {

@@ -3,7 +3,7 @@
 
 #include "Vector.h"
 #include "ModelBase.h"
-#include "../Models/Tj1Orb/Tj1Orb.h"
+#include "../Models/TjMultiOrb/TjMultiOrb.h"
 #include "../Models/Immm/Immm.h"
 #include "../Models/HubbardOneOrbital/HubbardOneOrbital.h"
 #include "../Models/FeBasedSc/FeBasedSc.h"

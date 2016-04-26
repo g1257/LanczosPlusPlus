@@ -5,11 +5,11 @@
 #define LANCZOS_TJ_1ORB_H
 
 #include "CrsMatrix.h"
-#include "BasisTj1OrbLanczos.h"
+#include "BasisTjMultiOrbLanczos.h"
 #include "BitManip.h"
 #include "TypeToString.h"
 #include "SparseRow.h"
-#include "ParametersTj1Orb.h"
+#include "ParametersTjMultiOrb.h"
 #include "ModelBase.h"
 
 namespace LanczosPlusPlus {

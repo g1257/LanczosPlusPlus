@@ -1,8 +1,8 @@
 /*
 */
 
-#ifndef LANCZOS_TJ_1ORB_H
-#define LANCZOS_TJ_1ORB_H
+#ifndef LANCZOS_TJ_MULTIORB_H
+#define LANCZOS_TJ_MULTIORB_H
 
 #include "CrsMatrix.h"
 #include "BasisTjMultiOrbLanczos.h"
@@ -15,7 +15,7 @@
 namespace LanczosPlusPlus {
 
 template<typename ComplexOrRealType,typename GeometryType,typename InputType>
-class Tj1Orb  : public ModelBase<ComplexOrRealType,GeometryType,InputType> {
+class TjMultiOrb  : public ModelBase<ComplexOrRealType,GeometryType,InputType> {
 
 	typedef typename PsimagLite::Real<ComplexOrRealType>::Type RealType;
 	typedef PsimagLite::Matrix<ComplexOrRealType> MatrixType;
@@ -26,8 +26,8 @@ class Tj1Orb  : public ModelBase<ComplexOrRealType,GeometryType,InputType> {
 
 public:
 
-	typedef ParametersTj1Orb<RealType,InputType> ParametersModelType;
-	typedef BasisTj1OrbLanczos<GeometryType> BasisType;
+	typedef ParametersTjMultiOrb<RealType,InputType> ParametersModelType;
+	typedef BasisTjMultiOrbLanczos<GeometryType> BasisType;
 	typedef typename BasisType::BaseType BasisBaseType;
 	typedef typename BasisType::WordType WordType;
 	typedef typename BaseType::SparseMatrixType SparseMatrixType;
@@ -37,7 +37,7 @@ public:
 
 	static int const FERMION_SIGN = BasisType::FERMION_SIGN;
 
-	Tj1Orb(SizeType nup,
+	TjMultiOrb(SizeType nup,
 	       SizeType ndown,
 	       InputType& io,
 	       const GeometryType& geometry)
@@ -52,7 +52,7 @@ public:
 		SizeType n = geometry_.numberOfSites();
 
 		if (geometry_.terms() != 4) {
-			PsimagLite::String msg("Tj1Orb: must have 4 terms\n");
+			PsimagLite::String msg("TjMultiOrb: must have 4 terms\n");
 			throw PsimagLite::RuntimeError(msg);
 		}
 
@@ -71,7 +71,7 @@ public:
 		}
 	}
 
-	~Tj1Orb()
+	~TjMultiOrb()
 	{
 		BaseType::deleteGarbage(garbage_);
 	}
@@ -477,7 +477,7 @@ private:
 	PsimagLite::Matrix<ComplexOrRealType> jzz_;
 	PsimagLite::Matrix<ComplexOrRealType> w_;
 	mutable typename PsimagLite::Vector<BasisType*>::Type garbage_;
-}; // class Tj1Orb
+}; // class TjMultiOrb
 } // namespace LanczosPlusPlus
 #endif
 

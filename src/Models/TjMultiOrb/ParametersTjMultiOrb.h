@@ -72,22 +72,22 @@ DISCLOSED WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
 /** \ingroup LanczosPlusPlus */
 /*@{*/
 
-/*! \file ParametersTj1Orb.h
+/*! \file ParametersTjMultiOrb.h
  *
  *  Contains the parameters for the Tj1Orb model
  *
  */
-#ifndef PARAMETERS_TJ_1ORB_H
-#define PARAMETERS_TJ_1ORB_H
+#ifndef LANCZOS_PARAMS_TJ_MULTIORB_H
+#define LANCZOS_PARAMS_TJ_MULTIORB_H
 #include "Vector.h"
 #include <stdexcept>
 
 namespace LanczosPlusPlus {
 //! Tj1Orb Model Parameters
 template<typename Field,typename InputType>
-struct ParametersTj1Orb {
+struct ParametersTjMultiOrb {
 
-	ParametersTj1Orb(InputType& io)
+	ParametersTjMultiOrb(InputType& io)
 	{
 		try {
 			io.read(potentialV,"potentialV");
@@ -105,7 +105,7 @@ struct ParametersTj1Orb {
 //! Function that prints model parameters to stream os
 template<typename FieldType,typename InputType>
 std::ostream& operator<<(std::ostream &os,
-                         const ParametersTj1Orb<FieldType,InputType>& p)
+                         const ParametersTjMultiOrb<FieldType,InputType>& p)
 {
 	os<<"Orbitals="<<p.orbitals<<"\n";
 	return os;

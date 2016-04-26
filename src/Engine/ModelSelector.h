@@ -14,7 +14,7 @@ namespace LanczosPlusPlus {
 template<typename ComplexOrRealType,typename GeometryType,typename InputType>
 class ModelSelector {
 
-	typedef Tj1Orb<ComplexOrRealType,GeometryType, InputType> Tj1OrbType;
+	typedef TjMultiOrb<ComplexOrRealType,GeometryType, InputType> TjMultiOrbType;
 	typedef Immm<ComplexOrRealType,GeometryType, InputType> ImmmType;
 	typedef HubbardOneOrbital<ComplexOrRealType,GeometryType, InputType> HubbardOneOrbitalType;
 	typedef FeBasedSc<ComplexOrRealType,GeometryType, InputType> FeBasedScType;
@@ -28,7 +28,7 @@ public:
 	/** @class hide_modelselector
 	 - TargetElectronsUp=integer
 	 - TargetElectronsDown=integer
-	 - Model=string One of Tj1Orb Heisenberg Immm
+	 - Model=string One of TjMultiOrb Heisenberg Immm
 	                       HubbardOneBand HubbardOneBandExtended SuperHubbardExtended
 	                       FeAsBasedSc FeAsBasedScExtended
 	*/
@@ -49,8 +49,8 @@ public:
 		PsimagLite::String model("");
 		io.readline(model,"Model=");
 
-		if (model=="Tj1Orb") {
-			modelPtr_ = new Tj1OrbType(nup,ndown,io,geometry);
+		if (model=="TjMultiOrb") {
+			modelPtr_ = new TjMultiOrbType(nup,ndown,io,geometry);
 		} else if (model=="Immm") {
 			modelPtr_ = new ImmmType(nup,ndown,io,geometry);
 		} else if (model=="HubbardOneBand" ||

@@ -1,8 +1,8 @@
 /*
 */
 
-#ifndef BASIS_TJ_1ORB_LANCZOS_H
-#define BASIS_TJ_1ORB_LANCZOS_H
+#ifndef BASIS_TJ_MULTIORB_LANCZOS_H
+#define BASIS_TJ_MULTIORB_LANCZOS_H
 
 #include "BitManip.h"
 #include "ProgramGlobals.h"
@@ -11,7 +11,7 @@
 namespace LanczosPlusPlus {
 
 template<typename GeometryType>
-class BasisTj1OrbLanczos : public BasisBase<GeometryType> {
+class BasisTjMultiOrbLanczos : public BasisBase<GeometryType> {
 
 	typedef ProgramGlobals::PairIntType PairIntType;
 
@@ -31,7 +31,7 @@ public:
 
 	static int const FERMION_SIGN = -1;
 
-	BasisTj1OrbLanczos(const GeometryType& geometry,
+	BasisTjMultiOrbLanczos(const GeometryType& geometry,
 	                   SizeType nup,
 	                   SizeType ndown,
 	                   SizeType orbitals)
@@ -281,7 +281,7 @@ public:
 
 	template<typename GeometryType2>
 	friend std::ostream& operator<<(std::ostream& os,
-	                                const BasisTj1OrbLanczos<GeometryType2>& basis);
+	                                const BasisTjMultiOrbLanczos<GeometryType2>& basis);
 
 private:
 
@@ -471,10 +471,10 @@ private:
 	SizeType ndown_;
 	SizeType orbitals_;
 	VectorWordType data_;
-}; // class BasisTj1OrbLanczos
+}; // class BasisTjMultiOrbLanczos
 
 template<typename GeometryType>
-std::ostream& operator<<(std::ostream& os,const BasisTj1OrbLanczos<GeometryType>& basis)
+std::ostream& operator<<(std::ostream& os,const BasisTjMultiOrbLanczos<GeometryType>& basis)
 {
 	for (SizeType i=0;i<basis.data_.size();i++)
 		os<<i<<" "<<basis.data_[i]<<"\n";
@@ -482,8 +482,8 @@ std::ostream& operator<<(std::ostream& os,const BasisTj1OrbLanczos<GeometryType>
 }
 
 template<typename GeometryType>
-typename BasisTj1OrbLanczos<GeometryType>::VectorWordType
-BasisTj1OrbLanczos<GeometryType>::bitmask_;
+typename BasisTjMultiOrbLanczos<GeometryType>::VectorWordType
+BasisTjMultiOrbLanczos<GeometryType>::bitmask_;
 
 } // namespace LanczosPlusPlus
 #endif

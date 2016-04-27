@@ -88,18 +88,27 @@ template<typename Field,typename InputType>
 struct ParametersTjMultiOrb {
 
 	ParametersTjMultiOrb(InputType& io)
+	    : reinterpretAndTruncate(0)
 	{
 		try {
 			io.read(potentialV,"potentialV");
-		} catch(std::exception& e) {}
+		} catch(std::exception&) {}
+
+		try {
+			io.readline(reinterpretAndTruncate,"JHundInfinity=");
+		} catch (std::exception&) {}
 
 		io.read(orbitals,"Orbitals=");
+		if (orbitals != 2 && reinterpretAndTruncate) {
+			throw PsimagLite::RuntimeError("JHundInfinity=1 only possible for orbitals==2\n");
+		}
 	}
 
 	// Do not include here connection parameters
 	// those are handled by the Geometry
 	SizeType orbitals;
 	typename PsimagLite::Vector<Field>::Type potentialV;
+	SizeType reinterpretAndTruncate;
 };
 
 //! Function that prints model parameters to stream os

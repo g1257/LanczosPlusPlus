@@ -24,6 +24,9 @@ class TjMultiOrb  : public ModelBase<ComplexOrRealType,GeometryType,InputType> {
 
 	enum {SPIN_UP = ProgramGlobals::SPIN_UP, SPIN_DOWN = ProgramGlobals::SPIN_DOWN};
 
+	static const SizeType REINTERPRET_6 = 6;
+	static const SizeType REINTERPRET_9 = 9;
+
 public:
 
 	typedef ParametersTjMultiOrb<RealType,InputType> ParametersModelType;
@@ -33,14 +36,17 @@ public:
 	typedef typename BaseType::SparseMatrixType SparseMatrixType;
 	typedef typename BaseType::VectorType VectorType;
 	typedef typename BaseType::VectorSizeType VectorSizeType;
+	typedef std::pair<WordType,WordType> PairWordType;
+	typedef typename PsimagLite::Vector<PairWordType>::Type VectorPairWordType;
+	typedef PsimagLite::Matrix<SizeType> MatrixSizeType;
 	typedef PsimagLite::SparseRow<SparseMatrixType> SparseRowType;
 
 	static int const FERMION_SIGN = BasisType::FERMION_SIGN;
 
 	TjMultiOrb(SizeType nup,
-	       SizeType ndown,
-	       InputType& io,
-	       const GeometryType& geometry)
+	           SizeType ndown,
+	           InputType& io,
+	           const GeometryType& geometry)
 	    : mp_(io),
 	      geometry_(geometry),
 	      basis_(geometry,nup,ndown,mp_.orbitals),
@@ -118,9 +124,13 @@ public:
 
 			nCounter += sparseRow.finalize(matrix);
 		}
+
 		matrix.setRow(hilbert,nCounter);
 		matrix.checkValidity();
 		assert(isHermitian(matrix));
+
+		if (mp_.reinterpretAndTruncate)
+			reinterpretAndTruncate(matrix,basis);
 	}
 
 	bool hasNewParts(std::pair<SizeType,SizeType>& newParts,
@@ -173,6 +183,196 @@ public:
 	}
 
 private:
+
+	void reinterpretAndTruncate(SparseMatrixType& matrix,
+	                            const BasisBaseType& basis) const
+	{
+		SizeType n = basis.size();
+		SparseMatrixType rot(n,n);
+		SparseMatrixType rotT;
+		VectorSizeType targets;
+		buildRotation(rot,rotT,targets,basis);
+		SparseMatrixType tmp;
+		multiply(tmp,matrix,rotT);
+		multiply(matrix,rot,tmp);
+		assert(isHermitian(matrix));
+		truncateMatrix(matrix,targets);
+		assert(isHermitian(matrix));
+	}
+
+	void truncateMatrix(SparseMatrixType& matrix,const VectorSizeType& targets) const
+	{
+		assert(matrix.row() > targets.size());
+		SizeType nFull = matrix.row();
+		SizeType nTrunc = matrix.row() - targets.size();
+		SparseMatrixType matrix2(nTrunc,nTrunc);
+
+		VectorSizeType remap(nFull,0);
+		SizeType ii = 0;
+		for (SizeType i = 0; i < nFull; ++i) {
+			if (std::find(targets.begin(),targets.end(),i) != targets.end()) continue;
+			remap[i] = ii;
+			ii++;
+		}
+
+		assert(ii = nTrunc);
+		SizeType counter = 0;
+		for (SizeType i = 0; i < nFull; ++i) {
+			if (std::find(targets.begin(),targets.end(),i) != targets.end()) continue;
+			matrix2.setRow(remap[i],counter);
+			for (int k = matrix.getRowPtr(i); k < matrix.getRowPtr(i+1); ++k) {
+				SizeType col = matrix.getCol(k);
+				if (std::find(targets.begin(),targets.end(),col) != targets.end()) continue;
+				matrix2.pushCol(remap[col]);
+				matrix2.pushValue(matrix.getValue(k));
+				counter++;
+			}
+		}
+
+		matrix2.setRow(nTrunc,counter);
+		matrix2.checkValidity();
+		matrix = matrix2;
+	}
+
+	void buildRotation(SparseMatrixType& rot,
+	                   SparseMatrixType& rotT,
+	                   VectorSizeType& targets,
+	                   const BasisBaseType& basis) const
+	{
+		SizeType nCounter = 0;
+		SizeType hilbert = basis.size();
+		for (SizeType ispace=0;ispace<hilbert;ispace++) {
+			SparseRowType sparseRow;
+			rot.setRow(ispace,nCounter);
+			WordType ket1 = basis(ispace,SPIN_UP);
+			WordType ket2 = basis( ispace,SPIN_DOWN);
+			VectorSizeType k;
+			breakIntoSites(k,ket1,ket2);
+			if (hasSinglet(k)) targets.push_back(ispace);
+			SizeType branches = getBranchesFromVector(k);
+			VectorType braValues(branches,1.0);
+			MatrixSizeType braMatrix(branches,k.size());
+			getBrasFromVector(braMatrix,braValues,k);
+			for (SizeType i = 0; i < branches; ++i) {
+				PairWordType bra = fromMatrixToBra(braMatrix,i);
+				SizeType temp = basis.perfectIndex(bra.first,bra.second);
+				sparseRow.add(temp,braValues[i]);
+			}
+
+			nCounter += sparseRow.finalize(rot);
+		}
+
+		rot.setRow(hilbert,nCounter);
+		rot.checkValidity();
+		transposeConjugate(rotT,rot);
+	}
+
+	bool hasSinglet(VectorSizeType k) const
+	{
+		for (SizeType i = 0; i < k.size(); ++i)
+			if (k[i] == REINTERPRET_6) return true;
+
+		return false;
+	}
+
+	SizeType getBranchesFromVector(VectorSizeType k) const
+	{
+		SizeType res = 1;
+		for (SizeType i = 0; i < k.size(); ++i)
+			if (k[i] == REINTERPRET_6 || k[i] == REINTERPRET_9) res *= 2;
+
+		return res;
+	}
+
+
+	void breakIntoSites(VectorSizeType& k,WordType ket1,WordType ket2) const
+	{
+		SizeType mask = 3;
+		while (ket1 > 0 || ket2 > 0) {
+			SizeType val1 = ket1 & mask;
+			SizeType val2 = ket2 & mask;
+			val2 <<= 2;
+			val1 |= val2;
+			k.push_back(val1);
+			ket1 >>= 2;
+			ket2 >>= 2;
+		}
+	}
+
+	void getBrasFromVector(MatrixSizeType &braMatrix,
+	                       VectorType& braValues,
+	                       const VectorSizeType& k) const
+	{
+		SizeType n = k.size();
+		SizeType i = 0;
+		SizeType b = 0;
+		SizeType currentBranches = 1;
+		SizeType j  = 0;
+		RealType oneOverSqrt2 = 1.0/sqrt(2.0);
+
+		while (true) {
+			switch (k[i]) {
+			case REINTERPRET_6:
+				for (b = 0; b < currentBranches; ++b) {
+					braMatrix(b,i) = REINTERPRET_6;
+					for (j = 0; j < i; ++j)
+						braMatrix(currentBranches + b, j) = braMatrix(b,j);
+
+					braMatrix(currentBranches + b,i) = REINTERPRET_9;
+					assert(currentBranches + b < braValues.size());
+					braValues[currentBranches + b] *= (-oneOverSqrt2);
+				}
+
+				currentBranches++;
+ 				break;
+			case REINTERPRET_9:
+				for (b = 0; b < currentBranches; ++b) {
+					braMatrix(b,i) = REINTERPRET_6;
+					for (j = 0; j < i; ++j)
+						braMatrix(currentBranches + b, j) = braMatrix(b,j);
+
+					braMatrix(currentBranches + b,i) = REINTERPRET_9;
+					assert(currentBranches + b < braValues.size());
+					braValues[currentBranches + b] *= oneOverSqrt2;
+				}
+
+				currentBranches++;
+				break;
+			default:
+				for (b = 0; b < currentBranches; ++b)
+					braMatrix(b,i) = k[i];
+
+				break;
+			}
+
+			i++;
+			if (i == n) break;
+		}
+
+		assert(currentBranches == braMatrix.n_row());
+	}
+
+	PairWordType fromMatrixToBra(const MatrixSizeType& braMatrix, SizeType branch) const
+	{
+		SizeType bra1 = 0;
+		SizeType bra2 = 0;
+		SizeType mask1 = 3;
+		SizeType mask2 = 12;
+		for (SizeType i = 0; i < braMatrix.n_col(); ++i) {
+			SizeType tmp = braMatrix(branch,i);
+			SizeType tmp1 = tmp & mask1;
+			tmp1 <<= (i*2);
+			bra1 |= tmp1;
+
+			SizeType tmp2 = tmp & mask2;
+			tmp2 >>= 2;
+			tmp2 <<= (i*2);
+			bra2 |= tmp2;
+
+		}
+
+		return PairWordType(bra1,bra2);
+	}
 
 	void printOperatorC(SizeType site, SizeType spin, std::ostream& os) const
 	{

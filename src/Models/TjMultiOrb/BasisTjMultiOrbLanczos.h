@@ -25,19 +25,20 @@ public:
 	static VectorWordType bitmask_;
 
 	enum {OPERATOR_NIL=ProgramGlobals::OPERATOR_NIL,
-	      OPERATOR_C=ProgramGlobals::OPERATOR_C,
-	      OPERATOR_SZ=ProgramGlobals::OPERATOR_SZ,
-	      OPERATOR_CDAGGER=ProgramGlobals::OPERATOR_CDAGGER};
+		  OPERATOR_C=ProgramGlobals::OPERATOR_C,
+		  OPERATOR_SZ=ProgramGlobals::OPERATOR_SZ,
+		  OPERATOR_CDAGGER=ProgramGlobals::OPERATOR_CDAGGER};
 
 	static int const FERMION_SIGN = -1;
 
 	BasisTjMultiOrbLanczos(const GeometryType& geometry,
-	                   SizeType nup,
-	                   SizeType ndown,
-	                   SizeType orbitals)
+	                       SizeType nup,
+	                       SizeType ndown,
+	                       SizeType orbitals)
 	    : geometry_(geometry),nup_(nup),ndown_(ndown),orbitals_(orbitals)
 	{
-		assert(bitmask_.size()==0 || bitmask_.size()==geometry_.numberOfSites());
+		assert(bitmask_.size()==0 ||
+		       bitmask_.size()==geometry_.numberOfSites()*orbitals);
 		if (bitmask_.size()==0) doBitmask();
 		VectorWordType data1;
 		fillOneSector(data1,nup);

@@ -304,13 +304,12 @@ private:
 	                       const VectorSizeType& k) const
 	{
 		SizeType n = k.size();
-		SizeType i = 0;
 		SizeType b = 0;
 		SizeType currentBranches = 1;
 		SizeType j  = 0;
 		RealType oneOverSqrt2 = 1.0/sqrt(2.0);
 
-		while (true) {
+		for (SizeType i = 0; i < n; ++i) {
 			switch (k[i]) {
 			case REINTERPRET_6:
 				for (b = 0; b < currentBranches; ++b) {
@@ -344,9 +343,6 @@ private:
 
 				break;
 			}
-
-			i++;
-			if (i == n) break;
 		}
 
 		assert(currentBranches == braMatrix.n_row());

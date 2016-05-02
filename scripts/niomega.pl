@@ -4,22 +4,23 @@ use strict;
 use warnings;
 use Math::Trig;
 
-my ($template,$rootInput,$wbegin,$wend,$wstep,$wdelta) = @ARGV;
+my ($template,$rootInput,$wbegin,$wend,$wstep,$wdelta,$orb1,$orb2,$orbitals) = @ARGV;
 my $obs = "c";
-my $usage = "USAGE: $0 templateInput rootInput begin end step delta";
-defined($wdelta) or die "$usage\n";
+my $usage = "USAGE: $0 templateInput rootInput begin end step delta orb1 orb2 orbitals";
+defined($orbitals) or die "$usage\n";
 
 my $total = readLabel($template,"TotalNumberOfSites");
-my $centralSite = int($total/2) - 1;
 my @data;
 
 for (my $i = 0; $i < $total; ++$i) {
 	my $input = createInput($i);
 	system("./lanczos -f $input -g $obs &> $rootInput$i.comb");
 	print STDERR "$0: Created $rootInput$i.comb\n";
-	system("echo \"#SITES $centralSite $i\" > $rootInput$i.cf");
+	system("perl ../scripts/extractOrbitals.pl $orb1 $orb2 $orbitals < $rootInput$i.comb > $rootInput$i.comb2");
+	print STDERR "$0: Created $rootInput$i.comb2\n";
+	system("echo \"#SITES $i $i\" > $rootInput$i.cf");
 	my $cmd = "../../PsimagLite/drivers/continuedFractionCollection ";
-	$cmd .= "-f $rootInput$i.comb -b $wbegin ";
+	$cmd .= "-f $rootInput$i.comb2 -b $wbegin ";
 	$cmd .= " -e $wend -s $wstep -d $wdelta >> $rootInput$i.cf";
 	system($cmd);
 	print STDERR "$0: Created $rootInput$i.cf\n";
@@ -36,7 +37,6 @@ for (my $wi =0; $wi < $omegasTotal; ++$wi) {
 	print "$omegas[$wi]->[0] ";
 	my ($sumr, $sumi) = (0,0);
 	for (my $i = 0; $i < $total; ++$i) {
-		my $factor = ($i == $centralSite) ? 0.5 : 1;
 		$_ = $data[$i];
 		my @t = @$_;
 		my $t = $t[$wi];

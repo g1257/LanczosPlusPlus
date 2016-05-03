@@ -254,6 +254,7 @@ int main(int argc,char *argv[])
 			cicj.push_back(ProgramGlobals::operator2id(optarg));
 			break;
 		case 's':
+			spins.clear();
 			PsimagLite::tokenizer(optarg,str,";");
 			fillOrbsOrSpin(spins,str);
 			str.clear();

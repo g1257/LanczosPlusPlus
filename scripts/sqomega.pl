@@ -4,9 +4,12 @@ use strict;
 use warnings;
 use Math::Trig;
 
-my ($template,$rootInput,$obs,$wbegin,$wend,$wstep,$wdelta,$orb1,$orb2,$orbitals) = @ARGV;
-my $usage = "USAGE: $0 templateInput rootInput observable begin end step delta orb1 orb2 orbitals";
+my ($template,$rootInput,$obs,$wbegin,$wend,$wstep,$wdelta,$orb1,$orb2,$orbitals,$spin) = @ARGV;
+my $usage = "USAGE: $0 templateInput rootInput observable begin end step delta ";
+$usage .= "orb1 orb2 orbitals [spin]";
 defined($orbitals) or die "$usage\n";
+defined($spin) or $spin = 0;
+my $spins = "\"$spin,$spin\"";
 
 my $total = readLabel($template,"TotalNumberOfSites");
 my $centralSite = int($total/2) - 1;
@@ -14,7 +17,7 @@ my @data;
 
 for (my $i = 0; $i < $total; ++$i) {
 	my $input = createInput($i);
-	system("./lanczos -f $input -g $obs &> $rootInput$i.comb");
+	system("./lanczos -f $input -g $obs -s $spins &> $rootInput$i.comb");
 	print STDERR "$0: Created $rootInput$i.comb\n";
 	system("perl ../scripts/extractOrbitals.pl $orb1 $orb2 $orbitals < $rootInput$i.comb > $rootInput$i.comb2");
 	print STDERR "$0: Created $rootInput$i.comb2\n";

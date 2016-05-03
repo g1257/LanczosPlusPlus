@@ -1,4 +1,4 @@
 #ifndef LANCZOSPP_VERSION
-#define LANCZOSPP_VERSION "1.08"
+#define LANCZOSPP_VERSION "1.10"
 #endif
 

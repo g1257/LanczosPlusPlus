@@ -26,6 +26,7 @@ my $counter = 0;
 
 while ($counter <= $offset) {
 	$_ = <STDIN>;
+	defined($_) or last;
 	if (/^#Avector/) {
 		$counter++;
 	}
@@ -36,6 +37,7 @@ print "#Avector\n";
 $counter = 0;
 while ($counter <= $total) {
 	$_ = <STDIN>;
+	defined($_) or last;
 	if (/^#Avector/) {
 		$counter++;
 	}

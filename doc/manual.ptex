@@ -1,0 +1,200 @@
+\documentclass{book}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{graphicx}
+\usepackage{fancyvrb} %keep
+\usepackage{fancyhdr}
+\usepackage{booktabs} %keep
+\usepackage{mathtools} %keep
+\usepackage{hyperref}
+
+\fancyhead{}
+\fancyhead[LE]{\leftmark}
+\fancyhead[RO]{\rightmark}
+\cfoot{}
+\rfoot{\thepage} %exit
+
+\hypersetup{colorlinks=true}
+
+
+\newcommand{\cppFile}[1]{\texttt{#1}}
+\newcommand{\inputItem}[1]{\noindent\texttt{\bf #1} ---}
+\newcommand{\inputSubItem}[1]{\indent\texttt{\it #1} --}
+%% Remove the below command before submission
+\newcommand{\todo}[1]{\textcolor{red}{#1}}
+%Format to denote a C++ class name:
+\newcommand{\cppClass}[1]{{\sffamily #1}}
+%Format to denote a C++ variable:
+\newcommand{\cppFunction}[1]{{\tt #1}}
+% for the cover page:
+\newcommand{\HRule}{\noindent\rule{\linewidth}{1.5pt}}
+\newcommand{\ptexPaste}[1]{\fbox{\textcolor{red}{PLEASE RUN ptex.pl on this .ptex source
+to obtain the correct test for tag #1}}}
+\newcommand{\ptexLabel}[1]{\ptexPaste{#1}}
+\newcommand{\ptexInterface}[1]{\ptexPaste{#1}}
+\newcommand{\ptexReadFile}[1]{\ptexPaste{#1}}
+\newcommand{\ptexReadFileVerbatim}[1]{\ptexPaste{#1}}
+
+\hyphenation{Wave-Function-Transformation}
+\lstset{language=c++,basicstyle=\footnotesize\ttfamily,
+keywordstyle=\color{blue}\bfseries,frame=shadowbox}
+\pagestyle{fancy}
+\begin{document}
+
+\begin{titlepage}
+\vspace*{\stretch{1}}
+\HRule
+\begin{flushright}
+\LARGE  Lanczos++ v1 Manual\\
+\end{flushright}
+\HRule
+\vspace*{\stretch{2}}
+
+%
+\begin{center}
+\Large Manual Version: \today\\
+\end{center}
+
+\begin{center}
+\textsc{Oak Ridge, 2014}
+\end{center}
+
+\end{titlepage}
+%
+\begin{titlepage}
+\noindent
+\begin{minipage}{0.4\textwidth}
+\begin{flushleft}
+Gonzalo \textsc{Alvarez}\\
+Nanomaterials Theory Institute\\
+Oak Ridge National Laboratory\\[0.2cm]
+Oak Ridge, TN 37831\\
+\today
+\end{flushleft}
+\end{minipage}
+
+\vspace*{\stretch{2}}
+\noindent
+%\begin{minipage}{0.6\textwidth}
+\begin{tiny}
+\fontshape{sc}\selectfont
+%\begin{verbatim}
+\noindent
+DISCLAIMER\\[0.2cm]
+THE SOFTWARE IS SUPPLIED BY THE COPYRIGHT HOLDERS AND
+CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+COPYRIGHT OWNER, CONTRIBUTORS, UNITED STATES GOVERNMENT,
+OR THE UNITED STATES DEPARTMENT OF ENERGY BE LIABLE FOR
+ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
+DAMAGE.
+
+NEITHER THE UNITED STATES GOVERNMENT, NOR THE UNITED STATES DEPARTMENT OF ENERGY,
+NOR THE COPYRIGHT OWNER, NOR
+ANY OF THEIR EMPLOYEES, REPRESENTS THAT THE USE OF ANY
+INFORMATION, DATA, APPARATUS, PRODUCT, OR PROCESS
+DISCLOSED WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.\\[1cm]
+
+\fontshape{\shapedefault}\selectfont
+%\end{verbatim}
+\end{tiny}
+%\end{minipage}
+\noindent
+\begin{minipage}{0.4\textwidth}
+Copyright \copyright 2009,\\
+ UT-Battelle, LLC\\
+All rights reserved
+\end{minipage}
+\hfill
+\begin{minipage}{0.4\textwidth}
+\begin{flushright}
+%\includegraphics[width=3cm]{logo.png}
+\end{flushright}
+\end{minipage}
+\end{titlepage}
+\tableofcontents
+
+\pagebreak
+
+\ptexReadFile{../README.md}
+
+\chapter{Input}\label{sec:inputfile}
+
+\section{Running Lanczos++}
+There is a single input file that is passed as the argument to \verb!-f!, like so
+
+\begin{lstlisting}
+    ./lanczos -f input.inp.
+\end{lstlisting}
+
+\ptexPaste{LanczosDriver}
+
+Examples of input files can be found under \verb!TestSuite/inputs/!
+There are three kinds of parameters in the input file:
+(i) model connections (``geometry'') parameters, (ii) model on-site parameters,
+and (iii) DMRG Solver parameters.
+Each type of input parameters is discussed below.
+
+\section{SolverOptions}
+%\ptexPaste{dmrgSolverOptions}
+
+\section{Geometry Input}
+This needs to be in PsimagLite.
+
+\section{Model Input}
+
+The Model parameters vary from model to model.
+
+\chapter{Output}
+
+\section{Standard Output and Error}
+If you run
+\begin{verbatim}
+./dmrg -f input.inp
+\end{verbatim}
+you will see messages printed to the log file.
+These are processed by the \verb!PsimagLite! class \verb!ProgressIndicator! and
+are designed to show the DMRG++ progress.
+All these messages are of the form:
+\begin{verbatim}
+Class [T]: Message
+\end{verbatim}
+where \verb!Class! is the class that is currently executing and the message hints at
+what is being executed. The number \verb!T! between brackets is the wall
+time ellapsed since
+program start.\cite{re:alvarez11}
+
+After the program finishes, all files are put in a tar file. You can obtain the energies
+with
+\begin{verbatim}
+./toolboxdmrg -f input.inp -a energies
+\end{verbatim}
+
+\section{Two-point Correlations}
+
+%\ptexPaste{ParametersDmrgSolver}
+
+\subsection{Spectral Functions}
+
+%\ptexPaste{FiniteLoop}
+
+\section*{LICENSE}
+\begin{Verbatim}
+\ptexReadFile{../LICENSE}
+\end{Verbatim}
+\bibliographystyle{plain}
+\bibliography{thesis}
+\end{document}

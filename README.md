@@ -1,5 +1,5 @@
- 
-# Licensing
+# Quick Start 
+## Licensing
 
 The full software license for LanczosPlusPlus++ version 1.0.0 
 can be found in
@@ -10,7 +10,7 @@ You are welcomed to use it and publish data
 obtained with Lanczos++. If you do, please cite this
 work .
 
-# Code Integrity
+## Code Integrity
 
 Hash of the latest commit is also posted at
 https://web.ornl.gov/~gz1/hashes.html
@@ -18,7 +18,7 @@ https://web.ornl.gov/~gz1/hashes.html
 Latest commit should always be signed.
 Keys at https://web.ornl.gov/~gz1/keys.html
 
-# How To Cite This Work
+## How To Cite This Work
 
 @article{re:alvarez09,
 author="G. Alvarez",
@@ -40,7 +40,7 @@ Publisher = {\url{http://www.ornl.gov/~gz1/dmrgPlusPlus}} }
 Building and Running Lanczos++
 TBW.
 
-# DISCLAIMER
+## DISCLAIMER
 
 THE SOFTWARE IS SUPPLIED BY THE COPYRIGHT HOLDERS AND
 CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
@@ -66,7 +66,7 @@ INFORMATION, DATA, APPARATUS, PRODUCT, OR PROCESS
 DISCLOSED WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
 
 
-# Required Software
+## Required Software
 
 - (required) GNU C++
 - (required) The LAPACK and BLAS libraries
@@ -84,7 +84,7 @@ outside of the DMRG++ distribution. \verb=configure.pl= will ask you where you p
 - (optional) make or gmake (only needed to use the Makefile)
 - (optional) perl (only needed to run the configure.pl script)
 
-# Quick Start
+## Website 
 
 See https://web.ornl.gov/~gz1/LanczosPlusPlus/
 

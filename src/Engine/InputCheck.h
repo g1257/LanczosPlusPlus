@@ -129,6 +129,9 @@ public:
 		if (label!="SolverOptions") return;
 		PsimagLite::Vector<PsimagLite::String>::Type registerOpts;
 
+		/* PSIDOC LanczosSolverOptions
+		Here we document all options in SolverOptions
+		*/
 		registerOpts.push_back("none");
 		registerOpts.push_back("InternalProductStored");
 		registerOpts.push_back("InternalProductOnTheFly");

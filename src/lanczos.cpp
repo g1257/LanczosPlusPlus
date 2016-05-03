@@ -242,6 +242,9 @@ int main(int argc,char *argv[])
 	int precision = 6;
 	bool versionOnly = false;
 
+	/* PSIDOC LanczosDriver
+	Here we document all the options that can be passed to the driver.
+	*/
 	while ((opt = getopt(argc, argv, "g:c:f:s:p:V")) != -1) {
 		switch (opt) {
 		case 'g':

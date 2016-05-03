@@ -105,7 +105,10 @@ public:
 		}
 	}
 
-	//! Calc Green function G(isite,jsite)  (still diagonal in spin)
+	/* PSIDOC SpectralFunctions
+	Here we document the spectral functions and Green function G(isite,jsite)  
+	(still diagonal in spin)
+	*/
 	template<typename ContinuedFractionCollectionType>
 	void spectralFunction(ContinuedFractionCollectionType& cfCollection,
 	                      SizeType what2,
@@ -178,6 +181,9 @@ public:
 
 	}
 
+	/* PSIDOC TwoPointCorrelations
+	Here we document the two-point correlations
+	*/
 	void twoPoint(PsimagLite::Matrix<typename VectorType::value_type>& result,
 	              SizeType what2,
 	              const PairType& spins,

@@ -149,7 +149,7 @@ and (iii) DMRG Solver parameters.
 Each type of input parameters is discussed below.
 
 \section{SolverOptions}
-%\ptexPaste{dmrgSolverOptions}
+\ptexPaste{LanczosSolverOptions}
 
 \section{Geometry Input}
 This needs to be in PsimagLite.
@@ -185,11 +185,11 @@ with
 
 \section{Two-point Correlations}
 
-%\ptexPaste{ParametersDmrgSolver}
+\ptexPaste{TwoPointCorrelations}
 
 \subsection{Spectral Functions}
 
-%\ptexPaste{FiniteLoop}
+\ptexPaste{SpectralFunctions}
 
 \section*{LICENSE}
 \begin{Verbatim}

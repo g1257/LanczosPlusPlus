@@ -199,7 +199,14 @@ public:
 		const BasisType* basisNew = 0;
 
 		if (ProgramGlobals::needsNewBasis(what2)) {
-			assert(spins.first==spins.second);
+			if (spins.first!=spins.second) {
+				PsimagLite::String str(__FILE__);
+				str += " " + ttos(__LINE__) + "\n";
+				str += "twoPoint: no support yet for off-diagonal spin ";
+				str += "when needs new basis\n";
+				throw std::runtime_error(str.c_str());
+			}
+
 			std::pair<SizeType,SizeType> newParts(0,0);
 			if (!model_.hasNewParts(newParts,what2,spins.first,orbs)) return;
 

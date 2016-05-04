@@ -4,19 +4,22 @@ use strict;
 use warnings;
 
 my ($orb1, $orb2, $orbitals) = @ARGV;
-
 defined($orbitals) or die "USAGE: $0 orb1 orb2 orbitals\n";
 
-my $total = ($orb1 == $orb2) ? 2 : 4;
+my @keys;
+while (<STDIN>) {
+	if (/#INDEXTOCF /) {
+		@keys = split;
+		last;
+	}
+}
 
-print "#CONTINUEDFRACTIONCOLLECTION=$total\n";
-
-my $offset = findOffset($orb1, $orb2, $orbitals);
+my ($offset,$total) = findOffsetAndTotal(\@keys,$orb1, $orb2, $orbitals);
 
 print STDERR "$0: Called with $orb1 $orb2 $orbitals\n";
 print STDERR "$0: Offset= $offset    total= $total\n";
 
-
+print "#CONTINUEDFRACTIONCOLLECTION=$total\n";
 
 while (<STDIN>) {
 	last if (/#CONTINUEDFRACTIONCOLLECTION=/);
@@ -45,20 +48,26 @@ while ($counter <= $total) {
 	print;
 }
 
-sub findOffset
+sub findOffsetAndTotal
 {
-	my ($orb1, $orb2, $orbitals) = @_;
+	my ($keys,$orb1, $orb2, $orbitals) = @_;
 	($orb1 < $orbitals) or die "$0: $orb1 >= $orbitals\n";
 	($orb2 < $orbitals) or die "$0: $orb2 >= $orbitals\n";
-	my $offset = 0;
-	
-	for (my $x = 0; $x < $orbitals; ++$x) {
-		for (my $y = $x; $y < $orbitals; ++$y) {
-			return $offset if ($x == $orb1 and $y == $orb2);
-			my $thisOffset = ($x == $y) ? 2 : 4;
-			$offset += $thisOffset;
+	my ($offset,$total) = (0,0);
+
+	my $n = scalar(@$keys);
+	for (my $i = 1; $i < $n; ++$i) {
+		$_ = $keys->[$i];
+		my @temp = split/,/;
+		my $b1 = ($orb1 == $temp[2] && $orb2 == $temp[3]);
+		my $b2 = ($orb1 == $temp[3] && $orb2 == $temp[2]);
+		if ($b1 || $b2) {
+			$total++;
+		} else {
+			$offset++;
 		}
 	}
 
-	return $offset;
+	return ($offset,$total);
 }
+

@@ -28,6 +28,7 @@ Please see full open source license included in file LICENSE.
 #include "ProgramGlobals.h"
 #include "ParametersForSolver.h"
 #include "DefaultSymmetry.h"
+#include "TypeToString.h"
 
 namespace LanczosPlusPlus {
 template<typename ModelType_,
@@ -65,6 +66,7 @@ public:
 	typedef typename LanczosSolverType::TridiagonalMatrixType TridiagonalMatrixType;
 	typedef std::pair<SizeType,SizeType> PairType;
 	typedef typename PsimagLite::Vector<RealType>::Type VectorRealType;
+	typedef typename PsimagLite::Vector<PsimagLite::String>::Type VectorStringType;
 
 	// ContF needs to support concurrency FIXME
 	static const SizeType parallelRank_ = 0;
@@ -92,6 +94,7 @@ public:
 	//! Calc Green function G(isite,jsite)  (still diagonal in spin)
 	template<typename ContinuedFractionCollectionType>
 	void spectralFunction(ContinuedFractionCollectionType& cfCollection,
+	                      VectorStringType& vstr,
 	                      SizeType what2,
 	                      int isite,
 	                      int jsite,
@@ -101,7 +104,7 @@ public:
 		std::cout<<"orbitals="<<orbs.first<<" "<<orbs.second<<"\n";
 		for (SizeType i=0;i<spins.size();i++) {
 			std::cout<<"spins="<<spins[i].first<<" "<<spins[i].second<<"\n";
-			spectralFunction(cfCollection,what2,isite,jsite,spins[i],orbs);
+			spectralFunction(cfCollection,vstr,what2,isite,jsite,spins[i],orbs);
 		}
 	}
 
@@ -111,6 +114,7 @@ public:
 	*/
 	template<typename ContinuedFractionCollectionType>
 	void spectralFunction(ContinuedFractionCollectionType& cfCollection,
+	                      VectorStringType& vstr,
 	                      SizeType what2,
 	                      int isite,
 	                      int jsite,
@@ -161,10 +165,13 @@ public:
 			ContinuedFractionType cf(cfCollection.freqType());
 
 			if (PsimagLite::norm(modifVector)<1e-10) {
-				std::cerr<<"spectralFunction: modifVector==0, ignoring type="<<type<<"\n";
-				continue;
+				std::cerr<<"spectralFunction: modifVector==0, type="<<type<<"\n";
 			}
+
 			calcSpectral(cf,operatorLabel,modifVector,matrix,type,spins.first,isDiagonal);
+			PsimagLite::String str = ttos(spins.first) + "," + ttos(type) + ",";
+			str += ttos(orbs.first) + "," + ttos(orbs.second);
+			vstr.push_back(str);
 			cfCollection.push(cf);
 		}
 	}

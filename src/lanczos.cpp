@@ -119,12 +119,14 @@ void mainLoop3(const ModelType& model,
 		typedef PsimagLite::ContinuedFractionCollection<ContinuedFractionType>
 		        ContinuedFractionCollectionType;
 
+		typename EngineType::VectorStringType vstr;
 		PsimagLite::IoSimple::Out ioOut(std::cout);
 		ContinuedFractionCollectionType cfCollection(PsimagLite::FREQ_REAL);
 		SizeType norbitals = maxOrbitals(model);
 		for (SizeType orb1=0;orb1<norbitals;orb1++) {
 			for (SizeType orb2=orb1;orb2<norbitals;orb2++) {
 				engine.spectralFunction(cfCollection,
+				                        vstr,
 				                        gf,
 				                        sites[0],
 				        sites[1],
@@ -133,6 +135,10 @@ void mainLoop3(const ModelType& model,
 			}
 		}
 
+		ioOut<<"#INDEXTOCF ";
+		for (SizeType i = 0; i < vstr.size(); ++i)
+			ioOut<<vstr[i]<<" ";
+		ioOut<<"\n";
 		cfCollection.save(ioOut);
 	}
 

@@ -56,6 +56,10 @@ sub findOffsetAndTotal
 	my ($offset,$total) = (0,0);
 
 	my $n = scalar(@$keys);
+	if ($n == 0) {
+		die "$0: Label INDEXTOCF not found in STDIN\n";
+	}
+
 	for (my $i = 1; $i < $n; ++$i) {
 		$_ = $keys->[$i];
 		my @temp = split/,/;

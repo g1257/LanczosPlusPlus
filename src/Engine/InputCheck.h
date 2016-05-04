@@ -130,12 +130,21 @@ public:
 		PsimagLite::Vector<PsimagLite::String>::Type registerOpts;
 
 		/* PSIDOC LanczosSolverOptions
-		Here we document all options in SolverOptions
+		\begin{itemize}
+		\item[none] Use this as a placeholder. ``none'' does not disable other options.
+		\item[InternalProductStored] Stored the sparse matrix in memory before diagonalizing it.
+		\item[InternalProductOnTheFly] Compute the sparse matrix on-the-fly while
+		diagonalizing it.
+		\item[printmatrix] Print the Hamiltonian matrix.
+		\item[dumpmatrix] Use exact diagonalization instead of Lanczos diagonalization,
+		and output all information to obtain the full spectrum.
+		\end{itemize}
 		*/
 		registerOpts.push_back("none");
 		registerOpts.push_back("InternalProductStored");
 		registerOpts.push_back("InternalProductOnTheFly");
 		registerOpts.push_back("printmatrix");
+		registerOpts.push_back("dumpmatrix");
 
 		PsimagLite::Options::Writeable optWriteable(registerOpts,
 		                                            PsimagLite::Options::Writeable::PERMISSIVE);

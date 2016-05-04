@@ -5,7 +5,7 @@ CXX = g++
 
 all: manual.pdf
 
-manual.tex: manual.ptex 
+manual.tex: manual.ptex Makefile
 	find ../src -iname "*.h" -or -iname "*.cpp" |\
               perl ../../PsimagLite/scripts/doc.pl manual.ptex
 

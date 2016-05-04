@@ -249,7 +249,15 @@ int main(int argc,char *argv[])
 	bool versionOnly = false;
 
 	/* PSIDOC LanczosDriver
-	Here we document all the options that can be passed to the driver.
+	\begin{itemize}
+	\item[-g label] Computes the spectral function (continued fraction) for label.
+	\item[-c label] Computes the two-point correlation for label.
+	\item[-f file] Input file to use. DMRG++ inputs can be used.
+	\item[-s ``s1,s2''] computes correlations or spectral functions for spin s1,s2.
+	Only s1==s2 is supported for now.
+	\item[-p precision] precision in decimals to use.
+	\item[-V] prints version and exits.
+	\end{itemize}
 	*/
 	while ((opt = getopt(argc, argv, "g:c:f:s:p:V")) != -1) {
 		switch (opt) {

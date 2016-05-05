@@ -54,7 +54,7 @@ sub findOffsetAndTotal
 	($orb1 < $orbitals) or die "$0: $orb1 >= $orbitals\n";
 	($orb2 < $orbitals) or die "$0: $orb2 >= $orbitals\n";
 	my ($offset,$total) = (0,0);
-
+    	my $tempOff; 
 	my $n = scalar(@$keys);
 	if ($n == 0) {
 		die "$0: Label INDEXTOCF not found in STDIN\n";
@@ -63,15 +63,19 @@ sub findOffsetAndTotal
 	for (my $i = 1; $i < $n; ++$i) {
 		$_ = $keys->[$i];
 		my @temp = split/,/;
+   
 		my $b1 = ($orb1 == $temp[2] && $orb2 == $temp[3]);
 		my $b2 = ($orb1 == $temp[3] && $orb2 == $temp[2]);
 		if ($b1 || $b2) {
 			$total++;
-		} else {
-			$offset++;
-		}
+			$tempOff=$i;
+		} 
 	}
 
+	if ($tempOff < $total) {
+		die "$0: Internal error $tempOff < $total\n";
+	}
+
+	$offset = $tempOff - $total;
 	return ($offset,$total);
 }
-

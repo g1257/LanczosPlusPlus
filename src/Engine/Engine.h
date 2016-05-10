@@ -342,8 +342,7 @@ private:
 			accModifiedState_(z,operatorLabel,newBasis,gsVector,site,spin,orb,isign);
 
 		if (operatorLabel==OPERATOR_N) {
-			accModifiedState_(z,operatorLabel,newBasis,gsVector,site,SPIN_UP,orb,isign);
-			accModifiedState_(z,operatorLabel,newBasis,gsVector,site,SPIN_DOWN,orb,isign);
+			accModifiedState_(z,operatorLabel,newBasis,gsVector,site,spin,orb,isign);
 			return;
 		} else if (operatorLabel==ProgramGlobals::OPERATOR_SZ) {
 			accModifiedState_(z,OPERATOR_N,newBasis,gsVector,site,SPIN_UP,orb,isign);

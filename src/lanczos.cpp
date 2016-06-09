@@ -36,6 +36,7 @@ PsimagLite::String license = "Copyright (c) 2009-2012, UT-Battelle, LLC\n"
 #include "TranslationSymmetry.h"
 #include "Tokenizer.h"
 #include "InputCheck.h"
+#include "ReducedDensityMatrix.h"
 
 using namespace LanczosPlusPlus;
 
@@ -65,9 +66,10 @@ typedef ModelSelectorType::ModelBaseType ModelBaseType;
 struct LanczosOptions {
 
 	LanczosOptions()
-	    : spins(1,PairType(0,0))
+	    : split(-1),spins(1,PairType(0,0))
 	{}
 
+	int split;
 	PsimagLite::Vector<SizeType>::Type cicj;
 	PsimagLite::Vector<SizeType>::Type gf;
 	PsimagLite::Vector<SizeType>::Type sites;
@@ -170,6 +172,12 @@ void mainLoop3(const ModelType& model,
 			}
 		}
 	}
+
+	if (lanczosOptions.split >= 0) {
+		ReducedDensityMatrix reducedDensityMatrix;
+		reducedDensityMatrix.printAll(std::cout);
+	}
+
 }
 
 
@@ -245,11 +253,13 @@ int main(int argc,char *argv[])
 	\item[-f file] Input file to use. DMRG++ inputs can be used.
 	\item[-s ``s1,s2''] computes correlations or spectral functions for spin s1,s2.
 	Only s1==s2 is supported for now.
+	\item[-r siteForSplit] Calculates the reduced density matrix with a lattice
+	split at the siteForSplit.
 	\item[-p precision] precision in decimals to use.
 	\item[-V] prints version and exits.
 	\end{itemize}
 	*/
-	while ((opt = getopt(argc, argv, "g:c:f:s:p:V")) != -1) {
+	while ((opt = getopt(argc, argv, "g:c:f:s:r:p:V")) != -1) {
 		switch (opt) {
 		case 'g':
 			lanczosOptions.gf.push_back(ProgramGlobals::operator2id(optarg));
@@ -265,6 +275,9 @@ int main(int argc,char *argv[])
 			PsimagLite::tokenizer(optarg,str,";");
 			fillOrbsOrSpin(lanczosOptions.spins,str);
 			str.clear();
+			break;
+		case 'r':
+			lanczosOptions.split = atoi(optarg);
 			break;
 		case 'p':
 			precision = atoi(optarg);

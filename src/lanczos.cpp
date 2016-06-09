@@ -174,7 +174,9 @@ void mainLoop3(const ModelType& model,
 	}
 
 	if (lanczosOptions.split >= 0) {
-		ReducedDensityMatrix reducedDensityMatrix;
+		ReducedDensityMatrix<ModelType> reducedDensityMatrix(model,
+		                                                     engine.eigenvector(),
+		                                                     lanczosOptions.split);
 		reducedDensityMatrix.printAll(std::cout);
 	}
 

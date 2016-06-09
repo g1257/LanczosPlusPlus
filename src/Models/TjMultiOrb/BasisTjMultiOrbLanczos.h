@@ -58,6 +58,11 @@ public:
 	//! Spin up and spin down
 	SizeType dofs() const { return 2; }
 
+	virtual SizeType hilbertOneSite(SizeType) const
+	{
+		throw PsimagLite::RuntimeError("hilbertOneSite unimplemented for t-J\n");
+	}
+
 	SizeType perfectIndex(const VectorWordType& kets) const
 	{
 		assert(kets.size()==2);

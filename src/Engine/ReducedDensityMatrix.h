@@ -19,21 +19,34 @@ Please see full open source license included in file LICENSE.
 #ifndef LANCZOS_REDUCED_DM_H
 #define LANCZOS_REDUCED_DM_H
 #include "Vector.h"
+#include "Matrix.h"
 
 namespace LanczosPlusPlus {
 
-//template<typename GeometryType>
+template<typename ModelType>
 class ReducedDensityMatrix {
 
-	typedef double RealType;
+	typedef typename ModelType::RealType RealType;
+	typedef typename ModelType::BasisBaseType::WordType WordType;
+	typedef typename ModelType::ComplexOrRealType ComplexOrRealType;
+	typedef PsimagLite::Matrix<ComplexOrRealType> MatrixType;
+	typedef typename PsimagLite::Vector<RealType>::Type VectorRealType;
+	typedef typename PsimagLite::Vector<ComplexOrRealType>::Type VectorType;
+	typedef std::pair<SizeType,SizeType> PairSizeType;
 
 public:
 
-	ReducedDensityMatrix()
+	ReducedDensityMatrix(const ModelType& model,
+	                     const VectorType& psi,
+	                     SizeType split)
+		: row_(pow(model.basis().hilbertOneSite(),split)),
+	      nabits_(split),
+	      nbbits_(model.geometry().numberOfSites() - split),
+	      rdm_(row_,row_)
 	{
-		build();
+		build(model, psi);
 		w_ = rdm_;
-		diag(diag_,eigs_,'V');
+		diag(w_,eigs_,'V');
 	}
 
 	void printAll(std::ostream& os) const
@@ -48,29 +61,35 @@ public:
 
 private:
 
-	void build()
+	void build(const ModelType& model, const VectorType& psi)
 	{
-		for (SizeType alpha = 0; alpha < ns; ++alpha) {
-			for (SizeType alphaP = 0; alphaP < ns; ++alphaP) {
-				rdm_(alpha,alphaP) = rdm(alpha,alphaP);
+		SizeType hilbert = model.basis().size();
+		for (SizeType i = 0; i < hilbert; ++i) {
+			PairSizeType alphaBeta = unpack(model,i);
+			for (SizeType j = 0; j < hilbert; ++j) {
+				PairSizeType alphaPBeta = unpack(model,j);
+				rdm_(alphaBeta.first,alphaPBeta.second) += std::conj(psi[i])*psi[j];
 			}
 		}
 	}
 
-	RealType rdm(SizeType alpha, SizeType alphaP) const
+	PairSizeType unpack(const ModelType& model, SizeType ind) const
 	{
-		ComplexOrRealType sum = 0.0;
-		for (SizeType beta = 0; beta < ne; ++beta) {
-			// alpha + beta --> i
-			SizeType i = pack(alpha,beta);
-			// alphaP + beta --> j
-			SizeType j = pack(alphaP,beta);
-			sum += std::conj(psi_[i])*psi_[j];
-		}
+		WordType a = model.basis()(ind,0);
+		WordType b = a;
+		WordType mask = (1<<nabits_) - 1;
+		a &= mask;
 
-		return sum;
+		mask = (1<<nbbits_) - 1;
+		mask <<= nabits_;
+		b &= mask;
+		b >>= nabits_;
+		return PairSizeType(a,b);
 	}
 
+	SizeType row_;
+	SizeType nabits_;
+	SizeType nbbits_;
 	MatrixType rdm_;
 	MatrixType w_;
 	VectorRealType eigs_;

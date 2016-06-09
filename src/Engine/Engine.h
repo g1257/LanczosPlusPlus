@@ -91,6 +91,11 @@ public:
 		return gsEnergy_;
 	}
 
+	const VectorType& eigenvector() const
+	{
+		return gsVector_;
+	}
+
 	//! Calc Green function G(isite,jsite)  (still diagonal in spin)
 	template<typename ContinuedFractionCollectionType>
 	void spectralFunction(ContinuedFractionCollectionType& cfCollection,

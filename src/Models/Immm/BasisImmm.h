@@ -75,6 +75,11 @@ public:
 
 	SizeType size() const { return basis1_.size()*basis2_.size(); }
 
+	virtual SizeType hilbertOneSite(SizeType) const
+	{
+		throw PsimagLite::RuntimeError("hilbertOneSite unimplemented for IMMM\n");
+	}
+
 	WordType operator()(SizeType i,SizeType spin) const
 	{
 		SizeType y = i/basis1_.size();

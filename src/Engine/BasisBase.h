@@ -41,6 +41,8 @@ public:
 
 	virtual SizeType size() const = 0;
 
+	virtual SizeType hilbertOneSite(SizeType = 0) const = 0;
+
 	virtual WordType operator()(SizeType i,SizeType spin) const = 0;
 
 	virtual SizeType perfectIndex(const PsimagLite::Vector<WordType>::Type& kets) const = 0;

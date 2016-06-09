@@ -60,6 +60,11 @@ public:
 
 	SizeType dofs() const { return twiceS_ + 1; }
 
+	virtual SizeType hilbertOneSite(SizeType) const
+	{
+		return 1 + twiceS_;
+	}
+
 	SizeType perfectIndex(const VectorWordType&) const
 	{
 		throw PsimagLite::RuntimeError("BasisHeisenberg::perfectIndex kets\n");

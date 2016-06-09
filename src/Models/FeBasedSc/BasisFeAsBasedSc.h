@@ -70,6 +70,11 @@ public:
 		return basis1_.size()*basis2_.size();
 	}
 
+	virtual SizeType hilbertOneSite(SizeType) const
+	{
+		return (1<<(orbitals_*2));
+	}
+
 	WordType operator()(SizeType i,SizeType spin) const
 	{
 		SizeType y = i/basis1_.size();

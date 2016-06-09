@@ -62,6 +62,19 @@ typedef std::pair<SizeType,SizeType> PairType;
 typedef ModelSelector<ComplexOrRealType,GeometryType,InputNgType::Readable> ModelSelectorType;
 typedef ModelSelectorType::ModelBaseType ModelBaseType;
 
+struct LanczosOptions {
+
+	LanczosOptions()
+	    : spins(1,PairType(0,0))
+	{}
+
+	PsimagLite::Vector<SizeType>::Type cicj;
+	PsimagLite::Vector<SizeType>::Type gf;
+	PsimagLite::Vector<SizeType>::Type sites;
+	PsimagLite::Vector<PairType>::Type spins;
+
+}; // struct LanczosOptions
+
 void fillOrbsOrSpin(PsimagLite::Vector<PairType>::Type& spinV,
                     const PsimagLite::Vector<PsimagLite::String>::Type& strV)
 {
@@ -92,10 +105,7 @@ template<typename ModelType,
          template<typename,typename> class InternalProductTemplate>
 void mainLoop3(const ModelType& model,
                InputNgType::Readable& io,
-               const PsimagLite::Vector<SizeType>::Type& gfV,
-               PsimagLite::Vector<SizeType>::Type& sites,
-               const PsimagLite::Vector<SizeType>::Type& cicjV,
-               const PsimagLite::Vector<PairType>::Type& spins)
+               LanczosOptions& lanczosOptions)
 {
 	typedef Engine<ModelType,InternalProductTemplate,SpecialSymmetryType> EngineType;
 	typedef typename EngineType::TridiagonalMatrixType TridiagonalMatrixType;
@@ -107,13 +117,16 @@ void mainLoop3(const ModelType& model,
 	RealType Eg = engine.gsEnergy();
 	std::cout.precision(8);
 	std::cout<<"Energy="<<Eg<<"\n";
-	for (SizeType gfi=0;gfi<gfV.size();gfi++) {
-		SizeType gf = gfV[gfi];
-		io.read(sites,"TSPSites");
-		if (sites.size()==0) throw std::runtime_error("No sites in input file!\n");
-		if (sites.size()==1) sites.push_back(sites[0]);
+	for (SizeType gfi=0;gfi<lanczosOptions.gf.size();gfi++) {
+		SizeType gfI = lanczosOptions.gf[gfi];
+ 		io.read(lanczosOptions.sites,"TSPSites");
+		if (lanczosOptions.sites.size()==0)
+			throw std::runtime_error("No sites in input file!\n");
+		if (lanczosOptions.sites.size()==1)
+			lanczosOptions.sites.push_back(lanczosOptions.sites[0]);
 
-		std::cout<<"#gf(i="<<sites[0]<<",j="<<sites[1]<<")\n";
+		std::cout<<"#gf(i="<<lanczosOptions.sites[0]<<",j=";
+		std::cout<<lanczosOptions.sites[1]<<")\n";
 		typedef PsimagLite::ContinuedFraction<TridiagonalMatrixType>
 		        ContinuedFractionType;
 		typedef PsimagLite::ContinuedFractionCollection<ContinuedFractionType>
@@ -127,10 +140,10 @@ void mainLoop3(const ModelType& model,
 			for (SizeType orb2=orb1;orb2<norbitals;orb2++) {
 				engine.spectralFunction(cfCollection,
 				                        vstr,
-				                        gf,
-				                        sites[0],
-				        sites[1],
-				        spins,
+				                        gfI,
+				                        lanczosOptions.sites[0],
+				        lanczosOptions.sites[1],
+				        lanczosOptions.spins,
 				        std::pair<SizeType,SizeType>(orb1,orb2));
 			}
 		}
@@ -142,16 +155,16 @@ void mainLoop3(const ModelType& model,
 		cfCollection.save(ioOut);
 	}
 
-	for (SizeType cicji=0;cicji<cicjV.size();cicji++) {
-		SizeType cicj = cicjV[cicji];
+	for (SizeType cicji=0;cicji<lanczosOptions.cicj.size();cicji++) {
+		SizeType cicjI = lanczosOptions.cicj[cicji];
 		SizeType total = geometry.numberOfSites();
 		PsimagLite::Matrix<ComplexOrRealType> cicjMatrix(total,total);
 		SizeType norbitals = maxOrbitals(model);
 		for (SizeType orb1=0;orb1<norbitals;orb1++) {
 			for (SizeType orb2=0;orb2<norbitals;orb2++) {
 				engine.twoPoint(cicjMatrix,
-				                cicj,
-				                spins,
+				                cicjI,
+				                lanczosOptions.spins,
 				                std::pair<SizeType,SizeType>(orb1,orb2));
 				std::cout<<cicjMatrix;
 			}
@@ -163,10 +176,7 @@ void mainLoop3(const ModelType& model,
 template<typename ModelType,typename SpecialSymmetryType>
 void mainLoop2(const ModelType& model,
                InputNgType::Readable& io,
-               const PsimagLite::Vector<SizeType>::Type& gfV,
-               PsimagLite::Vector<SizeType>::Type& sites,
-               const PsimagLite::Vector<SizeType>::Type& cicjV,
-               const PsimagLite::Vector<PairType>::Type& spins)
+               LanczosOptions& lanczosOptions)
 {
 	PsimagLite::String tmp;
 	io.readline(tmp,"SolverOptions=");
@@ -175,27 +185,18 @@ void mainLoop2(const ModelType& model,
 	if (onthefly) {
 		mainLoop3<ModelType,SpecialSymmetryType,InternalProductOnTheFly>(model,
 		                                                                 io,
-		                                                                 gfV,
-		                                                                 sites,
-		                                                                 cicjV,
-		                                                                 spins);
+		                                                                 lanczosOptions);
 	} else {
 		mainLoop3<ModelType,SpecialSymmetryType,InternalProductStored>(model,
 		                                                               io,
-		                                                               gfV,
-		                                                               sites,
-		                                                               cicjV,
-		                                                               spins);
+		                                                               lanczosOptions);
 	}
 }
 
 template<typename ModelType>
 void mainLoop(InputNgType::Readable& io,
               const ModelType& model,
-              const PsimagLite::Vector<SizeType>::Type& gf,
-              PsimagLite::Vector<SizeType>::Type& sites,
-              const PsimagLite::Vector<SizeType>::Type& cicj,
-              const PsimagLite::Vector<PairType>::Type& spins)
+              LanczosOptions& lanczosOptions)
 {
 	typedef typename ModelType::BasisBaseType BasisBaseType;
 
@@ -215,34 +216,23 @@ void mainLoop(InputNgType::Readable& io,
 	if (useTranslationSymmetry) {
 		mainLoop2<ModelType,TranslationSymmetry<GeometryType,BasisBaseType> >(model,
 		                                                                      io,
-		                                                                      gf,
-		                                                                      sites,
-		                                                                      cicj,
-		                                                                      spins);
+		                                                                      lanczosOptions);
 	} else if (useReflectionSymmetry) {
 		mainLoop2<ModelType,ReflectionSymmetry<GeometryType,BasisBaseType> >(model,
 		                                                                     io,
-		                                                                     gf,
-		                                                                     sites,
-		                                                                     cicj,
-		                                                                     spins);
+		                                                                     lanczosOptions);
 	} else {
 		mainLoop2<ModelType,DefaultSymmetry<GeometryType,BasisBaseType> >(model,
 		                                                                  io,
-		                                                                  gf,
-		                                                                  sites,
-		                                                                  cicj,
-		                                                                  spins);
+		                                                                  lanczosOptions);
 	}
 }
 
 int main(int argc,char *argv[])
 {
 	int opt = 0;
-	PsimagLite::Vector<SizeType>::Type cicj,gf;
+	LanczosOptions lanczosOptions;
 	PsimagLite::String file = "";
-	PsimagLite::Vector<SizeType>::Type sites;
-	PsimagLite::Vector<PairType>::Type spins(1,PairType(0,0));
 	PsimagLite::Vector<PsimagLite::String>::Type str;
 	InputCheck inputCheck;
 	int precision = 6;
@@ -262,18 +252,18 @@ int main(int argc,char *argv[])
 	while ((opt = getopt(argc, argv, "g:c:f:s:p:V")) != -1) {
 		switch (opt) {
 		case 'g':
-			gf.push_back(ProgramGlobals::operator2id(optarg));
+			lanczosOptions.gf.push_back(ProgramGlobals::operator2id(optarg));
 			break;
 		case 'f':
 			file = optarg;
 			break;
 		case 'c':
-			cicj.push_back(ProgramGlobals::operator2id(optarg));
+			lanczosOptions.cicj.push_back(ProgramGlobals::operator2id(optarg));
 			break;
 		case 's':
-			spins.clear();
+			lanczosOptions.spins.clear();
 			PsimagLite::tokenizer(optarg,str,";");
-			fillOrbsOrSpin(spins,str);
+			fillOrbsOrSpin(lanczosOptions.spins,str);
 			str.clear();
 			break;
 		case 'p':
@@ -326,6 +316,6 @@ int main(int argc,char *argv[])
 	const ModelBaseType& modelPtr = modelSelector();
 
 	std::cout<<modelPtr;
-	mainLoop(io,modelPtr,gf,sites,cicj,spins);
+	mainLoop(io,modelPtr,lanczosOptions);
 }
 

@@ -68,7 +68,8 @@ private:
 			PairSizeType alphaBeta = unpack(model,i);
 			for (SizeType j = 0; j < hilbert; ++j) {
 				PairSizeType alphaPBeta = unpack(model,j);
-				rdm_(alphaBeta.first,alphaPBeta.second) += std::conj(psi[i])*psi[j];
+				if (alphaBeta.second != alphaPBeta.second) continue;
+				rdm_(alphaBeta.first,alphaPBeta.first) += std::conj(psi[i])*psi[j];
 			}
 		}
 	}

@@ -122,11 +122,12 @@ public:
 	                        SizeType spin,
 	                        SizeType orb) const
 	{
-		if (operatorLabel == ProgramGlobals::OPERATOR_SPLUS) {
-			throw PsimagLite::RuntimeError("BasisHeisenberg::getBraIndex SPLUS\n");
+		if (twiceS_ != 1)
+			throw PsimagLite::RuntimeError("BasisHeisenberg::getBraIndex_ \n");
 
-		} else if (operatorLabel == ProgramGlobals::OPERATOR_SMINUS) {
-			throw PsimagLite::RuntimeError("BasisHeisenberg::getBraIndex SMINUS\n");
+		if (operatorLabel == ProgramGlobals::OPERATOR_SPLUS ||
+		        operatorLabel == ProgramGlobals::OPERATOR_SMINUS) {
+			return getBraIndexSplusSminus(ket1,ket2,operatorLabel,site,spin,orb);
 		}
 
 		return getBraIndex_(ket1,ket2,operatorLabel,site,spin,orb);
@@ -151,6 +152,14 @@ public:
 			ProgramGlobals::printBasisDecimal(os,40,data_);
 		}
 	}
+
+	SizeType szPlusConst() const { return szPlusConst_; }
+
+	template<typename GeometryType2>
+	friend std::ostream& operator<<(std::ostream& os,
+	                                const BasisHeisenberg<GeometryType2>& basis);
+
+private:
 
 	bool getBra(WordType& bra,
 	            WordType ket,
@@ -179,13 +188,6 @@ public:
 		return true;
 	}
 
-	SizeType szPlusConst() const { return szPlusConst_; }
-
-	template<typename GeometryType2>
-	friend std::ostream& operator<<(std::ostream& os,
-	                                const BasisHeisenberg<GeometryType2>& basis);
-
-private:
 
 	WordType getMask() const
 	{
@@ -218,6 +220,32 @@ private:
 		if (twiceS_ & 1) return true;
 
 		return (val <= twiceS_);
+	}
+
+	PairIntType getBraIndexSplusSminus(WordType ket1,
+	                                   WordType ket2,
+	                                   SizeType operatorLabel,
+	                                   SizeType site,
+	                                   SizeType,
+	                                   SizeType) const
+	{
+		assert(operatorLabel == ProgramGlobals::OPERATOR_SPLUS ||
+		       operatorLabel == ProgramGlobals::OPERATOR_SMINUS);
+
+		WordType mask1 = getMask();
+		mask1 <<= (site*bits_);
+
+		if (ket1 & mask1) {
+			if (operatorLabel == ProgramGlobals::OPERATOR_SPLUS)
+				return PairIntType(-1,0);
+		} else {
+			if (operatorLabel == ProgramGlobals::OPERATOR_SMINUS)
+				return PairIntType(-1,0);
+		}
+
+		WordType bra = ket1 ^ mask1;
+
+		return PairIntType(perfectIndex(bra,ket2),1);
 	}
 
 	PairIntType getBraIndex_(WordType ket1,

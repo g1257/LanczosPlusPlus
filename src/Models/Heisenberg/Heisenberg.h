@@ -213,12 +213,28 @@ private:
 		}
 	}
 
-	bool hasNewPartsSplusOrMinus(std::pair<SizeType,SizeType>&,
-	                             SizeType,
+	bool hasNewPartsSplusOrMinus(std::pair<SizeType,SizeType>& newParts,
+	                             SizeType what,
 	                             SizeType,
 	                             const PairType&) const
 	{
-		throw PsimagLite::RuntimeError("BasisHeisenberg::hasNewPartsSplusOrMinus\n");
+		if (mp_.twiceTheSpin != 1)
+			throw PsimagLite::RuntimeError("BasisHeisenberg::hasNewPartsSplusOrMinus\n");
+
+		newParts.first = mp_.twiceTheSpin;
+		bool flag = false;
+		if (what == ProgramGlobals::OPERATOR_SPLUS) {
+			newParts.second = basis_.szPlusConst() + 1;
+			if (newParts.second > geometry_.numberOfSites())
+				flag = true;
+		} else if (what == ProgramGlobals::OPERATOR_SMINUS) {
+			if (basis_.szPlusConst() == 0) flag =true;
+			newParts.second = basis_.szPlusConst() - 1;
+		}
+
+		if (!flag) return true;
+
+		throw PsimagLite::RuntimeError("BasisHeisenberg:: S+ to all ups or S- to all downs\n");
 	}
 
 	void calcDiagonalElements(typename PsimagLite::Vector<RealType>::Type& diag,

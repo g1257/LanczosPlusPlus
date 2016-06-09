@@ -220,14 +220,20 @@ private:
 		return (val <= twiceS_);
 	}
 
-	PairIntType getBraIndex_(const WordType&,
-	                         const WordType&,
-	                         SizeType,
-	                         SizeType,
-	                         SizeType,
-	                         SizeType) const
+	PairIntType getBraIndex_(WordType ket1,
+	                         WordType ket2,
+	                         SizeType operatorLabel,
+	                         SizeType site,
+	                         SizeType spin,
+	                         SizeType orb) const
 	{
-		throw PsimagLite::RuntimeError("BasisHeisenberg::getBraIndex_ \n");
+		if (operatorLabel != ProgramGlobals::OPERATOR_N || twiceS_ != 1)
+			throw PsimagLite::RuntimeError("BasisHeisenberg::getBraIndex_ \n");
+
+		SizeType nup = getN(ket1,ket2,site,0,orb);
+		assert(nup < 2);
+		return PairIntType(perfectIndex(ket1,ket2),
+		                   (spin == ProgramGlobals::SPIN_UP) ? nup : 1 - nup);
 	}
 
 	void doBitmask()

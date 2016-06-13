@@ -32,6 +32,7 @@ class ReducedDensityMatrix {
 	typedef PsimagLite::Matrix<ComplexOrRealType> MatrixType;
 	typedef typename PsimagLite::Vector<RealType>::Type VectorRealType;
 	typedef typename PsimagLite::Vector<ComplexOrRealType>::Type VectorType;
+	typedef typename PsimagLite::Vector<WordType>::Type VectorWordType;
 	typedef std::pair<SizeType,SizeType> PairSizeType;
 
 public:
@@ -39,7 +40,7 @@ public:
 	ReducedDensityMatrix(const ModelType& model,
 	                     const VectorType& psi,
 	                     SizeType split)
-		: row_(pow(model.basis().hilbertOneSite(),split)),
+	    : row_(pow(model.basis().hilbertOneSite(),split)),
 	      nabits_(split),
 	      nbbits_(model.geometry().numberOfSites() - split),
 	      rdm_(row_,row_)
@@ -76,6 +77,17 @@ private:
 
 	PairSizeType unpack(const ModelType& model, SizeType ind) const
 	{
+		PsimagLite::String modelName = model.name();
+		if (modelName.find("Heisenberg.h") != PsimagLite::String::npos)
+			return unpackHeisenberg(model,ind);
+		else if (modelName.find("HubbardOneOrbital.h") != PsimagLite::String::npos)
+			return unpackHubbard(model,ind);
+		else
+			throw PsimagLite::RuntimeError("RDM: Unsupported model\n");
+	}
+
+	PairSizeType unpackHeisenberg(const ModelType& model, SizeType ind) const
+	{
 		WordType a = model.basis()(ind,0);
 		WordType b = a;
 		WordType mask = (1<<nabits_) - 1;
@@ -86,6 +98,27 @@ private:
 		b &= mask;
 		b >>= nabits_;
 		return PairSizeType(a,b);
+	}
+
+	PairSizeType unpackHubbard(const ModelType& model, SizeType ind) const
+	{
+		VectorWordType a(2,0);
+		VectorWordType b(2,0);
+		for (SizeType spin = 0; spin < 2; ++spin) {
+			a[spin] = model.basis()(ind,spin);
+			b[spin] = a[spin];
+			WordType mask = (1<<nabits_) - 1;
+			a[spin] &= mask;
+
+			mask = (1<<nbbits_) - 1;
+			mask <<= nabits_;
+			b[spin] &= mask;
+			b[spin] >>= nabits_;
+		}
+
+		SizeType offsetA = (1<<nabits_);
+		SizeType offsetB = (1<<nbbits_);
+		return PairSizeType(a[0]+a[1]*offsetA,b[0]+b[1]*offsetB);
 	}
 
 	SizeType row_;

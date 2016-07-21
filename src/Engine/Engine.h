@@ -230,7 +230,7 @@ public:
 			for (SizeType jsite=0;jsite<total;jsite++)
 				result(isite,jsite) = -100;
 
-		SizeType isign = 1;
+		RealType isign = 1.0;
 
 		typename VectorType::value_type sum = 0;
 		std::cout<<"orbs="<<orbs.first<<" "<<orbs.second<<"\n";
@@ -260,7 +260,7 @@ private:
 	                       SizeType site,
 	                       SizeType spin,
 	                       SizeType orb,
-	                       int isign) const
+	                       RealType isign) const
 	{
 		for (SizeType ispace=0;ispace<model_.basis().size();ispace++) {
 			ProgramGlobals::WordType ket1 = model_.basis()(ispace,SPIN_UP);
@@ -317,12 +317,12 @@ private:
 		                  isite,
 		                  spin,
 		                  orbs.first,
-		                  1);
+		                  1.0);
 		std::cerr<<"isite="<<isite<<" type="<<type;
 		std::cerr<<" modif="<<(modifVector*modifVector)<<"\n";
 		if (model_.name()=="Tj1Orb.h" && isite==jsite) return;
 
-		int isign= (type>1) ? -1 : 1;
+		RealType isign= (type > 1) ? -1.0 : 1.0;
 		accModifiedState_(modifVector,
 		                  operatorLabel,
 		                  basisNew,
@@ -342,7 +342,7 @@ private:
 	                      SizeType site,
 	                      SizeType spin,
 	                      SizeType orb,
-	                      int isign) const
+	                      RealType isign) const
 	{
 		if (model_.name()=="Tj1Orb.h")
 			accModifiedState_(z,operatorLabel,newBasis,gsVector,site,spin,orb,isign);
@@ -351,10 +351,11 @@ private:
 			accModifiedState_(z,operatorLabel,newBasis,gsVector,site,spin,orb,isign);
 			return;
 		} else if (operatorLabel==ProgramGlobals::OPERATOR_SZ) {
-			accModifiedState_(z,OPERATOR_N,newBasis,gsVector,site,SPIN_UP,orb,isign);
-			accModifiedState_(z,OPERATOR_N,newBasis,gsVector,site,SPIN_DOWN,orb,-isign);
+			accModifiedState_(z,OPERATOR_N,newBasis,gsVector,site,SPIN_UP,orb,isign*0.5);
+			accModifiedState_(z,OPERATOR_N,newBasis,gsVector,site,SPIN_DOWN,orb,-isign*0.5);
 			return;
 		}
+
 		accModifiedState_(z,operatorLabel,newBasis,gsVector,site,spin,orb,isign);
 	}
 

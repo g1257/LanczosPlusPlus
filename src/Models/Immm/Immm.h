@@ -201,7 +201,7 @@ private:
 			for (SizeType orb2=0;orb2<basis.orbsPerSite(j);orb2++) {
 				SizeType jj = j*basis.orbs()+orb2;
 				ComplexOrRealType h = hoppings(i,orb,j,orb2);
-				if (std::real(h) == 0 && std::imag(h) == 0) continue;
+				if (PsimagLite::real(h) == 0 && PsimagLite::imag(h) == 0) continue;
 				WordType s1j= (ket1 & BasisType::bitmask(jj));
 				if (s1j>0) s1j=1;
 				WordType s2j= (ket2 & BasisType::bitmask(jj));
@@ -267,8 +267,8 @@ private:
 				}
 			}
 
-			assert(fabs(std::imag(s))<1e-12);
-			diag[ispace] = std::real(s);
+			assert(fabs(PsimagLite::imag(s))<1e-12);
+			diag[ispace] = PsimagLite::real(s);
 		}
 	}
 

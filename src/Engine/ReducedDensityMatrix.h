@@ -70,7 +70,7 @@ private:
 			for (SizeType j = 0; j < hilbert; ++j) {
 				PairSizeType alphaPBeta = unpack(model,j);
 				if (alphaBeta.second != alphaPBeta.second) continue;
-				rdm_(alphaBeta.first,alphaPBeta.first) += std::conj(psi[i])*psi[j];
+				rdm_(alphaBeta.first,alphaPBeta.first) += PsimagLite::conj(psi[i])*psi[j];
 			}
 		}
 	}

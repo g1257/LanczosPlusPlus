@@ -84,7 +84,7 @@ public:
 
 		for (SizeType j=0;j<n;j++) {
 			for (SizeType i=j+1;i<n;i++) {
-				hoppings_(i,j) = std::conj(hoppings_(i,j));
+				hoppings_(i,j) = PsimagLite::conj(hoppings_(i,j));
 			}
 		}
 	}
@@ -354,7 +354,7 @@ private:
 				// SzSz
 				for (SizeType j=0;j<nsite;j++) {
 					ComplexOrRealType value = jCoupling(i,j);
-					if (std::real(value) == 0 && std::imag(value) == 0) continue;
+					if (PsimagLite::real(value) == 0 && PsimagLite::imag(value) == 0) continue;
 					s += value*0.5* // double counting i,j
 					        szTerm(ket1,ket2,i,basis)*
 					        szTerm(ket1,ket2,j,basis);
@@ -366,7 +366,7 @@ private:
 
 				for (SizeType j=0;j<nsite;j++) {
 					ComplexOrRealType value = coulombCoupling(i,j);
-					if (std::real(value) == 0 && std::imag(value) == 0) continue;
+					if (PsimagLite::real(value) == 0 && PsimagLite::imag(value) == 0) continue;
 					RealType tmp2 = basis.getN(ket1,ket2,j,SPIN_UP,orb) +
 					        basis.getN(ket1,ket2,j,SPIN_DOWN,orb);
 					s += value * ne * tmp2;
@@ -379,8 +379,8 @@ private:
 				if (tmp!=0) s += tmp * ne;
 			}
 
-			assert(fabs(std::imag(s))<1e-12);
-			diag[ispace] = std::real(s);
+			assert(fabs(PsimagLite::imag(s))<1e-12);
+			diag[ispace] = PsimagLite::real(s);
 		}
 	}
 
@@ -402,7 +402,7 @@ private:
 		for (SizeType j=0;j<nsite;j++) {
 			if (j<i) continue;
 			ComplexOrRealType h = hoppings_(i,j);
-			if (std::real(h) == 0 && std::imag(h) == 0) continue;
+			if (PsimagLite::real(h) == 0 && PsimagLite::imag(h) == 0) continue;
 			WordType s1j= (ket1 & BasisType::bitmask(j));
 			if (s1j>0) s1j=1;
 			WordType s2j= (ket2 & BasisType::bitmask(j));
@@ -414,7 +414,7 @@ private:
 				RealType extraSign = (s1i==1) ? FERMION_SIGN : 1;
 				RealType tmp2 = basis.doSign(ket1,ket2,i,orb,j,orb,SPIN_UP);
 				ComplexOrRealType cTemp = h*extraSign*tmp2;
-				if (s1i == 0) cTemp = std::conj(cTemp);
+				if (s1i == 0) cTemp = PsimagLite::conj(cTemp);
 				assert(temp<basis.size());
 				sparseRow.add(temp,cTemp);
 			}
@@ -425,7 +425,7 @@ private:
 				RealType extraSign = (s2i==1) ? FERMION_SIGN : 1;
 				RealType tmp2 = basis.doSign(ket1,ket2,i,orb,j,orb,SPIN_DOWN);
 				ComplexOrRealType cTemp = h*extraSign*tmp2;
-				if (s2j == 0) cTemp = std::conj(cTemp);
+				if (s2j == 0) cTemp = PsimagLite::conj(cTemp);
 				assert(temp<basis.size());
 				sparseRow.add(temp,cTemp);
 			}
@@ -440,7 +440,7 @@ private:
 	{
 		for (SizeType j=0;j<geometry_.numberOfSites();j++) {
 			ComplexOrRealType value = jCoupling(i,j)*0.5;
-			if (std::real(value) == 0 && std::imag(value) == 0) continue;
+			if (PsimagLite::real(value) == 0 && PsimagLite::imag(value) == 0) continue;
 			value *= 0.5; // double counting i,j
 			assert(i!=j);
 

@@ -175,7 +175,7 @@ RealType computeThisSector(SizeType ind,
 			RealType e1 = sectors[ind]->eig(i);
 			RealType e2 = sectors[jnd]->eig(j);
 			RealType arg = opt.beta*(factor-e1);
-			RealType val = x(i,j)*std::conj(y(i,j))* exp(arg)*zInverse;
+			RealType val = x(i,j)*PsimagLite::conj(y(i,j))* exp(arg)*zInverse;
 			if (opt.operatorName != "i" && fabs(val)>1e-12) {
 				std::cout<<(e1-e2+opt.mu)<<" "<<val<<"\n";
 				counter++;

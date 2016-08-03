@@ -266,8 +266,8 @@ private:
 				}
 			}
 
-			assert(fabs(std::imag(s))<1e-12);
-			diag[ispace] = std::real(s);
+			assert(fabs(PsimagLite::imag(s))<1e-12);
+			diag[ispace] = PsimagLite::real(s);
 		}
 	}
 

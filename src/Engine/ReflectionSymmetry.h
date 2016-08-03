@@ -309,7 +309,7 @@ private:
 					counter++;
 					continue;
 				}
-				if (std::norm(val)>1e-12) {
+				if (PsimagLite::norm(val)>1e-12) {
 					PsimagLite::String s(__FILE__);
 					s += " Hamiltonian has no reflection symmetry.";
 					throw std::runtime_error(s.c_str());
@@ -333,7 +333,8 @@ private:
 					counter++;
 					continue;
 				}
-				if (std::norm(val)>1e-12) {
+
+				if (PsimagLite::norm(val)>1e-12) {
 					PsimagLite::String s(__FILE__);
 					s += " Hamiltonian has no reflection symmetry.";
 					throw std::runtime_error(s.c_str());

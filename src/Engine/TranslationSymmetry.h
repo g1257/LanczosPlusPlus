@@ -353,7 +353,7 @@ private:
 	{
 		for (SizeType i=0;i<bag.size();i++) {
 			ComplexOrRealType sp = sparseV.scalarProduct(bag[i]);
-			if (std::norm(sp)>1e-8) return false;
+			if (PsimagLite::norm(sp)>1e-8) return false;
 		}
 		return true;
 	}
@@ -375,7 +375,7 @@ private:
 				SizeType end = matrix2.getRowPtr(globalRow+1);
 				for (SizeType k=start;k<end;k++) {
 					ComplexOrRealType val = matrix2.getValue(k);
-					if (std::norm(val)<1e-8) continue;
+					if (PsimagLite::norm(val)<1e-8) continue;
 					SizeType globalCol = matrix2.getCol(k);
 
 					assert(globalCol>=offset);

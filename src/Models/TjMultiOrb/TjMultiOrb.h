@@ -112,7 +112,6 @@ public:
 			matrix.setRow(ispace,nCounter);
 			WordType ket1 = basis(ispace,SPIN_UP);
 			WordType ket2 = basis( ispace,SPIN_DOWN);
-			//				std::cout<<"ket1="<<ket1<<" ket2="<<ket2<<"\n";
 			// Save diagonal
 			sparseRow.add(ispace,diag[ispace]);
 			for (SizeType i=0;i<nsite;i++) {
@@ -530,8 +529,8 @@ private:
 				}
 			}
 
-			assert(fabs(std::imag(s))<1e-12);
-			diag[ispace] = std::real(s);
+			assert(fabs(PsimagLite::imag(s))<1e-12);
+			diag[ispace] = PsimagLite::real(s);
 		}
 	}
 
@@ -554,7 +553,7 @@ private:
 			for (SizeType orb2 = 0; orb2 < mp_.orbitals; ++orb2) {
 				if (j<i) continue;
 				ComplexOrRealType h = hoppings_(i+j*nsite,orb+orb2*mp_.orbitals);
-				if (std::real(h) == 0 && std::imag(h) == 0) continue;
+				if (PsimagLite::real(h) == 0 && PsimagLite::imag(h) == 0) continue;
 				WordType s1j= (ket1 & BasisType::bitmask(j*mp_.orbitals+orb2));
 				if (s1j>0) s1j=1;
 				WordType s2j= (ket2 & BasisType::bitmask(j*mp_.orbitals+orb2));
@@ -602,7 +601,7 @@ private:
 			for (SizeType orb2 = 0; orb2 < mp_.orbitals; ++orb2) {
 				if (j<i) continue;
 				ComplexOrRealType h = jpm_(i,j)*0.5;
-				if (std::real(h) == 0 && std::imag(h) == 0) continue;
+				if (PsimagLite::real(h) == 0 && PsimagLite::imag(h) == 0) continue;
 				WordType s1j= (ket1 & BasisType::bitmask(j*mp_.orbitals+orb2));
 				if (s1j>0) s1j=1;
 				WordType s2j= (ket2 & BasisType::bitmask(j*mp_.orbitals+orb2));

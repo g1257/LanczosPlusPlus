@@ -335,7 +335,7 @@ private:
 			for (SizeType orb2=0;orb2<mp_.orbitals;orb2++) {
 				SizeType jj = j*mp_.orbitals+orb2;
 				ComplexOrRealType h = hoppings(i,orb,j,orb2);
-				if (std::real(h) == 0 && std::imag(h) == 0) continue;
+				if (PsimagLite::real(h) == 0 && PsimagLite::imag(h) == 0) continue;
 				WordType s1j= (ket1 & BasisType::bitmask(jj));
 				if (s1j>0) s1j=1;
 				WordType s2j= (ket2 & BasisType::bitmask(jj));
@@ -433,7 +433,7 @@ private:
 	{
 		for (SizeType j=0;j<geometry_.numberOfSites();j++) {
 			ComplexOrRealType value = jCoupling(i,j,TERM_J_PM)*0.5;
-			if (std::real(value) == 0 && std::imag(value) == 0) continue;
+			if (PsimagLite::real(value) == 0 && PsimagLite::imag(value) == 0) continue;
 			value *= 0.5; // RealType counting i,j
 			assert(i!=j);
 			for (SizeType orb2=0;orb2<mp_.orbitals;orb2++) {
@@ -531,15 +531,15 @@ private:
 		for (SizeType j=0;j<nsite;j++) {
 			for (SizeType orb2=0;orb2<mp_.orbitals;orb2++) {
 				ComplexOrRealType value = jCoupling(i,j,TERM_J_ZZ);
-				if (std::real(value) == 0 && std::imag(value) == 0) continue;
+				if (PsimagLite::real(value) == 0 && PsimagLite::imag(value) == 0) continue;
 				s += value*0.5* // RealType counting i,j
 				        szTerm(ket1,ket2,i,orb,basis)*
 				        szTerm(ket1,ket2,j,orb2,basis);
 			}
 		}
 
-		assert(fabs(std::imag(s))<1e-12);
-		return std::real(s);
+		assert(fabs(PsimagLite::imag(s))<1e-12);
+		return PsimagLite::real(s);
 	}
 
 	RealType findSImpurity(SizeType,

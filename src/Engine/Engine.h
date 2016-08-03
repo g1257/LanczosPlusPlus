@@ -398,7 +398,7 @@ private:
 			currentOffset +=  gsVector1.size();
 		}
 		rs.transformGs(gsVector_,offset);
-		std::cout<<"#GSNorm="<<std::real(gsVector_*gsVector_)<<"\n";
+		std::cout<<"#GSNorm="<<PsimagLite::real(gsVector_*gsVector_)<<"\n";
 	}
 
 	template<typename ContinuedFractionType>
@@ -430,7 +430,7 @@ private:
 
 		const MatrixRealType& reortho = lanczosSolver.reorthogonalizationMatrix();
 
-		cf.set(ab,reortho,gsEnergy_,std::real(weight*s2),s);
+		cf.set(ab,reortho,gsEnergy_,PsimagLite::real(weight*s2),s);
 
 	}
 

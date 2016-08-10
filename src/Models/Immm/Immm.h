@@ -85,17 +85,17 @@ public:
 
 	void matrixVectorProduct(VectorType &x,const VectorType& y) const
 	{
-		matrixVectorProduct(x,y,&basis_);
+		matrixVectorProduct(x,y,basis_);
 	}
 
 	void matrixVectorProduct(VectorType &x,
 	                         const VectorType& y,
-	                         const BasisType* basis) const
+	                         const BasisType& basis) const
 	{
 		// Calculate diagonal elements AND count non-zero matrix elements
-		SizeType hilbert=basis->size();
+		SizeType hilbert=basis.size();
 		typename PsimagLite::Vector<RealType>::Type diag(hilbert);
-		calcDiagonalElements(diag,*basis);
+		calcDiagonalElements(diag,basis);
 
 		SizeType nsite = geometry_.numberOfSites();
 
@@ -104,13 +104,13 @@ public:
 		if (cacheSize<100) cacheSize=100;
 		SparseRowType sparseRow(cacheSize);
 		for (SizeType ispace=0;ispace<hilbert;ispace++) {
-			WordType ket1 = basis->operator()(ispace,SPIN_UP);
-			WordType ket2 = basis->operator()(ispace,SPIN_DOWN);
+			WordType ket1 = basis.operator()(ispace,SPIN_UP);
+			WordType ket2 = basis.operator()(ispace,SPIN_DOWN);
 			// Save diagonal
 			sparseRow.add(ispace,diag[ispace]);
 			for (SizeType i=0;i<nsite;i++) {
-				for (SizeType orb=0;orb<basis->orbsPerSite(i);orb++) {
-					setHoppingTerm(sparseRow,ket1,ket2,ispace,i,orb,*basis);
+				for (SizeType orb=0;orb<basis.orbsPerSite(i);orb++) {
+					setHoppingTerm(sparseRow,ket1,ket2,ispace,i,orb,basis);
 				}
 			}
 

@@ -111,7 +111,7 @@ public:
 			SparseRowType sparseRow;
 			matrix.setRow(ispace,nCounter);
 			WordType ket1 = basis(ispace,SPIN_UP);
-			WordType ket2 = basis( ispace,SPIN_DOWN);
+			WordType ket2 = basis(ispace,SPIN_DOWN);
 			// Save diagonal
 			sparseRow.add(ispace,diag[ispace]);
 			for (SizeType i=0;i<nsite;i++) {
@@ -142,7 +142,7 @@ public:
 
 		if (what == ProgramGlobals::OPERATOR_SPLUS ||
 		        what == ProgramGlobals::OPERATOR_SMINUS)
-			return hasNewPartsSplusOrMinus(newParts,what,spin,orbs);
+		return hasNewPartsSplusOrMinus(newParts,what,spin,orbs);
 
 		PsimagLite::String str(__FILE__);
 		str += " " + ttos(__LINE__) +  "\n";
@@ -167,6 +167,14 @@ public:
 		BasisType* ptr = new BasisType(geometry_,nup,ndown,mp_.orbitals);
 		garbage_.push_back(ptr);
 		return ptr;
+	}
+
+	virtual void matrixVectorProduct(VectorType&,
+	                                 const VectorType&,
+	                                 const BasisBaseType&) const
+	{
+		throw PsimagLite::RuntimeError
+		        ("ModelBase::matrixVectorProduct(3) not impl. for this model\n");
 	}
 
 	void print(std::ostream& os) const { os<<mp_; }
@@ -244,7 +252,7 @@ private:
 			SparseRowType sparseRow;
 			rot.setRow(ispace,nCounter);
 			WordType ket1 = basis(ispace,SPIN_UP);
-			WordType ket2 = basis( ispace,SPIN_DOWN);
+			WordType ket2 = basis(ispace,SPIN_DOWN);
 			VectorSizeType k;
 			breakIntoSites(k,ket1,ket2);
 			if (hasSinglet(k)) targets.push_back(ispace);
@@ -282,7 +290,6 @@ private:
 
 		return res;
 	}
-
 
 	void breakIntoSites(VectorSizeType& k,WordType ket1,WordType ket2) const
 	{
@@ -322,7 +329,7 @@ private:
 				}
 
 				currentBranches++;
- 				break;
+				break;
 			case REINTERPRET_9:
 				for (b = 0; b < currentBranches; ++b) {
 					braMatrix(b,i) = REINTERPRET_6;

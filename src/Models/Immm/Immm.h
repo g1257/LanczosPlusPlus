@@ -90,7 +90,7 @@ public:
 
 	void matrixVectorProduct(VectorType &x,
 	                         const VectorType& y,
-	                         const BasisType& basis) const
+	                         const BasisBaseType& basis) const
 	{
 		// Calculate diagonal elements AND count non-zero matrix elements
 		SizeType hilbert=basis.size();

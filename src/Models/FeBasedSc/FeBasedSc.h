@@ -57,7 +57,7 @@ class FeBasedSc : public ModelBase<ComplexOrRealType,GeometryType,InputType> {
 		MatrixVectorHelper(SizeType nthreads,
 		                   VectorType &x,
 		                   const VectorType& y,
-		                   const BasisType& basis,
+		                   const BasisBaseType& basis,
 		                   const ThisType& myself)
 		    : nthreads_(nthreads),x_(x),y_(y),basis_(basis),myself_(myself)
 		{}
@@ -81,22 +81,22 @@ class FeBasedSc : public ModelBase<ComplexOrRealType,GeometryType,InputType> {
 				for (SizeType i=0;i<nsite;i++) {
 					for (SizeType orb=0;orb<myself_.mp_.orbitals;orb++) {
 						myself_.setHoppingTerm(sparseRow,ket1,ket2,
-						               i,orb,basis_);
+						                       i,orb,basis_);
 
 						if (myself_.mp_.feAsMode == 0) {
 							myself_.setU2OffDiagonalTerm(sparseRow,ket1,ket2,
-							                     i,orb,basis_);
+							                             i,orb,basis_);
 
 							for (SizeType orb2=orb+1;orb2<myself_.mp_.orbitals;orb2++) {
 								myself_.setU3Term(sparseRow,ket1,ket2,
-								          i,orb,orb2,basis_);
+								                  i,orb,orb2,basis_);
 							}
 
 							myself_.setJTermOffDiagonal(sparseRow,ket1,ket2,
-							                    i,orb,basis_);
+							                            i,orb,basis_);
 						} else if (myself_.mp_.feAsMode == 1 || myself_.mp_.feAsMode == 2) {
 							myself_.setOffDiagonalDecay(sparseRow,ket1,ket2,
-							                    i,orb,basis_);
+							                            i,orb,basis_);
 						} else if (myself_.mp_.feAsMode == 3) {
 							myself_.setOffDiagonalJimpurity(sparseRow,ket1,ket2,i,orb,basis_);
 						} else if (myself_.mp_.feAsMode == 4) {
@@ -113,9 +113,9 @@ class FeBasedSc : public ModelBase<ComplexOrRealType,GeometryType,InputType> {
 
 		SizeType nthreads_;
 		VectorType &x_;
-        const VectorType& y_;
-		const BasisType& basis_;
-        const ThisType& myself_;
+		const VectorType& y_;
+		const BasisBaseType& basis_;
+		const ThisType& myself_;
 	}; // class MatrixVectorHelper
 
 public:
@@ -220,7 +220,7 @@ public:
 
 	void matrixVectorProduct(VectorType &x,
 	                         const VectorType& y,
-	                         const BasisType& basis) const
+	                         const BasisBaseType& basis) const
 	{
 		SizeType hilbert=basis.size();
 

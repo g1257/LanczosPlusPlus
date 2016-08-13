@@ -5,6 +5,13 @@ cmake_policy(SET CMP0056 NEW)
 cmake_policy(SET CMP0065 NEW)
 cmake_policy(SET CMP0042 NEW)
 
+message(${PsimagLite_SOURCE_DIR})
+
+include_directories(${PsimagLite_SOURCE_DIR}
+  ${PsimagLite_SOURCE_DIR}/../
+  Engine
+  )
+
 add_executable (lanczos lanczos.cpp)
 add_executable (thermal thermal.cpp)
 add_executable (lorentzian lorentzian.cpp)

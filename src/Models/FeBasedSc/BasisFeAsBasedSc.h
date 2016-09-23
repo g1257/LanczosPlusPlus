@@ -162,6 +162,28 @@ public:
 		return s*s2;
 	}
 
+	int doSignSpinOrbit(WordType a,
+	                    WordType b,
+	                    SizeType ind,
+	                    SizeType spin1,
+	                    SizeType orb1,
+	                    SizeType spin2,
+	                    SizeType orb2) const
+	{
+		if (spin1==spin2) {
+			if (spin1==0) return basis1_.doSign(a,ind,orb1,orb2);
+			return basis2_.doSign(b,ind,orb1,orb2);
+		}
+
+		int x = (spin1) ? -1 : 1;
+		int s=(PsimagLite::BitManip::count(a) & 1) ? -1 : 1; // Parity of up
+		if (spin1) return x*s*basis1_.doSignGf(a,ind,orb2)*
+		        basis2_.doSignGf(b,ind,orb1);
+
+		return x*s*basis1_.doSignGf(a,ind,orb1)*
+		        basis2_.doSignGf(b,ind,orb2);
+	}
+
 	int doSignSpSm(WordType a, WordType b,SizeType ind,SizeType spin,SizeType orb) const
 	{
 		if (spin==SPIN_UP) { // spin here means S^\dagger

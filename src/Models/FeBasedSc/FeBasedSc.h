@@ -196,6 +196,10 @@ public:
 
 						setJTermOffDiagonal(sparseRow,ket1,ket2,
 						                    i,orb,basis);
+
+						setSpinOrbitOffDiagonal(sparseRow,ket1,ket2,
+						                    i,orb,basis);
+
 					} else if (mp_.feAsMode == 1 || mp_.feAsMode == 2) {
 						setOffDiagonalDecay(sparseRow,ket1,ket2,
 						                    i,orb,basis);
@@ -421,6 +425,55 @@ private:
 		WordType bra2 = ket2 ^ (BasisType::bitmask(ii)|BasisType::bitmask(jj));
 		SizeType temp = basis.perfectIndex(bra1,bra2);
 		sparseRow.add(temp,FERMION_SIGN * mp_.hubbardU[3]);
+	}
+
+	void setSpinOrbitOffDiagonal(
+	        SparseRowType &sparseRow,
+	        const WordType& ketUp,
+	        const WordType& ketDown,
+	        SizeType i,
+	        SizeType orb1,
+	        const BasisBaseType& basis) const
+	{
+		if (mp_.spinOrbit.n_row()!=4) return;
+		SizeType orbitals = mp_.orbitals;
+		SizeType i1 = i*mp_.orbitals+orb1;
+		for (SizeType orb2=0;orb2<orbitals;orb2++) {
+			SizeType i2 = i*mp_.orbitals+orb2;
+			for (SizeType spin1=0;spin1<2;spin1++) {
+
+				WordType ket1 = (spin1) ? ketDown : ketUp;
+
+				for (SizeType spin2=0;spin2<2;spin2++) {
+
+					WordType ket2 = (spin2) ? ketDown : ketUp;
+					WordType bra1 = ket1;
+					WordType bra2 = ket2;
+					ComplexOrRealType value = mp_.spinOrbit(spin1+spin2*2,
+					                                        orb1+orb2*orbitals);
+
+					WordType s12= (ket1 & BasisType::bitmask(i2));
+					if (s12>0) s12=1;
+					WordType s21= (ket2 & BasisType::bitmask(i1));
+					if (s21>0) s21=1;
+					if (s12 == 0 || s21 == 1) continue;
+					if (spin1==spin2) {
+						bra1 = ket1 ^(BasisType::bitmask(i2)|BasisType::bitmask(i1));
+						bra2 = (spin1) ? ketUp : ketDown;
+					} else {
+						bra1 = ket1 ^(BasisType::bitmask(i1));
+						bra2 = ket2 ^(BasisType::bitmask(i2));
+					}
+
+					SizeType temp = (spin1) ? basis.perfectIndex(bra2,bra1) :
+					                          basis.perfectIndex(bra1,bra2);
+
+					RealType s = basis_.doSignSpinOrbit(ket1,ket2,i,spin1,orb1,spin2,orb2);
+					ComplexOrRealType cTemp = value*s;
+					sparseRow.add(temp,cTemp);
+				}
+			}
+		}
 	}
 
 	void setJTermOffDiagonal(

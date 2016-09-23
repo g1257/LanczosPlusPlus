@@ -257,6 +257,19 @@ public:
 		}
 	}
 
+	int doSign(WordType ket,
+	           SizeType i,
+	           SizeType orb1,
+	           SizeType orb2) const
+	{
+		if (orb1 > orb2) return -doSign(ket,i,orb2,orb1);
+
+		SizeType x0 = i*orbitals_+orb1;
+		SizeType x1 = i*orbitals_+orb2;
+		SizeType sum = getNbyKet(ket,x0,x1);
+		return (sum & 1) ? FERMION_SIGN : 1;
+	}
+
 private:
 
 	void fillPartialBasis(PsimagLite::Vector<WordType>::Type& partialBasis,SizeType npart)
@@ -441,19 +454,6 @@ private:
 		}
 
 		return sum;
-	}
-
-	int doSign(WordType ket,
-	           SizeType i,
-	           SizeType orb1,
-	           SizeType orb2) const
-	{
-		if (orb1 > orb2) return -doSign(ket,i,orb2,orb1);
-
-		SizeType x0 = i*orbitals_+orb1;
-		SizeType x1 = i*orbitals_+orb2;
-		SizeType sum = getNbyKet(ket,x0,x1);
-		return (sum & 1) ? FERMION_SIGN : 1;
 	}
 
 	SizeType size_;

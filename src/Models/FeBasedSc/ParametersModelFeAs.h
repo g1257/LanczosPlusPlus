@@ -141,6 +141,10 @@ namespace LanczosPlusPlus {
 					hubbardU[4] = hubbardU[2];
 				}
 
+				try {
+					io.readMatrix(spinOrbit,"SpinOrbit");
+				} catch (std::exception&) {}
+
 				std::cout<<"U[0]="<<hubbardU[0]<<" =U\n";
 				std::cout<<"U[1]="<<hubbardU[1]<<" =U'-J/2\n";
 				std::cout<<"U[2]="<<hubbardU[2]<<" =-2J for S+S- + S-S+ term\n";
@@ -164,6 +168,7 @@ namespace LanczosPlusPlus {
 		typename PsimagLite::Vector<RealType>::Type potentialV;
 		SizeType feAsMode;
 		RealType coulombV;
+		PsimagLite::Matrix<ComplexOrRealType> spinOrbit;
 		// target number of electrons  in the system
 		int nOfElectrons;
 	}; //struct ParametersModelFeAs
@@ -177,6 +182,8 @@ namespace LanczosPlusPlus {
 		os<<parameters.hubbardU;
 		os<<"potentialV\n";
 		os<<parameters.potentialV;
+		os<<"SpinOrbit\n";
+		os<<parameters.spinOrbit;
 		os<<"FeAsMode="<<parameters.feAsMode<<"\n";
 		if (parameters.feAsMode)
 			os<<"CoulombV="<<parameters.coulombV<<"\n";

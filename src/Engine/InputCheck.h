@@ -104,7 +104,7 @@ public:
 		if (label=="JMVALUES") {
 			if (vec.size()!=2) return error1("JMVALUES",line);
 			return true;
-		} else if (label=="RAW_MATRIX") {
+		} else if (label=="RAW_MATRIX" || label=="SpinOrbit") {
 			SizeType row = atoi(vec[0].c_str());
 			SizeType col = atoi(vec[1].c_str());
 			SizeType n = row*col;

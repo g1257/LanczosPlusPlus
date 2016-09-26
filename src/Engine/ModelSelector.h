@@ -18,7 +18,9 @@ class ModelSelector {
 	typedef Immm<ComplexOrRealType,GeometryType, InputType> ImmmType;
 	typedef HubbardOneOrbital<ComplexOrRealType,GeometryType,InputType> HubbardOneOrbitalType;
 	typedef BasisFeAsBasedSc<GeometryType> BasisFeAsBasedScType;
+	typedef BasisFeAsSpinOrbit<GeometryType> BasisFeAsSpinOrbitType;
 	typedef FeBasedSc<ComplexOrRealType,BasisFeAsBasedScType, InputType> FeBasedScType;
+	typedef FeBasedSc<ComplexOrRealType,BasisFeAsSpinOrbitType, InputType> FeBasedScSpinOrbitType;
 	typedef Heisenberg<ComplexOrRealType,GeometryType, InputType> HeisenbergType;
 	typedef typename PsimagLite::Real<ComplexOrRealType>::Type RealType;
 
@@ -61,6 +63,8 @@ public:
 			modelPtr_ = new HubbardOneOrbitalType(nup,ndown,io,geometry);
 		} else if (model=="FeAsBasedSc" || model=="FeAsBasedScExtended") {
 			modelPtr_ = new FeBasedScType(nup,ndown,io,geometry);
+		} else if (mode == "FeAsBasedScSpinOrbit" || model == "FeAsBasedScExtendedSpinOrbit") {
+			modelPtr_ = new FeBasedScSpinOrbitType(nup+ndown,io,geometry);
 		} else if (model=="Heisenberg") {
 			modelPtr_ = new HeisenbergType(szPlusConst,io,geometry);
 		} else {

@@ -7,6 +7,8 @@
 #include "../Models/Immm/Immm.h"
 #include "../Models/HubbardOneOrbital/HubbardOneOrbital.h"
 #include "../Models/FeBasedSc/FeBasedSc.h"
+#include "../Models/FeBasedSc/BasisFeAsBasedSc.h"
+#include "../Models/FeBasedSc/BasisFeAsSpinOrbit.h"
 #include "../Models/Heisenberg/Heisenberg.h"
 
 namespace LanczosPlusPlus {
@@ -45,9 +47,14 @@ public:
 		try {
 			io.readline(nup,"TargetElectronsUp=");
 			io.readline(ndown,"TargetElectronsDown=");
-		} catch (std::exception& e) {
+		} catch (std::exception&) {
 			io.readline(szPlusConst,"TargetSzPlusConst=");
 		}
+
+		PsimagLite::Matrix<ComplexOrRealType> spinOrbit;
+		try {
+			io.readMatrix(spinOrbit,"SpinOrbit");
+		} catch (std::exception&) {}
 
 		PsimagLite::String model("");
 		io.readline(model,"Model=");
@@ -62,9 +69,10 @@ public:
 		           model=="KaneMeleHubbard") {
 			modelPtr_ = new HubbardOneOrbitalType(nup,ndown,io,geometry);
 		} else if (model=="FeAsBasedSc" || model=="FeAsBasedScExtended") {
-			modelPtr_ = new FeBasedScType(nup,ndown,io,geometry);
-		} else if (mode == "FeAsBasedScSpinOrbit" || model == "FeAsBasedScExtendedSpinOrbit") {
-			modelPtr_ = new FeBasedScSpinOrbitType(nup+ndown,io,geometry);
+			if (spinOrbit.n_row() != 4)
+				modelPtr_ = new FeBasedScType(nup,ndown,io,geometry);
+			else
+				modelPtr_ = new FeBasedScSpinOrbitType(nup,ndown,io,geometry);
 		} else if (model=="Heisenberg") {
 			modelPtr_ = new HeisenbergType(szPlusConst,io,geometry);
 		} else {

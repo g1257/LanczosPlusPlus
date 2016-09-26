@@ -18,7 +18,6 @@ Please see full open source license included in file LICENSE.
 
 #ifndef BASIS_FEASBASED_SPINORBIT_H
 #define BASIS_FEASBASED_SPINORBIT_H
-#include "BasisOneSpinFeAs.h"
 #include "../../Engine/BasisBase.h"
 
 namespace LanczosPlusPlus {
@@ -42,17 +41,13 @@ public:
 	typedef BasisOneSpinFeAs BasisType;
 	static int const FERMION_SIGN = BasisType::FERMION_SIGN;
 
-	BasisFeAsSpinOrbit(const GeometryType& geometry, SizeType nup,SizeType ndown,SizeType orbitals)
-	: basis1_(geometry.numberOfSites(),nup,orbitals),
-	  basis2_(geometry.numberOfSites(),ndown,orbitals)
+	BasisFeAsSpinOrbit(const GeometryType& geometry,
+	                   SizeType nup,
+	                   SizeType ndown,
+	                   SizeType orbitals)
 	{
 		orbitals_ = orbitals;
 	}
-
-	BasisFeAsSpinOrbit(const GeometryType& geometry, SizeType nup,SizeType ndown)
-	: basis1_(geometry.numberOfSites(),nup,orbitals_),
-	  basis2_(geometry.numberOfSites(),ndown,orbitals_)
-	{}
 
 	static const WordType& bitmask(SizeType i)
 	{
@@ -66,7 +61,7 @@ public:
 
 	SizeType size() const
 	{
-		return basis1_.size()*basis2_.size();
+		return 0;
 	}
 
 	virtual SizeType hilbertOneSite(SizeType) const
@@ -76,9 +71,7 @@ public:
 
 	WordType operator()(SizeType i,SizeType spin) const
 	{
-		SizeType y = i/basis1_.size();
-		SizeType x = i%basis1_.size();
-		return (spin==SPIN_UP) ? basis1_[x] : basis2_[y];
+		return (spin==SPIN_UP) ? 0 : 0;
 	}
 
 	SizeType perfectIndex(const VectorWordType& kets) const
@@ -89,7 +82,7 @@ public:
 
 	SizeType perfectIndex(WordType ket1,WordType ket2) const
 	{
-		return basis1_.perfectIndex(ket1) + basis2_.perfectIndex(ket2)*basis1_.size();
+		return 0;
 	}
 
 	SizeType perfectIndex(WordType,
@@ -101,14 +94,12 @@ public:
 
 	SizeType getN(SizeType i,SizeType spin,SizeType orb) const
 	{
-		SizeType y = i/basis1_.size();
-		SizeType x = i%basis1_.size();
-		return (spin==SPIN_UP) ? basis1_.getN(x,orb) : basis2_.getN(y,orb);
+		return (spin==SPIN_UP) ? 0 : 0;
 	}
 
 	SizeType getN(WordType ket1, WordType ket2, SizeType site,SizeType spin,SizeType orb) const
 	{
-		return (spin==SPIN_UP) ? basis1_.getN(ket1,site,orb) : basis2_.getN(ket2,site,orb);
+		return (spin==SPIN_UP) ? 0 : 0;
 	}
 
 	PairIntType getBraIndex(WordType ket1,
@@ -145,18 +136,19 @@ public:
 			std::cerr<<"AT: "<<__FILE__<<" : "<<__LINE__<<std::endl;
 			throw std::runtime_error("FeBasedSc::doSign(...)\n");
 		}
+
 		if (spin==SPIN_UP) {
-			return basis1_.doSign(ket1,i,orb1,j,orb2);
+			return 0;
 		}
-		return basis2_.doSign(ket2,i,orb1,j,orb2);
+		return 0;
 	}
 
 	int doSignGf(WordType a, WordType b,SizeType ind,SizeType spin,SizeType orb) const
 	{
-		if (spin==SPIN_UP) return basis1_.doSignGf(a,ind,orb);
+		if (spin==SPIN_UP) return 0;
 
 		int s=(PsimagLite::BitManip::count(a) & 1) ? -1 : 1; // Parity of up
-		int s2 = basis2_.doSignGf(b,ind,orb);
+		int s2 = 0;
 
 		return s*s2;
 	}
@@ -169,29 +161,12 @@ public:
 	                    SizeType spin2,
 	                    SizeType orb2) const
 	{
-		if (spin1==spin2) {
-			if (spin1==0) return basis1_.doSign(a,ind,orb1,orb2);
-			return basis2_.doSign(b,ind,orb1,orb2);
-		}
-
-		int x = (spin1) ? -1 : 1;
-		int s=(PsimagLite::BitManip::count(a) & 1) ? -1 : 1; // Parity of up
-		if (spin1) return x*s*basis1_.doSignGf(a,ind,orb2)*
-		        basis2_.doSignGf(b,ind,orb1);
-
-		return x*s*basis1_.doSignGf(a,ind,orb1)*
-		        basis2_.doSignGf(b,ind,orb2);
+		return 0;
 	}
 
 	int doSignSpSm(WordType a, WordType b,SizeType ind,SizeType spin,SizeType orb) const
 	{
-		if (spin==SPIN_UP) { // spin here means S^\dagger
-			// FIXME: Count over a (up)
-			return basis1_.doSignGf(a,ind,orb)*basis2_.doSignGf(b,ind,orb);
-		}
-
-		// FIXME: Count over a + 1
-		return basis1_.doSignGf(a,ind,orb)*basis2_.doSignGf(b,ind,orb);
+		return 0;
 	}
 
 	SizeType isThereAnElectronAt(WordType ket1,
@@ -200,9 +175,7 @@ public:
 	                             SizeType spin,
 	                             SizeType orb) const
 	{
-		if (spin==SPIN_UP)
-			return basis1_.isThereAnElectronAt(ket1,site,orb);
-		return basis2_.isThereAnElectronAt(ket2,site,orb);
+		return 0;
 	}
 
 	bool hasNewParts(std::pair<SizeType,SizeType>& newParts,
@@ -233,11 +206,11 @@ public:
 
 	void print(std::ostream& os, typename BaseType::PrintEnum binaryOrDecimal) const
 	{
-		bool isBinary = (binaryOrDecimal == BaseType::PRINT_BINARY);
-		os<<"\tUp sector\n";
-		basis1_.print(os,isBinary);
-		os<<"\tDown sector\n";
-		basis2_.print(os,isBinary);
+//		bool isBinary = (binaryOrDecimal == BaseType::PRINT_BINARY);
+//		os<<"\tUp sector\n";
+//		basis1_.print(os,isBinary);
+//		os<<"\tDown sector\n";
+//		basis2_.print(os,isBinary);
 	}
 
 	virtual bool getBra(WordType&,
@@ -259,12 +232,7 @@ private:
 	                             SizeType spin,
 	                             SizeType orb) const
 	{
-
-		WordType bra  =0;
-		bool b = getBraCorCdaggerOrN(bra,ket1,ket2,what,site,spin,orb);
-		if (!b) return -1;
-		return (spin==SPIN_UP) ? perfectIndex(bra,ket2) :
-		       perfectIndex(ket1,bra);
+		return 0;
 	}
 
 	int getBraIndexSplusOrSminus(WordType ket1,
@@ -274,11 +242,7 @@ private:
 	                             SizeType orb) const
 	{
 
-		WordType bra1  =0;
-		WordType bra2  =0;
-		bool b = getBraSplusOrSminus(bra1,bra2,ket1,ket2,what,site,orb);
-		if (!b) return -1;
-		return perfectIndex(bra1,bra2);
+		return 0;
 	}
 
 	bool hasNewPartsCorCdagger(std::pair<SizeType,SizeType>& newParts,
@@ -286,36 +250,14 @@ private:
 	                           SizeType spin,
 	                           const std::pair<SizeType,SizeType>& orbs) const
 	{
-		int newPart1=basis1_.electrons();
-		int newPart2=basis2_.electrons();
-
-		if (spin==SPIN_UP) newPart1 = basis1_.newPartCorCdagger(what,orbs.first);
-		else newPart2 = basis2_.newPartCorCdagger(what,orbs.second);
-
-		if (newPart1<0 || newPart2<0) return false;
-
-		if (newPart1==0 && newPart2==0) return false;
-		newParts.first = SizeType(newPart1);
-		newParts.second = SizeType(newPart2);
-		return true;
+		return false;
 	}
 
 	bool hasNewPartsSplusOrSminus(std::pair<SizeType,SizeType>& newParts,
 	                              SizeType what,
 	                              const std::pair<SizeType,SizeType>& orbs) const
 	{
-		int c1 = (what==ProgramGlobals::OPERATOR_SPLUS) ? 1 : -1;
-		int c2 = (what==ProgramGlobals::OPERATOR_SPLUS) ? -1 : 1;
-
-		int newPart1 = basis1_.hasNewPartsSplusOrSminus(c1,orbs.first);
-		int newPart2 = basis2_.hasNewPartsSplusOrSminus(c2,orbs.second);
-
-		if (newPart1<0 || newPart2<0) return false;
-
-		if (newPart1==0 && newPart2==0) return false;
-		newParts.first = SizeType(newPart1);
-		newParts.second = SizeType(newPart2);
-		return true;
+		return false;
 	}
 
 	bool getBraCorCdaggerOrN(WordType& bra,
@@ -326,8 +268,7 @@ private:
 	                         SizeType spin,
 	                         SizeType orb) const
 	{
-		return (spin==SPIN_UP) ? basis1_.getBra(bra,ket1,what,site,orb) :
-		       basis2_.getBra(bra,ket2,what,site,orb);
+		return false;
 	}
 
 	bool getBraSplusOrSminus(WordType& bra1,
@@ -338,14 +279,8 @@ private:
 	                         SizeType site,
 	                         SizeType orb) const
 	{
-		SizeType what1 = (what==ProgramGlobals::OPERATOR_SPLUS) ? OPERATOR_CDAGGER : OPERATOR_C;
-		SizeType what2 = (what==ProgramGlobals::OPERATOR_SPLUS) ? OPERATOR_C : OPERATOR_CDAGGER;
-		bool b1 = basis1_.getBra(bra1,ket1,what1,site,orb);
-		bool b2 = basis2_.getBra(bra2,ket2,what2,site,orb);
-		return (b1 & b2);
+		return false;
 	}
-
-	BasisType basis1_,basis2_;
 }; // class BasisFeAsSpinOrbit
 
 template<typename GeometryType>

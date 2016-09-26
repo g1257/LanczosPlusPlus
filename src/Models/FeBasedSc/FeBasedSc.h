@@ -21,7 +21,6 @@ Please see full open source license included in file LICENSE.
 #ifndef FEBASED_SC_H
 #define FEBASED_SC_H
 
-#include "BasisFeAsBasedSc.h"
 #include "SparseRow.h"
 #include "ParametersModelFeAs.h"
 #include "ModelBase.h"
@@ -248,7 +247,7 @@ public:
 
 	BasisType* createBasis(SizeType nup, SizeType ndown) const
 	{
-		BasisType* ptr = new BasisType(geometry_,nup,ndown);
+		BasisType* ptr = new BasisType(geometry_,nup,ndown,mp_.orbitals);
 		garbage_.push_back(ptr);
 		return ptr;
 	}

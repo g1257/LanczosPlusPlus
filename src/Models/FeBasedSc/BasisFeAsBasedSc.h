@@ -44,17 +44,15 @@ public:
 	typedef BasisOneSpinFeAs BasisType;
 	static int const FERMION_SIGN = BasisType::FERMION_SIGN;
 
-	BasisFeAsBasedSc(const GeometryType& geometry, SizeType nup,SizeType ndown,SizeType orbitals)
+	BasisFeAsBasedSc(const GeometryType& geometry,
+	                 SizeType nup,
+	                 SizeType ndown,
+	                 SizeType orbitals)
 	: basis1_(geometry.numberOfSites(),nup,orbitals),
 	  basis2_(geometry.numberOfSites(),ndown,orbitals)
 	{
 		orbitals_ = orbitals;
 	}
-
-	BasisFeAsBasedSc(const GeometryType& geometry, SizeType nup,SizeType ndown)
-	: basis1_(geometry.numberOfSites(),nup,orbitals_),
-	  basis2_(geometry.numberOfSites(),ndown,orbitals_)
-	{}
 
 	static const WordType& bitmask(SizeType i)
 	{

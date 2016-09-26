@@ -284,7 +284,7 @@ private:
 
 		for (SizeType j=0;j<nsite;j++) {
 			if (i == j) continue;
-			if (jpm_(i,j) == 0) continue;
+			if (jpm_(i,j) == 0.0) continue;
 
 			SizeType val2 = basis.getN(ket,dummy,j,dummy,orb);
 			if (val2 == 0) continue;

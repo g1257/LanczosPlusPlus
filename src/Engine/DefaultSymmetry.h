@@ -52,7 +52,6 @@ public:
 	void init(const SomeModelType& model,const BasisType& basis)
 	{
 		model.setupHamiltonian(matrixStored_,basis);
-		assert(isHermitian(matrixStored_));
 		int nrows = matrixStored_.row();
 		if (printMatrix_ && nrows > 40)
 				throw PsimagLite::RuntimeError("printMatrix: too big\n");
@@ -69,6 +68,7 @@ public:
 			basis.print(std::cout,BasisType::PRINT_DECIMAL);
 			model.printOperators(std::cout);
 
+			assert(isHermitian(matrixStored_));
 			PsimagLite::Matrix<ComplexOrRealType> matrixCopy;
 			VectorRealType eigs;
 			fullDiag(eigs,matrixCopy);

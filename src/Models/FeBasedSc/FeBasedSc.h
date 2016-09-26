@@ -346,6 +346,7 @@ private:
 				if (s2j>0) s2j=1;
 
 				if (s1i+s1j==1) {
+					if (s1i == 0) h = PsimagLite::conj(h);
 					WordType bra1= ket1 ^(BasisType::bitmask(ii)|BasisType::bitmask(jj));
 					SizeType temp = basis.perfectIndex(bra1,ket2);
 					RealType extraSign = (s1i==1) ? FERMION_SIGN : 1;
@@ -354,7 +355,9 @@ private:
 					sparseRow.add(temp,cTemp);
 
 				}
+
 				if (s2i+s2j==1) {
+					if (s2i == 0) h = PsimagLite::conj(h);
 					WordType bra2= ket2 ^(BasisType::bitmask(ii)|BasisType::bitmask(jj));
 					SizeType temp = basis.perfectIndex(ket1,bra2);
 					RealType extraSign = (s2i==1) ? FERMION_SIGN : 1;

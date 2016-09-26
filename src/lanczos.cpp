@@ -46,38 +46,25 @@ typedef double RealType;
 typedef float RealType;
 #endif
 
-typedef std::complex<RealType> ComplexType;
-
-#ifdef USE_COMPLEX
-typedef ComplexType ComplexOrRealType;
-#else
-typedef RealType ComplexOrRealType;
-#endif
-
 typedef PsimagLite::Concurrency ConcurrencyType;
 typedef PsimagLite::InputNg<InputCheck> InputNgType;
-typedef PsimagLite::Geometry<ComplexOrRealType,
-InputNgType::Readable,
-ProgramGlobals> GeometryType;
-typedef std::pair<SizeType,SizeType> PairType;
-typedef ModelSelector<ComplexOrRealType,GeometryType,InputNgType::Readable> ModelSelectorType;
-typedef ModelSelectorType::ModelBaseType ModelBaseType;
+typedef std::pair<SizeType,SizeType> PairSizeType;
 
 struct LanczosOptions {
 
 	LanczosOptions()
-	    : split(-1),spins(1,PairType(0,0))
+	    : split(-1),spins(1,PairSizeType(0,0))
 	{}
 
 	int split;
 	PsimagLite::Vector<SizeType>::Type cicj;
 	PsimagLite::Vector<SizeType>::Type gf;
 	PsimagLite::Vector<SizeType>::Type sites;
-	PsimagLite::Vector<PairType>::Type spins;
+	PsimagLite::Vector<PairSizeType>::Type spins;
 
 }; // struct LanczosOptions
 
-void fillOrbsOrSpin(PsimagLite::Vector<PairType>::Type& spinV,
+void fillOrbsOrSpin(PsimagLite::Vector<PairSizeType>::Type& spinV,
                     const PsimagLite::Vector<PsimagLite::String>::Type& strV)
 {
 	for (SizeType i=0;i<strV.size();i++) {
@@ -85,7 +72,7 @@ void fillOrbsOrSpin(PsimagLite::Vector<PairType>::Type& spinV,
 		PsimagLite::tokenizer(strV[i],strV2,",");
 		if (strV2.size()!=2)
 			throw std::runtime_error("-o needs pairs\n");
-		PairType spins;
+		PairSizeType spins;
 		spins.first = atoi(strV2[0].c_str());
 		spins.second = atoi(strV2[1].c_str());
 		spinV.push_back(spins);
@@ -109,6 +96,8 @@ void mainLoop3(const ModelType& model,
                InputNgType::Readable& io,
                LanczosOptions& lanczosOptions)
 {
+	typedef typename ModelType::GeometryType GeometryType;
+	typedef typename GeometryType::ComplexOrRealType ComplexOrRealType;
 	typedef Engine<ModelType,InternalProductTemplate,SpecialSymmetryType> EngineType;
 	typedef typename EngineType::TridiagonalMatrixType TridiagonalMatrixType;
 
@@ -121,7 +110,7 @@ void mainLoop3(const ModelType& model,
 	std::cout<<"Energy="<<Eg<<"\n";
 	for (SizeType gfi=0;gfi<lanczosOptions.gf.size();gfi++) {
 		SizeType gfI = lanczosOptions.gf[gfi];
- 		io.read(lanczosOptions.sites,"TSPSites");
+		io.read(lanczosOptions.sites,"TSPSites");
 		if (lanczosOptions.sites.size()==0)
 			throw std::runtime_error("No sites in input file!\n");
 		if (lanczosOptions.sites.size()==1)
@@ -208,6 +197,7 @@ void mainLoop(InputNgType::Readable& io,
               const ModelType& model,
               LanczosOptions& lanczosOptions)
 {
+	typedef typename ModelType::GeometryType GeometryType;
 	typedef typename ModelType::BasisBaseType BasisBaseType;
 
 	int tmp = 0;
@@ -236,6 +226,28 @@ void mainLoop(InputNgType::Readable& io,
 		                                                                  io,
 		                                                                  lanczosOptions);
 	}
+}
+
+template<typename ComplexOrRealType>
+void mainLoop0(InputNgType::Readable& io,
+               LanczosOptions& lanczosOptions)
+{
+	typedef PsimagLite::Geometry<ComplexOrRealType,
+	        InputNgType::Readable,
+	        ProgramGlobals> GeometryType;
+	typedef ModelSelector<ComplexOrRealType,GeometryType,InputNgType::Readable> ModelSelectorType;
+	typedef typename ModelSelectorType::ModelBaseType ModelBaseType;
+
+
+	GeometryType geometry(io);
+
+	std::cout<<geometry;
+
+	ModelSelectorType modelSelector(io,geometry);
+	const ModelBaseType& modelPtr = modelSelector();
+
+	std::cout<<modelPtr;
+	mainLoop(io,modelPtr,lanczosOptions);
 }
 
 int main(int argc,char *argv[])
@@ -316,7 +328,19 @@ int main(int argc,char *argv[])
 	//Setup the Geometry
 	InputNgType::Writeable ioWriteable(file,inputCheck);
 	InputNgType::Readable io(ioWriteable);
-	GeometryType geometry(io);
+
+	bool isComplex = false;
+
+	PsimagLite::String solverOptions;
+	io.readline(solverOptions,"SolverOptions=");
+	PsimagLite::Vector<PsimagLite::String>::Type tokens;
+	PsimagLite::tokenizer(solverOptions,tokens,",");
+	for (SizeType i = 0; i < tokens.size(); ++i) {
+		if (tokens[i] == "useComplex") {
+			isComplex = true;
+			break;
+		}
+	}
 
 	try {
 		io.readline(npthreads,"Threads=");
@@ -325,12 +349,12 @@ int main(int argc,char *argv[])
 
 	inputCheck.checkForThreads(ConcurrencyType::npthreads);
 
-	std::cout<<geometry;
+	typedef std::complex<RealType> ComplexType;
 
-	ModelSelectorType modelSelector(io,geometry);
-	const ModelBaseType& modelPtr = modelSelector();
-
-	std::cout<<modelPtr;
-	mainLoop(io,modelPtr,lanczosOptions);
+	if (isComplex)
+		mainLoop0<ComplexType>(io,lanczosOptions);
+	else
+		mainLoop0<RealType>(io,lanczosOptions);
 }
+
 

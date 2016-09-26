@@ -41,8 +41,8 @@ public:
 	                     const VectorType& psi,
 	                     SizeType split)
 	    : row_(pow(model.basis().hilbertOneSite(),split)),
-	      nabits_(split),
-	      nbbits_(model.geometry().numberOfSites() - split),
+	      nabits_(split*model.orbitals(0)),
+	      nbbits_(model.geometry().numberOfSites()*model.orbitals(0) - split),
 	      rdm_(row_,row_)
 	{
 		build(model, psi);

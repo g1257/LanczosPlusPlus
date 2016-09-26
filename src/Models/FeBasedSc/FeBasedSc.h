@@ -30,10 +30,13 @@ Please see full open source license included in file LICENSE.
 
 namespace LanczosPlusPlus {
 
-template<typename ComplexOrRealType,typename GeometryType,typename InputType>
-class FeBasedSc : public ModelBase<ComplexOrRealType,GeometryType,InputType> {
+template<typename ComplexOrRealType,typename BasisType,typename InputType>
+class FeBasedSc : public ModelBase<ComplexOrRealType,
+        typename BasisType::GeometryType,
+        InputType> {
 
-	typedef FeBasedSc<ComplexOrRealType,GeometryType,InputType> ThisType;
+	typedef typename BasisType::GeometryType GeometryType;
+	typedef FeBasedSc<ComplexOrRealType,BasisType,InputType> ThisType;
 	typedef typename PsimagLite::Real<ComplexOrRealType>::Type RealType;
 	typedef PsimagLite::Matrix<ComplexOrRealType> MatrixType;
 	typedef ModelBase<ComplexOrRealType,GeometryType,InputType> BaseType;
@@ -42,7 +45,6 @@ class FeBasedSc : public ModelBase<ComplexOrRealType,GeometryType,InputType> {
 	enum {SPIN_UP = ProgramGlobals::SPIN_UP, SPIN_DOWN = ProgramGlobals::SPIN_DOWN};
 
 	typedef ParametersModelFeAs<RealType> ParametersModelType;
-	typedef BasisFeAsBasedSc<GeometryType> BasisType;
 	typedef typename BasisType::BaseType BasisBaseType;
 	typedef typename BasisType::WordType WordType;
 	typedef typename BaseType::SparseMatrixType SparseMatrixType;

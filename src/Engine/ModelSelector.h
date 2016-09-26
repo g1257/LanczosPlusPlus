@@ -16,8 +16,9 @@ class ModelSelector {
 
 	typedef TjMultiOrb<ComplexOrRealType,GeometryType, InputType> TjMultiOrbType;
 	typedef Immm<ComplexOrRealType,GeometryType, InputType> ImmmType;
-	typedef HubbardOneOrbital<ComplexOrRealType,GeometryType, InputType> HubbardOneOrbitalType;
-	typedef FeBasedSc<ComplexOrRealType,GeometryType, InputType> FeBasedScType;
+	typedef HubbardOneOrbital<ComplexOrRealType,GeometryType,InputType> HubbardOneOrbitalType;
+	typedef BasisFeAsBasedSc<GeometryType> BasisFeAsBasedScType;
+	typedef FeBasedSc<ComplexOrRealType,BasisFeAsBasedScType, InputType> FeBasedScType;
 	typedef Heisenberg<ComplexOrRealType,GeometryType, InputType> HeisenbergType;
 	typedef typename PsimagLite::Real<ComplexOrRealType>::Type RealType;
 
@@ -29,11 +30,11 @@ public:
 	 - TargetElectronsUp=integer
 	 - TargetElectronsDown=integer
 	 - Model=string One of TjMultiOrb Heisenberg Immm
-	                       HubbardOneBand HubbardOneBandExtended SuperHubbardExtended
-	                       FeAsBasedSc FeAsBasedScExtended
+						   HubbardOneBand HubbardOneBandExtended SuperHubbardExtended
+						   FeAsBasedSc FeAsBasedScExtended
 	*/
 	ModelSelector(InputType& io, const GeometryType& geometry)
-	: modelPtr_(0)
+	    : modelPtr_(0)
 	{
 		SizeType nup = 0;
 		SizeType ndown = 0;

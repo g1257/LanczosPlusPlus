@@ -25,8 +25,8 @@ Please see full open source license included in file LICENSE.
 
 namespace LanczosPlusPlus {
 
-template<typename GeometryType>
-class BasisFeAsBasedSc : public BasisBase<GeometryType> {
+template<typename GeometryType_>
+class BasisFeAsBasedSc : public BasisBase<GeometryType_> {
 
 	typedef ProgramGlobals::PairIntType PairIntType;
 
@@ -37,6 +37,7 @@ class BasisFeAsBasedSc : public BasisBase<GeometryType> {
 
 public:
 
+	typedef GeometryType_ GeometryType;
 	typedef BasisBase<GeometryType> BaseType;
 	typedef typename BaseType::WordType WordType;
 	typedef typename BaseType::VectorWordType VectorWordType;

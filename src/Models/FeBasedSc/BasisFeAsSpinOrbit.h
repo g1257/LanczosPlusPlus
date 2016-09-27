@@ -45,13 +45,23 @@ public:
 	static int const FERMION_SIGN = -1;
 
 	BasisFeAsSpinOrbit(const GeometryType& geometry,
-	                   SizeType,
-	                   SizeType,
+	                   SizeType nup1,
+	                   SizeType ndown1,
 	                   SizeType orbitals)
 	    : geometry_(geometry),
 	      basis1_(geometry.numberOfSites(),1,orbitals) // bogus, just to use some functions
 	{
 		orbitals_ = orbitals;
+		SizeType ne = nup1 + ndown1;
+		for (SizeType nup = 0; nup <= ne; ++nup) {
+			SizeType ndown = ne - nup;
+			BasisOneSpinType basis1(geometry.numberOfSites(),nup,orbitals);
+			BasisOneSpinType basis2(geometry.numberOfSites(),ndown,orbitals);
+			for (SizeType i = 0; i < basis1.size(); ++i)
+				for (SizeType j = 0; j < basis2.size(); ++j)
+					basis_.push_back(PairWordType(basis1[i],basis2[j]));
+		}
+
 	}
 
 	static const WordType& bitmask(SizeType i)
@@ -102,12 +112,6 @@ public:
 		throw PsimagLite::RuntimeError("perfectIndex\n");
 	}
 
-	SizeType getN(SizeType i,SizeType spin,SizeType orb) const
-	{
-		return (spin==SPIN_UP) ? basis1_.getN(basis_[i].first,orb) :
-		                         basis1_.getN(basis_[i].second,orb);
-	}
-
 	SizeType getN(WordType ket1,
 	              WordType ket2,
 	              SizeType site,
@@ -154,7 +158,7 @@ public:
 		}
 
 		return (spin==SPIN_UP) ? basis1_.doSign(ket1,i,orb1,j,orb2) :
-		                         basis1_.doSign(ket2,i,orb2,j,orb2);
+		                         basis1_.doSign(ket2,i,orb1,j,orb2);
 	}
 
 	int doSignGf(WordType a,
@@ -334,6 +338,7 @@ private:
 	{
 		throw PsimagLite::RuntimeError("UNIMPLEMENTED: getBraSplusOrSminus\n");
 	}
+
 
 	const GeometryType& geometry_;
 	VectorPairWordType basis_;

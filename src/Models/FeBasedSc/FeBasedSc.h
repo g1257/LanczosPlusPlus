@@ -456,9 +456,9 @@ private:
 					ComplexOrRealType value = mp_.spinOrbit(spin1+spin2*2,
 					                                        orb1+orb2*orbitals);
 
-					WordType s12= (ket1 & BasisType::bitmask(i2));
+					WordType s12= (ket1 & BasisType::bitmask(i1));
 					if (s12>0) s12=1;
-					WordType s21= (ket2 & BasisType::bitmask(i1));
+					WordType s21= (ket2 & BasisType::bitmask(i2));
 					if (s21>0) s21=1;
 					if (s12 == 0 || s21 == 1) continue;
 					if (spin1==spin2) {
@@ -474,6 +474,7 @@ private:
 
 					RealType s = basis_.doSignSpinOrbit(ket1,ket2,i,spin1,orb1,spin2,orb2);
 					ComplexOrRealType cTemp = value*s;
+					if (cTemp == 0.0) continue;
 					sparseRow.add(temp,cTemp);
 				}
 			}

@@ -68,7 +68,7 @@ public:
 			basis.print(std::cout,BasisType::PRINT_DECIMAL);
 			model.printOperators(std::cout);
 
-			assert(isHermitian(matrixStored_));
+			assert(isHermitian(matrixStored_,true));
 			PsimagLite::Matrix<ComplexOrRealType> matrixCopy;
 			VectorRealType eigs;
 			fullDiag(eigs,matrixCopy);

@@ -37,9 +37,10 @@ public:
 	typedef GeometryType_ GeometryType;
 	typedef BasisBase<GeometryType> BaseType;
 	typedef typename BaseType::WordType WordType;
+	typedef std::pair<WordType,WordType> PairWordType;
 	typedef typename BaseType::VectorWordType VectorWordType;
-	typedef BasisOneSpinFeAs BasisType;
-	static int const FERMION_SIGN = BasisType::FERMION_SIGN;
+	typedef typename PsimagLite::Vector<PairWordType>::Type VectorPairWordType;
+	static int const FERMION_SIGN = -1;
 
 	BasisFeAsSpinOrbit(const GeometryType& geometry,
 	                   SizeType nup,
@@ -61,7 +62,7 @@ public:
 
 	SizeType size() const
 	{
-		return 0;
+		return basis_.size();
 	}
 
 	virtual SizeType hilbertOneSite(SizeType) const
@@ -71,7 +72,7 @@ public:
 
 	WordType operator()(SizeType i,SizeType spin) const
 	{
-		return (spin==SPIN_UP) ? 0 : 0;
+		return (spin==SPIN_UP) ? basis_[i].first : basis_[i].second;
 	}
 
 	SizeType perfectIndex(const VectorWordType& kets) const
@@ -82,7 +83,12 @@ public:
 
 	SizeType perfectIndex(WordType ket1,WordType ket2) const
 	{
-		return 0;
+		PairWordType combined(ket1,ket2);
+		typename VectorPairWordType::const_iterator it = std::find(basis_.begin(),
+		                                                           basis_.end(),
+		                                                           combined);
+		assert(it != basis_.end());
+		return it - basis_.begin();
 	}
 
 	SizeType perfectIndex(WordType,
@@ -94,12 +100,18 @@ public:
 
 	SizeType getN(SizeType i,SizeType spin,SizeType orb) const
 	{
-		return (spin==SPIN_UP) ? 0 : 0;
+		return (spin==SPIN_UP) ? getNinternal(basis_[i].first,orb) :
+		                         getNinternal(basis_[i].second,orb);
 	}
 
-	SizeType getN(WordType ket1, WordType ket2, SizeType site,SizeType spin,SizeType orb) const
+	SizeType getN(WordType ket1,
+	              WordType ket2,
+	              SizeType site,
+	              SizeType spin,
+	              SizeType orb) const
 	{
-		return (spin==SPIN_UP) ? 0 : 0;
+		return (spin==SPIN_UP) ? getNinternal(ket1,site,orb) :
+		                         getNinternal(ket2,site,orb);
 	}
 
 	PairIntType getBraIndex(WordType ket1,
@@ -110,9 +122,9 @@ public:
 	                        SizeType orb) const
 	{
 		if (what==ProgramGlobals::OPERATOR_C ||
-		    what==ProgramGlobals::OPERATOR_CDAGGER ||
-		    what==ProgramGlobals::OPERATOR_N)
-		  return PairIntType(getBraIndexCorCdaggerOrN(ket1,ket2,what,site,spin,orb),1);
+		        what==ProgramGlobals::OPERATOR_CDAGGER ||
+		        what==ProgramGlobals::OPERATOR_N)
+			return PairIntType(getBraIndexCorCdaggerOrN(ket1,ket2,what,site,spin,orb),1);
 		if (what==ProgramGlobals::OPERATOR_SPLUS || what==ProgramGlobals::OPERATOR_SMINUS)
 			return PairIntType(getBraIndexSplusOrSminus(ket1,ket2,what,site,orb),1);
 		PsimagLite::String str(__FILE__);
@@ -137,18 +149,21 @@ public:
 			throw std::runtime_error("FeBasedSc::doSign(...)\n");
 		}
 
-		if (spin==SPIN_UP) {
-			return 0;
-		}
-		return 0;
+		return (spin==SPIN_UP) ? doSignInternal(ket1,i,orb1,j,orb2) :
+		                         doSignInternal(ket2,i,orb2,j,orb2);
 	}
 
-	int doSignGf(WordType a, WordType b,SizeType ind,SizeType spin,SizeType orb) const
+	int doSignGf(WordType a,
+	             WordType b,
+	             SizeType ind,
+	             SizeType spin,
+	             SizeType orb) const
 	{
-		if (spin==SPIN_UP) return 0;
+		if (spin==SPIN_UP) return doSignGfInternal(a,ind,orb);
 
-		int s=(PsimagLite::BitManip::count(a) & 1) ? -1 : 1; // Parity of up
-		int s2 = 0;
+		// Parity of up
+		int s=(PsimagLite::BitManip::count(a) & 1) ? -1 : 1;
+		int s2 = doSignGfInternal(b,ind,orb);
 
 		return s*s2;
 	}
@@ -161,12 +176,34 @@ public:
 	                    SizeType spin2,
 	                    SizeType orb2) const
 	{
-		return 0;
+		if (spin1==spin2) {
+			return (spin1 == SPIN_UP) ? doSignInternal(a,ind,orb1,orb2) :
+			                            doSignInternal(b,ind,orb1,orb2);
+		}
+
+		int x = (spin1 == SPIN_UP) ? 1 : -1;
+		// Parity of up
+		int s=(PsimagLite::BitManip::count(a) & 1) ? -1 : 1;
+		if (spin1 == SPIN_UP) return x*s*doSignInternal(a,ind,orb1)*
+		        doSignInternal(b,ind,orb2);
+
+		return x*s*doSignInternal(a,ind,orb2)*
+		        doSignInternal(b,ind,orb1);
 	}
 
-	int doSignSpSm(WordType a, WordType b,SizeType ind,SizeType spin,SizeType orb) const
+	int doSignSpSm(WordType a,
+	               WordType b,
+	               SizeType ind,
+	               SizeType spin,
+	               SizeType orb) const
 	{
-		return 0;
+		if (spin == SPIN_UP) { // spin here means S^\dagger
+			// FIXME: Count over a (up)
+			return doSignInternal(a,ind,orb)*doSignInternal(b,ind,orb);
+		}
+
+		// FIXME: Count over a + 1
+		return doSignInternal(a,ind,orb)*doSignInternal(b,ind,orb);
 	}
 
 	SizeType isThereAnElectronAt(WordType ket1,
@@ -175,7 +212,8 @@ public:
 	                             SizeType spin,
 	                             SizeType orb) const
 	{
-		return 0;
+		return (spin == SPIN_UP) ? isThereAnElectronAt_(ket1,site,orb) :
+		                           isThereAnElectronAt_(ket2,site,orb);
 	}
 
 	bool hasNewParts(std::pair<SizeType,SizeType>& newParts,
@@ -206,11 +244,14 @@ public:
 
 	void print(std::ostream& os, typename BaseType::PrintEnum binaryOrDecimal) const
 	{
-//		bool isBinary = (binaryOrDecimal == BaseType::PRINT_BINARY);
-//		os<<"\tUp sector\n";
-//		basis1_.print(os,isBinary);
-//		os<<"\tDown sector\n";
-//		basis2_.print(os,isBinary);
+		bool isBinary = (binaryOrDecimal == BaseType::PRINT_BINARY);
+		SizeType hilbert = 1;
+		hilbert <<= (orbitals_*nsite_);
+		if (isBinary) {
+			ProgramGlobals::printBasisBinary(os,hilbert,basis_);
+		} else {
+			ProgramGlobals::printBasisDecimal(os,40,basis_);
+		}
 	}
 
 	virtual bool getBra(WordType&,
@@ -281,6 +322,8 @@ private:
 	{
 		return false;
 	}
+
+	VectorPairWordType basis_;
 }; // class BasisFeAsSpinOrbit
 
 template<typename GeometryType>

@@ -39,6 +39,7 @@ class BasisOneSpinFeAs {
 public:
 
 	typedef ProgramGlobals::WordType WordType;
+
 	static SizeType orbitals_;
 	static int const FERMION_SIGN  = -1;
 	static SizeType nsite_;

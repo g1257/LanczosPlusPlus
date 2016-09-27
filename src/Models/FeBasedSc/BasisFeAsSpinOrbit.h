@@ -46,6 +46,7 @@ public:
 	                   SizeType nup,
 	                   SizeType ndown,
 	                   SizeType orbitals)
+	    : geometry_(geometry)
 	{
 		orbitals_ = orbitals;
 	}
@@ -242,11 +243,12 @@ public:
 		throw PsimagLite::RuntimeError("orbs\n");
 	}
 
-	void print(std::ostream& os, typename BaseType::PrintEnum binaryOrDecimal) const
+	void print(std::ostream& os,
+	           typename BaseType::PrintEnum binaryOrDecimal) const
 	{
 		bool isBinary = (binaryOrDecimal == BaseType::PRINT_BINARY);
 		SizeType hilbert = 1;
-		hilbert <<= (orbitals_*nsite_);
+		hilbert <<= (orbitals_*geometry_.numberOfSites());
 		if (isBinary) {
 			ProgramGlobals::printBasisBinary(os,hilbert,basis_);
 		} else {
@@ -273,7 +275,11 @@ private:
 	                             SizeType spin,
 	                             SizeType orb) const
 	{
-		return 0;
+		WordType bra  =0;
+		bool b = getBraCorCdaggerOrN(bra,ket1,ket2,what,site,spin,orb);
+		if (!b) return -1;
+		return (spin==SPIN_UP) ? perfectIndex(bra,ket2) :
+		       perfectIndex(ket1,bra);
 	}
 
 	int getBraIndexSplusOrSminus(WordType ket1,
@@ -283,7 +289,11 @@ private:
 	                             SizeType orb) const
 	{
 
-		return 0;
+		WordType bra1  =0;
+		WordType bra2  =0;
+		bool b = getBraSplusOrSminus(bra1,bra2,ket1,ket2,what,site,orb);
+		if (!b) return -1;
+		return perfectIndex(bra1,bra2);
 	}
 
 	bool hasNewPartsCorCdagger(std::pair<SizeType,SizeType>& newParts,
@@ -291,14 +301,14 @@ private:
 	                           SizeType spin,
 	                           const std::pair<SizeType,SizeType>& orbs) const
 	{
-		return false;
+		throw PsimagLite::RuntimeError("UNIMPLEMENTED: hasNewPartsCorCdagger\n");
 	}
 
 	bool hasNewPartsSplusOrSminus(std::pair<SizeType,SizeType>& newParts,
 	                              SizeType what,
 	                              const std::pair<SizeType,SizeType>& orbs) const
 	{
-		return false;
+		throw PsimagLite::RuntimeError("UNIMPLEMENTED: hasNewPartsSplusOrSminus\n");
 	}
 
 	bool getBraCorCdaggerOrN(WordType& bra,
@@ -309,7 +319,7 @@ private:
 	                         SizeType spin,
 	                         SizeType orb) const
 	{
-		return false;
+		throw PsimagLite::RuntimeError("UNIMPLEMENTED: getBraCorCdaggerOrN\n");
 	}
 
 	bool getBraSplusOrSminus(WordType& bra1,
@@ -320,9 +330,10 @@ private:
 	                         SizeType site,
 	                         SizeType orb) const
 	{
-		return false;
+		throw PsimagLite::RuntimeError("UNIMPLEMENTED: getBraSplusOrSminus\n");
 	}
 
+	const GeometryType& geometry_;
 	VectorPairWordType basis_;
 }; // class BasisFeAsSpinOrbit
 

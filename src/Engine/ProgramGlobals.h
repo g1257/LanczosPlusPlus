@@ -84,6 +84,14 @@ DISCLOSED WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
 #include <climits>
 
 namespace LanczosPlusPlus {
+
+template<typename T1, typename T2>
+std::ostream& operator<<(std::ostream& os, const std::pair<T1,T2>& p)
+{
+	os<<p.first<<" "<<p.second;
+	return os;
+}
+
 struct ProgramGlobals {
 
 	typedef std::pair<int,int> PairIntType;
@@ -210,9 +218,11 @@ struct ProgramGlobals {
 	}
 
 	template<typename VectorWordType>
-	static void printBasisDecimal(std::ostream& os,
-	                              SizeType n,
-	                              VectorWordType& data)
+	static
+	typename PsimagLite::EnableIf<PsimagLite::IsVectorLike<VectorWordType>::True,void>::Type
+	printBasisDecimal(std::ostream& os,
+	                  SizeType n,
+	                  const VectorWordType& data)
 	{
 		for (SizeType i=0;i<data.size();i++) {
 			os<<data[i]<<" ";

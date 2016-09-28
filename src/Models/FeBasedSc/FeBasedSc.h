@@ -122,7 +122,9 @@ class FeBasedSc : public ModelBase<ComplexOrRealType,
 public:
 
 	typedef PsimagLite::SparseRow<SparseMatrixType> SparseRowType;
+
 	enum {TERM_HOPPINGS = 0,TERM_J_PM = 1, TERM_J_ZZ = 2};
+
 	static int const FERMION_SIGN = BasisType::FERMION_SIGN;
 
 	FeBasedSc(SizeType nup,SizeType ndown,InputType& io,const GeometryType& geometry)
@@ -199,7 +201,7 @@ public:
 						                    i,orb,basis);
 
 						setSpinOrbitOffDiagonal(sparseRow,ket1,ket2,
-						                    i,orb,basis);
+						                        i,orb,basis);
 
 					} else if (mp_.feAsMode == 1 || mp_.feAsMode == 2) {
 						setOffDiagonalDecay(sparseRow,ket1,ket2,
@@ -370,13 +372,12 @@ private:
 		}
 	}
 
-	void setU2OffDiagonalTerm(
-	        SparseRowType &sparseRow,
-	        const WordType& ket1,
-	        const WordType& ket2,
-	        SizeType i,
-	        SizeType orb1,
-	        const BasisBaseType &basis) const
+	void setU2OffDiagonalTerm(SparseRowType &sparseRow,
+	                          const WordType& ket1,
+	                          const WordType& ket2,
+	                          SizeType i,
+	                          SizeType orb1,
+	                          const BasisBaseType &basis) const
 	{
 		RealType val = FERMION_SIGN * mp_.hubbardU[2]*0.5;
 
@@ -388,16 +389,15 @@ private:
 	}
 
 	// N.B.: orb1!=orb2 here
-	void setSplusSminus(
-	        SparseRowType &sparseRow,
-	        const WordType& ket1,
-	        const WordType& ket2,
-	        SizeType i,
-	        SizeType orb1,
-	        SizeType j,
-	        SizeType orb2,
-	        ComplexOrRealType value,
-	        const BasisBaseType &basis) const
+	void setSplusSminus(SparseRowType &sparseRow,
+	                    const WordType& ket1,
+	                    const WordType& ket2,
+	                    SizeType i,
+	                    SizeType orb1,
+	                    SizeType j,
+	                    SizeType orb2,
+	                    ComplexOrRealType value,
+	                    const BasisBaseType &basis) const
 	{
 		if (splusSminusNonZero(ket1,ket2,i,orb1,j,orb2,basis)==0) return;
 
@@ -411,14 +411,13 @@ private:
 	}
 
 	// N.B.: orb1!=orb2 here
-	void setU3Term(
-	        SparseRowType &sparseRow,
-	        const WordType& ket1,
-	        const WordType& ket2,
-	        SizeType i,
-	        SizeType orb1,
-	        SizeType orb2,
-	        const BasisBaseType &basis) const
+	void setU3Term(SparseRowType &sparseRow,
+	               const WordType& ket1,
+	               const WordType& ket2,
+	               SizeType i,
+	               SizeType orb1,
+	               SizeType orb2,
+	               const BasisBaseType &basis) const
 	{
 		assert(orb1!=orb2);
 		if (u3TermNonZero(ket1,ket2,i,orb1,orb2,basis)==0) return;
@@ -431,13 +430,12 @@ private:
 		sparseRow.add(temp,FERMION_SIGN * mp_.hubbardU[3]);
 	}
 
-	void setSpinOrbitOffDiagonal(
-	        SparseRowType &sparseRow,
-	        const WordType& ketUp,
-	        const WordType& ketDown,
-	        SizeType i,
-	        SizeType orb1,
-	        const BasisBaseType& basis) const
+	void setSpinOrbitOffDiagonal(SparseRowType &sparseRow,
+	                             const WordType& ketUp,
+	                             const WordType& ketDown,
+	                             SizeType i,
+	                             SizeType orb1,
+	                             const BasisBaseType& basis) const
 	{
 		if (mp_.spinOrbit.n_row()!=4) return;
 		SizeType orbitals = mp_.orbitals;
@@ -481,13 +479,12 @@ private:
 		}
 	}
 
-	void setJTermOffDiagonal(
-	        SparseRowType &sparseRow,
-	        const WordType& ket1,
-	        const WordType& ket2,
-	        SizeType i,
-	        SizeType orb,
-	        const BasisBaseType& basis) const
+	void setJTermOffDiagonal(SparseRowType &sparseRow,
+	                         const WordType& ket1,
+	                         const WordType& ket2,
+	                         SizeType i,
+	                         SizeType orb,
+	                         const BasisBaseType& basis) const
 	{
 		for (SizeType j=0;j<geometry_.numberOfSites();j++) {
 			ComplexOrRealType value = jCoupling(i,j,TERM_J_PM)*0.5;
@@ -503,14 +500,13 @@ private:
 		}
 	}
 
-	int jTermSign(
-	        const WordType& ket1,
-	        const WordType& ket2,
-	        SizeType i,
-	        SizeType orb1,
-	        SizeType j,
-	        SizeType orb2,
-	        const BasisBaseType &basis) const
+	int jTermSign(const WordType& ket1,
+	              const WordType& ket2,
+	              SizeType i,
+	              SizeType orb1,
+	              SizeType j,
+	              SizeType orb2,
+	              const BasisBaseType &basis) const
 	{
 		if (i>j) return jTermSign(ket1,ket2,j,orb2,i,orb1,basis);
 		int x = basis.doSign(ket1,ket2,i,orb1,j,orb2,SPIN_UP);
@@ -653,14 +649,13 @@ private:
 		return s*mp_.hubbardU[0];
 	}
 
-	SizeType splusSminusNonZero(
-	        const WordType& ket1,
-	        const WordType& ket2,
-	        SizeType i,
-	        SizeType orb1,
-	        SizeType j,
-	        SizeType orb2,
-	        const BasisBaseType& basis) const
+	SizeType splusSminusNonZero(const WordType& ket1,
+	                            const WordType& ket2,
+	                            SizeType i,
+	                            SizeType orb1,
+	                            SizeType j,
+	                            SizeType orb2,
+	                            const BasisBaseType& basis) const
 	{
 		if (basis.isThereAnElectronAt(ket1,ket2,
 		                              j,SPIN_UP,orb2)==0) return 0;
@@ -673,13 +668,12 @@ private:
 		return 1;
 	}
 
-	SizeType u3TermNonZero(
-	        const WordType& ket1,
-	        const WordType& ket2,
-	        SizeType i,
-	        SizeType orb1,
-	        SizeType orb2,
-	        const BasisBaseType &basis) const
+	SizeType u3TermNonZero(const WordType& ket1,
+	                       const WordType& ket2,
+	                       SizeType i,
+	                       SizeType orb1,
+	                       SizeType orb2,
+	                       const BasisBaseType &basis) const
 	{
 		if (basis.isThereAnElectronAt(ket1,ket2,
 		                              i,SPIN_UP,orb2)==0) return 0;
@@ -692,12 +686,11 @@ private:
 		return 1;
 	}
 
-	SizeType nix(
-	        const WordType& ket1,
-	        const WordType& ket2,
-	        SizeType i,
-	        SizeType orb,
-	        const BasisBaseType& basis) const
+	SizeType nix(const WordType& ket1,
+	             const WordType& ket2,
+	             SizeType i,
+	             SizeType orb,
+	             const BasisBaseType& basis) const
 	{
 		SizeType sum = 0;
 		for (SizeType spin=0;spin<2;spin++)
@@ -705,12 +698,11 @@ private:
 		return sum;
 	}
 
-	RealType szTerm(
-	        const WordType& ket1,
-	        const WordType& ket2,
-	        SizeType i,
-	        SizeType orb,
-	        const BasisBaseType& basis) const
+	RealType szTerm(const WordType& ket1,
+	                const WordType& ket2,
+	                SizeType i,
+	                SizeType orb,
+	                const BasisBaseType& basis) const
 	{
 		RealType sz = basis.isThereAnElectronAt(ket1,ket2,i,SPIN_UP,orb);
 		sz -= basis.isThereAnElectronAt(ket1,ket2,i,SPIN_DOWN,orb);

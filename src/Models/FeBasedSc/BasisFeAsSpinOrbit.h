@@ -20,6 +20,7 @@ Please see full open source license included in file LICENSE.
 #define BASIS_FEASBASED_SPINORBIT_H
 #include "../../Engine/BasisBase.h"
 #include "BasisOneSpinFeAs.h"
+#include <map>
 
 namespace LanczosPlusPlus {
 
@@ -57,9 +58,13 @@ public:
 			SizeType ndown = ne - nup;
 			BasisOneSpinType basis1(geometry.numberOfSites(),nup,orbitals);
 			BasisOneSpinType basis2(geometry.numberOfSites(),ndown,orbitals);
-			for (SizeType i = 0; i < basis1.size(); ++i)
-				for (SizeType j = 0; j < basis2.size(); ++j)
+			SizeType counter = 0;
+			for (SizeType i = 0; i < basis1.size(); ++i) {
+				for (SizeType j = 0; j < basis2.size(); ++j) {
 					basis_.push_back(PairWordType(basis1[i],basis2[j]));
+					reverse_[PairWordType(basis1[i],basis2[j])] = counter++;
+				}
+			}
 		}
 
 	}
@@ -97,12 +102,7 @@ public:
 
 	SizeType perfectIndex(WordType ket1,WordType ket2) const
 	{
-		PairWordType combined(ket1,ket2);
-		typename VectorPairWordType::const_iterator it = std::find(basis_.begin(),
-		                                                           basis_.end(),
-		                                                           combined);
-		assert(it != basis_.end());
-		return it - basis_.begin();
+		return reverse_[PairWordType(ket1,ket2)];
 	}
 
 	SizeType perfectIndex(WordType,
@@ -343,6 +343,7 @@ private:
 	const GeometryType& geometry_;
 	VectorPairWordType basis_;
 	BasisOneSpinType basis1_;
+	mutable std::map<PairWordType,SizeType> reverse_;
 }; // class BasisFeAsSpinOrbit
 
 template<typename GeometryType>

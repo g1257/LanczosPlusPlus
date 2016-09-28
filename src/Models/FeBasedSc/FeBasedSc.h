@@ -426,7 +426,8 @@ private:
 		WordType bra1 = ket1 ^ (BasisType::bitmask(ii)|BasisType::bitmask(jj));
 		WordType bra2 = ket2 ^ (BasisType::bitmask(ii)|BasisType::bitmask(jj));
 		SizeType temp = basis.perfectIndex(bra1,bra2);
-		sparseRow.add(temp,FERMION_SIGN * mp_.hubbardU[3]);
+		RealType sign = jTermSign(ket1,ket2,i,orb1,i,orb2,basis);
+		sparseRow.add(temp,FERMION_SIGN*mp_.hubbardU[3]*sign);
 	}
 
 	void setSpinOrbitOffDiagonal(SparseRowType &sparseRow,

@@ -379,13 +379,12 @@ private:
 	                          SizeType orb1,
 	                          const BasisBaseType &basis) const
 	{
-		RealType val = FERMION_SIGN * mp_.hubbardU[2]*0.5;
-
-		for (SizeType orb2=orb1+1;orb2<mp_.orbitals;orb2++) {
-			setSplusSminus(sparseRow,ket1,ket2,i,orb1,i,orb2,val,basis);
-			setSplusSminus(sparseRow,ket1,ket2,i,orb2,i,orb1,val,basis);
+		RealType val = mp_.hubbardU[2]*0.5;
+		for (SizeType orb2=0;orb2<mp_.orbitals;orb2++) {
+			if (orb1 == orb2) continue;
+			RealType sign = jTermSign(ket1,ket2,i,orb1,i,orb2,basis);
+			setSplusSminus(sparseRow,ket1,ket2,i,orb1,i,orb2,val*sign,basis);
 		}
-
 	}
 
 	// N.B.: orb1!=orb2 here
@@ -489,10 +488,9 @@ private:
 		for (SizeType j=0;j<geometry_.numberOfSites();j++) {
 			ComplexOrRealType value = jCoupling(i,j,TERM_J_PM)*0.5;
 			if (PsimagLite::real(value) == 0 && PsimagLite::imag(value) == 0) continue;
-			value *= 0.5; // RealType counting i,j
+			value *= 0.5; // double counting i,j
 			assert(i!=j);
 			for (SizeType orb2=0;orb2<mp_.orbitals;orb2++) {
-				//if (orb2!=orb) continue; // testing only!!
 				RealType sign = jTermSign(ket1,ket2,i,orb,j,orb2,basis);
 				setSplusSminus(sparseRow,ket1,ket2,i,orb,j,orb2,value*sign,basis);
 				setSplusSminus(sparseRow,ket1,ket2,j,orb2,i,orb,value*sign,basis);

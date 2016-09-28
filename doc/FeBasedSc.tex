@@ -1,0 +1,111 @@
+\documentclass[twocolumn,showpacs,preprintnumbers,amsmath,amssymb,prb]{revtex4}
+\usepackage{graphicx,amssymb,amsmath}
+\usepackage[usenames]{xcolor}
+\newcommand{\etalter}{{\it et al.}}
+\newcommand{\eg}{{\it e.\ g.}}
+\newcommand{\ie}{{\it i.\ e.}}
+
+\begin{document}
+
+\title{Title goes here}
+\author{G. Alvarez}
+\affiliation{Computer Science \& Mathematics 
+Division and Center for Nanophase Materials Sciences, Oak Ridge National Laboratory, \mbox{Oak Ridge, TN 37831}}
+
+\begin{abstract}
+Here goes the abstract....
+\end{abstract}
+
+\maketitle
+
+\section{Hamiltonian}
+\subsection{KineticEnergy}
+\begin{equation}
+K=\sum_{i,\alpha,\gamma,\gamma',\sigma}
+t^\alpha_{\gamma,\gamma'} c^\dagger_{i,\gamma,\sigma}c_{i+\alpha,\gamma',\sigma}
+\end{equation}
+
+\begin{equation}
+t^x=\left(
+\begin{tabular}{ll}
+$-t_1$ & 0\\
+0 & $-t_2$
+\end{tabular}
+\right)
+\end{equation}
+
+
+	
+\begin{equation}
+t^y=\left(
+\begin{tabular}{ll}
+$-t_2$ & 0\\
+0 & $-t_1$
+\end{tabular}
+\right)
+\end{equation}
+
+
+\begin{equation}
+t^{x+y}=\left(
+\begin{tabular}{ll}
+$-t_3$ & $-t_4$\\
+$-t_4$ & $-t_3$
+\end{tabular}
+\right)
+\end{equation}
+
+\begin{equation}
+t^{x-y}=\left(
+\begin{tabular}{ll}
+$-t_3$ & $+t_4$\\
+$+t_4$ & $-t_3$
+\end{tabular}
+\right)
+\end{equation}
+
+Also, I propose that $\alpha$  take numbers 0,1,2,3 instead of $x$, $y$, $x+y$ and $x-y$.
+
+\subsection{Interaction}
+\begin{align}
+H_{int} & = & U_0 \sum_{i\alpha} n_{i,\alpha,\uparrow}
+n_{i,\alpha,\downarrow}+\nonumber\\
+& + & U_1\sum_{i} n_{i,x} n_{i,y} +  
+U_2\sum_{i} \vec{S}_{i,x}\cdot \vec{S}_{i,y}+\nonumber\\
+& +  & U_3\sum_{i,\alpha} \bar{n}_{i,\alpha,\uparrow}\bar{n}_{i,\alpha,\downarrow},
+\end{align}
+where $\bar{n}_{i,\alpha,\sigma}=c^\dagger_{i,\alpha,\sigma}
+c_{i,\bar{\alpha},\bar{\sigma}}$ and $\bar{x}=y$, $\bar{\uparrow}=\downarrow$
+and $\bar{\bar{a}}=a$.
+With this definition, $U_0=U$, $U_1=U'-J/2$, $U_2= -2J$ and
+$U_3= -J$. Moreover, usually $U'=U-2J$. 
+
+\subsection{One- and two-site observables}
+\begin{itemize}
+\item $c^\dagger c$ correlations, $C(i,\gamma,\sigma,j,\gamma',\sigma)=\langle c^\dagger_{i,\gamma,\sigma} c_{j,\gamma',\sigma}\rangle$
+\item Densities are just the diagonals of $C$ above summed over orbitals, i.e.
+$n_{i\sigma} = \sum_\gamma C(i,\gamma,\sigma,i,\gamma,\sigma)$.
+\item Charge correlations, $Q(i,j)\equiv\langle n_{i} n_{j} \rangle$.
+\item Structure factor: This is just a special case of charge correlations, since
+$S(q)=\sum_{r,r'} Q(r,r+r')*\exp(i q \cdot r')$, where the sum of points and the product of points
+is defined correctly.
+\item $S^z$ correlations $\langle S^z_i S^z_j\rangle$, where $S^z_i=\sum_{\gamma} (n_{i\gamma\uparrow}-n_{i\gamma\downarrow})$.
+\item Full spin correlations $\langle \vec{S}_i\cdot \vec{S}_j\rangle$,
+where $\vec{S}_i = \sum_{\sigma,\sigma',\gamma} \vec{\tau}_{\sigma,\sigma'}c^\dagger_{i\gamma\sigma} c_{i,\gamma,\sigma'}$,
+and $\vec{\tau}$ are the Pauli matrices.
+\end{itemize}
+ 
+\subsection{Four-site observables: Correlations of $\Delta$s}
+\begin{equation}
+C_{i,\gamma_1,j,\gamma_2,k,\gamma_3,l,\gamma_4} = 
+\langle\psi| \Delta^\dagger_{i,\gamma_1,j,\gamma_2} \Delta_{k,\gamma_3,l,\gamma_4}|\psi\rangle,
+\end{equation}
+where $\Delta^\dagger_{i,\gamma_1,j,\gamma_2}=c^\dagger_{i,\gamma_1,\uparrow}c^\dagger_{j,\gamma_2,\downarrow}$.
+
+For DMRG purposes, the simplest case is when $i=j$ and $k=l$, i.e., when there are only two sites involved.
+The general case is quite complicated to compute with DMRG and more tests are needed.
+
+\subsection{More Than Two Orbitals}
+Just replace the matrices $t^\alpha$ above by 3x3 and 4x4 matrices for 3 orbitals and 4 orbitals respectively.
+\end{document}
+

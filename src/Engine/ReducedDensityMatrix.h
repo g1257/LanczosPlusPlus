@@ -80,7 +80,8 @@ private:
 		PsimagLite::String modelName = model.name();
 		if (modelName.find("Heisenberg.h") != PsimagLite::String::npos)
 			return unpackHeisenberg(model,ind);
-		else if (modelName.find("HubbardOneOrbital.h") != PsimagLite::String::npos)
+		else if (modelName.find("HubbardOneOrbital.h") != PsimagLite::String::npos ||
+		         modelName.find("FeBasedSc.h") != PsimagLite::String::npos)
 			return unpackHubbard(model,ind);
 		else
 			throw PsimagLite::RuntimeError("RDM: Unsupported model\n");

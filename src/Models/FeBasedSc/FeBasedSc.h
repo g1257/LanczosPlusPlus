@@ -43,7 +43,7 @@ class FeBasedSc : public ModelBase<ComplexOrRealType,
 
 	enum {SPIN_UP = ProgramGlobals::SPIN_UP, SPIN_DOWN = ProgramGlobals::SPIN_DOWN};
 
-	typedef ParametersModelFeAs<RealType> ParametersModelType;
+	typedef ParametersModelFeAs<ComplexOrRealType> ParametersModelType;
 	typedef typename BasisType::BaseType BasisBaseType;
 	typedef typename BasisType::WordType WordType;
 	typedef typename BaseType::SparseMatrixType SparseMatrixType;
@@ -132,7 +132,9 @@ public:
 	      geometry_(geometry),
 	      basis_(geometry,nup,ndown,mp_.orbitals),
 	      geometryDca_(geometry,mp_.orbitals)
-	{}
+	{
+		checkSpinOrbit();
+	}
 
 	~FeBasedSc()
 	{
@@ -591,6 +593,13 @@ private:
 			}
 		}
 
+		// spin orbit diagonal in the matrix part
+		if (mp_.spinOrbit.n_row() == 4) {
+			for (SizeType spin = 0; spin < 2; ++spin)
+				s += PsimagLite::real(mp_.spinOrbit(spin+spin*2,orb+orb*mp_.orbitals))*
+				        basis.getN(ket1,ket2,i,spin,orb);
+		}
+
 		assert(fabs(PsimagLite::imag(s))<1e-12);
 		return PsimagLite::real(s);
 	}
@@ -810,6 +819,21 @@ private:
 
 		assert(orb4 < mp_.orbitals);
 		return orb4;
+	}
+
+	void checkSpinOrbit() const
+	{
+		if (mp_.spinOrbit.n_row() == 0) return;
+		if (mp_.spinOrbit.n_row() != 4)
+			throw PsimagLite::RuntimeError("SpinOrbit must have 4 rows\n");
+
+		for (SizeType spin = 0; spin < 2; ++spin) {
+			for (SizeType orb = 0; orb < mp_.orbitals; ++orb) {
+				RealType s = PsimagLite::imag(mp_.spinOrbit(spin+spin*2,orb+orb*mp_.orbitals));
+				if (s == 0.0) continue;
+				throw PsimagLite::RuntimeError("SpinOrbit term not Hermitian\n");
+			}
+		}
 	}
 
 	const ParametersModelType mp_;

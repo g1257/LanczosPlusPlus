@@ -54,11 +54,11 @@ public:
 	{
 		orbitals_ = orbitals;
 		SizeType ne = nup1 + ndown1;
+		SizeType counter = 0;
 		for (SizeType nup = 0; nup <= ne; ++nup) {
 			SizeType ndown = ne - nup;
 			BasisOneSpinType basis1(geometry.numberOfSites(),nup,orbitals);
 			BasisOneSpinType basis2(geometry.numberOfSites(),ndown,orbitals);
-			SizeType counter = 0;
 			for (SizeType i = 0; i < basis1.size(); ++i) {
 				for (SizeType j = 0; j < basis2.size(); ++j) {
 					basis_.push_back(PairWordType(basis1[i],basis2[j]));

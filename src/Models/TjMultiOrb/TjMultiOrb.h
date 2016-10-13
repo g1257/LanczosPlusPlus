@@ -26,6 +26,9 @@ class TjMultiOrb  : public ModelBase<ComplexOrRealType,GeometryType,InputType> {
 
 	static const SizeType REINTERPRET_6 = 6;
 	static const SizeType REINTERPRET_9 = 9;
+	static const SizeType STATE_EMPTY  = 0;
+	static const SizeType STATE_UP_A = 1;
+	static const SizeType STATE_DOWN_A = 4;
 
 public:
 
@@ -255,7 +258,7 @@ private:
 			WordType ket2 = basis(ispace,SPIN_DOWN);
 			VectorSizeType k;
 			breakIntoSites(k,ket1,ket2);
-			if (hasSinglet(k)) targets.push_back(ispace);
+			if (isToBeRemoved(k)) targets.push_back(ispace);
 			SizeType branches = getBranchesFromVector(k);
 			VectorType braValues(branches,1.0);
 			MatrixSizeType braMatrix(branches,k.size());
@@ -274,10 +277,24 @@ private:
 		transposeConjugate(rotT,rot);
 	}
 
-	bool hasSinglet(VectorSizeType k) const
+	bool isToBeRemoved(VectorSizeType k) const
+	{
+		assert(mp_.reinterpretAndTruncate > 0);
+		bool b = false;
+		if (mp_.reinterpretAndTruncate > 0) b |= hasState(k,REINTERPRET_6);
+		if (mp_.reinterpretAndTruncate > 1) b |= hasState(k, STATE_EMPTY);
+		if (mp_.reinterpretAndTruncate > 2) {
+			b |= hasState(k, STATE_UP_A);
+			b |= hasState(k, STATE_DOWN_A);
+		}
+
+		return b;
+	}
+
+	bool hasState(VectorSizeType k, SizeType state) const
 	{
 		for (SizeType i = 0; i < k.size(); ++i)
-			if (k[i] == REINTERPRET_6) return true;
+			if (k[i] == state) return true;
 
 		return false;
 	}

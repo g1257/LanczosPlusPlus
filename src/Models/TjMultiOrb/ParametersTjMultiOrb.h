@@ -117,6 +117,7 @@ std::ostream& operator<<(std::ostream &os,
                          const ParametersTjMultiOrb<FieldType,InputType>& p)
 {
 	os<<"Orbitals="<<p.orbitals<<"\n";
+	os<<"JHundInfinity="<<p.reinterpretAndTruncate<<"\n";
 	return os;
 }
 } // namespace LanczosPlusPlus

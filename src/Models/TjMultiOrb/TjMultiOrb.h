@@ -295,10 +295,8 @@ private:
 	{
 		assert(mp_.reinterpretAndTruncate > 0);
 		bool b = false;
-		// should be a 6 below but this is done in the old basis
-		// whereas it should be done in the new basis
 		if (mp_.reinterpretAndTruncate > 0)
-			b |= hasState(braMatrix,branch,REINTERPRET_9);
+			b |= hasState(braMatrix,branch,REINTERPRET_6);
 		if (mp_.reinterpretAndTruncate > 1)
 			b |= hasState(braMatrix,branch, STATE_EMPTY);
 		if (mp_.reinterpretAndTruncate > 2) {
@@ -361,12 +359,13 @@ private:
 
 		for (SizeType i = 0; i < n; ++i) {
 			switch (k[i]) {
+			// we're expanding old 6  = (new 6 + new 9)/sqrt(2)
 			case REINTERPRET_6:
 				for (b = 0; b < currentBranches; ++b) {
 					braMatrix(b,i) = REINTERPRET_6;
 					braMatrix(currentBranches + b,i) = REINTERPRET_9;
 					mValues(b,i) *= oneOverSqrt2;
-					mValues(currentBranches + b,i) *= (-oneOverSqrt2);
+					mValues(currentBranches + b,i) *= oneOverSqrt2;
 
 					for (j = 0; j < i; ++j) {
 						braMatrix(currentBranches + b, j) = braMatrix(b,j);
@@ -376,12 +375,13 @@ private:
 
 				currentBranches++;
 				break;
+				// we're expanding old 9  = (new 6 - new 9)/sqrt(2)
 			case REINTERPRET_9:
 				for (b = 0; b < currentBranches; ++b) {
 					braMatrix(b,i) = REINTERPRET_6;
 					braMatrix(currentBranches + b,i) = REINTERPRET_9;
 					mValues(b,i) *= oneOverSqrt2;
-					mValues(currentBranches + b,i) *= oneOverSqrt2;
+					mValues(currentBranches + b,i) *= (-oneOverSqrt2);
 
 					for (j = 0; j < i; ++j) {
 						braMatrix(currentBranches + b, j) = braMatrix(b,j);

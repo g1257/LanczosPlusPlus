@@ -130,9 +130,12 @@ public:
 		matrix.setRow(hilbert,nCounter);
 		matrix.checkValidity();
 		assert(isHermitian(matrix));
-
+//		std::cout<<"MATRIX before rotation\n";
+//		std::cout<<matrix.toDense();
 		if (mp_.reinterpretAndTruncate)
 			reinterpretAndTruncate(matrix,basis);
+//		std::cout<<"MATRIX after rotation and truncation\n";
+//		std::cout<<matrix.toDense();
 	}
 
 	bool hasNewParts(std::pair<SizeType,SizeType>& newParts,
@@ -202,10 +205,14 @@ private:
 		SparseMatrixType rotT;
 		VectorSizeType targets;
 		buildRotation(rot,rotT,targets,basis);
+//		std::cout<<"Rotation\n";
+//		std::cout<<rot.toDense();
 		SparseMatrixType tmp;
 		multiply(tmp,matrix,rotT);
 		multiply(matrix,rot,tmp);
 		assert(isHermitian(matrix));
+//		std::cout<<"Matrix after rotation\n";
+//		std::cout<<matrix.toDense();
 		truncateMatrix(matrix,targets);
 		assert(isHermitian(matrix));
 	}
@@ -277,11 +284,13 @@ private:
 		transposeConjugate(rotT,rot);
 	}
 
-	bool isToBeRemoved(VectorSizeType k) const
+	bool isToBeRemoved(const VectorSizeType& k) const
 	{
 		assert(mp_.reinterpretAndTruncate > 0);
 		bool b = false;
-		if (mp_.reinterpretAndTruncate > 0) b |= hasState(k,REINTERPRET_6);
+		// should be a 6 below but this is done in the old basis
+		// whereas it should be done in the new basis
+		if (mp_.reinterpretAndTruncate > 0) b |= hasState(k,REINTERPRET_9);
 		if (mp_.reinterpretAndTruncate > 1) b |= hasState(k, STATE_EMPTY);
 		if (mp_.reinterpretAndTruncate > 2) {
 			b |= hasState(k, STATE_UP_A);
@@ -291,7 +300,7 @@ private:
 		return b;
 	}
 
-	bool hasState(VectorSizeType k, SizeType state) const
+	bool hasState(const VectorSizeType& k, SizeType state) const
 	{
 		for (SizeType i = 0; i < k.size(); ++i)
 			if (k[i] == state) return true;
@@ -299,7 +308,7 @@ private:
 		return false;
 	}
 
-	SizeType getBranchesFromVector(VectorSizeType k) const
+	SizeType getBranchesFromVector(const VectorSizeType& k) const
 	{
 		SizeType res = 1;
 		for (SizeType i = 0; i < k.size(); ++i)
@@ -322,6 +331,11 @@ private:
 		}
 	}
 
+	// Rotation(old basis state) = linear combination of old basis states
+	// The linear combination of old basis states contains various terms
+	// These terms are called branches: the index b below
+	// For each term we have a sites index
+	// braMatrix: rows are terms or branch index, and cols are sites
 	void getBrasFromVector(MatrixSizeType &braMatrix,
 	                       VectorType& braValues,
 	                       const VectorSizeType& k) const
@@ -331,18 +345,22 @@ private:
 		SizeType currentBranches = 1;
 		SizeType j  = 0;
 		RealType oneOverSqrt2 = 1.0/sqrt(2.0);
+		MatrixType mValues(braMatrix.n_row(), braMatrix.n_col());
+		mValues.setTo(1.0);
 
 		for (SizeType i = 0; i < n; ++i) {
 			switch (k[i]) {
 			case REINTERPRET_6:
 				for (b = 0; b < currentBranches; ++b) {
 					braMatrix(b,i) = REINTERPRET_6;
-					for (j = 0; j < i; ++j)
-						braMatrix(currentBranches + b, j) = braMatrix(b,j);
-
 					braMatrix(currentBranches + b,i) = REINTERPRET_9;
-					assert(currentBranches + b < braValues.size());
-					braValues[currentBranches + b] *= (-oneOverSqrt2);
+					mValues(b,i) *= oneOverSqrt2;
+					mValues(currentBranches + b,i) *= (-oneOverSqrt2);
+
+					for (j = 0; j < i; ++j) {
+						braMatrix(currentBranches + b, j) = braMatrix(b,j);
+						mValues(currentBranches + b, j) = mValues(b,j);
+					}
 				}
 
 				currentBranches++;
@@ -350,25 +368,34 @@ private:
 			case REINTERPRET_9:
 				for (b = 0; b < currentBranches; ++b) {
 					braMatrix(b,i) = REINTERPRET_6;
-					for (j = 0; j < i; ++j)
-						braMatrix(currentBranches + b, j) = braMatrix(b,j);
-
 					braMatrix(currentBranches + b,i) = REINTERPRET_9;
-					assert(currentBranches + b < braValues.size());
-					braValues[currentBranches + b] *= oneOverSqrt2;
+					mValues(b,i) *= oneOverSqrt2;
+					mValues(currentBranches + b,i) *= oneOverSqrt2;
+
+					for (j = 0; j < i; ++j) {
+						braMatrix(currentBranches + b, j) = braMatrix(b,j);
+						mValues(currentBranches + b, j) = mValues(b,j);
+					}
 				}
 
 				currentBranches++;
 				break;
 			default:
-				for (b = 0; b < currentBranches; ++b)
+				for (b = 0; b < currentBranches; ++b) {
 					braMatrix(b,i) = k[i];
+					mValues(b,i) = 1.0;
+				}
 
 				break;
 			}
 		}
 
-		assert(currentBranches == braMatrix.n_row());
+		for (SizeType b = 0; b < mValues.n_row(); ++b) {
+			ComplexOrRealType prod = 1;
+			for (SizeType i = 0; i < mValues.n_col(); ++i)
+				prod *= mValues(b,i);
+			braValues[b] = prod;
+		}
 	}
 
 	PairWordType fromMatrixToBra(const MatrixSizeType& braMatrix, SizeType branch) const
@@ -422,6 +449,7 @@ private:
 	                   PsimagLite::String operatorName,
 	                   const VectorSizeType& operatorOptions) const
 	{
+		if (mp_.orbitals != 1) return;
 		SizeType hilbertDest = basis.size();
 		SizeType hilbertSrc = basis_.size();
 		SizeType nsite = geometry_.numberOfSites();

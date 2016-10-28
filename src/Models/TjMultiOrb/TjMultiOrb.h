@@ -265,15 +265,15 @@ private:
 			WordType ket2 = basis(ispace,SPIN_DOWN);
 			VectorSizeType k;
 			breakIntoSites(k,ket1,ket2);
-			if (isToBeRemoved(k)) targets.push_back(ispace);
 			SizeType branches = getBranchesFromVector(k);
 			VectorType braValues(branches,1.0);
 			MatrixSizeType braMatrix(branches,k.size());
 			getBrasFromVector(braMatrix,braValues,k);
-			for (SizeType i = 0; i < branches; ++i) {
-				PairWordType bra = fromMatrixToBra(braMatrix,i);
+			for (SizeType b = 0; b < branches; ++b) {
+				PairWordType bra = fromMatrixToBra(braMatrix,b);
 				SizeType temp = basis.perfectIndex(bra.first,bra.second);
-				sparseRow.add(temp,braValues[i]);
+				sparseRow.add(temp,braValues[b]);
+				if (isToBeRemoved(braMatrix,b)) targets.push_back(temp);
 			}
 
 			nCounter += sparseRow.finalize(rot);
@@ -282,28 +282,39 @@ private:
 		rot.setRow(hilbert,nCounter);
 		rot.checkValidity();
 		transposeConjugate(rotT,rot);
+
+		PsimagLite::Sort<VectorSizeType> sort;
+		VectorSizeType iperm(targets.size(), 0);
+		sort.sort(targets,iperm);
+		typename VectorSizeType::iterator it = std::unique(targets.begin(), targets.end());
+		SizeType newSize = it - targets.begin();
+		targets.resize(newSize);
 	}
 
-	bool isToBeRemoved(const VectorSizeType& k) const
+	bool isToBeRemoved(const MatrixSizeType& braMatrix, SizeType branch) const
 	{
 		assert(mp_.reinterpretAndTruncate > 0);
 		bool b = false;
 		// should be a 6 below but this is done in the old basis
 		// whereas it should be done in the new basis
-		if (mp_.reinterpretAndTruncate > 0) b |= hasState(k,REINTERPRET_9);
-		if (mp_.reinterpretAndTruncate > 1) b |= hasState(k, STATE_EMPTY);
+		if (mp_.reinterpretAndTruncate > 0)
+			b |= hasState(braMatrix,branch,REINTERPRET_9);
+		if (mp_.reinterpretAndTruncate > 1)
+			b |= hasState(braMatrix,branch, STATE_EMPTY);
 		if (mp_.reinterpretAndTruncate > 2) {
-			b |= hasState(k, STATE_UP_A);
-			b |= hasState(k, STATE_DOWN_A);
+			b |= hasState(braMatrix,branch, STATE_UP_A);
+			b |= hasState(braMatrix,branch, STATE_DOWN_A);
 		}
 
 		return b;
 	}
 
-	bool hasState(const VectorSizeType& k, SizeType state) const
+	bool hasState(const MatrixSizeType& braMatrix,
+	              SizeType branch,
+	              SizeType state) const
 	{
-		for (SizeType i = 0; i < k.size(); ++i)
-			if (k[i] == state) return true;
+		for (SizeType i = 0; i < braMatrix.n_col(); ++i)
+			if (braMatrix(branch,i) == state) return true;
 
 		return false;
 	}
@@ -336,7 +347,7 @@ private:
 	// These terms are called branches: the index b below
 	// For each term we have a sites index
 	// braMatrix: rows are terms or branch index, and cols are sites
-	void getBrasFromVector(MatrixSizeType &braMatrix,
+	void getBrasFromVector(MatrixSizeType& braMatrix,
 	                       VectorType& braValues,
 	                       const VectorSizeType& k) const
 	{

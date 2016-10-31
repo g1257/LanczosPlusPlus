@@ -373,7 +373,7 @@ private:
 					}
 				}
 
-				currentBranches++;
+				currentBranches *= 2;
 				break;
 				// we're expanding old 9  = (new 6 - new 9)/sqrt(2)
 			case REINTERPRET_9:
@@ -389,7 +389,7 @@ private:
 					}
 				}
 
-				currentBranches++;
+				currentBranches *= 2;
 				break;
 			default:
 				for (b = 0; b < currentBranches; ++b) {
@@ -400,6 +400,8 @@ private:
 				break;
 			}
 		}
+
+		assert(currentBranches == braMatrix.n_row());
 
 		for (SizeType b = 0; b < mValues.n_row(); ++b) {
 			ComplexOrRealType prod = 1;

@@ -53,7 +53,7 @@ public:
 	{
 		model.setupHamiltonian(matrixStored_,basis);
 		int nrows = matrixStored_.row();
-		if (printMatrix_ && nrows > 40)
+		if (printMatrix_ && nrows > 512)
 				throw PsimagLite::RuntimeError("printMatrix: too big\n");
 
 		if (printMatrix_ || dumpMatrix_) {
@@ -61,7 +61,7 @@ public:
 
 			if (printMatrix_) {
 				basis.print(std::cout,BasisType::PRINT_BINARY);
-				std::cout<<"#LanczosPlusPlus: DenseMatrix\n";
+				std::cout<<"DenseMatrix\n";
 				std::cout<<matrixStored_.toDense();
 			}
 

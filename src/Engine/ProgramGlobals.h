@@ -95,7 +95,7 @@ std::ostream& operator<<(std::ostream& os, const std::pair<T1,T2>& p)
 struct ProgramGlobals {
 
 	typedef std::pair<int,int> PairIntType;
-	typedef unsigned int long long WordType;
+	typedef unsigned int long WordType;
 
 	enum {FERMION,BOSON};
 
@@ -233,6 +233,6 @@ struct ProgramGlobals {
 	}
 }; // ProgramGlobals
 
-}; // namespace LanczosPlusPlus
+} // namespace LanczosPlusPlus
 /*@}*/
 #endif

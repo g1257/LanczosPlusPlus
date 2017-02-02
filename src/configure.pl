@@ -38,11 +38,7 @@ createMakefile();
 sub createMakefile
 {
 	Make::backupMakefile();
-	if (!(-r "Config.make")) {
-		my $cmd = "cp ../TestSuite/inputs/Config.make Config.make";
-		system($cmd);
-		print STDERR "$0: Executed $cmd\n";
-	}
+	Make::createConfigMake();
 
 	my $fh;
 	open($fh,">Makefile") or die "Cannot open Makefile for writing: $!\n";

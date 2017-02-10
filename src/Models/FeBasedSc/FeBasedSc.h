@@ -63,52 +63,47 @@ class FeBasedSc : public ModelBase<ComplexOrRealType,
 		    : nthreads_(nthreads),x_(x),y_(y),basis_(basis),myself_(myself)
 		{}
 
-		void thread_function_(SizeType threadNum,
-		                      SizeType blockSize,
-		                      SizeType total,
-		                      ConcurrencyType::MutexType*)
+		void doTask(SizeType taskNumber, SizeType)
 		{
 			SizeType nsite = myself_.geometry_.numberOfSites();
-			for (SizeType p=0;p<blockSize;p++) {
-				SizeType ispace = threadNum*blockSize + p;
-				if (ispace>=total) break;
-				SparseRowType sparseRow;
+			SparseRowType sparseRow;
 
-				WordType ket1 = basis_.operator()(ispace,SPIN_UP);
-				WordType ket2 = basis_.operator()(ispace,SPIN_DOWN);
+			WordType ket1 = basis_.operator()(taskNumber,SPIN_UP);
+			WordType ket2 = basis_.operator()(taskNumber,SPIN_DOWN);
 
-				x_[ispace] += myself_.findS(nsite,ket1,ket2,ispace,basis_)*y_[ispace];
+			x_[taskNumber] += myself_.findS(nsite,ket1,ket2,taskNumber,basis_)*y_[taskNumber];
 
-				for (SizeType i=0;i<nsite;i++) {
-					for (SizeType orb=0;orb<myself_.mp_.orbitals;orb++) {
-						myself_.setHoppingTerm(sparseRow,ket1,ket2,
-						                       i,orb,basis_);
+			for (SizeType i=0;i<nsite;i++) {
+				for (SizeType orb=0;orb<myself_.mp_.orbitals;orb++) {
+					myself_.setHoppingTerm(sparseRow,ket1,ket2,
+					                       i,orb,basis_);
 
-						if (myself_.mp_.feAsMode == 0) {
-							myself_.setU2OffDiagonalTerm(sparseRow,ket1,ket2,
-							                             i,orb,basis_);
+					if (myself_.mp_.feAsMode == 0) {
+						myself_.setU2OffDiagonalTerm(sparseRow,ket1,ket2,
+						                             i,orb,basis_);
 
-							for (SizeType orb2=orb+1;orb2<myself_.mp_.orbitals;orb2++) {
-								myself_.setU3Term(sparseRow,ket1,ket2,
-								                  i,orb,orb2,basis_);
-							}
-
-							myself_.setJTermOffDiagonal(sparseRow,ket1,ket2,
-							                            i,orb,basis_);
-						} else if (myself_.mp_.feAsMode == 1 || myself_.mp_.feAsMode == 2) {
-							myself_.setOffDiagonalDecay(sparseRow,ket1,ket2,
-							                            i,orb,basis_);
-						} else if (myself_.mp_.feAsMode == 3) {
-							myself_.setOffDiagonalJimpurity(sparseRow,ket1,ket2,i,orb,basis_);
-						} else if (myself_.mp_.feAsMode == 4) {
-							myself_.setOffDiagonalKspace(sparseRow,ket1,ket2,i,orb,basis_);
+						for (SizeType orb2=orb+1;orb2<myself_.mp_.orbitals;orb2++) {
+							myself_.setU3Term(sparseRow,ket1,ket2,
+							                  i,orb,orb2,basis_);
 						}
+
+						myself_.setJTermOffDiagonal(sparseRow,ket1,ket2,
+						                            i,orb,basis_);
+					} else if (myself_.mp_.feAsMode == 1 || myself_.mp_.feAsMode == 2) {
+						myself_.setOffDiagonalDecay(sparseRow,ket1,ket2,
+						                            i,orb,basis_);
+					} else if (myself_.mp_.feAsMode == 3) {
+						myself_.setOffDiagonalJimpurity(sparseRow,ket1,ket2,i,orb,basis_);
+					} else if (myself_.mp_.feAsMode == 4) {
+						myself_.setOffDiagonalKspace(sparseRow,ket1,ket2,i,orb,basis_);
 					}
 				}
-
-				x_[ispace] += sparseRow.finalize(y_);
 			}
+
+			x_[taskNumber] += sparseRow.finalize(y_);
 		}
+
+		SizeType tasks() const { return x_.size(); }
 
 	private:
 
@@ -231,8 +226,6 @@ public:
 	                         const VectorType& y,
 	                         const BasisBaseType& basis) const
 	{
-		SizeType hilbert=basis.size();
-
 		// Calculate off-diagonal elements AND store matrix
 		typedef MatrixVectorHelper HelperType;
 		typedef PsimagLite::Parallelizer<HelperType> ParallelizerType;
@@ -242,7 +235,7 @@ public:
 
 		std::cout<<"Using "<<threadObject.name();
 		std::cout<<" with "<<threadObject.threads()<<" threads.\n";
-		threadObject.loopCreate(hilbert,helper);
+		threadObject.loopCreate(helper);
 	}
 
 	const BasisType& basis() const { return basis_; }

@@ -20,6 +20,7 @@ PsimagLite::String license = "Copyright (c) 2009-2012, UT-Battelle, LLC\n"
 #include <unistd.h>
 #include <cstdlib>
 #include <getopt.h>
+#define USE_PTHREADS_OR_NOT_NG
 #include "Concurrency.h"
 #include "Engine.h"
 #include "ProgramGlobals.h"

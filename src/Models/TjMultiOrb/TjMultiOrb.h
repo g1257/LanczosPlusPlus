@@ -54,9 +54,9 @@ public:
 	      geometry_(geometry),
 	      basis_(geometry,nup,ndown,mp_.orbitals),
 	      hoppings_(geometry_.numberOfSites()*geometry_.numberOfSites(),mp_.orbitals*mp_.orbitals),
-	      jpm_(geometry_.numberOfSites(),geometry_.numberOfSites()),
-	      jzz_(geometry_.numberOfSites(),geometry_.numberOfSites()),
-	      w_(geometry_.numberOfSites(),geometry_.numberOfSites())
+	      jpm_(geometry_.numberOfSites()*geometry_.numberOfSites(),mp_.orbitals*mp_.orbitals),
+	      jzz_(geometry_.numberOfSites()*geometry_.numberOfSites(),mp_.orbitals*mp_.orbitals),
+	      w_(geometry_.numberOfSites()*geometry_.numberOfSites(),mp_.orbitals*mp_.orbitals)
 	{
 		SizeType n = geometry_.numberOfSites();
 
@@ -70,12 +70,11 @@ public:
 				for (SizeType orb1 = 0; orb1 < mp_.orbitals; ++orb1) {
 					for (SizeType orb2 = 0; orb2 < mp_.orbitals; ++orb2) {
 						hoppings_(i+j*n,orb1+orb2*mp_.orbitals) = geometry_(i,orb1,j,orb2,0);
+						jpm_(i+j*n,orb1+orb2*mp_.orbitals) = geometry_(i,orb1,j,orb2,1);
+						jzz_(i+j*n,orb1+orb2*mp_.orbitals) = geometry_(i,orb1,j,orb2,2);
+						w_(i+j*n,orb1+orb2*mp_.orbitals) = geometry_(i,orb1,j,orb2,3);
 					}
 				}
-
-				jpm_(i,j) = geometry_(i,0,j,0,1);
-				jzz_(i,j) = geometry_(i,0,j,0,2);
-				w_(i,j) = geometry_(i,0,j,0,3);
 			}
 		}
 	}
@@ -120,8 +119,8 @@ public:
 			for (SizeType i=0;i<nsite;i++) {
 				for (SizeType orb = 0; orb < mp_.orbitals; ++orb) {
 					setHoppingTerm(sparseRow,ket1,ket2,i,orb,basis);
-					setSplusSminus(sparseRow,ket1,ket2,i,orb,basis);
 				}
+				setSplusSminus(sparseRow,ket1,ket2,i,basis);
 			}
 
 			nCounter += sparseRow.finalize(matrix);
@@ -130,12 +129,12 @@ public:
 		matrix.setRow(hilbert,nCounter);
 		matrix.checkValidity();
 		assert(isHermitian(matrix));
-//		std::cout<<"MATRIX before rotation\n";
-//		std::cout<<matrix.toDense();
+		//		std::cout<<"MATRIX before rotation\n";
+		//		std::cout<<matrix.toDense();
 		if (mp_.reinterpretAndTruncate)
 			reinterpretAndTruncate(matrix,basis);
-//		std::cout<<"MATRIX after rotation and truncation\n";
-//		std::cout<<matrix.toDense();
+		//		std::cout<<"MATRIX after rotation and truncation\n";
+		//		std::cout<<matrix.toDense();
 	}
 
 	bool hasNewParts(std::pair<SizeType,SizeType>& newParts,
@@ -148,7 +147,7 @@ public:
 
 		if (what == ProgramGlobals::OPERATOR_SPLUS ||
 		        what == ProgramGlobals::OPERATOR_SMINUS)
-		return hasNewPartsSplusOrMinus(newParts,what,spin,orbs);
+			return hasNewPartsSplusOrMinus(newParts,what,spin,orbs);
 
 		PsimagLite::String str(__FILE__);
 		str += " " + ttos(__LINE__) +  "\n";
@@ -205,14 +204,14 @@ private:
 		SparseMatrixType rotT;
 		VectorSizeType targets;
 		buildRotation(rot,rotT,targets,basis);
-//		std::cout<<"Rotation\n";
-//		std::cout<<rot.toDense();
+		//		std::cout<<"Rotation\n";
+		//		std::cout<<rot.toDense();
 		SparseMatrixType tmp;
 		multiply(tmp,matrix,rotT);
 		multiply(matrix,rot,tmp);
 		assert(isHermitian(matrix));
-//		std::cout<<"Matrix after rotation\n";
-//		std::cout<<matrix.toDense();
+		//		std::cout<<"Matrix after rotation\n";
+		//		std::cout<<matrix.toDense();
 		truncateMatrix(matrix,targets);
 		assert(isHermitian(matrix));
 	}
@@ -273,7 +272,8 @@ private:
 				PairWordType bra = fromMatrixToBra(braMatrix,b);
 				SizeType temp = basis.perfectIndex(bra.first,bra.second);
 				sparseRow.add(temp,braValues[b]);
-				if (isToBeRemoved(braMatrix,b)) targets.push_back(temp);
+				if (isToBeRemoved(bra.first,bra.second))
+					targets.push_back(temp);
 			}
 
 			nCounter += sparseRow.finalize(rot);
@@ -291,30 +291,38 @@ private:
 		targets.resize(newSize);
 	}
 
-	bool isToBeRemoved(const MatrixSizeType& braMatrix, SizeType branch) const
+	bool isToBeRemoved(WordType bra1, WordType bra2) const
+	{
+		SizeType n = geometry_.numberOfSites();
+		VectorSizeType k(n,0);
+		breakIntoSitesEx(k,bra1,bra2);
+		assert(k.size() == geometry_.numberOfSites());
+		for (SizeType i = 0; i < k.size(); ++i)
+			if (isToBeRemoved(k[i])) return true;
+
+		return false;
+	}
+
+	bool isToBeRemoved(SizeType one) const
 	{
 		assert(mp_.reinterpretAndTruncate > 0);
 		bool b = false;
 		if (mp_.reinterpretAndTruncate > 0)
-			b |= hasState(braMatrix,branch,REINTERPRET_6);
+			b |= hasState(one,REINTERPRET_6);
 		if (mp_.reinterpretAndTruncate > 1)
-			b |= hasState(braMatrix,branch, STATE_EMPTY);
+			b |= hasState(one, STATE_EMPTY);
 		if (mp_.reinterpretAndTruncate > 2) {
-			b |= hasState(braMatrix,branch, STATE_UP_A);
-			b |= hasState(braMatrix,branch, STATE_DOWN_A);
+			b |= hasState(one, STATE_UP_A);
+			b |= hasState(one, STATE_DOWN_A);
 		}
 
 		return b;
 	}
 
-	bool hasState(const MatrixSizeType& braMatrix,
-	              SizeType branch,
+	bool hasState(SizeType one,
 	              SizeType state) const
 	{
-		for (SizeType i = 0; i < braMatrix.n_col(); ++i)
-			if (braMatrix(branch,i) == state) return true;
-
-		return false;
+		return (one == state);
 	}
 
 	SizeType getBranchesFromVector(const VectorSizeType& k) const
@@ -340,6 +348,23 @@ private:
 		}
 	}
 
+	void breakIntoSitesEx(VectorSizeType& k,
+	                      WordType ket1,
+	                      WordType ket2) const
+	{
+		SizeType n = k.size();
+		assert(n == geometry_.numberOfSites());
+		for (SizeType i = 0; i < n; ++i) {
+			WordType one1 = ket1 & 3;
+			WordType one2 = ket2 & 3;
+			one2 <<= 2;
+			k[i] = (one1 | one2);
+			ket1 >>= 2;
+			ket2 >>= 2;
+			if (ket1 == 0 && ket2 == 0) break;
+		}
+
+	}
 	// Rotation(old basis state) = linear combination of old basis states
 	// The linear combination of old basis states contains various terms
 	// These terms are called branches: the index b below
@@ -570,6 +595,15 @@ private:
 			WordType ket2 = basis(ispace,SPIN_DOWN);
 			ComplexOrRealType s=0;
 			for (SizeType i=0;i<nsite;i++) {
+
+				int nniup = 0;
+				int nnidown = 0;
+				for (SizeType orb = 0; orb < mp_.orbitals; ++orb) {
+					nniup += basis.isThereAnElectronAt(ket1,ket2,i,SPIN_UP,orb);
+					nnidown += basis.isThereAnElectronAt(ket1,ket2,i,SPIN_DOWN,orb);
+				}
+				int proi = (nniup+nnidown>0) ? abs(nniup+nnidown-1) : 0;
+
 				for (SizeType orb = 0; orb < mp_.orbitals; ++orb) {
 					int niup = basis.isThereAnElectronAt(ket1,ket2,i,SPIN_UP,orb);
 					int nidown = basis.isThereAnElectronAt(ket1,ket2,i,SPIN_DOWN,orb);
@@ -580,15 +614,26 @@ private:
 					}
 
 					for (SizeType j=i+1;j<nsite;j++) {
+
+						int nnjup = 0;
+						int nnjdown = 0;
+						for (SizeType orb2 = 0; orb2 < mp_.orbitals; ++orb2) {
+							nnjup += basis.isThereAnElectronAt(ket1,ket2,j,SPIN_UP,orb2);
+							nnjdown += basis.isThereAnElectronAt(ket1,ket2,j,SPIN_DOWN,orb2);
+						}
+
+						int proj = (nnjup+nnjdown>0) ? abs(nnjup+nnjdown-1) : 0;
+
 						for (SizeType orb2 = 0; orb2 < mp_.orbitals; ++orb2) {
 							int njup = basis.isThereAnElectronAt(ket1,ket2,j,SPIN_UP,orb2);
 							int njdown = basis.isThereAnElectronAt(ket1,ket2,j,SPIN_DOWN,orb2);
-
+							int proij = (mp_.orbitals>1) ? proi*proj : 1;
 							// Sz Sz term:
-							s += (niup-nidown) * (njup - njdown)  * jzz_(i,j)*0.25;
-
+							s += proij * (niup-nidown) * (njup - njdown) *
+							        jzz_(i+j*nsite,orb+orb2*mp_.orbitals) * 0.25;
 							// ni nj term
-							s+= (niup+nidown) * (njup + njdown) * w_(i,j);
+							s += proij * (niup+nidown) * (njup + njdown) *
+							        w_(i+j*nsite,orb+orb2*mp_.orbitals);
 						}
 					}
 				}
@@ -651,49 +696,72 @@ private:
 	                    const WordType& ket1,
 	                    const WordType& ket2,
 	                    SizeType i,
-	                    SizeType orb,
 	                    const BasisBaseType &basis) const
 	{
-		WordType s1i=(ket1 & BasisType::bitmask(i*mp_.orbitals+orb));
-		if (s1i>0) s1i=1;
-		WordType s2i=(ket2 & BasisType::bitmask(i*mp_.orbitals+orb));
-		if (s2i>0) s2i=1;
 
-		SizeType nsite = geometry_.numberOfSites();
+		int nniup = 0;
+		int nnidown = 0;
+		for (SizeType orb = 0; orb < mp_.orbitals; ++orb) {
+			nniup += basis.isThereAnElectronAt(ket1,ket2,i,SPIN_UP,orb);
+			nnidown += basis.isThereAnElectronAt(ket1,ket2,i,SPIN_DOWN,orb);
+		}
 
-		// Hopping term
-		for (SizeType j=0;j<nsite;j++) {
-			for (SizeType orb2 = 0; orb2 < mp_.orbitals; ++orb2) {
+		int proi = (nniup+nnidown>0) ? abs(nniup+nnidown-1) : 0;
+
+		for (SizeType orb = 0; orb < mp_.orbitals; ++orb) {
+
+			WordType s1i=(ket1 & BasisType::bitmask(i*mp_.orbitals+orb));
+			if (s1i>0) s1i=1;
+			WordType s2i=(ket2 & BasisType::bitmask(i*mp_.orbitals+orb));
+			if (s2i>0) s2i=1;
+
+			SizeType nsite = geometry_.numberOfSites();
+
+			// Splus Sminus
+			for (SizeType j=0;j<nsite;j++) {
 				if (j<i) continue;
-				ComplexOrRealType h = jpm_(i,j)*0.5;
-				if (PsimagLite::real(h) == 0 && PsimagLite::imag(h) == 0) continue;
-				WordType s1j= (ket1 & BasisType::bitmask(j*mp_.orbitals+orb2));
-				if (s1j>0) s1j=1;
-				WordType s2j= (ket2 & BasisType::bitmask(j*mp_.orbitals+orb2));
-				if (s2j>0) s2j=1;
-
-				if (s1i==1 && s1j==0 && s2i==0 && s2j==1) {
-					WordType bra1= ket1 ^ BasisType::bitmask(i*mp_.orbitals+orb);
-					bra1 |= BasisType::bitmask(j*mp_.orbitals+orb2);
-					WordType bra2= ket2 | BasisType::bitmask(i*mp_.orbitals+orb);
-					bra2 ^= BasisType::bitmask(j*mp_.orbitals+orb2);
-					SizeType temp = basis.perfectIndex(bra1,bra2);
-					sparseRow.add(temp,h*signSplusSminus(i*mp_.orbitals+orb,
-					                                     j*mp_.orbitals+orb2,
-					                                     bra1,
-					                                     bra2));
+				int nnjup = 0;
+				int nnjdown = 0;
+				for (SizeType orb2 = 0; orb2 < mp_.orbitals; ++orb2) {
+					nnjup += basis.isThereAnElectronAt(ket1,ket2,j,SPIN_UP,orb2);
+					nnjdown += basis.isThereAnElectronAt(ket1,ket2,j,SPIN_DOWN,orb2);
 				}
 
-				if (s1i==0 && s1j==1 && s2i==1 && s2j==0) {
-					WordType bra1= ket1 | BasisType::bitmask(i*mp_.orbitals+orb);
-					bra1 ^= BasisType::bitmask(j*mp_.orbitals+orb2);
-					WordType bra2= ket2 ^ BasisType::bitmask(i*mp_.orbitals+orb);
-					bra2 |= BasisType::bitmask(j*mp_.orbitals+orb2);
-					SizeType temp = basis.perfectIndex(bra1,bra2);
-					sparseRow.add(temp,h*signSplusSminus(i*mp_.orbitals+orb,
-					                                     j*mp_.orbitals+orb2,
-					                                     bra1,
-					                                     bra2));
+				int proj = (nnjup+nnjdown>0) ? abs(nnjup+nnjdown-1) : 0;
+
+				for (SizeType orb2 = 0; orb2 < mp_.orbitals; ++orb2) {
+					ComplexOrRealType h = jpm_(i+j*nsite,orb+orb2*mp_.orbitals)*0.5;
+					if (PsimagLite::real(h) == 0 && PsimagLite::imag(h) == 0) continue;
+					WordType s1j= (ket1 & BasisType::bitmask(j*mp_.orbitals+orb2));
+					if (s1j>0) s1j=1;
+					WordType s2j= (ket2 & BasisType::bitmask(j*mp_.orbitals+orb2));
+					if (s2j>0) s2j=1;
+
+					if (s1i==1 && s1j==0 && s2i==0 && s2j==1) {
+						WordType bra1= ket1 ^ BasisType::bitmask(i*mp_.orbitals+orb);
+						bra1 |= BasisType::bitmask(j*mp_.orbitals+orb2);
+						WordType bra2= ket2 | BasisType::bitmask(i*mp_.orbitals+orb);
+						bra2 ^= BasisType::bitmask(j*mp_.orbitals+orb2);
+						SizeType temp = basis.perfectIndex(bra1,bra2);
+						int proij = (mp_.orbitals>1) ? proi*proj : 1;
+						sparseRow.add(temp,proij*h*signSplusSminus(i*mp_.orbitals+orb,
+						                                           j*mp_.orbitals+orb2,
+						                                           bra1,
+						                                           bra2));
+					}
+
+					if (s1i==0 && s1j==1 && s2i==1 && s2j==0) {
+						WordType bra1= ket1 | BasisType::bitmask(i*mp_.orbitals+orb);
+						bra1 ^= BasisType::bitmask(j*mp_.orbitals+orb2);
+						WordType bra2= ket2 ^ BasisType::bitmask(i*mp_.orbitals+orb);
+						bra2 |= BasisType::bitmask(j*mp_.orbitals+orb2);
+						SizeType temp = basis.perfectIndex(bra1,bra2);
+						int proij = (mp_.orbitals>1) ? proi*proj : 1;
+						sparseRow.add(temp,proij*h*signSplusSminus(i*mp_.orbitals+orb,
+						                                           j*mp_.orbitals+orb2,
+						                                           bra1,
+						                                           bra2));
+					}
 				}
 			}
 		}

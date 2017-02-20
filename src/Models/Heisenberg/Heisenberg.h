@@ -253,8 +253,10 @@ private:
 
 				SizeType val1 = basis.getN(ket,dummy,i,dummy,orb);
 				RealType tmp1 = val1 - mp_.twiceTheSpin*0.5;
+				RealType tmp1d = tmp1*tmp1;
 
 				if (i < mp_.magneticField.size()) s += mp_.magneticField[i]*tmp1;
+				if (i < mp_.anisotropy.size()) s += mp_.anisotropy[i]*tmp1d;
 
 				for (SizeType j=i+1;j<nsite;j++) {
 

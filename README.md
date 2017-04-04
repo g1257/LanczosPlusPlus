@@ -1,23 +1,22 @@
-# Quick Start 
+# Quick Start
 ## Licensing
 
-The full software license for LanczosPlusPlus++ version 1.0.0 
+The full software license for LanczosPlusPlus++ version 1.0.0
 can be found in
-file LICENSE. 
-LanczosPlusPlus is a free and open source implementation of the 
-Lanczos algorithm for models of strongly correlated electrons. 
-You are welcomed to use it and publish data 
+file LICENSE.
+LanczosPlusPlus is a free and open source implementation of the
+Lanczos algorithm for models of strongly correlated electrons.
+You are welcomed to use it and publish data
 obtained with Lanczos++. If you do, please cite this
 work .
 
 ## Code Integrity
 
 Hash of the latest commit is also posted at
-https://web.ornl.gov/~gz1/hashes.html
+https://g1257.github.com/hashes.html
 
 Latest commit should always be signed.
-Keys at https://web.ornl.gov/~gz1/keys.html
-
+https://g1257.github.com/keys.html
 ## How To Cite This Work
 
 @article{re:alvarez09,
@@ -35,7 +34,7 @@ And also:
 re:webDmrgPlusPlus,
 Author = {G. Alvarez},
 Title = {DMRG++ Website},
-Publisher = {\url{http://www.ornl.gov/~gz1/dmrgPlusPlus}} }
+Publisher = {\url{https://g1257.github.com/dmrgPlusPlus}} }
 
 Building and Running Lanczos++
 TBW.
@@ -71,7 +70,7 @@ DISCLOSED WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
 - (required) GNU C++
 - (required) The LAPACK and BLAS libraries
 This library is available for most platforms.
-The configure.pl script will ask for the LDFLAGS variable 
+The configure.pl script will ask for the LDFLAGS variable
 to pass to the compiler/linker. If the linux platform was
 chosen the default/suggested LDFLAGS will include -llapack.
 If the osx platform was chosen the default/suggested LDFLAGS will
@@ -84,7 +83,7 @@ outside of the DMRG++ distribution. \verb=configure.pl= will ask you where you p
 - (optional) make or gmake (only needed to use the Makefile)
 - (optional) perl (only needed to run the configure.pl script)
 
-## Website 
+## Website
 
-See https://web.ornl.gov/~gz1/LanczosPlusPlus/
+See https://g1257.github.com/LanczosPlusPlus/
 

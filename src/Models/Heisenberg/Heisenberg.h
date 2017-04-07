@@ -113,16 +113,17 @@ public:
 	}
 
 	bool hasNewParts(std::pair<SizeType,SizeType>& newParts,
+	                 const std::pair<SizeType,SizeType>& oldParts,
 	                 SizeType what,
 	                 SizeType spin,
-	                 const PairType& orbs) const
+	                 SizeType orb) const
 	{
 		if (what==ProgramGlobals::OPERATOR_SZ)
 			return false;
 
 		if (what == ProgramGlobals::OPERATOR_SPLUS ||
 		        what == ProgramGlobals::OPERATOR_SMINUS)
-			return hasNewPartsSplusOrMinus(newParts,what,spin,orbs);
+			return hasNewPartsSplusOrMinus(newParts,oldParts,what,spin);
 
 		PsimagLite::String str(__FILE__);
 		str += " " + ttos(__LINE__) +  "\n";
@@ -214,22 +215,22 @@ private:
 	}
 
 	bool hasNewPartsSplusOrMinus(std::pair<SizeType,SizeType>& newParts,
+	                             const std::pair<SizeType,SizeType>& oldParts,
 	                             SizeType what,
-	                             SizeType,
-	                             const PairType&) const
+	                             SizeType) const
 	{
 		if (mp_.twiceTheSpin != 1)
 			throw PsimagLite::RuntimeError("BasisHeisenberg::hasNewPartsSplusOrMinus\n");
 
-		newParts.first = mp_.twiceTheSpin;
+		newParts.first = oldParts.first;
 		bool flag = false;
 		if (what == ProgramGlobals::OPERATOR_SPLUS) {
-			newParts.second = basis_.szPlusConst() + 1;
+			newParts.second = oldParts.second + 1;
 			if (newParts.second > geometry_.numberOfSites())
 				flag = true;
 		} else if (what == ProgramGlobals::OPERATOR_SMINUS) {
 			if (basis_.szPlusConst() == 0) flag =true;
-			newParts.second = basis_.szPlusConst() - 1;
+			newParts.second = oldParts.second - 1;
 		}
 
 		if (!flag) return true;

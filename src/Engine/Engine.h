@@ -139,7 +139,7 @@ public:
 
 		const BasisType* basisNew = 0;
 		bool isDiagonal = (isite==jsite && orbs.first==orbs.second);
-
+		PairType oldParts = model_.basis().parts();
 		for (SizeType type=0;type<4;type++) {
 			if (isDiagonal && type>1) continue;
 
@@ -147,7 +147,8 @@ public:
 			if (ProgramGlobals::needsNewBasis(operatorLabel)) {
 				assert(spins.first==spins.second);
 				std::pair<SizeType,SizeType> newParts(0,0);
-				if (!model_.hasNewParts(newParts,operatorLabel,spins.first,orbs)) continue;
+				if (!model_.hasNewParts(newParts,oldParts,operatorLabel,spins.first,orbs.first))
+					continue;
 				// Create new bases
 				basisNew = model_.createBasis(newParts.first,newParts.second);
 			} else {
@@ -203,6 +204,7 @@ public:
 	              const PairType& orbs) const
 	{
 		const BasisType* basisNew = 0;
+		PairType oldParts = model_.basis().parts();
 
 		if (ProgramGlobals::needsNewBasis(what2)) {
 			if (spins.first!=spins.second) {
@@ -214,7 +216,8 @@ public:
 			}
 
 			std::pair<SizeType,SizeType> newParts(0,0);
-			if (!model_.hasNewParts(newParts,what2,spins.first,orbs)) return;
+			if (!model_.hasNewParts(newParts,oldParts,what2,spins.first,orbs.first))
+				return;
 
 			basisNew = model_.createBasis(newParts.first,newParts.second);
 
@@ -307,7 +310,8 @@ private:
 		if (!model_.hasNewParts(newParts,
 		                        oldParts,
 		                        what,
-		                        spin,orb)) return 0;
+		                        spin,
+		                        orb)) return 0;
 
 		BasisType* basisNew = model_.createBasis(newParts.first,newParts.second);
 

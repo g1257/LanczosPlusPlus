@@ -209,12 +209,13 @@ public:
 	}
 
 	bool hasNewParts(std::pair<SizeType,SizeType>& newParts,
+	                 const std::pair<SizeType,SizeType>& oldParts,
 	                 SizeType what,
 	                 SizeType spin,
-	                 const std::pair<SizeType,SizeType>& orbs) const
+	                 SizeType orb) const
 	{
 		if (what==ProgramGlobals::OPERATOR_C || what==ProgramGlobals::OPERATOR_CDAGGER)
-			return hasNewPartsCorCdagger(newParts,what,spin,orbs);
+			return hasNewPartsCorCdagger(newParts,oldParts,what,spin);
 		PsimagLite::String str(__FILE__);
 		str += " " + ttos(__LINE__) +  "\n";
 		str += PsimagLite::String("hasNewParts: unsupported operator ");
@@ -244,15 +245,17 @@ public:
 private:
 
 	bool hasNewPartsCorCdagger(std::pair<SizeType,SizeType>& newParts,
+	                           const std::pair<SizeType,SizeType>& oldParts,
 	                           SizeType what,
-	                           SizeType spin,
-	                           const std::pair<SizeType,SizeType>& orbs) const
+	                           SizeType spin) const
 	{
-		int newPart1=basis1_.electrons();
-		int newPart2=basis2_.electrons();
+		int newPart1 = oldParts.first;
+		int newPart2 = oldParts.second;
 
-		if (spin==SPIN_UP) newPart1 = basis1_.newPartCorCdagger(what,orbs.first);
-		else newPart2 = basis2_.newPartCorCdagger(what,orbs.second);
+		if (spin==SPIN_UP)
+			newPart1 = basis1_.newPartCorCdagger(newPart1,what);
+		else
+			newPart2 = basis2_.newPartCorCdagger(newPart2,what);
 
 		if (newPart1<0 || newPart2<0) return false;
 

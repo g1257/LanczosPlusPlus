@@ -230,14 +230,15 @@ public:
 	}
 
 	bool hasNewParts(std::pair<SizeType,SizeType>& newParts,
+	                 const std::pair<SizeType,SizeType>& oldParts,
 	                 SizeType what,
 	                 SizeType spin,
-	                 const std::pair<SizeType,SizeType>& orbs) const
+	                 SizeType orb) const
 	{
 		if (what==ProgramGlobals::OPERATOR_C || what==ProgramGlobals::OPERATOR_CDAGGER)
-			return hasNewPartsCorCdagger(newParts,what,spin,orbs);
+			return hasNewPartsCorCdagger(newParts,oldParts,what,spin,orb);
 		if (what==ProgramGlobals::OPERATOR_SPLUS || what==ProgramGlobals::OPERATOR_SMINUS)
-			return hasNewPartsSplusOrSminus(newParts,what,orbs);
+			return hasNewPartsSplusOrSminus(newParts,oldParts,what,orb);
 		PsimagLite::String str(__FILE__);
 		str += " " + ttos(__LINE__) +  "\n";
 		str += PsimagLite::String("hasNewParts: unsupported operator ");
@@ -309,16 +310,18 @@ private:
 	}
 
 	bool hasNewPartsCorCdagger(std::pair<SizeType,SizeType>& newParts,
+	                           const std::pair<SizeType,SizeType>& oldParts,
 	                           SizeType what,
 	                           SizeType spin,
-	                           const std::pair<SizeType,SizeType>& orbs) const
+	                           SizeType orb) const
 	{
 		throw PsimagLite::RuntimeError("UNIMPLEMENTED: hasNewPartsCorCdagger\n");
 	}
 
 	bool hasNewPartsSplusOrSminus(std::pair<SizeType,SizeType>& newParts,
+	                              const std::pair<SizeType,SizeType>& oldParts,
 	                              SizeType what,
-	                              const std::pair<SizeType,SizeType>& orbs) const
+	                              SizeType orb) const
 	{
 		throw PsimagLite::RuntimeError("UNIMPLEMENTED: hasNewPartsSplusOrSminus\n");
 	}

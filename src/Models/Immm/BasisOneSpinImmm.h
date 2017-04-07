@@ -255,10 +255,8 @@ namespace LanczosPlusPlus {
 			return true;
 		}
 
-		int newPartCorCdagger(SizeType what,SizeType) const
+		int newPartCorCdagger(SizeType newPart1, SizeType what) const
 		{
-			int newPart1=npart_;
-
 			int c = (what==ProgramGlobals::OPERATOR_CDAGGER) ? 1 : -1;
 			newPart1 += c;
 

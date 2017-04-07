@@ -206,10 +206,8 @@ public:
 		return npart_;
 	}
 
-	int newPartCorCdagger(SizeType what,SizeType) const
+	int newPartCorCdagger(SizeType newPart1, SizeType what) const
 	{
-		int newPart1=npart_;
-
 		int c = (what==ProgramGlobals::OPERATOR_C) ? -1 : 1;
 		newPart1 += c;
 
@@ -220,10 +218,8 @@ public:
 		return newPart1;
 	}
 
-	int hasNewPartsSplusOrSminus(int c,SizeType) const
+	int hasNewPartsSplusOrSminus(int newPart1, int c) const
 	{
-		int newPart1=npart_;
-
 		newPart1 += c;
 
 		if (newPart1<0) return -1;

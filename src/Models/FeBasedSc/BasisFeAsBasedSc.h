@@ -213,14 +213,15 @@ public:
 	}
 
 	bool hasNewParts(std::pair<SizeType,SizeType>& newParts,
+	                 const std::pair<SizeType,SizeType>& oldParts,
 	                 SizeType what,
 	                 SizeType spin,
-	                 const std::pair<SizeType,SizeType>& orbs) const
+	                 SizeType orb) const
 	{
 		if (what==ProgramGlobals::OPERATOR_C || what==ProgramGlobals::OPERATOR_CDAGGER)
-			return hasNewPartsCorCdagger(newParts,what,spin,orbs);
+			return hasNewPartsCorCdagger(newParts,oldParts,what,spin);
 		if (what==ProgramGlobals::OPERATOR_SPLUS || what==ProgramGlobals::OPERATOR_SMINUS)
-			return hasNewPartsSplusOrSminus(newParts,what,orbs);
+			return hasNewPartsSplusOrSminus(newParts,oldParts,what);
 		PsimagLite::String str(__FILE__);
 		str += " " + ttos(__LINE__) +  "\n";
 		str += PsimagLite::String("hasNewParts: unsupported operator ");
@@ -289,15 +290,15 @@ private:
 	}
 
 	bool hasNewPartsCorCdagger(std::pair<SizeType,SizeType>& newParts,
+	                           const std::pair<SizeType,SizeType>& oldParts,
 	                           SizeType what,
-	                           SizeType spin,
-	                           const std::pair<SizeType,SizeType>& orbs) const
+	                           SizeType spin) const
 	{
-		int newPart1=basis1_.electrons();
-		int newPart2=basis2_.electrons();
+		int newPart1 = oldParts.first;
+		int newPart2 = oldParts.second;
 
-		if (spin==SPIN_UP) newPart1 = basis1_.newPartCorCdagger(what,orbs.first);
-		else newPart2 = basis2_.newPartCorCdagger(what,orbs.second);
+		if (spin==SPIN_UP) newPart1 = basis1_.newPartCorCdagger(newPart1, what);
+		else newPart2 = basis2_.newPartCorCdagger(newPart2, what);
 
 		if (newPart1<0 || newPart2<0) return false;
 
@@ -308,14 +309,14 @@ private:
 	}
 
 	bool hasNewPartsSplusOrSminus(std::pair<SizeType,SizeType>& newParts,
-	                              SizeType what,
-	                              const std::pair<SizeType,SizeType>& orbs) const
+	                              const std::pair<SizeType,SizeType>& oldParts,
+	                              SizeType what) const
 	{
 		int c1 = (what==ProgramGlobals::OPERATOR_SPLUS) ? 1 : -1;
 		int c2 = (what==ProgramGlobals::OPERATOR_SPLUS) ? -1 : 1;
 
-		int newPart1 = basis1_.hasNewPartsSplusOrSminus(c1,orbs.first);
-		int newPart2 = basis2_.hasNewPartsSplusOrSminus(c2,orbs.second);
+		int newPart1 = basis1_.hasNewPartsSplusOrSminus(oldParts.first, c1);
+		int newPart2 = basis2_.hasNewPartsSplusOrSminus(oldParts.second, c2);
 
 		if (newPart1<0 || newPart2<0) return false;
 

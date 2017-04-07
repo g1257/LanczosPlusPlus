@@ -50,9 +50,10 @@ public:
 	virtual void setupHamiltonian(SparseMatrixType& matrix) const = 0;
 
 	virtual bool hasNewParts(std::pair<SizeType,SizeType>& newParts,
+	                         const std::pair<SizeType,SizeType>& oldParts,
 	                         SizeType what,
 	                         SizeType spin,
-	                         const std::pair<SizeType,SizeType>& orbs) const = 0;
+	                         SizeType orb) const = 0;
 
 	virtual const GeometryType& geometry() const = 0;
 

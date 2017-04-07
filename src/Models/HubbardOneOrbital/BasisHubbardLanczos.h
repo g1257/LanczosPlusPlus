@@ -30,7 +30,6 @@ public:
 	      basis2_(geometry.numberOfSites(),ndown)
 	{}
 
-
 	PairIntType parts() const
 	{
 		return PairIntType(nup_, ndown_);

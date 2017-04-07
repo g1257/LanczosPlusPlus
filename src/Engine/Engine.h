@@ -262,34 +262,41 @@ public:
 	                            const VectorSizeType& orbs) const
 	{
 		VectorType tmpVector = gsVector_;
+		const BasisType* basisOld = &(model_.basis());
 		RealType isign = 1.0;
 		PairType oldParts = model_.basis().parts();
+		PairType newParts = oldParts;
 
-		for (SizeType site=0; site < sites.size(); ++site) {
-			if (orbs[site] >= model_.orbitals(site)) continue;
+		for (SizeType isite = 0; isite < sites.size(); ++isite) {
+			SizeType site = sites[isite];
+			if (orbs[isite] >= model_.orbitals(site)) continue;
 
-			PairType newParts;
 			const BasisType* basisNew = getNeededBasis(newParts,
 			                                           oldParts,
-			                                           what[site],
-			                                           spins[site],
-			                                           orbs[site]);
+			                                           what[isite],
+			                                           spins[isite],
+			                                           orbs[isite]);
 
 			if (!basisNew) return 0.0;
 
 			VectorType modifVector(basisNew->size(),0);
-			accModifiedState(modifVector,
-			                 what[site],
-			                 *basisNew,
-			                 tmpVector,
-			                 site,
-			                 spins[site],
-			                 orbs[site],
-			                 isign);
+			accModifiedState_(modifVector,
+			                  what[isite],
+			                  *basisNew,
+			                  tmpVector,
+			                  *basisOld,
+			                  site,
+			                  spins[isite],
+			                  orbs[isite],
+			                  isign);
 
 			tmpVector = modifVector;
+			basisOld = basisNew;
 			oldParts = newParts;
 		}
+
+		oldParts = model_.basis().parts();
+		if (oldParts != newParts) return 0.0;
 
 		return gsVector_*tmpVector;
 	}
@@ -324,15 +331,16 @@ private:
 	void accModifiedState_(VectorType &z,
 	                       SizeType operatorLabel,
 	                       const BasisType& newBasis,
-	                       const VectorType& gsVector,
+	                       const VectorType& srcVector,
+	                       const BasisType& srcBasis,
 	                       SizeType site,
 	                       SizeType spin,
 	                       SizeType orb,
 	                       RealType isign) const
 	{
-		for (SizeType ispace=0;ispace<model_.basis().size();ispace++) {
-			ProgramGlobals::WordType ket1 = model_.basis()(ispace,SPIN_UP);
-			ProgramGlobals::WordType ket2 = model_.basis()(ispace,SPIN_DOWN);
+		for (SizeType ispace=0;ispace<srcBasis.size();ispace++) {
+			ProgramGlobals::WordType ket1 = srcBasis(ispace,SPIN_UP);
+			ProgramGlobals::WordType ket2 = srcBasis(ispace,SPIN_DOWN);
 			ProgramGlobals::PairIntType tempValue = newBasis.getBraIndex(ket1,
 			                                                             ket2,
 			                                                             operatorLabel,
@@ -342,25 +350,25 @@ private:
 			int temp = tempValue.first;
 			int value = tempValue.second;
 			if (temp>=0 && SizeType(temp)>=z.size()) {
-				PsimagLite::String s = "old basis=" + ttos(model_.basis().size());
+				PsimagLite::String s = "old basis=" + ttos(srcBasis.size());
 				s += " newbasis=" + ttos(newBasis.size());
 				s += "\n";
 				s += "operatorLabel=" + ttos(operatorLabel) + " spin=" + ttos(spin);
 				s += " site=" + ttos(site);
 				s += "ket1=" + ttos(ket1) + " and ket2=" + ttos(ket2);
 				s += "\n";
-				s += "getModifiedState: z.size=" + ttos(z.size());
+				s += "accModifiedState_: z.size=" + ttos(z.size());
 				s += " but temp=" + ttos(temp) + "\n";
 				throw std::runtime_error(s.c_str());
 			}
 			if (temp<0) continue;
 			int mysign = (ProgramGlobals::isFermionic(operatorLabel)) ?
-			            model_.basis().doSignGf(ket1,ket2,site,spin,orb) : 1;
+			            srcBasis.doSignGf(ket1,ket2,site,spin,orb) : 1;
 			if (operatorLabel == ProgramGlobals::OPERATOR_SPLUS ||
 			        operatorLabel == ProgramGlobals::OPERATOR_SMINUS)
-				mysign *= model_.basis().doSignSpSm(ket1,ket2,site,spin,orb);
+				mysign *= srcBasis.doSignSpSm(ket1,ket2,site,spin,orb);
 
-			z[temp] += isign*mysign*value*gsVector[ispace];
+			z[temp] += isign*mysign*value*srcVector[ispace];
 		}
 	}
 
@@ -382,6 +390,7 @@ private:
 		                  operatorLabel,
 		                  basisNew,
 		                  gsVector,
+		                  model_.basis(),
 		                  isite,
 		                  spin,
 		                  orbs.first,
@@ -395,6 +404,7 @@ private:
 		                  operatorLabel,
 		                  basisNew,
 		                  gsVector,
+		                  model_.basis(),
 		                  jsite,
 		                  spin,
 		                  orbs.second,
@@ -413,18 +423,58 @@ private:
 	                      RealType isign) const
 	{
 		if (model_.name()=="Tj1Orb.h")
-			accModifiedState_(z,operatorLabel,newBasis,gsVector,site,spin,orb,isign);
+			accModifiedState_(z,
+			                  operatorLabel,
+			                  newBasis,
+			                  gsVector,
+			                  model_.basis(),
+			                  site,
+			                  spin,
+			                  orb,
+			                  isign);
 
 		if (operatorLabel==OPERATOR_N) {
-			accModifiedState_(z,operatorLabel,newBasis,gsVector,site,spin,orb,isign);
+			accModifiedState_(z,
+			                  operatorLabel,
+			                  newBasis,
+			                  gsVector,
+			                   model_.basis(),
+			                  site,
+			                  spin,
+			                  orb,
+			                  isign);
 			return;
 		} else if (operatorLabel==ProgramGlobals::OPERATOR_SZ) {
-			accModifiedState_(z,OPERATOR_N,newBasis,gsVector,site,SPIN_UP,orb,isign*0.5);
-			accModifiedState_(z,OPERATOR_N,newBasis,gsVector,site,SPIN_DOWN,orb,-isign*0.5);
+			accModifiedState_(z,
+			                  OPERATOR_N,
+			                  newBasis,
+			                  gsVector,
+			                  model_.basis(),
+			                  site,
+			                  SPIN_UP,
+			                  orb,
+			                  isign*0.5);
+			accModifiedState_(z,
+			                  OPERATOR_N,
+			                  newBasis,
+			                  gsVector,
+			                  model_.basis(),
+			                  site,
+			                  SPIN_DOWN,
+			                  orb,
+			                  -isign*0.5);
 			return;
 		}
 
-		accModifiedState_(z,operatorLabel,newBasis,gsVector,site,spin,orb,isign);
+		accModifiedState_(z,
+		                  operatorLabel,
+		                  newBasis,
+		                  gsVector,
+		                  model_.basis(),
+		                  site,
+		                  spin,
+		                  orb,
+		                  isign);
 	}
 
 	void computeGroundState()

@@ -191,7 +191,9 @@ void mainLoop3(const ModelType& model,
 			else orbs.push_back(0);
 		}
 
-		engine.manyPoint(sites,whats,spins,orbs);
+		std::cout<<"<gs|"<<lanczosOptions.extendedStatic<<"|gs>=";
+		std::cout<<engine.manyPoint(sites,whats,spins,orbs);
+		std::cout<<"\n";
 	}
 }
 

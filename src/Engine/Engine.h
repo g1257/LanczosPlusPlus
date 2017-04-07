@@ -56,14 +56,15 @@ public:
 	typedef PsimagLite::ParametersForSolver<RealType> ParametersForSolverType;
 	typedef typename PsimagLite::Vector<ComplexOrRealType>::Type VectorType;
 	typedef PsimagLite::LanczosSolver<ParametersForSolverType,
-	                                  InternalProductType,
-	                                  VectorType> LanczosSolverType;
+	InternalProductType,
+	VectorType> LanczosSolverType;
 	typedef PsimagLite::LanczosSolver<ParametersForSolverType,
-	                                  InternalProductDefaultType,
-	                                  VectorType> LanczosSolverDefaultType;
+	InternalProductDefaultType,
+	VectorType> LanczosSolverDefaultType;
 	typedef PsimagLite::Matrix<ComplexOrRealType> MatrixType;
 	typedef PsimagLite::Matrix<RealType> MatrixRealType;
 	typedef typename LanczosSolverType::TridiagonalMatrixType TridiagonalMatrixType;
+	typedef typename PsimagLite::Vector<SizeType>::Type VectorSizeType;
 	typedef std::pair<SizeType,SizeType> PairType;
 	typedef typename PsimagLite::Vector<RealType>::Type VectorRealType;
 	typedef typename PsimagLite::Vector<PsimagLite::String>::Type VectorStringType;
@@ -114,7 +115,7 @@ public:
 	}
 
 	/* PSIDOC SpectralFunctions
-	Here we document the spectral functions and Green function G(isite,jsite)  
+	Here we document the spectral functions and Green function G(isite,jsite)
 	(still diagonal in spin)
 	*/
 	template<typename ContinuedFractionCollectionType>
@@ -251,7 +252,70 @@ public:
 		std::cout<<"MatrixDiagonal = "<<sum<<"\n";
 	}
 
+	// many point, fixed sites
+	ComplexOrRealType manyPoint(const VectorSizeType& sites,
+	                            const VectorSizeType& what,
+	                            const VectorSizeType& spins,
+	                            const VectorSizeType& orbs) const
+	{
+		VectorType tmpVector = gsVector_;
+		RealType isign = 1.0;
+		PairType oldParts = model_.basis().parts();
+
+		for (SizeType site=0; site < sites.size(); ++site) {
+			if (orbs[site] >= model_.orbitals(site)) continue;
+
+			PairType newParts;
+			const BasisType* basisNew = getNeededBasis(newParts,
+			                                           oldParts,
+			                                           what[site],
+			                                           spins[site],
+			                                           orbs[site]);
+
+			if (!basisNew) return 0.0;
+
+			VectorType modifVector(basisNew->size(),0);
+			accModifiedState(modifVector,
+			                 what[site],
+			                 *basisNew,
+			                 tmpVector,
+			                 site,
+			                 spins[site],
+			                 orbs[site],
+			                 isign);
+
+			tmpVector = modifVector;
+			oldParts = newParts;
+		}
+
+		return gsVector_*tmpVector;
+	}
+
 private:
+
+	const BasisType* getNeededBasis(PairType& newParts,
+	                                const PairType& oldParts,
+	                                SizeType what,
+	                                SizeType spin,
+	                                SizeType orb) const
+	{
+		if (!ProgramGlobals::needsNewBasis(what)) {
+			newParts = oldParts;
+			return &model_.basis();
+		}
+
+		if (!model_.hasNewParts(newParts,
+		                        oldParts,
+		                        what,
+		                        spin,orb)) return 0;
+
+		BasisType* basisNew = model_.createBasis(newParts.first,newParts.second);
+
+		std::cerr<<"basisNew.size="<<basisNew->size()<<" ";
+		std::cerr<<"newparts.first="<<newParts.first<<" ";
+		std::cerr<<"newparts.second="<<newParts.second<<"\n";
+		return basisNew;
+	}
 
 	void accModifiedState_(VectorType &z,
 	                       SizeType operatorLabel,

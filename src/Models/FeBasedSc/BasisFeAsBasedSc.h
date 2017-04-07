@@ -48,10 +48,17 @@ public:
 	                 SizeType nup,
 	                 SizeType ndown,
 	                 SizeType orbitals)
-	: basis1_(geometry.numberOfSites(),nup,orbitals),
+	: nup_(nup),
+	  ndown_(ndown),
+	  basis1_(geometry.numberOfSites(),nup,orbitals),
 	  basis2_(geometry.numberOfSites(),ndown,orbitals)
 	{
 		orbitals_ = orbitals;
+	}
+
+	PairIntType parts() const
+	{
+		return PairIntType(nup_, ndown_);
 	}
 
 	static const WordType& bitmask(SizeType i)
@@ -345,7 +352,10 @@ private:
 		return (b1 & b2);
 	}
 
-	BasisType basis1_,basis2_;
+	SizeType nup_;
+	SizeType ndown_;
+	BasisType basis1_;
+	BasisType basis2_;
 }; // class BasisFeAsBasedSc
 
 template<typename GeometryType>

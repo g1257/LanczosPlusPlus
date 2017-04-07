@@ -54,7 +54,7 @@ typedef std::pair<SizeType,SizeType> PairSizeType;
 struct LanczosOptions {
 
 	LanczosOptions()
-	    : split(-1),spins(1,PairSizeType(0,0))
+	    : split(-1),spins(1,PairSizeType(0,0)),extendedStatic("")
 	{}
 
 	int split;
@@ -62,6 +62,7 @@ struct LanczosOptions {
 	PsimagLite::Vector<SizeType>::Type gf;
 	PsimagLite::Vector<SizeType>::Type sites;
 	PsimagLite::Vector<PairSizeType>::Type spins;
+	PsimagLite::String extendedStatic;
 
 }; // struct LanczosOptions
 
@@ -101,6 +102,7 @@ void mainLoop3(const ModelType& model,
 	typedef typename GeometryType::ComplexOrRealType ComplexOrRealType;
 	typedef Engine<ModelType,InternalProductTemplate,SpecialSymmetryType> EngineType;
 	typedef typename EngineType::TridiagonalMatrixType TridiagonalMatrixType;
+	typedef typename EngineType::VectorSizeType VectorSizeType;
 
 	const GeometryType& geometry = model.geometry();
 	EngineType engine(model,geometry.numberOfSites(),io);
@@ -170,6 +172,27 @@ void mainLoop3(const ModelType& model,
 		reducedDensityMatrix.printAll(std::cout);
 	}
 
+	if (lanczosOptions.extendedStatic != "") {
+		PsimagLite::Vector<PsimagLite::String>::Type str;
+		PsimagLite::tokenizer(lanczosOptions.extendedStatic,str,";");
+		VectorSizeType sites;
+		VectorSizeType spins;
+		VectorSizeType orbs;
+		VectorSizeType whats;
+		for (SizeType i = 0; i < str.size(); ++i) {
+			PsimagLite::Vector<PsimagLite::String>::Type str2;
+			PsimagLite::tokenizer(str[i],str2,",");
+			if (str2.size() < 3)
+				throw PsimagLite::RuntimeError("-S option malformed\n");
+			whats.push_back(ProgramGlobals::operator2id(str2[0]));
+			sites.push_back(atoi(str2[1].c_str()));
+			spins.push_back(atoi(str2[2].c_str()));
+			if (str2.size() == 4) orbs.push_back(atoi(str2[3].c_str()));
+			else orbs.push_back(0);
+		}
+
+		engine.manyPoint(sites,whats,spins,orbs);
+	}
 }
 
 
@@ -274,7 +297,7 @@ int main(int argc,char *argv[])
 	\item[-V] prints version and exits.
 	\end{itemize}
 	*/
-	while ((opt = getopt(argc, argv, "g:c:f:s:r:p:V")) != -1) {
+	while ((opt = getopt(argc, argv, "g:c:f:s:r:p:S:V")) != -1) {
 		switch (opt) {
 		case 'g':
 			lanczosOptions.gf.push_back(ProgramGlobals::operator2id(optarg));
@@ -298,6 +321,9 @@ int main(int argc,char *argv[])
 			precision = atoi(optarg);
 			std::cout.precision(precision);
 			std::cerr.precision(precision);
+			break;
+		case 'S':
+			lanczosOptions.extendedStatic = optarg;
 			break;
 		case 'V':
 			versionOnly = true;
@@ -357,5 +383,3 @@ int main(int argc,char *argv[])
 	else
 		mainLoop0<RealType>(io,lanczosOptions);
 }
-
-

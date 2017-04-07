@@ -48,6 +48,11 @@ public:
 		std::sort(data_.begin(),data_.end());
 	}
 
+	PairIntType parts() const
+	{
+		return PairIntType(nup_, ndown_);
+	}
+
 	static const WordType& bitmask(SizeType i)
 	{
 		return bitmask_[i];

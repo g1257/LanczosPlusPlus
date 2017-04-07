@@ -24,9 +24,17 @@ public:
 	static int const FERMION_SIGN = BasisType::FERMION_SIGN;
 
 	BasisHubbardLanczos(const GeometryType& geometry, SizeType nup,SizeType ndown)
-	    : basis1_(geometry.numberOfSites(),nup),
+	    : nup_(nup),
+	      ndown_(ndown),
+	      basis1_(geometry.numberOfSites(),nup),
 	      basis2_(geometry.numberOfSites(),ndown)
 	{}
+
+
+	PairIntType parts() const
+	{
+		return PairIntType(nup_, ndown_);
+	}
 
 	static const WordType& bitmask(SizeType i)
 	{
@@ -235,7 +243,10 @@ private:
 		return PairIntType(tmp,1);
 	}
 
-	BasisType basis1_,basis2_;
+	SizeType nup_;
+	SizeType ndown_;
+	BasisType basis1_;
+	BasisType basis2_;
 
 }; // class BasisHubbardLanczos
 

@@ -51,6 +51,11 @@ public:
 		}
 	}
 
+	PairIntType parts() const
+	{
+		return PairIntType(twiceS_, szPlusConst_);
+	}
+
 	static const WordType& bitmask(SizeType i)
 	{
 		return bitmask_[i];

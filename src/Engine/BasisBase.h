@@ -37,6 +37,8 @@ public:
 
 	virtual ~BasisBase() {}
 
+	virtual PairIntType parts() const = 0;
+
 	virtual SizeType dofs() const = 0;
 
 	virtual SizeType size() const = 0;

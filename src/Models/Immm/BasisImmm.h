@@ -58,10 +58,17 @@ public:
 	static int const FERMION_SIGN = BasisType::FERMION_SIGN;
 
 	BasisImmm(const GeometryType& geometry, SizeType nup,SizeType ndown)
-	    : orbsPerSite_(geometry),
+	    : nup_(nup),
+	      ndown_(ndown),
+	      orbsPerSite_(geometry),
 	      basis1_(orbsPerSite_,nup),
 	      basis2_(orbsPerSite_,ndown)
 	{}
+
+	PairIntType parts() const
+	{
+		return PairIntType(nup_, ndown_);
+	}
 
 	static const WordType& bitmask(SizeType i)
 	{
@@ -267,8 +274,11 @@ private:
 		                         basis2_.getBra(bra,ket2,what,site,orb);
 	}
 
+	SizeType nup_;
+	SizeType ndown_;
 	OrbsPerSite orbsPerSite_;
-	BasisType basis1_,basis2_;
+	BasisType basis1_;
+	BasisType basis2_;
 
 }; // class BasisImmm
 } // namespace LanczosPlusPlus

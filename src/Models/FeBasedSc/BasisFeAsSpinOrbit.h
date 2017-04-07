@@ -50,6 +50,8 @@ public:
 	                   SizeType ndown1,
 	                   SizeType orbitals)
 	    : geometry_(geometry),
+	      nup_(nup1),
+	      ndown_(ndown1),
 	      basis1_(geometry.numberOfSites(),1,orbitals) // bogus, just to use some functions
 	{
 		orbitals_ = orbitals;
@@ -66,7 +68,11 @@ public:
 				}
 			}
 		}
+	}
 
+	PairIntType parts() const
+	{
+		return PairIntType(nup_, ndown_);
 	}
 
 	static const WordType& bitmask(SizeType i)
@@ -339,8 +345,9 @@ private:
 		throw PsimagLite::RuntimeError("UNIMPLEMENTED: getBraSplusOrSminus\n");
 	}
 
-
 	const GeometryType& geometry_;
+	SizeType nup_;
+	SizeType ndown_;
 	VectorPairWordType basis_;
 	BasisOneSpinType basis1_;
 	mutable std::map<PairWordType,SizeType> reverse_;

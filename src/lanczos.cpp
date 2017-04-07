@@ -91,6 +91,34 @@ SizeType maxOrbitals(const ModelType& model)
 	return res;
 }
 
+template<typename EngineType>
+void extendedStatic(PsimagLite::String manypoint, const EngineType& engine)
+{
+	typedef typename EngineType::VectorSizeType VectorSizeType;
+	PsimagLite::Vector<PsimagLite::String>::Type str;
+	PsimagLite::tokenizer(manypoint,str,";");
+
+	VectorSizeType sites;
+	VectorSizeType spins;
+	VectorSizeType orbs;
+	VectorSizeType whats;
+	for (SizeType i = 0; i < str.size(); ++i) {
+		PsimagLite::Vector<PsimagLite::String>::Type str2;
+		PsimagLite::tokenizer(str[i],str2,"?");
+		if (str2.size() < 3)
+			throw PsimagLite::RuntimeError("-S option malformed\n");
+		whats.push_back(ProgramGlobals::operator2id(str2[0]));
+		sites.push_back(atoi(str2[1].c_str()));
+		spins.push_back(atoi(str2[2].c_str()));
+		if (str2.size() == 4) orbs.push_back(atoi(str2[3].c_str()));
+		else orbs.push_back(0);
+	}
+
+	std::cout<<"<gs|"<<manypoint<<"|gs>=";
+	std::cout<<engine.manyPoint(sites,whats,spins,orbs);
+	std::cout<<"\n";
+}
+
 template<typename ModelType,
          typename SpecialSymmetryType,
          template<typename,typename> class InternalProductTemplate>
@@ -102,7 +130,6 @@ void mainLoop3(const ModelType& model,
 	typedef typename GeometryType::ComplexOrRealType ComplexOrRealType;
 	typedef Engine<ModelType,InternalProductTemplate,SpecialSymmetryType> EngineType;
 	typedef typename EngineType::TridiagonalMatrixType TridiagonalMatrixType;
-	typedef typename EngineType::VectorSizeType VectorSizeType;
 
 	const GeometryType& geometry = model.geometry();
 	EngineType engine(model,geometry.numberOfSites(),io);
@@ -174,26 +201,9 @@ void mainLoop3(const ModelType& model,
 
 	if (lanczosOptions.extendedStatic != "") {
 		PsimagLite::Vector<PsimagLite::String>::Type str;
-		PsimagLite::tokenizer(lanczosOptions.extendedStatic,str,";");
-		VectorSizeType sites;
-		VectorSizeType spins;
-		VectorSizeType orbs;
-		VectorSizeType whats;
-		for (SizeType i = 0; i < str.size(); ++i) {
-			PsimagLite::Vector<PsimagLite::String>::Type str2;
-			PsimagLite::tokenizer(str[i],str2,",");
-			if (str2.size() < 3)
-				throw PsimagLite::RuntimeError("-S option malformed\n");
-			whats.push_back(ProgramGlobals::operator2id(str2[0]));
-			sites.push_back(atoi(str2[1].c_str()));
-			spins.push_back(atoi(str2[2].c_str()));
-			if (str2.size() == 4) orbs.push_back(atoi(str2[3].c_str()));
-			else orbs.push_back(0);
-		}
-
-		std::cout<<"<gs|"<<lanczosOptions.extendedStatic<<"|gs>=";
-		std::cout<<engine.manyPoint(sites,whats,spins,orbs);
-		std::cout<<"\n";
+		PsimagLite::tokenizer(lanczosOptions.extendedStatic,str,",");
+		for (SizeType i = 0; i < str.size(); ++i)
+			extendedStatic(str[i],engine);
 	}
 }
 

@@ -7,9 +7,9 @@ typedef PsimagLite::Geometry<RealType,
 typedef LanczosPlusPlus::ModelSelector<RealType,
         Geometry1Type,
         InputNgType::Readable> ModelSelector1Type;
-typedef typename ModelSelector1Type::ModelBaseType ModelBase1Type;
+typedef ModelSelector1Type::ModelBaseType ModelBase1Type;
 
-typedef typename ModelBase1Type::BasisBaseType BasisBase1Type;
+typedef ModelBase1Type::BasisBaseType BasisBase1Type;
 
 typedef LanczosPlusPlus::ReflectionSymmetry<Geometry1Type,BasisBase1Type> Symmetry1Type;
 

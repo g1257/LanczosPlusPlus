@@ -260,8 +260,6 @@ namespace LanczosPlusPlus {
 			int c = (what==ProgramGlobals::OPERATOR_CDAGGER) ? 1 : -1;
 			newPart1 += c;
 
-			if (newPart1<0) return -1;
-
 			if (SizeType(newPart1)>maxElectrons()) return -1;
 
 			return newPart1;

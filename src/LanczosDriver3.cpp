@@ -7,9 +7,9 @@ typedef PsimagLite::Geometry<std::complex<RealType>,
 typedef LanczosPlusPlus::ModelSelector<std::complex<RealType>,
         Geometry3Type,
         InputNgType::Readable> ModelSelector3Type;
-typedef typename ModelSelector3Type::ModelBaseType ModelBase3Type;
+typedef ModelSelector3Type::ModelBaseType ModelBase3Type;
 
-typedef typename ModelBase3Type::BasisBaseType BasisBase3Type;
+typedef ModelBase3Type::BasisBaseType BasisBase3Type;
 
 typedef LanczosPlusPlus::TranslationSymmetry<Geometry3Type,BasisBase3Type> Symmetry3Type;
 

@@ -211,8 +211,6 @@ public:
 		int c = (what==ProgramGlobals::OPERATOR_C) ? -1 : 1;
 		newPart1 += c;
 
-		if (newPart1<0) return -1;
-
 		if (SizeType(newPart1)>orbitals_*nsite_) return -1;
 
 		return newPart1;

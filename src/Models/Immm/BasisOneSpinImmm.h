@@ -475,17 +475,7 @@ namespace LanczosPlusPlus {
 
 	}; // class BasisOneSpinImmm
 
-	std::ostream& operator<<(std::ostream& os,const BasisOneSpinImmm& b)
-	{
-		for (SizeType i=0;i<b.size();i++)
-			os<<i<<" "<<b[i]<<"\n";
-		return os;
-	}
-
-	SizeType BasisOneSpinImmm::nsite_=0;
-	PsimagLite::Matrix<SizeType> BasisOneSpinImmm::comb_;
-	PsimagLite::Vector<BasisOneSpinImmm::WordType>::Type BasisOneSpinImmm::bitmask_;
-
+	std::ostream& operator<<(std::ostream& os,const BasisOneSpinImmm& b);
 } // namespace LanczosPlusPlus
 #endif
 

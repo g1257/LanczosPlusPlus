@@ -459,17 +459,7 @@ private:
 
 }; // class BasisOneSpinFeAs
 
-std::ostream& operator<<(std::ostream& os,const BasisOneSpinFeAs& b)
-{
-	for (SizeType i=0; i<b.size(); i++)
-		os<<i<<" "<<b[i]<<"\n";
-	return os;
-}
-
-SizeType BasisOneSpinFeAs::orbitals_=2;
-SizeType BasisOneSpinFeAs::nsite_=0;
-PsimagLite::Matrix<SizeType> BasisOneSpinFeAs::comb_;
-PsimagLite::Vector<BasisOneSpinFeAs::WordType>::Type BasisOneSpinFeAs::bitmask_;
+std::ostream& operator<<(std::ostream& os,const BasisOneSpinFeAs& b);
 
 } // namespace LanczosPlusPlus
 #endif

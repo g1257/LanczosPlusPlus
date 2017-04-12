@@ -82,6 +82,7 @@ DISCLOSED WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
 #include "TypeToString.h"
 #include <bitset>
 #include <climits>
+#include "Vector.h"
 
 namespace LanczosPlusPlus {
 

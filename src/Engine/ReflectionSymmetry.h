@@ -43,14 +43,7 @@ public:
 
 }; // class ReflectionItem
 
-bool operator==(const ReflectionItem& item1,const ReflectionItem& item2)
-{
-	if (item1.type!=item2.type) return false;
-
-	if (item1.i==item2.j && item1.j==item2.i) return true;
-
-	return (item1.i==item2.i && item1.j==item2.j);
-}
+bool operator==(const ReflectionItem& item1,const ReflectionItem& item2);
 
 template<typename GeometryType_,typename BasisType>
 class ReflectionSymmetry  {

@@ -31,7 +31,27 @@ if (defined($arg) and -r "$arg" and $arg ne "Config.make") {
 	system($cmd);
 }
 
-my @drivers = ("lanczos","thermal","lorentzian");
+my %thermalD = (name => "thermal", dotos => "thermal.o");
+my %lorentzianD = (name => "lorentzian", dotos => "lorentzian.o");
+my %ld0 = (name => "LanczosDriver0", aux => 1);
+my %ld1 = (name => "LanczosDriver1", aux => 1);
+my %ld2 = (name => "LanczosDriver2", aux => 1);
+my %ld3 = (name => "LanczosDriver3", aux => 1);
+my %ld4 = (name => "LanczosDriver4", aux => 1);
+my %ld5 = (name => "LanczosDriver5", aux => 1);
+my $dotos = "lanczos.o LanczosDriver0.o LanczosDriver1.o LanczosDriver2.o";
+$dotos .= " LanczosDriver3.o LanczosDriver4.o LanczosDriver5.o";
+my %lanczosD = (name => "lanczos", dotos => $dotos);
+
+my @drivers = (\%thermalD,
+	\%lorentzianD,
+	\%ld0,
+	\%ld1,
+	\%ld2,
+	\%ld3,
+	\%ld4,
+	\%ld5,
+	\%lanczosD);
 
 createMakefile();
 

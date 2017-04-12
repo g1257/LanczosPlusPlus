@@ -225,13 +225,6 @@ namespace LanczosPlusPlus {
 		PsimagLite::Vector<WordType>::Type data_;
 
 	}; // class BasisOneSpin
-
-	SizeType BasisOneSpin::nsite_=0;
-
-	PsimagLite::Matrix<SizeType> BasisOneSpin::comb_;
-
-	PsimagLite::Vector<BasisOneSpin::WordType>::Type BasisOneSpin::bitmask_;
-
 } // namespace LanczosPlusPlus
 #endif // BASIS_ONE_SPIN_H
 

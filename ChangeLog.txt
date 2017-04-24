@@ -1,0 +1,9 @@
+2017-04-24 Version 1.38
+
+* Correlations: option -S allows manypoints
+
+* Compilation:
+	- -std=c++98 instead of -ansi
+	- Multiple translation units
+
+

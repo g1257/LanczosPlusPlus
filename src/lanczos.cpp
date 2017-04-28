@@ -96,9 +96,9 @@ void mainLoop0(InputNgType::Readable& io,
 	mainLoop(io,modelPtr,lanczosOptions);
 }
 
-int main(int argc,char *argv[])
+int main(int argc,char **argv)
 {
-	PsimagLite::PsiApp application("lanczos++");
+	PsimagLite::PsiApp application("lanczos++",&argc,&argv,1);
 	int opt = 0;
 	LanczosOptions lanczosOptions;
 	PsimagLite::String file = "";
@@ -162,10 +162,6 @@ int main(int argc,char *argv[])
 		return 1;
 	}
 
-	//! setup distributed parallelization
-	SizeType npthreads = 1;
-	ConcurrencyType concurrency(&argc,&argv,npthreads);
-
 	// print license
 	if (ConcurrencyType::root()) {
 		std::cerr<<license;
@@ -192,6 +188,8 @@ int main(int argc,char *argv[])
 		}
 	}
 
+	//! setup distributed parallelization
+	SizeType npthreads = 1;
 	try {
 		io.readline(npthreads,"Threads=");
 		ConcurrencyType::npthreads = npthreads;

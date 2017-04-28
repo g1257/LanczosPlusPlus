@@ -98,6 +98,7 @@ void mainLoop0(InputNgType::Readable& io,
 
 int main(int argc,char *argv[])
 {
+	PsimagLite::PsiApp application("lanczos++");
 	int opt = 0;
 	LanczosOptions lanczosOptions;
 	PsimagLite::String file = "";

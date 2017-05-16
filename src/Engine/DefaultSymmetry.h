@@ -107,7 +107,7 @@ public:
 
 	PsimagLite::String name() const { return "default"; }
 
-	SizeType rank() const { return matrixStored_.row(); }
+	SizeType rows() const { return matrixStored_.rows(); }
 
 	template<typename SomeVectorType>
 	void matrixVectorProduct(SomeVectorType &x, SomeVectorType const &y) const

@@ -113,7 +113,7 @@ public:
 		rs_.init(model,model.basis());
 	}
 
-	SizeType rank() const { return rs_.rank(); }
+	SizeType rows() const { return rs_.rows(); }
 
 	template<typename SomeVectorType>
 	void matrixVectorProduct(SomeVectorType &x, SomeVectorType const &y) const

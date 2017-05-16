@@ -489,7 +489,7 @@ private:
 		SizeType currentOffset = 0;
 		for (SizeType i=0;i<rs.sectors();i++) {
 			hamiltonian.specialSymmetrySector(i);
-			VectorType gsVector1(hamiltonian.rank());
+			VectorType gsVector1(hamiltonian.rows());
 			if (gsVector1.size()==0) continue;
 			RealType gsEnergy1 = 0;
 
@@ -499,7 +499,7 @@ private:
 
 				std::cerr<<"Engine: Lanczos Solver failed ";
 				std::cerr<<" trying exact diagonalization...\n";
-				VectorRealType eigs(hamiltonian.rank());
+				VectorRealType eigs(hamiltonian.rows());
 				MatrixType fm;
 				hamiltonian.fullDiag(eigs,fm);
 				for (SizeType j = 0; j < eigs.size(); ++j)

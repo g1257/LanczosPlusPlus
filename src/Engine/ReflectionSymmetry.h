@@ -131,7 +131,7 @@ public:
 		}
 	}
 
-	SizeType rank() const { return matrixStored_[pointer_].row(); }
+	SizeType rows() const { return matrixStored_[pointer_].rows(); }
 
 	void transformMatrix(typename PsimagLite::Vector<SparseMatrixType>::Type& matrix1,
 	                     const SparseMatrixType& matrix) const

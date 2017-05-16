@@ -145,6 +145,7 @@ public:
 		\item[printmatrix] Print the Hamiltonian matrix.
 		\item[dumpmatrix] Use exact diagonalization instead of Lanczos diagonalization,
 		and output all information to obtain the full spectrum.
+		\item [setAffinities] TBW
 		\end{itemize}
 		*/
 		registerOpts.push_back("none");
@@ -152,6 +153,7 @@ public:
 		registerOpts.push_back("InternalProductOnTheFly");
 		registerOpts.push_back("printmatrix");
 		registerOpts.push_back("dumpmatrix");
+		registerOpts.push_back("setAffinities");
 
 		PsimagLite::Options::Writeable optWriteable(registerOpts,
 		                                            PsimagLite::Options::Writeable::PERMISSIVE);
@@ -161,21 +163,6 @@ public:
 	bool isSet(const PsimagLite::String& thisOption) const
 	{
 		return optsReadable_->isSet(thisOption);
-	}
-
-	void checkForThreads(SizeType nthreads) const
-	{
-		if (nthreads==1) return;
-#ifndef USE_PTHREADS
-		PsimagLite::String message1(__FILE__);
-		message1 += " FATAL: You are requesting nthreads>0 ";
-		message1 += "but you did not compile with USE_PTHREADS enabled\n";
-		message1 += " Either set Threads=1 in the input file ";
-		message1 += "(you won't have threads though) or\n";
-		message1 += " add -DUSE_PTHREADS to the CPP_FLAGS in your Makefile ";
-		message1 += "and recompile\n";
-		throw PsimagLite::RuntimeError(message1.c_str());
-#endif
 	}
 
 	void usage(const char *progName)

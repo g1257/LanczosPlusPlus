@@ -176,6 +176,7 @@ int main(int argc,char **argv)
 	InputNgType::Readable io(ioWriteable);
 
 	bool isComplex = false;
+	bool setAffinities = false;
 
 	PsimagLite::String solverOptions;
 	io.readline(solverOptions,"SolverOptions=");
@@ -184,7 +185,8 @@ int main(int argc,char **argv)
 	for (SizeType i = 0; i < tokens.size(); ++i) {
 		if (tokens[i] == "useComplex") {
 			isComplex = true;
-			break;
+		} else if (tokens[i] == "setAffinities") {
+			setAffinities = true;
 		}
 	}
 
@@ -192,10 +194,9 @@ int main(int argc,char **argv)
 	SizeType npthreads = 1;
 	try {
 		io.readline(npthreads,"Threads=");
-		ConcurrencyType::npthreads = npthreads;
 	} catch (std::exception&) {}
 
-	inputCheck.checkForThreads(ConcurrencyType::npthreads);
+	ConcurrencyType::setOptions(npthreads, setAffinities);
 
 	typedef std::complex<RealType> ComplexType;
 

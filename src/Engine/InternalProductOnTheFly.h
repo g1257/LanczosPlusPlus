@@ -1,9 +1,8 @@
-// BEGIN LICENSE BLOCK
 /*
-Copyright (c) 2009-2016, UT-Battelle, LLC
+Copyright (c) 2009-2016, 2017, UT-Battelle, LLC
 All rights reserved
 
-[Lanczos, Version 2.0.0]
+[Lanczos, Version 2.]
 [by G.A., Oak Ridge National Laboratory]
 
 UT Battelle Open Source Software License 11242008
@@ -68,9 +67,7 @@ DISCLOSED WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
 
 *********************************************************
 
-
 */
-// END LICENSE BLOCK
 /** \ingroup LanczosPlusPlus */
 /*@{*/
 
@@ -115,7 +112,7 @@ public:
 		//model.setupHamiltonian(matrixStored_);
 	}
 
-	SizeType rank() const { return model_.size(); }
+	SizeType rows() const { return model_.size(); }
 
 	template<typename SomeVectorType>
 	void matrixVectorProduct(SomeVectorType &x,SomeVectorType const &y) const

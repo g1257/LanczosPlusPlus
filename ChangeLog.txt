@@ -1,3 +1,8 @@
+2017-05-18 Version 1.42
+
+* PTHREAD_ASSIGN_AFFINITIES removed, now a runtime option
+
+
 2017-05-04 Version 1.40
 
 * Link with -lblas -llapack

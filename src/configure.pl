@@ -63,7 +63,9 @@ sub createMakefile
 	my $fh;
 	open($fh,">Makefile") or die "Cannot open Makefile for writing: $!\n";
 
-	Make::newMake($fh,\@drivers,"Lanczos++"," "," ","");
+	my %args;
+	$args{"code"} = "Lanczos++";
+	Make::newMake($fh,\@drivers,\%args);
 
 	close($fh);
 	print STDERR "File Makefile has been written\n";

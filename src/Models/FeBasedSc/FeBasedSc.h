@@ -574,6 +574,13 @@ private:
 			s+= mp_.hubbardU[4]*
 			        szTerm(ket1,ket2,i,orb,basis)*
 			        szTerm(ket1,ket2,i,orb2,basis);
+
+			s += mp_.hubbardU[5]*basis.isThereAnElectronAt(ket1,ket2,i,SPIN_UP,orb)
+			        *basis.isThereAnElectronAt(ket1,ket2,i,SPIN_UP,orb2);
+
+			s += mp_.hubbardU[5]*basis.isThereAnElectronAt(ket1,ket2,i,SPIN_DOWN,orb)
+			        *basis.isThereAnElectronAt(ket1,ket2,i,SPIN_DOWN,orb2);
+
 		}
 
 		// JNN and JNNN diagonal part

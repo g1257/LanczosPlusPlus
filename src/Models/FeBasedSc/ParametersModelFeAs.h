@@ -130,15 +130,16 @@ namespace LanczosPlusPlus {
 			}
 
 			if (feAsMode == 0 || feAsMode == 3) {
-				if (hubbardU.size() != 4 && hubbardU.size() != 5) {
+				if (hubbardU.size() < 4 || hubbardU.size() > 6) {
 					PsimagLite::String str("FeAsMode: expecting");
-					str +=  " 4 or 5 U values\n";
+					str +=  " 4 or 5 or 6 U values\n";
 					throw PsimagLite::RuntimeError(str);
 				}
 
-				if (hubbardU.size() == 4) {
-					hubbardU.resize(5);
+				if (hubbardU.size() == 4 || hubbardU.size() == 5) {
+					hubbardU.resize(6);
 					hubbardU[4] = hubbardU[2];
+					hubbardU[5] = 0.0;
 				}
 
 				try {
@@ -147,9 +148,12 @@ namespace LanczosPlusPlus {
 
 				std::cout<<"U[0]="<<hubbardU[0]<<" =U\n";
 				std::cout<<"U[1]="<<hubbardU[1]<<" =U'-J/2\n";
-				std::cout<<"U[2]="<<hubbardU[2]<<" =-2J for S+S- + S-S+ term\n";
+				std::cout<<"U[2]="<<hubbardU[2];
+				std::cout<<" = factor for 1/2(S+_aS-_b + S-_aS+_b) term\n";
 				std::cout<<"U[3]="<<hubbardU[3]<<" =-J\n";
-				std::cout<<"U[4]="<<hubbardU[4]<<" =-2J for SzSz term\n";
+				std::cout<<"U[4]="<<hubbardU[4]<<" = factor for Sz_aSz_b term\n";
+				std::cout<<"U[5]="<<hubbardU[5]<<" = factor for \\sum_\\sigma ";
+				std::cout<<"n_{a\\sigma}*n_{b\\sigma} term\n";
 			}
 
 			if (feAsMode == 4) {

@@ -17,7 +17,7 @@ void extendedStatic(PsimagLite::String manypoint, const EngineType& engine)
 {
 	typedef typename EngineType::VectorSizeType VectorSizeType;
 	PsimagLite::Vector<PsimagLite::String>::Type str;
-	PsimagLite::tokenizer(manypoint,str,";");
+	PsimagLite::split(str, manypoint, ";");
 
 	VectorSizeType sites;
 	VectorSizeType spins;
@@ -25,7 +25,7 @@ void extendedStatic(PsimagLite::String manypoint, const EngineType& engine)
 	VectorSizeType whats;
 	for (SizeType i = 0; i < str.size(); ++i) {
 		PsimagLite::Vector<PsimagLite::String>::Type str2;
-		PsimagLite::tokenizer(str[i],str2,"?");
+		PsimagLite::split(str2, str[i], "?");
 		if (str2.size() < 3)
 			throw PsimagLite::RuntimeError("-S option malformed\n");
 		whats.push_back(LanczosPlusPlus::ProgramGlobals::operator2id(str2[0]));
@@ -122,7 +122,7 @@ void mainLoop3(const ModelType& model,
 
 	if (lanczosOptions.extendedStatic != "") {
 		PsimagLite::Vector<PsimagLite::String>::Type str;
-		PsimagLite::tokenizer(lanczosOptions.extendedStatic,str,",");
+		PsimagLite::split(str, lanczosOptions.extendedStatic, ",");
 		for (SizeType i = 0; i < str.size(); ++i)
 			extendedStatic(str[i],engine);
 	}

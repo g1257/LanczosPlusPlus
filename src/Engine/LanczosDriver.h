@@ -22,7 +22,6 @@
 #include "DefaultSymmetry.h"
 #include "ReflectionSymmetry.h"
 #include "TranslationSymmetry.h"
-#include "Tokenizer.h"
 #include "InputCheck.h"
 #include "ReducedDensityMatrix.h"
 #include "LanczosOptions.h"

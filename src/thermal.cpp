@@ -1,6 +1,6 @@
 #include "OneSector.h"
 #include "IoSimple.h"
-#include "Tokenizer.h"
+#include "PsimagLite.h"
 
 typedef double RealType;
 typedef PsimagLite::IoSimple::In InputType;
@@ -261,7 +261,7 @@ int main(int argc, char**argv)
 			beta = atof(optarg);
 			break;
 		case 's':
-			PsimagLite::tokenizer(optarg,tokens,",");
+			PsimagLite::split(tokens, optarg, ",");
 			break;
 		case 'm':
 			mu = atof(optarg);

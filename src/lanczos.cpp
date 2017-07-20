@@ -23,7 +23,7 @@ void fillOrbsOrSpin(PsimagLite::Vector<LanczosPlusPlus::LanczosOptions::PairSize
 {
 	for (SizeType i=0;i<strV.size();i++) {
 		PsimagLite::Vector<PsimagLite::String>::Type strV2;
-		PsimagLite::tokenizer(strV[i],strV2,",");
+		PsimagLite::split(strV2, strV[i], ",");
 		if (strV2.size()!=2)
 			throw std::runtime_error("-o needs pairs\n");
 		LanczosPlusPlus::LanczosOptions::PairSizeType spins;
@@ -133,7 +133,7 @@ int main(int argc,char **argv)
 			break;
 		case 's':
 			lanczosOptions.spins.clear();
-			PsimagLite::tokenizer(optarg,str,";");
+			PsimagLite::split(str, optarg, ";");
 			fillOrbsOrSpin(lanczosOptions.spins,str);
 			str.clear();
 			break;
@@ -181,7 +181,7 @@ int main(int argc,char **argv)
 	PsimagLite::String solverOptions;
 	io.readline(solverOptions,"SolverOptions=");
 	PsimagLite::Vector<PsimagLite::String>::Type tokens;
-	PsimagLite::tokenizer(solverOptions,tokens,",");
+	PsimagLite::split(tokens, solverOptions, ",");
 	for (SizeType i = 0; i < tokens.size(); ++i) {
 		if (tokens[i] == "useComplex") {
 			isComplex = true;

@@ -110,6 +110,8 @@ struct ProgramGlobals {
 		  OPERATOR_SPLUS,
 		  OPERATOR_SMINUS};
 
+	enum ConnectionEnum { NONE };
+
 	static bool needsNewBasis(SizeType what)
 	{
 		if (what==OPERATOR_C || what==OPERATOR_CDAGGER) return true;

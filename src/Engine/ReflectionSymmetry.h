@@ -123,7 +123,7 @@ public:
 
 		if (matrixStored_.size() == 0) return;
 
-		int nrows = matrixStored_[0].row();
+		int nrows = matrixStored_[0].rows();
 		if (printMatrix_) {
 			if (nrows > 40)
 				throw PsimagLite::RuntimeError("printMatrix too big\n");
@@ -139,7 +139,7 @@ public:
 		SparseMatrixType rT;
 		transposeConjugate(rT,transform_);
 
-		if (matrix.row()<40) printFullMatrix(matrix,"originalHam");
+		if (matrix.rows()<40) printFullMatrix(matrix,"originalHam");
 		SparseMatrixType tmp;
 		multiply(tmp,matrix,rT);
 
@@ -152,7 +152,7 @@ public:
 
 	void transformGs(VectorType& gs,SizeType offset)
 	{
-		VectorType gstmp(transform_.row(),0);
+		VectorType gstmp(transform_.rows(),0);
 
 		for (SizeType i=0;i<gs.size();i++) {
 			assert(i+offset<gstmp.size());
@@ -161,7 +161,7 @@ public:
 		SparseMatrixType rT;
 		transposeConjugate(rT,transform_);
 		gs.clear();
-		gs.resize(transform_.row());
+		gs.resize(transform_.rows());
 		multiply(gs,rT,gstmp);
 	}
 
@@ -173,7 +173,7 @@ public:
 
 	void fullDiag(VectorRealType& eigs,MatrixType& fm) const
 	{
-		if (matrixStored_[pointer_].row() > 1000)
+		if (matrixStored_[pointer_].rows() > 1000)
 			throw PsimagLite::RuntimeError("fullDiag too big\n");
 
 		fm = matrixStored_[pointer_].toDense();
@@ -205,7 +205,7 @@ private:
 	{
 		PsimagLite::Vector<ItemType>::Type buffer;
 		makeUnique(buffer,buffer2);
-		assert(buffer.size()==transform_.row());
+		assert(buffer.size()==transform_.rows());
 		SizeType counter = 0;
 		RealType oneOverSqrt2 = 1.0/sqrt(2.0);
 		RealType sign = 1.0;
@@ -240,7 +240,7 @@ private:
 			transform_.pushValue(-oneOverSqrt2*sign);
 			counter++;
 		}
-		transform_.setRow(transform_.row(),counter);
+		transform_.setRow(transform_.rows(),counter);
 		transform_.checkValidity();
 	}
 
@@ -311,7 +311,7 @@ private:
 		}
 		matrixA.setRow(plusSector_,counter);
 
-		SizeType rank = matrix.row();
+		SizeType rank = matrix.rows();
 		SizeType minusSector=rank-plusSector_;
 		matrixB.resize(minusSector,minusSector);
 		counter=0;

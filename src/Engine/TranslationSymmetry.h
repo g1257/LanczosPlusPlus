@@ -230,7 +230,7 @@ public:
 		transformMatrix(matrixStored_,matrix2);
 
 		if (matrixStored_.size() == 0) return;
-		int nrows = matrixStored_[0].row();
+		int nrows = matrixStored_[0].rows();
 		if (printMatrix_) {
 			if (nrows > 40)
 				throw PsimagLite::RuntimeError("printMatrix too big\n");
@@ -252,14 +252,14 @@ public:
 		SparseMatrixType rT;
 		transposeConjugate(rT,transform_);
 
-		if (matrix.row()<40) printFullMatrix(matrix,"originalHam");
+		if (matrix.rows()<40) printFullMatrix(matrix,"originalHam");
 		SparseMatrixType tmp;
 		multiply(tmp,matrix,rT);
 
 		SparseMatrixType matrix2;
 		multiply(matrix2,transform_,tmp);
 
-		if (matrix2.row()<40)
+		if (matrix2.rows()<40)
 			printFullMatrix(matrix2,"HamiltonianTransformed");
 		matrix1.clear();
 		split(matrix1,matrix2);
@@ -267,7 +267,7 @@ public:
 
 	void transformGs(VectorType& gs,SizeType offset)
 	{
-		VectorType gstmp(transform_.row(),0);
+		VectorType gstmp(transform_.rows(),0);
 
 		for (SizeType i=0;i<gs.size();i++) {
 			assert(i+offset<gstmp.size());
@@ -276,7 +276,7 @@ public:
 		SparseMatrixType rT;
 		transposeConjugate(rT,transform_);
 		gs.clear();
-		gs.resize(transform_.row());
+		gs.resize(transform_.rows());
 		multiply(gs,rT,gstmp);
 	}
 
@@ -288,7 +288,7 @@ public:
 
 	void fullDiag(VectorRealType& eigs,MatrixType& fm) const
 	{
-		if (matrixStored_[pointer_].row() > 1000)
+		if (matrixStored_[pointer_].rows() > 1000)
 			throw PsimagLite::RuntimeError("fullDiag too big\n");
 
 		fm = matrixStored_[pointer_].toDense();
@@ -322,9 +322,9 @@ private:
 			}
 		}
 
-		transform_.setRow(transform_.row(),counter);
+		transform_.setRow(transform_.rows(),counter);
 		transform_.checkValidity();
-		if (transform_.row()<40)
+		if (transform_.rows()<40)
 			printFullMatrix(transform_,"transform");
 	}
 

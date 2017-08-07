@@ -219,9 +219,9 @@ private:
 
 	void truncateMatrix(SparseMatrixType& matrix,const VectorSizeType& targets) const
 	{
-		assert(matrix.row() > targets.size());
-		SizeType nFull = matrix.row();
-		SizeType nTrunc = matrix.row() - targets.size();
+		assert(matrix.rows() > targets.size());
+		SizeType nFull = matrix.rows();
+		SizeType nTrunc = matrix.rows() - targets.size();
 		SparseMatrixType matrix2(nTrunc,nTrunc);
 
 		VectorSizeType remap(nFull,0);

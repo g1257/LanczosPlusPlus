@@ -52,7 +52,7 @@ public:
 	void init(const SomeModelType& model,const BasisType& basis)
 	{
 		model.setupHamiltonian(matrixStored_,basis);
-		int nrows = matrixStored_.row();
+		int nrows = matrixStored_.rows();
 		if (printMatrix_ && nrows > 512)
 				throw PsimagLite::RuntimeError("printMatrix: too big\n");
 
@@ -77,7 +77,7 @@ public:
 
 	void fullDiag(VectorRealType& eigs,MatrixType& fm) const
 	{
-		if (matrixStored_.row() > 4900)
+		if (matrixStored_.rows() > 4900)
 			throw PsimagLite::RuntimeError("fullDiag too big\n");
 
 		fm = matrixStored_.toDense();

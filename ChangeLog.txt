@@ -1,3 +1,9 @@
+2017-08-07 Version 1.46
+
+* FeAs now has new mode with 6 U values
+
+* changes due to PsimagLite changes
+
 2017-06-15 Version 1.44
 
 * configure.pl: newMake

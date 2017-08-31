@@ -62,8 +62,8 @@ sub createInput
 
 	my $hubbardU = createVector($total,1);
 	my $potentialV = createVector($total,0);
-	open(FOUT,">$inputFile") or die "$0: Cannot write to $output: $!\n";
-	open(FILE,"$templateInput") or die "$0: Cannot open $templateInput: $!\n";
+	open(FOUT, ">", "$inputFile") or die "$0: Cannot write to $output: $!\n";
+	open(FILE, "<", "$templateInput") or die "$0: Cannot open $templateInput: $!\n";
 
 	while(<FILE>) {
 		next if (/^#/);
@@ -107,7 +107,7 @@ sub readLabel
 {
 	my ($file,$label)=@_;
 	my $ret;
-	open(FILE,$file) or die "Cannot open $file: $!\n";
+	open(FILE, "<", $file) or die "Cannot open $file: $!\n";
 	while(<FILE>) {
 		chomp;
 		if (/^$label(.*$)/) {

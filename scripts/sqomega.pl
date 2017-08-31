@@ -64,7 +64,7 @@ for (my $wi =0; $wi < $omegasTotal; ++$wi) {
 sub readData
 {
 	my ($a,$file) = @_;
-	open(FILE,"$file") or die "$0: Cannot open $file\n";
+	open(FILE, "<", "$file") or die "$0: Cannot open $file\n";
 	my $value;
 	my $counter = 0;
 	while(<FILE>) {
@@ -87,8 +87,8 @@ sub createInput
 	my $site1 = $centralSite;
 	my $site2 = $ind;
 
-	open(FILE,$template) or die "$0: Cannot open $template : $!\n";
-	open(FOUT,">$input") or die "$0: Cannot write to $input : $!\n";
+	open(FILE, "<", $template) or die "$0: Cannot open $template : $!\n";
+	open(FOUT, ">", "$input") or die "$0: Cannot write to $input : $!\n";
 	while(<FILE>) {
 		next if (/^#/);
 		if (/\$([a-zA-Z0-9\[\]]+)/) {
@@ -112,7 +112,7 @@ sub createInput
 sub readLabel
 {
 	my ($file, $label)=@_;
-	open(FILE,"$file") or die "$0: Cannot open $file\n";
+	open(FILE, "<", "$file") or die "$0: Cannot open $file\n";
 	my $value;
 	while(<FILE>) {
 		chomp;

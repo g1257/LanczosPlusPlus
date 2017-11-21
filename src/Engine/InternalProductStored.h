@@ -97,6 +97,7 @@ public:
 	typedef typename GeometryType::ComplexOrRealType ComplexOrRealType;
 	typedef PsimagLite::Matrix<ComplexOrRealType> MatrixType;
 	typedef typename PsimagLite::Vector<RealType>::Type VectorRealType;
+	typedef typename PsimagLite::Vector<ComplexOrRealType>::Type VectorType;
 
 	InternalProductStored(const ModelType& model,
 	                      const BasisType& basis,
@@ -115,8 +116,7 @@ public:
 
 	SizeType rows() const { return rs_.rows(); }
 
-	template<typename SomeVectorType>
-	void matrixVectorProduct(SomeVectorType &x, SomeVectorType const &y) const
+	void matrixVectorProduct(VectorType &x, const VectorType& y) const
 	{
 		rs_.matrixVectorProduct(x,y);
 	}

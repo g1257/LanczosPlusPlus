@@ -96,26 +96,22 @@ public:
 	typedef typename GeometryType::ComplexOrRealType ComplexOrRealType;
 	typedef PsimagLite::Matrix<ComplexOrRealType> MatrixType;
 	typedef typename PsimagLite::Vector<RealType>::Type VectorRealType;
+	typedef typename PsimagLite::Vector<ComplexOrRealType>::Type VectorType;
 
 	InternalProductOnTheFly(const ModelType& model,
 	                        const BasisType& basis,
 	                        SpecialSymmetryType&)
 	    : model_(model),basis_(&basis)
-	{
-		//model.setupHamiltonian(matrixStored_,b1,b2);
-	}
+	{}
 
 	InternalProductOnTheFly(const ModelType& model,
 	                        SpecialSymmetryType&)
 	    : model_(model),basis_(0)
-	{
-		//model.setupHamiltonian(matrixStored_);
-	}
+	{}
 
 	SizeType rows() const { return model_.size(); }
 
-	template<typename SomeVectorType>
-	void matrixVectorProduct(SomeVectorType &x,SomeVectorType const &y) const
+	void matrixVectorProduct(VectorType &x, const VectorType& y) const
 	{
 		if (basis_==0) {
 			model_.matrixVectorProduct(x,y);
@@ -126,7 +122,8 @@ public:
 
 	SizeType reflectionSector() const { return 0; }
 
-	void specialSymmetrySector(SizeType p) {  }
+	void specialSymmetrySector(SizeType) { }
+
 	void fullDiag(VectorRealType&,
 	              MatrixType&)
 	{

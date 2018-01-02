@@ -157,6 +157,8 @@ This needs to be in PsimagLite.
 \section{Model Input}
 
 The Model parameters vary from model to model.
+\subsection{Operator Ids in Lanczos++}
+\ptexPaste{OperatorIds}
 
 \chapter{Output}
 

@@ -119,6 +119,11 @@ struct ProgramGlobals {
 		return false;
 	}
 
+	/* PSIDOC OperatorIds
+	  These are \verb!c! \verb!cdagger! \verb!sz!
+	  \verb!nil! \verb!n! \verb!splus! and \verb!sminus!
+	  They are case sensitive and model depedent.
+	 */
 	static SizeType operator2id(const PsimagLite::String& s)
 	{
 		if (s=="c") {

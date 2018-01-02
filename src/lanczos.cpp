@@ -109,9 +109,16 @@ int main(int argc,char **argv)
 
 	/* PSIDOC LanczosDriver
 	\begin{itemize}
-	\item[-g label] Computes the spectral function (continued fraction) for label.
-	\item[-c label] Computes the two-point correlation for label.
 	\item[-f file] Input file to use. DMRG++ inputs can be used.
+	\item[-c label] Computes the two-point correlation for label.
+	\item[-S string] Computes many-point static correlations.
+	string = opsec0;opesec1;... is a semicolon-separated list of operator specifications.
+	An opsec ( equal to id?site?spin?orb ) is a question-mark separated list of
+	operator properties.
+	Id is the id of the operator; see operator ids in Lanczos++ below in this manual;
+	site, spin, and orbital are 0-based specifications with their respective meanings.
+	Orbital is optional, so that opsec = id?site?spin is also valid.
+	\item[-g label] Computes the spectral function (continued fraction) for label.
 	\item[-s ``s1,s2''] computes correlations or spectral functions for spin s1,s2.
 	Only s1==s2 is supported for now.
 	\item[-r siteForSplit] Calculates the reduced density matrix with a lattice

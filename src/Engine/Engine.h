@@ -546,10 +546,7 @@ private:
 		RealType diagonalFactor = (isDiagonal) ? 1 : 0.5;
 		s2 *= diagonalFactor;
 
-		const MatrixRealType& reortho = lanczosSolver.reorthogonalizationMatrix();
-
-		cf.set(ab,reortho,gsEnergy_,PsimagLite::real(weight*s2),s);
-
+		cf.set(ab, gsEnergy_, PsimagLite::real(weight*s2), s);
 	}
 
 	const ModelType& model_;

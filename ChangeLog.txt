@@ -1,3 +1,9 @@
+2018-01-25 Version 1.52
+
+* option -S for many-point statics now documented
+
+* Lanczos reortho
+
 2017-11-09 Version 1.50
 
 * perl: open with 3 args

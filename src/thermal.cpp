@@ -88,7 +88,7 @@ void findOperatorAndMatrix(MatrixType& a,
 	if (jndVector.size() == 0) return;
 	jnd = findJnd(sectors,jndVector);
 
-	io.readMatrix(a,"#Matrix");
+	io.read(a, "#Matrix");
 }
 
 RealType computePartialZ(SizeType ind,

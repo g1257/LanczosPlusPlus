@@ -143,7 +143,7 @@ namespace LanczosPlusPlus {
 				}
 
 				try {
-					io.readMatrix(spinOrbit,"SpinOrbit");
+					io.read(spinOrbit, "SpinOrbit");
 				} catch (std::exception&) {}
 
 				std::cout<<"U[0]="<<hubbardU[0]<<" =U\n";

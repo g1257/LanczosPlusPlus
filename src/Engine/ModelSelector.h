@@ -53,7 +53,7 @@ public:
 
 		PsimagLite::Matrix<ComplexOrRealType> spinOrbit;
 		try {
-			io.readMatrix(spinOrbit,"SpinOrbit");
+			io.read(spinOrbit, "SpinOrbit");
 		} catch (std::exception&) {}
 
 		PsimagLite::String model("");

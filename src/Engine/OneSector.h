@@ -17,9 +17,9 @@ public:
 
 	OneSector(InputType& io)
 	{
-		io.read(sector_,"#SectorSource");
-		io.read(eigs_,"#Eigenvalues");
-		io.readMatrix(vecs_,"#Eigenvectors");
+		io.read(sector_, "#SectorSource");
+		io.read(eigs_, "#Eigenvalues");
+		io.read(vecs_, "#Eigenvectors");
 	}
 
 	bool isSector(const VectorSizeType& jndVector) const

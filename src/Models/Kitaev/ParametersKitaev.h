@@ -1,8 +1,8 @@
 /*
-Copyright (c) 2009-2015, UT-Battelle, LLC
+Copyright (c) 2009-2015-2018, UT-Battelle, LLC
 All rights reserved
 
-[Lanczos++, Version 3.0]
+[Lanczos++, Version 1.]
 [by G.A., Oak Ridge National Laboratory]
 
 UT Battelle Open Source Software License 11242008
@@ -72,51 +72,41 @@ DISCLOSED WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
 /** \ingroup LanczosPlusPlus */
 /*@{*/
 
-/*! \file ParametersHeisenberg.h
+/*! \file ParametersKitaev.h
  *
- *  Contains the parameters for the Tj1Orb model
+ *  Contains the parameters for the Kitaev model
  *
  */
-#ifndef LANCZOS_PARAMS_HEISENBERG_H
-#define LANCZOS_PARAMS_HEISENBERG_H
+#ifndef LANCZOS_PARAMS_KITAEV_H
+#define LANCZOS_PARAMS_KITAEV_H
 #include "Vector.h"
 #include <stdexcept>
 
 namespace LanczosPlusPlus {
-//! Heisenberg Model Parameters
+//! Kitaev Model Parameters
 template<typename RealType,typename InputType>
-struct ParametersHeisenberg {
+struct ParametersKitaev {
 
 	typedef typename PsimagLite::Vector<RealType>::Type VectorRealType;
 
-	ParametersHeisenberg(InputType& io)
+	ParametersKitaev(InputType& io)
 	{
-		io.readline(twiceTheSpin,"HeisenbergTwiceS=");
-
 		try {
 			io.read(magneticField,"MagneticField");
-		} catch (std::exception&) {}
-
-		try {
-			io.read(anisotropy,"AnisotropyD");
 		} catch (std::exception&) {}
 	}
 
 	// Do not include here connection parameters
 	// those are handled by the Geometry
-	SizeType twiceTheSpin;
 	VectorRealType magneticField;
-	VectorRealType anisotropy;
 };
 
 //! Function that prints model parameters to stream os
 template<typename RealType,typename InputType>
 std::ostream& operator<<(std::ostream &os,
-                         const ParametersHeisenberg<RealType,InputType>& parameters)
+                         const ParametersKitaev<RealType,InputType>& parameters)
 {
 	os<<"MagneticField="<<parameters.magneticField<<"\n";
-	os<<"AnisotropyD="<<parameters.anisotropy<<"\n";
-	os<<"HeisenbergTwiceS="<<parameters.twiceTheSpin<<"\n";
 	return os;
 }
 } // namespace LanczosPlusPlus

@@ -1,21 +1,21 @@
 /*
 */
 
-#ifndef LANCZOS_HEISENBERG_H
-#define LANCZOS_HEISENBERG_H
+#ifndef LANCZOS_KITAEV_H
+#define LANCZOS_KITAEV_H
 
 #include "CrsMatrix.h"
 #include "BitManip.h"
 #include "TypeToString.h"
 #include "SparseRow.h"
-#include "BasisHeisenberg.h"
-#include "ParametersHeisenberg.h"
+#include "ParametersKitaev.h"
 #include "ModelBase.h"
+#include "BasisKitaev.h"
 
 namespace LanczosPlusPlus {
 
 template<typename ComplexOrRealType,typename GeometryType,typename InputType>
-class Heisenberg  : public ModelBase<ComplexOrRealType,GeometryType,InputType> {
+class Kitaev  : public ModelBase<ComplexOrRealType,GeometryType,InputType> {
 
 	typedef typename PsimagLite::Real<ComplexOrRealType>::Type RealType;
 	typedef PsimagLite::Matrix<ComplexOrRealType> MatrixType;
@@ -26,49 +26,49 @@ class Heisenberg  : public ModelBase<ComplexOrRealType,GeometryType,InputType> {
 
 public:
 
-	typedef ParametersHeisenberg<RealType,InputType> ParametersModelType;
-	typedef BasisHeisenberg<GeometryType> BasisType;
+	typedef ParametersKitaev<RealType,InputType> ParametersModelType;
+	typedef BasisKitaev<GeometryType> BasisType;
 	typedef typename BasisType::BaseType BasisBaseType;
 	typedef typename BasisType::WordType WordType;
 	typedef typename BaseType::SparseMatrixType SparseMatrixType;
 	typedef typename BaseType::VectorType VectorType;
 	typedef PsimagLite::SparseRow<SparseMatrixType> SparseRowType;
 
-	Heisenberg(SizeType szPlusConst,
-	           InputType& io,
-	           const GeometryType& geometry)
+	static const SizeType TWICE_THE_SPIN = BasisType::TWICE_THE_SPIN;
+
+	Kitaev(InputType& io,
+	       const GeometryType& geometry)
 	    : mp_(io),
 	      geometry_(geometry),
-	      basis_(geometry,mp_.twiceTheSpin,szPlusConst),
-	      jpm_(geometry_.numberOfSites(),geometry_.numberOfSites()),
+	      basis_(geometry),
+	      jxx_(geometry_.numberOfSites(),geometry_.numberOfSites()),
+	      jyy_(geometry_.numberOfSites(),geometry_.numberOfSites()),
 	      jzz_(geometry_.numberOfSites(),geometry_.numberOfSites())
 	{
 		SizeType n = geometry_.numberOfSites();
 
 		if (geometry_.terms() != 2) {
-			PsimagLite::String msg("Heisenberg: must have either 2 terms\n");
+			PsimagLite::String msg("Kitaev: must have either 2 terms\n");
 			throw PsimagLite::RuntimeError(msg);
 		}
 
-		for (SizeType i=0;i<n;i++) {
-			for (SizeType j=0;j<n;j++) {
-				jpm_(i,j) = geometry_(i,0,j,0,0);
-				jzz_(i,j) = geometry_(i,0,j,0,1);
+		for (SizeType i = 0; i < n; ++i) {
+			for (SizeType j = 0; j < n; ++j) {
+				jxx_(i,j) = geometry_(i,0,j,0,0);
+				jyy_(i,j) = geometry_(i,0,j,0,1);
+				jzz_(i,j) = geometry_(i,0,j,0,2);
 			}
 		}
 	}
 
-	~Heisenberg()
+	~Kitaev()
 	{
 		BaseType::deleteGarbage(garbage_);
 	}
 
 	SizeType size() const { return basis_.size(); }
 
-	SizeType orbitals(SizeType) const
-	{
-		return 1;
-	}
+	SizeType orbitals(SizeType) const { return 1; }
 
 	void setupHamiltonian(SparseMatrixType& matrix) const
 	{
@@ -99,7 +99,7 @@ public:
 			sparseRow.add(ispace,diag[ispace]);
 			for (SizeType i=0;i<nsite;i++) {
 				SizeType val1 = basis.getN(ket,dummy,i,dummy,orb);
-				if (val1 == mp_.twiceTheSpin) continue;
+				if (val1 == TWICE_THE_SPIN) continue;
 				val1++;
 				setSplusSminus(sparseRow,ket,i,val1,basis);
 			}
@@ -136,16 +136,13 @@ public:
 
 	const BasisType& basis() const { return basis_; }
 
-	void printBasis(std::ostream& os) const
-	{
-		os<<basis_;
-	}
+	void printBasis(std::ostream& os) const { os<<basis_; }
 
 	PsimagLite::String name() const { return __FILE__; }
 
-	BasisType* createBasis(SizeType nup, SizeType ndown) const
+	BasisType* createBasis(SizeType, SizeType) const
 	{
-		BasisType* ptr = new BasisType(geometry_,nup,ndown);
+		BasisType* ptr = new BasisType(geometry_);
 		garbage_.push_back(ptr);
 		return ptr;
 	}
@@ -155,9 +152,6 @@ public:
 	void printOperators(std::ostream& os) const
 	{
 		SizeType sites = geometry_.numberOfSites();
-		SizeType nup = basis_.szPlusConst();
-		SizeType ndown = sites - nup;
-		os<<"#SectorSource 2 "<<nup<<" "<<ndown<<"\n";
 		for (SizeType site = 0; site < sites; ++site)
 			printOperatorSz(site,os);
 	}
@@ -166,13 +160,9 @@ private:
 
 	void printOperatorSz(SizeType site, std::ostream& os) const
 	{
-		SizeType sites = geometry_.numberOfSites();
-		SizeType nup = basis_.szPlusConst();
-		SizeType ndown = sites - nup;
 		MatrixType matrix;
 		setupOperator(matrix,"sz",site);
 		os<<"#Operator_Sz_"<<"_"<<site<<"\n";
-		os<<"#SectorDest 2 "<<nup<<" "<<ndown<<"\n";
 		os<<"#Matrix\n";
 		os<<matrix;
 	}
@@ -208,7 +198,7 @@ private:
 			WordType ket = basis_(ispace,dummy);
 			// assumes OPERATOR_SZ
 			SizeType val1 = basis_.getN(ket,dummy,site,dummy,orb);
-			RealType tmp = val1 - mp_.twiceTheSpin*0.5;
+			RealType tmp = val1 - TWICE_THE_SPIN*0.5;
 
 			matrix(ispace,ispace) = tmp;
 		}
@@ -219,8 +209,8 @@ private:
 	                             SizeType what,
 	                             SizeType) const
 	{
-		if (mp_.twiceTheSpin != 1)
-			throw PsimagLite::RuntimeError("BasisHeisenberg::hasNewPartsSplusOrMinus\n");
+		if (TWICE_THE_SPIN != 1)
+			throw PsimagLite::RuntimeError("BasisKitaev::hasNewPartsSplusOrMinus\n");
 
 		newParts.first = oldParts.first;
 		bool flag = false;
@@ -235,7 +225,7 @@ private:
 
 		if (!flag) return true;
 
-		throw PsimagLite::RuntimeError("BasisHeisenberg:: S+ to all ups or S- to all downs\n");
+		throw PsimagLite::RuntimeError("BasisKitaev:: S+ to all ups or S- to all downs\n");
 	}
 
 	void calcDiagonalElements(typename PsimagLite::Vector<RealType>::Type& diag,
@@ -253,16 +243,13 @@ private:
 			for (SizeType i=0;i<nsite;i++) {
 
 				SizeType val1 = basis.getN(ket,dummy,i,dummy,orb);
-				RealType tmp1 = val1 - mp_.twiceTheSpin*0.5;
-				RealType tmp1d = tmp1*tmp1;
-
+				RealType tmp1 = val1 - TWICE_THE_SPIN*0.5;
 				if (i < mp_.magneticField.size()) s += mp_.magneticField[i]*tmp1;
-				if (i < mp_.anisotropy.size()) s += mp_.anisotropy[i]*tmp1d;
 
 				for (SizeType j=i+1;j<nsite;j++) {
 
 					SizeType val2 = basis.getN(ket,dummy,j,dummy,orb);
-					RealType tmp2 = val2 - mp_.twiceTheSpin*0.5;
+					RealType tmp2 = val2 - TWICE_THE_SPIN*0.5;
 
 					// Sz Sz term:
 					s += tmp1*tmp2*jzz_(i,j);
@@ -283,7 +270,7 @@ private:
 		SizeType nsite = geometry_.numberOfSites();
 		SizeType dummy = 0;
 		SizeType orb = 0;
-		RealType spin = mp_.twiceTheSpin*0.5;
+		RealType spin = TWICE_THE_SPIN*0.5;
 
 		for (SizeType j=0;j<nsite;j++) {
 			if (i == j) continue;
@@ -338,10 +325,11 @@ private:
 	const ParametersModelType mp_;
 	const GeometryType& geometry_;
 	BasisType basis_;
-	PsimagLite::Matrix<ComplexOrRealType> jpm_;
+	PsimagLite::Matrix<ComplexOrRealType> jxx_;
+	PsimagLite::Matrix<ComplexOrRealType> jyy_;
 	PsimagLite::Matrix<ComplexOrRealType> jzz_;
 	mutable typename PsimagLite::Vector<BasisType*>::Type garbage_;
-}; // class Heisenberg
+}; // class Kitaev
 } // namespace LanczosPlusPlus
 #endif
 

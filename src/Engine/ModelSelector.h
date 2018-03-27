@@ -10,6 +10,7 @@
 #include "../Models/FeBasedSc/BasisFeAsBasedSc.h"
 #include "../Models/FeBasedSc/BasisFeAsSpinOrbit.h"
 #include "../Models/Heisenberg/Heisenberg.h"
+#include "../Models/Kitaev/Kitaev.h"
 
 namespace LanczosPlusPlus {
 
@@ -24,6 +25,7 @@ class ModelSelector {
 	typedef FeBasedSc<ComplexOrRealType,BasisFeAsBasedScType, InputType> FeBasedScType;
 	typedef FeBasedSc<ComplexOrRealType,BasisFeAsSpinOrbitType, InputType> FeBasedScSpinOrbitType;
 	typedef Heisenberg<ComplexOrRealType,GeometryType, InputType> HeisenbergType;
+	typedef Kitaev<ComplexOrRealType,GeometryType, InputType> KitaevType;
 	typedef typename PsimagLite::Real<ComplexOrRealType>::Type RealType;
 
 public:
@@ -40,24 +42,26 @@ public:
 	ModelSelector(InputType& io, const GeometryType& geometry)
 	    : modelPtr_(0)
 	{
+		PsimagLite::String model("");
+		io.readline(model,"Model=");
+
 		SizeType nup = 0;
 		SizeType ndown = 0;
 		SizeType szPlusConst = 0;
 
-		try {
-			io.readline(nup,"TargetElectronsUp=");
-			io.readline(ndown,"TargetElectronsDown=");
-		} catch (std::exception&) {
-			io.readline(szPlusConst,"TargetSzPlusConst=");
+		if (model != "Kitaev") {
+			try {
+				io.readline(nup,"TargetElectronsUp=");
+				io.readline(ndown,"TargetElectronsDown=");
+			} catch (std::exception&) {
+				io.readline(szPlusConst,"TargetSzPlusConst=");
+			}
 		}
 
 		PsimagLite::Matrix<ComplexOrRealType> spinOrbit;
 		try {
 			io.read(spinOrbit, "SpinOrbit");
 		} catch (std::exception&) {}
-
-		PsimagLite::String model("");
-		io.readline(model,"Model=");
 
 		if (model=="TjMultiOrb") {
 			modelPtr_ = new TjMultiOrbType(nup,ndown,io,geometry);
@@ -75,6 +79,8 @@ public:
 				modelPtr_ = new FeBasedScSpinOrbitType(nup,ndown,io,geometry);
 		} else if (model=="Heisenberg") {
 			modelPtr_ = new HeisenbergType(szPlusConst,io,geometry);
+		} else if (model=="Kitaev") {
+			modelPtr_ = new KitaevType(io,geometry);
 		} else {
 			PsimagLite::String str("No known model " + model + "\n");
 			throw PsimagLite::RuntimeError(str);

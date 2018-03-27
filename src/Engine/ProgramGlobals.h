@@ -225,6 +225,18 @@ struct ProgramGlobals {
 		os<<"--------------\n";
 	}
 
+	static void printBasisBinary(std::ostream& os,
+	                             SizeType n,
+	                             SizeType h)
+	{
+		for (SizeType i = 0; i < h; ++i) {
+			binRep(os, n, i);
+			os<<"\n";
+		}
+
+		os<<"--------------\n";
+	}
+
 	template<typename VectorWordType>
 	static
 	typename PsimagLite::EnableIf<PsimagLite::IsVectorLike<VectorWordType>::True,void>::Type
@@ -239,6 +251,19 @@ struct ProgramGlobals {
 
 		os<<"\n--------------\n";
 	}
+
+	static void printBasisDecimal(std::ostream& os,
+	                              SizeType n,
+	                              SizeType h)
+	{
+		for (SizeType i = 0; i < h; ++i) {
+			os<<i<<" ";
+			if (i > 0 && i%n == 0) std::cout<<"\n";
+		}
+
+		os<<"\n--------------\n";
+	}
+
 }; // ProgramGlobals
 
 } // namespace LanczosPlusPlus

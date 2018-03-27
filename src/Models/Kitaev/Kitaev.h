@@ -21,6 +21,7 @@ class Kitaev  : public ModelBase<ComplexOrRealType,GeometryType,InputType> {
 	typedef PsimagLite::Matrix<ComplexOrRealType> MatrixType;
 	typedef std::pair<SizeType,SizeType> PairType;
 	typedef ModelBase<ComplexOrRealType,GeometryType,InputType> BaseType;
+	typedef typename PsimagLite::Vector<RealType>::Type VectorRealType;
 
 	enum {SPIN_UP = ProgramGlobals::SPIN_UP, SPIN_DOWN = ProgramGlobals::SPIN_DOWN};
 
@@ -41,21 +42,24 @@ public:
 	    : mp_(io),
 	      geometry_(geometry),
 	      basis_(geometry),
-	      jxx_(geometry_.numberOfSites(),geometry_.numberOfSites()),
-	      jyy_(geometry_.numberOfSites(),geometry_.numberOfSites()),
+	      jpp_(geometry_.numberOfSites(),geometry_.numberOfSites()),
+	      jpm_(geometry_.numberOfSites(),geometry_.numberOfSites()),
 	      jzz_(geometry_.numberOfSites(),geometry_.numberOfSites())
 	{
 		SizeType n = geometry_.numberOfSites();
 
-		if (geometry_.terms() != 2) {
-			PsimagLite::String msg("Kitaev: must have either 2 terms\n");
+		if (geometry_.terms() != 3) {
+			PsimagLite::String msg("Kitaev: must have 3 terms\n");
 			throw PsimagLite::RuntimeError(msg);
 		}
 
 		for (SizeType i = 0; i < n; ++i) {
 			for (SizeType j = 0; j < n; ++j) {
-				jxx_(i,j) = geometry_(i,0,j,0,0);
-				jyy_(i,j) = geometry_(i,0,j,0,1);
+				// FIXME: MAKE SURE THAT WHEN i==j ALL CONNECTIONS ARE ZERO HERE
+				ComplexOrRealType jxx = geometry_(i,0,j,0,0);
+				ComplexOrRealType jyy = geometry_(i,0,j,0,1);
+				jpm_(i, j) = 0.25*(jxx + jyy);
+				jpp_(i, j) = 0.25*(jxx - jyy); // = jmm_(i,j)
 				jzz_(i,j) = geometry_(i,0,j,0,2);
 			}
 		}
@@ -72,7 +76,7 @@ public:
 
 	void setupHamiltonian(SparseMatrixType& matrix) const
 	{
-		setupHamiltonian(matrix,basis_);
+		setupHamiltonian(matrix, basis_);
 	}
 
 	//! Gf. related functions below:
@@ -80,28 +84,34 @@ public:
 	                      const BasisBaseType& basis) const
 	{
 		SizeType hilbert=basis.size();
-		typename PsimagLite::Vector<RealType>::Type diag(hilbert,0.0);
-		calcDiagonalElements(diag,basis);
+		VectorRealType diag(hilbert,0.0);
+		calcDiagonalElements(diag, basis);
 
 		SizeType nsite = geometry_.numberOfSites();
 		SizeType dummy = 0;
 		SizeType orb = 0;
 
-		matrix.resize(hilbert,hilbert);
+		matrix.resize(hilbert, hilbert);
 		// Calculate off-diagonal elements AND store matrix
 		SizeType nCounter=0;
-		for (SizeType ispace=0;ispace<hilbert;ispace++) {
+		for (SizeType ispace = 0; ispace < hilbert; ++ispace) {
 			SparseRowType sparseRow;
-			matrix.setRow(ispace,nCounter);
+			matrix.setRow(ispace, nCounter);
 
-			WordType ket = basis(ispace,dummy);
+			WordType ket = basis(ispace, dummy);
 			// Save diagonal
-			sparseRow.add(ispace,diag[ispace]);
-			for (SizeType i=0;i<nsite;i++) {
-				SizeType val1 = basis.getN(ket,dummy,i,dummy,orb);
-				if (val1 == TWICE_THE_SPIN) continue;
-				val1++;
-				setSplusSminus(sparseRow,ket,i,val1,basis);
+			sparseRow.add(ispace, diag[ispace]);
+
+			// s+s-
+			for (SizeType i = 0; i < nsite; ++i) {
+				SizeType val1 = basis.getN(ket, dummy, i, dummy, orb);
+				if (val1 != TWICE_THE_SPIN) {
+					setSplusSminus(sparseRow, ket, i, val1 + 1, basis);
+					setSplusSplus(sparseRow, ket, i, val1 + 1, basis);
+				}
+
+				if (val1 != 0)
+					setSminusSminus(sparseRow, ket, i, val1 - 1, basis);
 			}
 
 			nCounter += sparseRow.finalize(matrix);
@@ -118,18 +128,19 @@ public:
 	                 SizeType spin,
 	                 SizeType orb) const
 	{
-		if (what==ProgramGlobals::OPERATOR_SZ)
-			return false;
+		throw PsimagLite::RuntimeError("Kitaev::hasNewParts() unimplemented yet\n");
+		//		if (what==ProgramGlobals::OPERATOR_SZ)
+		//			return false;
 
-		if (what == ProgramGlobals::OPERATOR_SPLUS ||
-		        what == ProgramGlobals::OPERATOR_SMINUS)
-			return hasNewPartsSplusOrMinus(newParts,oldParts,what,spin);
+		//		if (what == ProgramGlobals::OPERATOR_SPLUS ||
+		//		        what == ProgramGlobals::OPERATOR_SMINUS)
+		//			return hasNewPartsSplusOrMinus(newParts,oldParts,what,spin);
 
 		PsimagLite::String str(__FILE__);
 		str += " " + ttos(__LINE__) +  "\n";
 		str += PsimagLite::String("hasNewParts: unsupported operator ");
 		str += ProgramGlobals::id2Operator(what) + "\n";
-		throw std::runtime_error(str.c_str());
+		throw PsimagLite::RuntimeError(str.c_str());
 	}
 
 	const GeometryType& geometry() const { return geometry_; }
@@ -228,7 +239,7 @@ private:
 		throw PsimagLite::RuntimeError("BasisKitaev:: S+ to all ups or S- to all downs\n");
 	}
 
-	void calcDiagonalElements(typename PsimagLite::Vector<RealType>::Type& diag,
+	void calcDiagonalElements(VectorRealType& diag,
 	                          const BasisBaseType& basis) const
 	{
 		SizeType hilbert=basis.size();
@@ -237,18 +248,16 @@ private:
 		SizeType dummy = 0;
 
 		// Calculate diagonal elements
-		for (SizeType ispace=0;ispace<hilbert;ispace++) {
-			WordType ket = basis(ispace,dummy);
-			ComplexOrRealType s=0;
-			for (SizeType i=0;i<nsite;i++) {
-
+		for (SizeType ispace = 0; ispace < hilbert; ++ispace) {
+			WordType ket = basis(ispace, dummy);
+			ComplexOrRealType s = 0;
+			for (SizeType i = 0; i < nsite; ++i) {
 				SizeType val1 = basis.getN(ket,dummy,i,dummy,orb);
 				RealType tmp1 = val1 - TWICE_THE_SPIN*0.5;
 				if (i < mp_.magneticField.size()) s += mp_.magneticField[i]*tmp1;
 
-				for (SizeType j=i+1;j<nsite;j++) {
-
-					SizeType val2 = basis.getN(ket,dummy,j,dummy,orb);
+				for (SizeType j = i + 1; j < nsite; ++j) {
+					SizeType val2 = basis.getN(ket, dummy, j, dummy, orb);
 					RealType tmp2 = val2 - TWICE_THE_SPIN*0.5;
 
 					// Sz Sz term:
@@ -265,21 +274,21 @@ private:
 	                    const WordType& ket,
 	                    SizeType i,
 	                    SizeType val1,
-	                    const BasisBaseType &basis) const
+	                    const BasisBaseType& basis) const
 	{
 		SizeType nsite = geometry_.numberOfSites();
 		SizeType dummy = 0;
 		SizeType orb = 0;
 		RealType spin = TWICE_THE_SPIN*0.5;
 
-		for (SizeType j=0;j<nsite;j++) {
+		for (SizeType j = 0; j < nsite; ++j) {
 			if (i == j) continue;
 			if (jpm_(i,j) == 0.0) continue;
 
-			SizeType val2 = basis.getN(ket,dummy,j,dummy,orb);
+			SizeType val2 = basis.getN(ket, dummy, j, dummy, orb);
 			if (val2 == 0) continue;
 			RealType m2 = val2 - spin;
-			val2--;
+			--val2;
 			RealType m1 = val2 - spin;
 			WordType bra;
 
@@ -287,8 +296,47 @@ private:
 			SizeType temp = basis.perfectIndex(bra,dummy);
 			RealType tmp = sqrt(spin*(spin+1.0) - m1*(m1+1.0));
 			tmp *= sqrt(spin*(spin+1.0) - m2*(m2-1.0));
-			sparseRow.add(temp,0.5*tmp*jpm_(i,j));
+			sparseRow.add(temp,tmp*jpm_(i,j));
 		}
+	}
+
+	void setSplusSplus(SparseRowType &sparseRow,
+	                   const WordType& ket,
+	                   SizeType i,
+	                   SizeType val1,
+	                   const BasisBaseType& basis) const
+	{
+		SizeType nsite = geometry_.numberOfSites();
+		SizeType dummy = 0;
+		SizeType orb = 0;
+		if (TWICE_THE_SPIN != 1)
+			err("Kitaev only for spin=1/2 for now (sorry)\n");
+
+		for (SizeType j = 0; j < nsite; ++j) {
+			if (i == j) continue;
+			if (jpp_(i, j) == 0.0) continue;
+
+			SizeType val2 = basis.getN(ket, dummy, j, dummy, orb);
+
+			if (val2 == TWICE_THE_SPIN) continue;
+
+			WordType bra;
+			basis.getBra(bra, ket, i, val1, j, val2 + 1);
+			SizeType temp = basis.perfectIndex(bra, dummy);
+			RealType tmp = 1.0; // FIXME: CORRECT FOR Kitaev with spin != 1/2
+			sparseRow.add(temp, tmp*jpp_(i, j));
+		}
+	}
+
+	void setSminusSminus(SparseRowType &sparseRow,
+	                    const WordType& ket,
+	                    SizeType i,
+	                    SizeType val1,
+	                    const BasisBaseType& basis) const
+	{
+		if (TWICE_THE_SPIN != 1)
+			err("Kitaev only for spin=1/2 for now (sorry)\n");
+		setSplusSminus(sparseRow, ket, i, val1, basis);
 	}
 
 	RealType signSplusSminus(SizeType i,
@@ -325,8 +373,8 @@ private:
 	const ParametersModelType mp_;
 	const GeometryType& geometry_;
 	BasisType basis_;
-	PsimagLite::Matrix<ComplexOrRealType> jxx_;
-	PsimagLite::Matrix<ComplexOrRealType> jyy_;
+	PsimagLite::Matrix<ComplexOrRealType> jpp_;
+	PsimagLite::Matrix<ComplexOrRealType> jpm_;
 	PsimagLite::Matrix<ComplexOrRealType> jzz_;
 	mutable typename PsimagLite::Vector<BasisType*>::Type garbage_;
 }; // class Kitaev

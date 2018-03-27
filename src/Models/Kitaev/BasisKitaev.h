@@ -126,15 +126,17 @@ public:
 	                        SizeType spin,
 	                        SizeType orb) const
 	{
+		throw PsimagLite::RuntimeError("BasisKitaev::getBraIndex() unimplemented yet\n");
+
 		if (TWICE_THE_SPIN != 1)
 			throw PsimagLite::RuntimeError("BasisKitaev::getBraIndex_ \n");
 
-		if (operatorLabel == ProgramGlobals::OPERATOR_SPLUS ||
-		        operatorLabel == ProgramGlobals::OPERATOR_SMINUS) {
-			return getBraIndexSplusSminus(ket1,ket2,operatorLabel,site,spin,orb);
-		}
+//		if (operatorLabel == ProgramGlobals::OPERATOR_SPLUS ||
+//		        operatorLabel == ProgramGlobals::OPERATOR_SMINUS) {
+//			return getBraIndexSplusSminus(ket1,ket2,operatorLabel,site,spin,orb);
+//		}
 
-		return getBraIndex_(ket1,ket2,operatorLabel,site,spin,orb);
+//		return getBraIndex_(ket1,ket2,operatorLabel,site,spin,orb);
 	}
 
 	SizeType orbsPerSite(SizeType) const { return 1; }

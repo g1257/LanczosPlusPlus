@@ -1,3 +1,9 @@
+2018-04-06 Version 1.54
+
+* i/o API: readMatrix is now read
+
+* Kitaev model implemented
+
 2018-01-25 Version 1.52
 
 * option -S for many-point statics now documented

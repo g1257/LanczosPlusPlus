@@ -1,5 +1,5 @@
 #include "OneSector.h"
-#include "IoSimple.h"
+#include "Io/IoSimple.h"
 #include "PsimagLite.h"
 
 typedef double RealType;

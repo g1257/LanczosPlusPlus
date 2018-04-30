@@ -81,7 +81,6 @@ DISCLOSED WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
 #define LANCZOS_PARAMS_HUBBARD_H
 #include "Vector.h"
 #include <stdexcept>
-#include "IoSimple.h"
 
 namespace LanczosPlusPlus {
 //! Hubbard Model Parameters

@@ -94,7 +94,7 @@ void mainLoop3(const ModelType& model,
 		for (SizeType i = 0; i < vstr.size(); ++i)
 			ioOut<<vstr[i]<<" ";
 		ioOut<<"\n";
-		cfCollection.save(ioOut);
+		cfCollection.write(ioOut);
 	}
 
 	for (SizeType cicji=0;cicji<lanczosOptions.cicj.size();cicji++) {

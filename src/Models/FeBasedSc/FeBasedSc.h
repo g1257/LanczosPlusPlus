@@ -230,9 +230,12 @@ public:
 		// Calculate off-diagonal elements AND store matrix
 		typedef MatrixVectorHelper HelperType;
 		typedef PsimagLite::Parallelizer<HelperType> ParallelizerType;
-		ParallelizerType threadObject(PsimagLite::Concurrency::npthreads,
-		                              PsimagLite::MPI::COMM_WORLD);
-		HelperType helper(PsimagLite::Concurrency::npthreads,x,y,basis,*this);
+		ParallelizerType threadObject(PsimagLite::Concurrency::codeSectionParams);
+		HelperType helper(PsimagLite::Concurrency::codeSectionParams.npthreads,
+		                  x,
+		                  y,
+		                  basis,
+		                  *this);
 
 		std::cout<<"Using "<<threadObject.name();
 		std::cout<<" with "<<threadObject.threads()<<" threads.\n";

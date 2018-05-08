@@ -1,3 +1,9 @@
+2018-05-08 Version 1.56
+
+* changes due to PsimagLite's IoSimple changes
+
+* changes due to PsimagLite's Parallelizer changes
+
 2018-04-06 Version 1.54
 
 * i/o API: readMatrix is now read

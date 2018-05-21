@@ -1,3 +1,7 @@
+2018-05-21 Version 1.58
+
+* clean up and changes due to i/o API
+
 2018-05-08 Version 1.56
 
 * changes due to PsimagLite's IoSimple changes

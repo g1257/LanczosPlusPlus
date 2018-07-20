@@ -195,11 +195,7 @@ namespace LanczosPlusPlus {
 		void doCombinatorial()
 		{
 			/* look-up table for binomial coefficients */
-			comb_.reset(2*nsite_,2*nsite_);
-
-			for (SizeType n=0;n<comb_.n_row();n++)
-				for (SizeType i=0;i<comb_.n_col();i++)
-					comb_(n,i)=0;
+			comb_.resize(2*nsite_, 2*nsite_, 0);
 
 			for (SizeType n=0;n<comb_.n_row();n++) {
 				SizeType m = 0;

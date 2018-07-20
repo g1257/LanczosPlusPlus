@@ -252,7 +252,7 @@ private:
 		SizeType minuses=0;
 		for (SizeType i=0;i<src.size();i++) {
 			ItemType item = src[i];
-			int x =  PsimagLite::isInVector(dest,item);
+			int x =  PsimagLite::indexOrMinusOne(dest,item);
 			if (x>=0) continue;
 			if (item.type==ItemType::DIAGONAL) zeros++;
 			if (item.type==ItemType::PLUS) pluses++;

@@ -1,3 +1,8 @@
+2018-07-24 Version 1.60
+
+* Changes due to PsimagLite changes
+to Matrix reset and to indexOrMinusOne
+
 2018-05-21 Version 1.58
 
 * clean up and changes due to i/o API

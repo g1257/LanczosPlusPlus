@@ -19,17 +19,30 @@ Please see full open source license included in file LICENSE.
 use warnings;
 use strict;
 
+use Getopt::Long qw(:config no_ignore_case);
 use lib "../../PsimagLite/scripts";
-use Make;
+use NewMake;
+use lib ".";
+use PsiTag;
 
-my ($arg) = @ARGV;
+my ($flavor, $lto) = (NewMake::noFlavor() , 0);
+my $usage = "USAGE: $0 [-f flavor] [-lto] [-c config]\n";
+my $config;
 
-if (defined($arg) and -r "$arg" and $arg ne "Config.make") {
-	my $cmd = "cp Config.make Config.make.bak";
-	system($cmd);
-	$cmd = "cp $arg Config.make";
-	system($cmd);
+GetOptions('f=s' => \$flavor,
+           'lto' => \$lto,
+           'c=s' => \$config) or die "$usage\n";
+
+my $gccdash = "";
+if ($lto == 1) {
+	$gccdash = "gcc-";
+	$lto = "-flto";
+} else {
+	$lto = "";
 }
+
+my @configFiles = ("../TestSuite/inputs/ConfigBase.psiTag");
+push @configFiles, $config if (defined($config));
 
 my %thermalD = (name => "thermal", dotos => "thermal.o");
 my %lorentzianD = (name => "lorentzian", dotos => "lorentzian.o");
@@ -53,21 +66,26 @@ my @drivers = (\%thermalD,
 	\%ld5,
 	\%lanczosD);
 
-createMakefile();
+my %args;
+$args{"CPPFLAGS"} = $lto;
+$args{"LDFLAGS"} = $lto;
+$args{"flavor"} = $flavor;
+$args{"code"} = "Lanczos++";
+$args{"configFiles"} = \@configFiles;
+
+createMakefile(\@drivers, \%args);
 
 sub createMakefile
 {
-	Make::backupMakefile();
-	Make::createConfigMake();
+	my ($drivers, $args) = @_;
+	NewMake::backupMakefile();
 
 	my $fh;
 	open($fh, ">", "Makefile") or die "Cannot open Makefile for writing: $!\n";
 
-	my %args;
-	$args{"code"} = "Lanczos++";
-	Make::newMake($fh,\@drivers,\%args);
+	NewMake::main($fh, $args, \@drivers);
 
 	close($fh);
-	print STDERR "File Makefile has been written\n";
+	print STDERR "$0: File Makefile has been written\n";
 }
 

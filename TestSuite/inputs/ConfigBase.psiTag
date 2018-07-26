@@ -1,0 +1,117 @@
+# PsimagLite support is needed by DMRG++
+dependency PsimagLite = (
+LDFLAGS = -L../../PsimagLite/lib -lpsimaglite
+)
+
+# Compiler to use. If using MPI then say mpicxx here (or mpic++)
+# and also say -DUSE_MPI below
+dependency cpp = (
+CXX = g++
+# We're using ansi C++
+CPPFLAGS += -pedantic -std=c++98
+
+# Enable warnings and treat warnings as errors
+CPPFLAGS += -Wall -Werror
+)
+
+# Enable MPI (you must set the proper
+# compiler wrapper under CXX above)
+dependency MPI = (
+CPPFLAGS += -DUSE_MPI
+)
+
+# Here add your lapack and blas libraries or say NO_LAPACK
+dependency BLAS = (
+# CPPFLAGS += -DNO_LAPACK
+LDFLAGS += -lblas
+)
+
+dependency LAPACK = (
+LDFLAGS += -llapack
+)
+
+# Here add -lpthread if threading is needed and also
+# set -DUSE_PTHREADS below
+dependency Pthreads = (
+LDFLAGS += -lpthread
+
+# Enable pthreads
+CPPFLAGS += -DUSE_PTHREADS
+)
+
+# This enables additional debugging
+option additional debugging = (
+CPPFLAGS += -D_GLIBCXX_DEBUG -D_GLIBCXX_PROFILE
+)
+
+# This makes the code use long instead of short integers
+option USE_LONG = CPPFLAGS +=-DUSE_LONG
+
+# This makes the code use float instead of double
+option USE_FLOAT = CPPFLAGS += -DUSE_FLOAT
+
+# This makes the code complex instead of real
+option USE_COMPLEX = CPPFLAGS += -DUSE_COMPLEX
+
+# This enables signals
+option USE_SIGNALS = CPPFLAGS +=-DUSE_SIGNALS
+
+# This enables gsl support
+dependency GSL = (
+CPPFLAGS +=-DUSE_GSL
+LDFLAGS += -lgsl -lgslcblas
+)
+
+# This enables the custom allocator (use only for debugging)
+option USE_CUSTOM_ALLOCATOR = CPPFLAGS += -DUSE_CUSTOM_ALLOCATOR
+
+option with gdb = (
+# This enables partial debugging
+CPPFLAGS += -g3
+
+STRIP_COMMAND = true
+)
+
+option with optimization = (
+# This disables asserts
+CPPFLAGS += -DNDEBUG
+
+# Optimization level here
+CPPFLAGS += -O3
+)
+
+default flavor = production
+
+group requirements = (
+< dependency PsimagLite
+< dependency cpp
+< dependency BLAS
+< dependency LAPACK
+STRIP_COMMAND = strip
+)
+
+flavor production = (
+< group requirements
+< dependency Pthreads
+< option with optimization
+)
+
+flavor debug = (
+< group requirements
+< option with gdb
+)
+
+flavor callgrind = (
+< group requirements
+< option with optimization
+< option with gdb
+)
+
+flavor drd = (
+< group requirements
+< option with gdb
+< dependency Pthreads
+)
+
+flavor helgrind = < flavor drd
+

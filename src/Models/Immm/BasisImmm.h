@@ -21,6 +21,7 @@ Please see full open source license included in file LICENSE.
 #include "BasisOneSpinImmm.h"
 #include "../../Engine/ProgramGlobals.h"
 #include "../../Engine/BasisBase.h"
+#include "Geometry/KTwoNiFFour.h"
 
 namespace LanczosPlusPlus {
 
@@ -37,6 +38,8 @@ public:
 	typedef typename BaseType::WordType WordType;
 	typedef typename BaseType::VectorWordType VectorWordType;
 	typedef BasisOneSpinImmm BasisType;
+	typedef PsimagLite::KTwoNiFFour<typename GeometryType::ComplexOrRealType,
+	typename GeometryType::InputType> KTwoNiFFourType;
 
 	class OrbsPerSite : public PsimagLite::Vector<SizeType>::Type {
 
@@ -45,12 +48,10 @@ public:
 		OrbsPerSite(const GeometryType& geometry)
 		    : PsimagLite::Vector<SizeType>::Type(geometry.numberOfSites())
 		{
-			typename GeometryType::AdditionalDataType additional;
-			additional.type1 = 0;
-			additional.TYPE_C = 0;
 			for (SizeType i=0;i<this->size();i++) {
-				geometry.fillAdditionalData(additional,0,i,0);
-				this->operator[](i) = (additional.type1==additional.TYPE_C) ? 1 : 2;
+				typename KTwoNiFFourType::TypeEnum type1 =
+				        KTwoNiFFourType::findTypeOfSite(i).first;
+				this->operator[](i) = (type1 == KTwoNiFFourType::TYPE_C) ? 1 : 2;
 			}
 		}
 	}; // class OrbsPerSite

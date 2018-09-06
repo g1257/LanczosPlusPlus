@@ -1,60 +1,47 @@
+#
+# Format of psiTag files is described in PsimagLite/scripts/PsiTag.pm
+#
 # PsimagLite support is needed by DMRG++
 dependency PsimagLite = (
 LDFLAGS = -L../../PsimagLite/lib -lpsimaglite
 )
 
-# Compiler to use. If using MPI then say mpicxx here (or mpic++)
-# and also say -DUSE_MPI below
-dependency cpp = (
-CXX = g++
+# Compiler to use. For clang++ see commented out line.
+# Note that -mtune=native -march=native should not be
+# used if you intend your executable to run in machines
+# other than the one your are compiling on
+compilerCPP GNU = CXX = g++ -frecord-gcc-switches
+
+compilerCPP CLANG = CXX = clang++
+
+compilerCPPOptions ansi = (
+
 # We're using ansi C++
 CPPFLAGS += -pedantic -std=c++98
 
 # Enable warnings and treat warnings as errors
-CPPFLAGS += -Wall -Werror
+CPPFLAGS += -Wall -Wendif-labels
+
 )
 
-# Enable MPI (you must set the proper
-# compiler wrapper under CXX above)
-dependency MPI = (
-CPPFLAGS += -DUSE_MPI
-)
-
-# Here add your lapack and blas libraries or say NO_LAPACK
-dependency BLAS = (
-# CPPFLAGS += -DNO_LAPACK
-LDFLAGS += -lblas
-)
-
-dependency LAPACK = (
-LDFLAGS += -llapack
-)
-
-# Here add -lpthread if threading is needed and also
-# set -DUSE_PTHREADS below
-dependency Pthreads = (
-LDFLAGS += -lpthread
-
-# Enable pthreads
-CPPFLAGS += -DUSE_PTHREADS
-)
+# Treat warnings as errors
+# (hdf5 on Ubuntu does not pass this, so it's
+# commented out by default now)
+compilerCPPOptions Werror = CPPFLAGS += -Werror
 
 # This enables additional debugging
-option additional debugging = (
+compilerCPPOptions AdditonalDebugging = (
 CPPFLAGS += -D_GLIBCXX_DEBUG -D_GLIBCXX_PROFILE
 )
 
 # This makes the code use long instead of short integers
-option USE_LONG = CPPFLAGS +=-DUSE_LONG
+.= CPPFLAGS +=-DUSE_LONG
 
 # This makes the code use float instead of double
-option USE_FLOAT = CPPFLAGS += -DUSE_FLOAT
-
-# This makes the code complex instead of real
-option USE_COMPLEX = CPPFLAGS += -DUSE_COMPLEX
+.= CPPFLAGS += -DUSE_FLOAT
 
 # This enables signals
-option USE_SIGNALS = CPPFLAGS +=-DUSE_SIGNALS
+.= CPPFLAGS +=-DUSE_SIGNALS
 
 # This enables gsl support
 dependency GSL = (
@@ -72,46 +59,75 @@ CPPFLAGS += -g3
 STRIP_COMMAND = true
 )
 
-option with optimization = (
-# This disables asserts
-CPPFLAGS += -DNDEBUG
+# This disables debugging
+compilerCPPOptions NDEBUG = CPPFLAGS += -DNDEBUG
 
 # Optimization level here
+compilerCPPOptions Optimize3 = (
 CPPFLAGS += -O3
+)
+
+# This enables partial debugging (make sure to comment out previous line)
+compilerCPPOptions Symbols3 = (
+CPPFLAGS +=   -g3
+)
+
+# Here add your lapack and blas libraries or say NO_LAPACK
+dependency LAPACK = (
+# If on MacOs please say LDFLAGS += -framework Accelerate
+LDFLAGS += -llapack
+)
+
+dependency BLAS = (
+LDFLAGS += -lblas
+)
+
+dependency pthreads = (
+# Here add -lpthread if threading is needed and also 
+# set -DUSE_PTHREADS below
+LDFLAGS += -lpthread
+
+# Enable pthreads
+CPPFLAGS += -DUSE_PTHREADS
 )
 
 default flavor = production
 
-group requirements = (
+default compiler = < compilerCPP GNU
+group basics = (
 < dependency PsimagLite
-< dependency cpp
-< dependency BLAS
+< default compiler
+< compilerCPPOptions ansi
 < dependency LAPACK
+< dependency BLAS
 STRIP_COMMAND = strip
 )
 
 flavor production = (
-< group requirements
-< dependency Pthreads
-< option with optimization
+< group basics
+< dependency pthreads
+< compilerCPPOptions Optimize3
+< compilerCPPOptions NDEBUG
 )
 
 flavor debug = (
-< group requirements
-< option with gdb
+< group basics
+STRIP_COMMAND = true
+< compilerCPPOptions Symbols3
+< compilerCPPOptions Werror
 )
 
 flavor callgrind = (
-< group requirements
-< option with optimization
-< option with gdb
+< flavor debug
+< compilerCPPOptions Optimize3
+< compilerCPPOptions NDEBUG
 )
 
 flavor drd = (
-< group requirements
-< option with gdb
-< dependency Pthreads
+< flavor debug
+< dependency pthreads
 )
 
 flavor helgrind = < flavor drd
+
 

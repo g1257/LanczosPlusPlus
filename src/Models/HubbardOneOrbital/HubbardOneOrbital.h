@@ -336,6 +336,7 @@ private:
 	void calcDiagonalElements(typename PsimagLite::Vector<RealType>::Type& diag,
 	                          const BasisBaseType& basis) const
 	{
+		const RealType zeroPointFive = 0.5;
 		SizeType hilbert=basis.size();
 		SizeType nsite = geometry_.numberOfSites();
 		SizeType orb = 0;
@@ -356,7 +357,7 @@ private:
 				for (SizeType j=0;j<nsite;j++) {
 					ComplexOrRealType value = jCoupling(i,j);
 					if (PsimagLite::real(value) == 0 && PsimagLite::imag(value) == 0) continue;
-					s += value*0.5* // double counting i,j
+					s += value*zeroPointFive* // double counting i,j
 					        szTerm(ket1,ket2,i,basis)*
 					        szTerm(ket1,ket2,j,basis);
 				}
@@ -439,8 +440,9 @@ private:
 	                         SizeType i,
 	                         const BasisBaseType& basis) const
 	{
+		const RealType zeroPointFive = 0.5;
 		for (SizeType j=0;j<geometry_.numberOfSites();j++) {
-			ComplexOrRealType value = jCoupling(i,j)*0.5;
+			ComplexOrRealType value = jCoupling(i,j)*zeroPointFive;
 			if (PsimagLite::real(value) == 0 && PsimagLite::imag(value) == 0) continue;
 			value *= 0.5; // double counting i,j
 			assert(i!=j);

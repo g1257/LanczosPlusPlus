@@ -280,6 +280,7 @@ private:
 	                    SizeType val1,
 	                    const BasisBaseType &basis) const
 	{
+		const RealType zero = 0;
 		SizeType nsite = geometry_.numberOfSites();
 		SizeType dummy = 0;
 		SizeType orb = 0;
@@ -287,7 +288,7 @@ private:
 
 		for (SizeType j=0;j<nsite;j++) {
 			if (i == j) continue;
-			if (jpm_(i,j) == 0.0) continue;
+			if (jpm_(i,j) == zero) continue;
 
 			SizeType val2 = basis.getN(ket,dummy,j,dummy,orb);
 			if (val2 == 0) continue;

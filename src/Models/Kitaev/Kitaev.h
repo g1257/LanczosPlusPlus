@@ -46,6 +46,7 @@ public:
 	      jpm_(geometry_.numberOfSites(),geometry_.numberOfSites()),
 	      jzz_(geometry_.numberOfSites(),geometry_.numberOfSites())
 	{
+		const RealType zeroPointTwentyFive = 0.25;
 		SizeType n = geometry_.numberOfSites();
 
 		if (geometry_.terms() != 3) {
@@ -58,8 +59,8 @@ public:
 				// FIXME: MAKE SURE THAT WHEN i==j ALL CONNECTIONS ARE ZERO HERE
 				ComplexOrRealType jxx = geometry_(i,0,j,0,0);
 				ComplexOrRealType jyy = geometry_(i,0,j,0,1);
-				jpm_(i, j) = 0.25*(jxx + jyy);
-				jpp_(i, j) = 0.25*(jxx - jyy); // = jmm_(i,j)
+				jpm_(i, j) = zeroPointTwentyFive*(jxx + jyy);
+				jpp_(i, j) = zeroPointTwentyFive*(jxx - jyy); // = jmm_(i,j)
 				jzz_(i,j) = geometry_(i,0,j,0,2);
 			}
 		}
@@ -276,6 +277,7 @@ private:
 	                    SizeType val1,
 	                    const BasisBaseType& basis) const
 	{
+		const RealType zero = 0;
 		SizeType nsite = geometry_.numberOfSites();
 		SizeType dummy = 0;
 		SizeType orb = 0;
@@ -283,7 +285,7 @@ private:
 
 		for (SizeType j = 0; j < nsite; ++j) {
 			if (i == j) continue;
-			if (jpm_(i,j) == 0.0) continue;
+			if (jpm_(i,j) == zero) continue;
 
 			SizeType val2 = basis.getN(ket, dummy, j, dummy, orb);
 			if (val2 == 0) continue;
@@ -306,6 +308,7 @@ private:
 	                   SizeType val1,
 	                   const BasisBaseType& basis) const
 	{
+		const RealType zero = 0;
 		SizeType nsite = geometry_.numberOfSites();
 		SizeType dummy = 0;
 		SizeType orb = 0;
@@ -314,7 +317,7 @@ private:
 
 		for (SizeType j = 0; j < nsite; ++j) {
 			if (i == j) continue;
-			if (jpp_(i, j) == 0.0) continue;
+			if (jpp_(i, j) == zero) continue;
 
 			SizeType val2 = basis.getN(ket, dummy, j, dummy, orb);
 

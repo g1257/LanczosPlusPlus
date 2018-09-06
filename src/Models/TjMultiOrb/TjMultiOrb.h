@@ -587,6 +587,7 @@ private:
 	void calcDiagonalElements(typename PsimagLite::Vector<RealType>::Type& diag,
 	                          const BasisBaseType& basis) const
 	{
+		const RealType zeroPointTwentyFive = 0.25;
 		SizeType hilbert=basis.size();
 		SizeType nsite = geometry_.numberOfSites();
 
@@ -630,8 +631,9 @@ private:
 							int njdown = basis.isThereAnElectronAt(ket1,ket2,j,SPIN_DOWN,orb2);
 							int proij = (mp_.orbitals>1) ? proi*proj : 1;
 							// Sz Sz term:
+
 							s += proij * (niup-nidown) * (njup - njdown) *
-							        jzz_(i+j*nsite,orb+orb2*mp_.orbitals) * 0.25;
+							        jzz_(i+j*nsite,orb+orb2*mp_.orbitals) * zeroPointTwentyFive;
 							// ni nj term
 							s += proij * (niup+nidown) * (njup + njdown) *
 							        w_(i+j*nsite,orb+orb2*mp_.orbitals);
@@ -699,7 +701,7 @@ private:
 	                    SizeType i,
 	                    const BasisBaseType &basis) const
 	{
-
+		const RealType zeroPointFive = 0.5;
 		int nniup = 0;
 		int nnidown = 0;
 		for (SizeType orb = 0; orb < mp_.orbitals; ++orb) {
@@ -731,7 +733,7 @@ private:
 				int proj = (nnjup+nnjdown>0) ? abs(nnjup+nnjdown-1) : 0;
 
 				for (SizeType orb2 = 0; orb2 < mp_.orbitals; ++orb2) {
-					ComplexOrRealType h = jpm_(i+j*nsite,orb+orb2*mp_.orbitals)*0.5;
+					ComplexOrRealType h = jpm_(i+j*nsite,orb+orb2*mp_.orbitals)*zeroPointFive;
 					if (PsimagLite::real(h) == 0 && PsimagLite::imag(h) == 0) continue;
 					WordType s1j= (ket1 & BasisType::bitmask(j*mp_.orbitals+orb2));
 					if (s1j>0) s1j=1;

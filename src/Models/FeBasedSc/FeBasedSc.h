@@ -436,6 +436,7 @@ private:
 	                             SizeType orb1,
 	                             const BasisBaseType& basis) const
 	{
+		const RealType zero = 0;
 		if (mp_.spinOrbit.n_row()!=4) return;
 		SizeType orbitals = mp_.orbitals;
 		SizeType i1 = i*mp_.orbitals+orb1;
@@ -471,7 +472,7 @@ private:
 
 					RealType s = basis_.doSignSpinOrbit(ket1,ket2,i,spin1,orb1,spin2,orb2);
 					ComplexOrRealType cTemp = value*s;
-					if (cTemp == 0.0) continue;
+					if (cTemp == zero) continue;
 					sparseRow.add(temp,cTemp);
 				}
 			}
@@ -485,8 +486,10 @@ private:
 	                         SizeType orb,
 	                         const BasisBaseType& basis) const
 	{
+		const RealType zeroPointFive = 0.5;
+
 		for (SizeType j=0;j<geometry_.numberOfSites();j++) {
-			ComplexOrRealType value = jCoupling(i,j,TERM_J_PM)*0.5;
+			ComplexOrRealType value = jCoupling(i,j,TERM_J_PM)*zeroPointFive;
 			if (PsimagLite::real(value) == 0 && PsimagLite::imag(value) == 0) continue;
 			value *= 0.5; // double counting i,j
 			assert(i!=j);
@@ -564,6 +567,7 @@ private:
 	                      SizeType orb,
 	                      const BasisBaseType& basis) const
 	{
+		const RealType zeroPointFive = 0.5;
 		// Hubbard term U0
 		ComplexOrRealType s = mp_.hubbardU[0]*basis.isThereAnElectronAt(ket1,ket2,i,SPIN_UP,orb)
 		        * basis.isThereAnElectronAt(ket1,ket2,i,SPIN_DOWN,orb);
@@ -591,7 +595,7 @@ private:
 			for (SizeType orb2=0;orb2<mp_.orbitals;orb2++) {
 				ComplexOrRealType value = jCoupling(i,j,TERM_J_ZZ);
 				if (PsimagLite::real(value) == 0 && PsimagLite::imag(value) == 0) continue;
-				s += value*0.5* // RealType counting i,j
+				s += value*zeroPointFive* // RealType counting i,j
 				        szTerm(ket1,ket2,i,orb,basis)*
 				        szTerm(ket1,ket2,j,orb2,basis);
 			}

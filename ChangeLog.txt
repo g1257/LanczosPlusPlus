@@ -1,3 +1,9 @@
+2018-09-11 Version 1.62
+
+* configure.pl uses PsiTag
+
+* compiles with clang++
+
 2018-07-24 Version 1.60
 
 * Changes due to PsimagLite changes

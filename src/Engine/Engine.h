@@ -487,15 +487,19 @@ private:
 		gsEnergy_ = 1e10;
 		SizeType offset = model_.size();
 		SizeType currentOffset = 0;
+
 		for (SizeType i=0;i<rs.sectors();i++) {
 			hamiltonian.specialSymmetrySector(i);
-			VectorType gsVector1(hamiltonian.rows());
-			if (gsVector1.size()==0) continue;
+			SizeType n = hamiltonian.rows();
+			if (n == 0) continue;
+			VectorType initial(n);
+			PsimagLite::fillRandom(initial);
+			VectorType gsVector1(n);
 			RealType gsEnergy1 = 0;
 
 			try {
-				lanczosSolver.computeGroundState(gsEnergy1,gsVector1);
-			} catch (std::exception& e) {
+				lanczosSolver.computeOneState(gsEnergy1, gsVector1, initial, 0);
+			} catch (std::exception&) {
 
 				std::cerr<<"Engine: Lanczos Solver failed ";
 				std::cerr<<" trying exact diagonalization...\n";

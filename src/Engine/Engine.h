@@ -121,7 +121,7 @@ public:
 	template<typename ContinuedFractionCollectionType>
 	void spectralFunction(ContinuedFractionCollectionType& cfCollection,
 	                      VectorStringType& vstr,
-	                      const LabeledOperatorType& lOperator,
+	                      const LabeledOperatorType& lOperator1,
 	                      int isite,
 	                      int jsite,
 	                      const PairType& spins,
@@ -137,18 +137,20 @@ public:
 		typedef typename ContinuedFractionCollectionType::ContinuedFractionType
 		        ContinuedFractionType;
 
+		const LabeledOperatorType lOperator2 = lOperator1.transposeConjugate();
+
 		const BasisType* basisNew = 0;
 		bool isDiagonal = (isite==jsite && orbs.first==orbs.second);
 		PairType oldParts = model_.basis().parts();
-		for (SizeType type = 0; type < 4; ++type) {
+		for (SizeType type = 0; type < lOperator1.numberOfTypes(); ++type) {
 			if (isDiagonal && type > 1) continue;
 
-			LabeledOperatorType lOperator2 = lOperator.transposeConjugate();
+			const LabeledOperatorType& lOperator = (type & 1) ? lOperator1 : lOperator2;
 
-			if (lOperator2.needsNewBasis()) {
+			if (lOperator.needsNewBasis()) {
 				assert(spins.first==spins.second);
 				std::pair<SizeType,SizeType> newParts(0,0);
-				if (!model_.hasNewParts(newParts, oldParts, lOperator2, spins.first, orbs.first))
+				if (!model_.hasNewParts(newParts, oldParts, lOperator, spins.first, orbs.first))
 					continue;
 				// Create new bases
 				basisNew = model_.createBasis(newParts.first, newParts.second);
@@ -157,7 +159,7 @@ public:
 			}
 			VectorType modifVector;
 			getModifiedState(modifVector,
-			                 lOperator2,
+			                 lOperator,
 			                 gsVector_,
 			                 *basisNew,
 			                 type,
@@ -176,7 +178,7 @@ public:
 				std::cerr<<"spectralFunction: modifVector==0, type="<<type<<"\n";
 			}
 
-			calcSpectral(cf, lOperator2, modifVector, matrix, type, spins.first, isDiagonal);
+			calcSpectral(cf, lOperator, modifVector, matrix, type, spins.first, isDiagonal);
 			PsimagLite::String str = ttos(spins.first) + "," + ttos(type) + ",";
 			str += ttos(orbs.first) + "," + ttos(orbs.second);
 			vstr.push_back(str);

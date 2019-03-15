@@ -22,9 +22,9 @@ public:
 	  \verb!nil! \verb!n! \verb!splus! and \verb!sminus!
 	  They are case sensitive and model depedent.
 	 */
-	LabeledOperator(const PsimagLite::String& s) : what_(toId(s)), x_(0) {}
+	explicit LabeledOperator(const PsimagLite::String& s) : what_(toId(s)), x_(0) {}
 
-	LabeledOperator(SizeType x) : what_(Label::OPERATOR_NIL), x_(x) {}
+	explicit LabeledOperator(SizeType x) : what_(Label::OPERATOR_NIL), x_(x) {}
 
 	SizeType toUint() const
 	{
@@ -74,6 +74,12 @@ public:
 		return "UNKNOWN";
 	}
 
+	SizeType numberOfTypes() const
+	{
+		Label t = transposeConjugate();
+		return (what_ == t) ? 2 : 4;
+	}
+
 	bool needsNewBasis() const
 	{
 		if (what_ == Label::OPERATOR_C || what_ == Label::OPERATOR_CDAGGER)
@@ -98,9 +104,9 @@ public:
 		return false;
 	}
 
-	LabeledOperator transposeConjugate() const
+	Label transposeConjugate() const
 	{
-		Label l = Label::OPERATOR_NIL;
+		Label l = what_;
 		if (what_ == Label::OPERATOR_C)
 			l = Label::OPERATOR_CDAGGER;
 		if (what_ == Label::OPERATOR_CDAGGER)
@@ -109,7 +115,7 @@ public:
 			l = Label::OPERATOR_SMINUS;
 		if (what_ == Label::OPERATOR_SMINUS)
 			l = Label::OPERATOR_SPLUS;
-		return LabeledOperator(l);
+		return l;
 	}
 
 private:

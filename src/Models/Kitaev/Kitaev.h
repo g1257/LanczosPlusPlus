@@ -325,7 +325,7 @@ private:
 			if (val2 == TWICE_THE_SPIN) continue;
 
 			WordType bra;
-			basis.getBra(bra, ket, i, val1, j, val2 + 1);
+			basis.getBra(bra, ket, i, LabeledOperatorType(val1), j, val2 + 1);
 			SizeType temp = basis.perfectIndex(bra, dummy);
 			RealType tmp = 1.0; // FIXME: CORRECT FOR Kitaev with spin != 1/2
 			sparseRow.add(temp, tmp*jpp_(i, j));

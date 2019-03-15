@@ -39,8 +39,10 @@ $_ = $data[0];
 my @omegas = @$_;
 my $omegasTotal = scalar(@omegas);
 print STDERR "#Omegas=".$omegasTotal."\n";
+my @intensities;
 for (my $wi =0; $wi < $omegasTotal; ++$wi) {
-	print "$omegas[$wi]->[0] ";
+	#print "$omegas[$wi]->[0] ";
+	my @array;
 	for (my $m = 0; $m < $total; ++$m) {
 		my ($sumr, $sumi) = (0,0);
 		my $q = 2.0*pi*$m/$total;
@@ -57,11 +59,15 @@ for (my $wi =0; $wi < $omegasTotal; ++$wi) {
 			$sumr += $temp[2]*$cosval*$factor;
 		}
 
-		print "$sumi ";
+		#print "$sumi ";
+		$array[$m] = {"kx" => $q, "value" => $sumi};
 	}
 
-	print "\n";
+	#print "\n";
+	$intensities[$wi] = \@array;
 }
+
+printPgfPlot("$rootInput.pgfplots", \@intensities, \@omegas);
 
 
 sub readData
@@ -110,6 +116,29 @@ sub createInput
 
 	print STDERR "$0: Created $input\n";
 	return $input;
+}
+
+sub printPgfPlot
+{
+	my ($fout, $intensities, $omegas) = @_;
+	open(FOUT, ">", "$fout") or die "$0: Cannot open $fout for writing: $!\n";
+	# kx omega intensity
+	# varying kx first
+	for (my $wi =0; $wi < $omegasTotal; ++$wi) {
+		my $omega = $omegas->[$wi]->[0];
+		my $array = $intensities->[$wi];
+		for (my $m = 0; $m < $total; ++$m) {
+			my $h = $array->[$m];
+			my $kx = $h->{"kx"};
+			my $value = $h->{"value"};
+			print FOUT "$kx $omega $value\n";
+		}
+
+		print FOUT "\n";
+	}
+
+	close(FOUT);
+	print STDERR "$0: Written $fout\n";
 }
 
 sub readLabel

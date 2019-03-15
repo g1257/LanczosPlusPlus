@@ -150,11 +150,11 @@ public:
 
 	bool hasNewParts(std::pair<SizeType,SizeType>& newParts,
 	                 const std::pair<SizeType,SizeType>& oldParts,
-	                 SizeType what,
+	                 const LabeledOperator& lOperator,
 	                 SizeType spin,
 	                 SizeType orb) const
 	{
-		return basis_.hasNewParts(newParts,oldParts,what,spin,orb);
+		return basis_.hasNewParts(newParts, oldParts, lOperator, spin, orb);
 	}
 
 	const GeometryType& geometry() const { return geometry_; }

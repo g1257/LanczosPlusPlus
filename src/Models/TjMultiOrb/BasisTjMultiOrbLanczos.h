@@ -7,6 +7,7 @@
 #include "BitManip.h"
 #include "ProgramGlobals.h"
 #include "../../Engine/BasisBase.h"
+#include "LabeledOperator.h"
 
 namespace LanczosPlusPlus {
 
@@ -23,11 +24,7 @@ public:
 	typedef typename BaseType::WordType WordType;
 	typedef typename BaseType::VectorWordType VectorWordType;
 	static VectorWordType bitmask_;
-
-	enum {OPERATOR_NIL=ProgramGlobals::OPERATOR_NIL,
-		  OPERATOR_C=ProgramGlobals::OPERATOR_C,
-		  OPERATOR_SZ=ProgramGlobals::OPERATOR_SZ,
-		  OPERATOR_CDAGGER=ProgramGlobals::OPERATOR_CDAGGER};
+	typedef LabeledOperator LabeledOperatorType;
 
 	static int const FERMION_SIGN = -1;
 
@@ -213,40 +210,42 @@ public:
 
 	PairIntType getBraIndex(WordType ket1,
 	                        WordType ket2,
-	                        SizeType operatorLabel,
+	                        const LabeledOperatorType& lOperator,
 	                        SizeType site,
 	                        SizeType spin,
 	                        SizeType orb) const
 	{
+		LabeledOperatorType opC(LabeledOperatorType::Label::OPERATOR_C);
+
 		assert(orbitals_ == 1);
-		if (operatorLabel == ProgramGlobals::OPERATOR_SPLUS) {
+		if (lOperator.id() == LabeledOperatorType::Label::OPERATOR_SPLUS) {
 			WordType bra1 = ket1;
 			WordType bra2 = ket2;
 
-			int value1 = getBraC(bra2,ket2,ProgramGlobals::OPERATOR_C,site);
+			int value1 = getBraC(bra2, ket2, opC, site);
 			if (value1 == 0) return PairIntType(-1,value1);
 
-			int value2 = getBraC(bra1,ket1,ProgramGlobals::OPERATOR_CDAGGER,site);
+			int value2 = getBraC(bra1, ket1, opC.transposeConjugate(), site);
 			if (value2 == 0) return PairIntType(-1,value2);
 
-			int tmp = perfectIndex(bra1,bra2);
+			int tmp = perfectIndex(bra1, bra2);
 			return PairIntType(tmp,1);
 
-		} else if (operatorLabel == ProgramGlobals::OPERATOR_SMINUS) {
+		} else if (lOperator.id() == LabeledOperatorType::Label::OPERATOR_SMINUS) {
 			WordType bra1 = ket1;
 			WordType bra2 = ket2;
 
-			int value1 = getBraC(bra1,ket1,ProgramGlobals::OPERATOR_C,site);
+			int value1 = getBraC(bra1, ket1, opC, site);
 			if (value1 == 0) return PairIntType(-1,value1);
 
-			int value2 = getBraC(bra2,ket2,ProgramGlobals::OPERATOR_CDAGGER,site);
+			int value2 = getBraC(bra2, ket2, opC.transposeConjugate(), site);
 			if (value2 == 0) return PairIntType(-1,value2);
 
 			int tmp = perfectIndex(bra1,bra2);
-			return PairIntType(tmp,1);
+			return PairIntType(tmp, 1);
 		}
 
-		return getBraIndex_(ket1,ket2,operatorLabel,site,spin,orb);
+		return getBraIndex_(ket1, ket2, lOperator, site, spin, orb);
 	}
 
 	SizeType orbsPerSite(SizeType) const { return orbitals_; }
@@ -272,18 +271,20 @@ public:
 	bool getBra(WordType& bra,
 	            WordType ket1,
 	            WordType ket2,
-	            SizeType operatorLabel,
+	            const LabeledOperatorType& lOperator,
 	            SizeType site,
 	            SizeType spin) const
 	{
 		assert(orbitals_ == 1);
-		switch(operatorLabel) {
-		case ProgramGlobals::OPERATOR_C:
-		case ProgramGlobals::OPERATOR_CDAGGER:
-			return getBraC(bra,ket1,ket2,operatorLabel,site,spin);
-		case ProgramGlobals::OPERATOR_SZ:
-		case ProgramGlobals::OPERATOR_N:
-			return getBraSzOrN(bra,ket1,ket2,operatorLabel,site,spin);
+		switch(lOperator.id()) {
+		case LabeledOperatorType::Label::OPERATOR_C:
+		case LabeledOperatorType::Label::OPERATOR_CDAGGER:
+			return getBraC(bra, ket1, ket2, lOperator, site, spin);
+		case LabeledOperatorType::Label::OPERATOR_SZ:
+		case LabeledOperatorType::Label::OPERATOR_N:
+			return getBraSzOrN(bra, ket1, ket2, lOperator, site, spin);
+		default:
+			err("getBra\n");
 		}
 
 		assert(false);
@@ -298,7 +299,7 @@ private:
 
 	PairIntType getBraIndex_(const WordType& ket1,
 	                         const WordType& ket2,
-	                         SizeType operatorLabel,
+	                         const LabeledOperatorType& lOperator,
 	                         SizeType site,
 	                         SizeType spin,
 	                         SizeType) const
@@ -306,7 +307,7 @@ private:
 		assert(orbitals_ == 1);
 		WordType bra1 = ket1;
 		WordType bra2 = ket2;
-		int value = getBra(bra1,operatorLabel,ket1,ket2,site,spin);
+		int value = getBra(bra1,ket1,ket2,lOperator,site,spin);
 		if (value==0) return PairIntType(-1,value);
 		if (spin!=SPIN_UP) {
 			bra2 = bra1;
@@ -426,27 +427,30 @@ private:
 	int getBraC(WordType& bra,
 	            const WordType& ket1,
 	            const WordType& ket2,
-	            SizeType what,
+	            const LabeledOperatorType& lOperator,
 	            SizeType site,
 	            SizeType spin) const
 	{
 		assert(orbitals_ == 1);
 		if (spin==SPIN_UP) {
-			int b1 = getBraC(bra,ket1,what,site);
+			int b1 = getBraC(bra,ket1,lOperator,site);
 			if (b1==0) return 0;
 			return (isDoublyOccupied(bra,ket2)) ? 0 : 1;
 		}
 
-		int b2 = getBraC(bra,ket2,what,site);
+		int b2 = getBraC(bra,ket2,lOperator,site);
 		if (b2==0) return 0;
 		return (isDoublyOccupied(ket1,bra)) ? 0 : 1;
 	}
 
-	int getBraC(WordType& bra,const WordType& ket,SizeType what,SizeType site) const
+	int getBraC(WordType& bra,
+	            const WordType& ket,
+	            const LabeledOperatorType& lOperator,
+	            SizeType site) const
 	{
 		assert(orbitals_ == 1);
 		WordType si=(ket & bitmask_[site]);
-		if (what==OPERATOR_C) {
+		if (lOperator.id() == LabeledOperatorType::Label::OPERATOR_C) {
 			if (si>0) {
 				bra = (ket ^ bitmask_[site]);
 			} else {
@@ -465,7 +469,7 @@ private:
 	int getBraSzOrN(WordType& bra,
 	                const WordType& ket1,
 	                const WordType& ket2,
-	                SizeType,
+	                const LabeledOperatorType&,
 	                SizeType site,
 	                SizeType spin) const
 	{

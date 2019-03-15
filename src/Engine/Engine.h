@@ -29,6 +29,7 @@ Please see full open source license included in file LICENSE.
 #include "ParametersForSolver.h"
 #include "DefaultSymmetry.h"
 #include "TypeToString.h"
+#include "LabeledOperator.h"
 
 namespace LanczosPlusPlus {
 template<typename ModelType_,
@@ -39,8 +40,6 @@ class Engine  {
 public:
 
 	enum {SPIN_UP = ProgramGlobals::SPIN_UP, SPIN_DOWN = ProgramGlobals::SPIN_DOWN};
-
-	enum {OPERATOR_N = ProgramGlobals::OPERATOR_N};
 
 	typedef ModelType_ ModelType;
 	typedef typename ModelType::InputType InputType;
@@ -68,6 +67,7 @@ public:
 	typedef std::pair<SizeType,SizeType> PairType;
 	typedef typename PsimagLite::Vector<RealType>::Type VectorRealType;
 	typedef typename PsimagLite::Vector<PsimagLite::String>::Type VectorStringType;
+	typedef LabeledOperator LabeledOperatorType;
 
 	// ContF needs to support concurrency FIXME
 	static const SizeType parallelRank_ = 0;
@@ -101,7 +101,7 @@ public:
 	template<typename ContinuedFractionCollectionType>
 	void spectralFunction(ContinuedFractionCollectionType& cfCollection,
 	                      VectorStringType& vstr,
-	                      SizeType what2,
+	                      const LabeledOperatorType& lOperator,
 	                      int isite,
 	                      int jsite,
 	                      const PsimagLite::Vector<PairType>::Type& spins,
@@ -110,7 +110,7 @@ public:
 		std::cout<<"orbitals="<<orbs.first<<" "<<orbs.second<<"\n";
 		for (SizeType i=0;i<spins.size();i++) {
 			std::cout<<"spins="<<spins[i].first<<" "<<spins[i].second<<"\n";
-			spectralFunction(cfCollection,vstr,what2,isite,jsite,spins[i],orbs);
+			spectralFunction(cfCollection,vstr,lOperator,isite,jsite,spins[i],orbs);
 		}
 	}
 
@@ -121,7 +121,7 @@ public:
 	template<typename ContinuedFractionCollectionType>
 	void spectralFunction(ContinuedFractionCollectionType& cfCollection,
 	                      VectorStringType& vstr,
-	                      SizeType what2,
+	                      const LabeledOperatorType& lOperator,
 	                      int isite,
 	                      int jsite,
 	                      const PairType& spins,
@@ -140,23 +140,24 @@ public:
 		const BasisType* basisNew = 0;
 		bool isDiagonal = (isite==jsite && orbs.first==orbs.second);
 		PairType oldParts = model_.basis().parts();
-		for (SizeType type=0;type<4;type++) {
-			if (isDiagonal && type>1) continue;
+		for (SizeType type = 0; type < 4; ++type) {
+			if (isDiagonal && type > 1) continue;
 
-			SizeType operatorLabel= (type&1) ?  what2 : ProgramGlobals::transposeConjugate(what2);
-			if (ProgramGlobals::needsNewBasis(operatorLabel)) {
+			LabeledOperatorType lOperator2 = lOperator.transposeConjugate();
+
+			if (lOperator2.needsNewBasis()) {
 				assert(spins.first==spins.second);
 				std::pair<SizeType,SizeType> newParts(0,0);
-				if (!model_.hasNewParts(newParts,oldParts,operatorLabel,spins.first,orbs.first))
+				if (!model_.hasNewParts(newParts, oldParts, lOperator2, spins.first, orbs.first))
 					continue;
 				// Create new bases
-				basisNew = model_.createBasis(newParts.first,newParts.second);
+				basisNew = model_.createBasis(newParts.first, newParts.second);
 			} else {
 				basisNew = &model_.basis();
 			}
 			VectorType modifVector;
 			getModifiedState(modifVector,
-			                 operatorLabel,
+			                 lOperator2,
 			                 gsVector_,
 			                 *basisNew,
 			                 type,
@@ -175,7 +176,7 @@ public:
 				std::cerr<<"spectralFunction: modifVector==0, type="<<type<<"\n";
 			}
 
-			calcSpectral(cf,operatorLabel,modifVector,matrix,type,spins.first,isDiagonal);
+			calcSpectral(cf, lOperator2, modifVector, matrix, type, spins.first, isDiagonal);
 			PsimagLite::String str = ttos(spins.first) + "," + ttos(type) + ",";
 			str += ttos(orbs.first) + "," + ttos(orbs.second);
 			vstr.push_back(str);
@@ -184,13 +185,13 @@ public:
 	}
 
 	void twoPoint(PsimagLite::Matrix<typename VectorType::value_type>& result,
-	              SizeType what2,
+	              const LabeledOperatorType& lOperator,
 	              const PsimagLite::Vector<PairType>::Type& spins,
 	              const PairType& orbs) const
 	{
 		for (SizeType i=0;i<spins.size();i++) {
 			std::cout<<"spins="<<spins[i].first<<" "<<spins[i].second<<"\n";
-			twoPoint(result,what2,spins[i],orbs);
+			twoPoint(result,lOperator,spins[i],orbs);
 		}
 
 	}
@@ -199,14 +200,14 @@ public:
 	Here we document the two-point correlations
 	*/
 	void twoPoint(PsimagLite::Matrix<typename VectorType::value_type>& result,
-	              SizeType what2,
+	              const LabeledOperatorType& lOperator,
 	              const PairType& spins,
 	              const PairType& orbs) const
 	{
 		const BasisType* basisNew = 0;
 		PairType oldParts = model_.basis().parts();
 
-		if (ProgramGlobals::needsNewBasis(what2)) {
+		if (lOperator.needsNewBasis()) {
 			if (spins.first!=spins.second) {
 				PsimagLite::String str(__FILE__);
 				str += " " + ttos(__LINE__) + "\n";
@@ -216,10 +217,10 @@ public:
 			}
 
 			std::pair<SizeType,SizeType> newParts(0,0);
-			if (!model_.hasNewParts(newParts,oldParts,what2,spins.first,orbs.first))
+			if (!model_.hasNewParts(newParts, oldParts, lOperator, spins.first, orbs.first))
 				return;
 
-			basisNew = model_.createBasis(newParts.first,newParts.second);
+			basisNew = model_.createBasis(newParts.first, newParts.second);
 
 			std::cerr<<"basisNew.size="<<basisNew->size()<<" ";
 			std::cerr<<"newparts.first="<<newParts.first<<" ";
@@ -241,13 +242,25 @@ public:
 		for (SizeType isite=0;isite<total;isite++) {
 			VectorType modifVector1(basisNew->size(),0);
 			if (orbs.first>=model_.orbitals(isite)) continue;
-			accModifiedState(modifVector1,what2,*basisNew,gsVector_,
-			                 isite,spins.first,orbs.first,isign);
+			accModifiedState(modifVector1,
+			                 lOperator,
+			                 *basisNew,
+			                 gsVector_,
+			                 isite,
+			                 spins.first,
+			                 orbs.first,
+			                 isign);
 			for (SizeType jsite=0;jsite<total;jsite++) {
 				VectorType modifVector2(basisNew->size(),0);
 				if (orbs.second>=model_.orbitals(jsite)) continue;
-				accModifiedState(modifVector2,what2,*basisNew,gsVector_,
-				                 jsite,spins.second,orbs.second,isign);
+				accModifiedState(modifVector2,
+				                 lOperator,
+				                 *basisNew,
+				                 gsVector_,
+				                 jsite,
+				                 spins.second,
+				                 orbs.second,
+				                 isign);
 				result(isite,jsite) =  modifVector2*modifVector1;
 				if (isite==jsite) sum += result(isite,isite);
 			}
@@ -257,7 +270,7 @@ public:
 
 	// many point, fixed sites
 	ComplexOrRealType manyPoint(const VectorSizeType& sites,
-	                            const VectorSizeType& what,
+	                            const PsimagLite::Vector<LabeledOperatorType>::Type& what,
 	                            const VectorSizeType& spins,
 	                            const VectorSizeType& orbs) const
 	{
@@ -305,22 +318,22 @@ private:
 
 	const BasisType* getNeededBasis(PairType& newParts,
 	                                const PairType& oldParts,
-	                                SizeType what,
+	                                const LabeledOperatorType& lOperator,
 	                                SizeType spin,
 	                                SizeType orb) const
 	{
-		if (!ProgramGlobals::needsNewBasis(what)) {
+		if (!lOperator.needsNewBasis()) {
 			newParts = oldParts;
 			return &model_.basis();
 		}
 
 		if (!model_.hasNewParts(newParts,
 		                        oldParts,
-		                        what,
+		                        lOperator,
 		                        spin,
 		                        orb)) return 0;
 
-		BasisType* basisNew = model_.createBasis(newParts.first,newParts.second);
+		BasisType* basisNew = model_.createBasis(newParts.first, newParts.second);
 
 		std::cerr<<"basisNew.size="<<basisNew->size()<<" ";
 		std::cerr<<"newparts.first="<<newParts.first<<" ";
@@ -329,7 +342,7 @@ private:
 	}
 
 	void accModifiedState_(VectorType &z,
-	                       SizeType operatorLabel,
+	                       const LabeledOperatorType& lOperator,
 	                       const BasisType& newBasis,
 	                       const VectorType& srcVector,
 	                       const BasisType& srcBasis,
@@ -343,7 +356,7 @@ private:
 			ProgramGlobals::WordType ket2 = srcBasis(ispace,SPIN_DOWN);
 			ProgramGlobals::PairIntType tempValue = newBasis.getBraIndex(ket1,
 			                                                             ket2,
-			                                                             operatorLabel,
+			                                                             lOperator,
 			                                                             site,
 			                                                             spin,
 			                                                             orb);
@@ -353,7 +366,7 @@ private:
 				PsimagLite::String s = "old basis=" + ttos(srcBasis.size());
 				s += " newbasis=" + ttos(newBasis.size());
 				s += "\n";
-				s += "operatorLabel=" + ttos(operatorLabel) + " spin=" + ttos(spin);
+				s += "operatorLabel= " + lOperator.toString() + " spin=" + ttos(spin);
 				s += " site=" + ttos(site);
 				s += "ket1=" + ttos(ket1) + " and ket2=" + ttos(ket2);
 				s += "\n";
@@ -362,10 +375,10 @@ private:
 				throw std::runtime_error(s.c_str());
 			}
 			if (temp<0) continue;
-			int mysign = (ProgramGlobals::isFermionic(operatorLabel)) ?
-			            srcBasis.doSignGf(ket1,ket2,site,spin,orb) : 1;
-			if (operatorLabel == ProgramGlobals::OPERATOR_SPLUS ||
-			        operatorLabel == ProgramGlobals::OPERATOR_SMINUS)
+			int mysign = (lOperator.isFermionic()) ? srcBasis.doSignGf(ket1,ket2,site,spin,orb) :
+			                                         1;
+			if (lOperator.id() == LabeledOperatorType::Label::OPERATOR_SPLUS ||
+			        lOperator.id() == LabeledOperatorType::Label::OPERATOR_SMINUS)
 				mysign *= srcBasis.doSignSpSm(ket1,ket2,site,spin,orb);
 
 			z[temp] += isign*mysign*value*srcVector[ispace];
@@ -373,7 +386,7 @@ private:
 	}
 
 	void getModifiedState(VectorType& modifVector,
-	                      SizeType operatorLabel,
+	                      const LabeledOperatorType& lOperator,
 	                      const VectorType& gsVector,
 	                      const BasisType& basisNew,
 	                      SizeType type,
@@ -387,7 +400,7 @@ private:
 			modifVector[temp]=0.0;
 
 		accModifiedState_(modifVector,
-		                  operatorLabel,
+		                  lOperator,
 		                  basisNew,
 		                  gsVector,
 		                  model_.basis(),
@@ -401,7 +414,7 @@ private:
 
 		RealType isign= (type > 1) ? -1.0 : 1.0;
 		accModifiedState_(modifVector,
-		                  operatorLabel,
+		                  lOperator,
 		                  basisNew,
 		                  gsVector,
 		                  model_.basis(),
@@ -414,7 +427,7 @@ private:
 	}
 
 	void accModifiedState(VectorType& z,
-	                      SizeType operatorLabel,
+	                      const LabeledOperatorType& lOperator,
 	                      const BasisType& newBasis,
 	                      const VectorType& gsVector,
 	                      SizeType site,
@@ -422,9 +435,11 @@ private:
 	                      SizeType orb,
 	                      RealType isign) const
 	{
+		LabeledOperatorType opN(LabeledOperatorType::Label::OPERATOR_N);
+
 		if (model_.name()=="Tj1Orb.h")
 			accModifiedState_(z,
-			                  operatorLabel,
+			                  lOperator,
 			                  newBasis,
 			                  gsVector,
 			                  model_.basis(),
@@ -433,20 +448,20 @@ private:
 			                  orb,
 			                  isign);
 
-		if (operatorLabel==OPERATOR_N) {
+		if (lOperator.id() == LabeledOperatorType::Label::OPERATOR_N) {
 			accModifiedState_(z,
-			                  operatorLabel,
+			                  lOperator,
 			                  newBasis,
 			                  gsVector,
-			                   model_.basis(),
+			                  model_.basis(),
 			                  site,
 			                  spin,
 			                  orb,
 			                  isign);
 			return;
-		} else if (operatorLabel==ProgramGlobals::OPERATOR_SZ) {
+		} else if (lOperator.id() == LabeledOperatorType::Label::OPERATOR_SZ) {
 			accModifiedState_(z,
-			                  OPERATOR_N,
+			                  opN,
 			                  newBasis,
 			                  gsVector,
 			                  model_.basis(),
@@ -455,7 +470,7 @@ private:
 			                  orb,
 			                  isign*0.5);
 			accModifiedState_(z,
-			                  OPERATOR_N,
+			                  opN,
 			                  newBasis,
 			                  gsVector,
 			                  model_.basis(),
@@ -467,7 +482,7 @@ private:
 		}
 
 		accModifiedState_(z,
-		                  operatorLabel,
+		                  lOperator,
 		                  newBasis,
 		                  gsVector,
 		                  model_.basis(),
@@ -525,7 +540,7 @@ private:
 
 	template<typename ContinuedFractionType>
 	void calcSpectral(ContinuedFractionType& cf,
-	                  SizeType what2,
+	                  const LabeledOperatorType& lOperator,
 	                  const VectorType& modifVector,
 	                  const InternalProductDefaultType& matrix,
 	                  SizeType type,
@@ -546,7 +561,7 @@ private:
 
 		int s = (type&1) ? -1 : 1;
 		RealType s2 = (type>1) ? -1 : 1;
-		if (!ProgramGlobals::isFermionic(what2)) s2 *= s;
+		if (!lOperator.isFermionic()) s2 *= s;
 		RealType diagonalFactor = (isDiagonal) ? 1 : 0.5;
 		s2 *= diagonalFactor;
 

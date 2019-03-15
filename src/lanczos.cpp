@@ -130,13 +130,13 @@ int main(int argc,char **argv)
 	while ((opt = getopt(argc, argv, "g:c:f:s:r:p:S:V")) != -1) {
 		switch (opt) {
 		case 'g':
-			lanczosOptions.gf.push_back(ProgramGlobals::operator2id(optarg));
+			lanczosOptions.gf.push_back(LabeledOperator(optarg));
 			break;
 		case 'f':
 			file = optarg;
 			break;
 		case 'c':
-			lanczosOptions.cicj.push_back(ProgramGlobals::operator2id(optarg));
+			lanczosOptions.cicj.push_back(LabeledOperator(optarg));
 			break;
 		case 's':
 			lanczosOptions.spins.clear();

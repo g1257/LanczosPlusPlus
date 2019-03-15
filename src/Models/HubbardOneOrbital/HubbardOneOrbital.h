@@ -37,6 +37,7 @@ public:
 	typedef typename BaseType::VectorSizeType VectorSizeType;
 	typedef typename BaseType::SparseMatrixType SparseMatrixType;
 	typedef typename BaseType::VectorType VectorType;
+	typedef typename BasisType::LabeledOperatorType LabeledOperatorType;
 	typedef PsimagLite::SparseRow<SparseMatrixType> SparseRowType;
 
 	static int const FERMION_SIGN = BasisType::FERMION_SIGN;
@@ -169,21 +170,25 @@ public:
 
 	bool hasNewParts(std::pair<SizeType,SizeType>& newParts,
 	                 const std::pair<SizeType,SizeType>& oldParts,
-	                 SizeType what,
+	                 const LabeledOperator& lOperator,
 	                 SizeType spin,
 	                 SizeType orb) const
 	{
-		if (what==ProgramGlobals::OPERATOR_C ||
-		        what==ProgramGlobals::OPERATOR_CDAGGER)
-			return hasNewPartsCorCdagger(newParts,oldParts,what,spin);
-		if (what==ProgramGlobals::OPERATOR_SPLUS ||
-		        what==ProgramGlobals::OPERATOR_SMINUS)
-			return hasNewPartsSplusOrSminus(newParts,oldParts,what,spin);
-		if (what==ProgramGlobals::OPERATOR_SZ) return false;
+		if (lOperator.id() == LabeledOperator::Label::OPERATOR_C ||
+		        lOperator.id() == LabeledOperator::Label::OPERATOR_CDAGGER)
+			return hasNewPartsCorCdagger(newParts, oldParts, lOperator, spin);
+
+		if (lOperator.id() == LabeledOperator::Label::OPERATOR_SPLUS ||
+		        lOperator.id() == LabeledOperator::Label::OPERATOR_SMINUS)
+			return hasNewPartsSplusOrSminus(newParts, oldParts, lOperator, spin);
+
+		if (lOperator.id() == LabeledOperator::Label::OPERATOR_SZ)
+			return false;
+
 		PsimagLite::String str(__FILE__);
 		str += " " + ttos(__LINE__) +  "\n";
 		str += PsimagLite::String("hasNewParts: unsupported operator ");
-		str += ProgramGlobals::id2Operator(what) + "\n";
+		str += lOperator.toString() + "\n";
 		throw std::runtime_error(str.c_str());
 	}
 
@@ -246,10 +251,8 @@ private:
 		SizeType hilbertDest = basis.size();
 		SizeType hilbertSrc = basis_.size();
 		SizeType nsite = geometry_.numberOfSites();
-		SizeType id = 0;
-		if (operatorName == "c") {
-			id = ProgramGlobals::OPERATOR_C;
-		} else {
+		LabeledOperatorType lOperator(LabeledOperatorType::Label::OPERATOR_C);
+		if (operatorName != "c") {
 			PsimagLite::String str(__FILE__);
 			str += " " + ttos(__LINE__) + "\n";
 			str += "operator " + operatorName + " is unimplemented for this model\n";
@@ -282,22 +285,22 @@ private:
 			WordType ket2 = basis_(ispace,SPIN_DOWN);
 			WordType bra = ket1;
 			// assumes OPERATOR_C
-			bool b = basis.getBra(bra,ket1,ket2,id,site,spin);
+			bool b = basis.getBra(bra, ket1, ket2, lOperator, site, spin);
 			if (!b) continue;
-			SizeType index = basis.perfectIndex(bra,ket2);
+			SizeType index = basis.perfectIndex(bra, ket2);
 
-			matrix(ispace,index) = basis.doSignGf(bra,ket2,site,spin,orb);
+			matrix(ispace, index) = basis.doSignGf(bra, ket2, site, spin, orb);
 		}
 	}
 
 	bool hasNewPartsCorCdagger(std::pair<SizeType,SizeType>& newParts,
 	                           const std::pair<SizeType,SizeType>& oldParts,
-	                           SizeType what,
+	                           const LabeledOperatorType& lOperator,
 	                           SizeType spin) const
 	{
 		int newPart1 = oldParts.first;
 		int newPart2 = oldParts.second;
-		int c = (what==ProgramGlobals::OPERATOR_C) ? -1 : 1;
+		int c = (lOperator.id() == LabeledOperatorType::Label::OPERATOR_C) ? -1 : 1;
 		if (spin==SPIN_UP) newPart1 += c;
 		else newPart2 += c;
 
@@ -312,13 +315,13 @@ private:
 
 	bool hasNewPartsSplusOrSminus(std::pair<SizeType,SizeType>& newParts,
 	                              const std::pair<SizeType,SizeType>& oldParts,
-	                              SizeType what,
+	                              const LabeledOperatorType& lOperator,
 	                              SizeType) const
 	{
 		int newPart1 = oldParts.first;
 		int newPart2 = oldParts.second;
 
-		int c = (what == ProgramGlobals::OPERATOR_SPLUS) ? 1 : -1;
+		int c = (lOperator.id() == LabeledOperatorType::Label::OPERATOR_SPLUS) ? 1 : -1;
 		newPart1 += c;
 		newPart2 -= c;
 

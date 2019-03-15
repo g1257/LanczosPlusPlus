@@ -2,6 +2,7 @@
 #define LANCZOSDRIVER_1_H
 #include "LanczosDriver.h"
 #include "Io/IoSimple.h"
+#include "LabeledOperator.h"
 
 template<typename ModelType>
 SizeType maxOrbitals(const ModelType& model)
@@ -23,13 +24,13 @@ void extendedStatic(PsimagLite::String manypoint, const EngineType& engine)
 	VectorSizeType sites;
 	VectorSizeType spins;
 	VectorSizeType orbs;
-	VectorSizeType whats;
+	PsimagLite::Vector<LanczosPlusPlus::LabeledOperator>::Type whats;
 	for (SizeType i = 0; i < str.size(); ++i) {
 		PsimagLite::Vector<PsimagLite::String>::Type str2;
 		PsimagLite::split(str2, str[i], "?");
 		if (str2.size() < 3)
 			throw PsimagLite::RuntimeError("-S option malformed\n");
-		whats.push_back(LanczosPlusPlus::ProgramGlobals::operator2id(str2[0]));
+		whats.push_back(LanczosPlusPlus::LabeledOperator(str2[0]));
 		sites.push_back(atoi(str2[1].c_str()));
 		spins.push_back(atoi(str2[2].c_str()));
 		if (str2.size() == 4) orbs.push_back(atoi(str2[3].c_str()));
@@ -61,7 +62,6 @@ void mainLoop3(const ModelType& model,
 	std::cout.precision(8);
 	std::cout<<"Energy="<<Eg<<"\n";
 	for (SizeType gfi=0;gfi<lanczosOptions.gf.size();gfi++) {
-		SizeType gfI = lanczosOptions.gf[gfi];
 		io.read(lanczosOptions.sites,"TSPSites");
 		if (lanczosOptions.sites.size()==0)
 			throw std::runtime_error("No sites in input file!\n");
@@ -83,7 +83,7 @@ void mainLoop3(const ModelType& model,
 			for (SizeType orb2=orb1;orb2<norbitals;orb2++) {
 				engine.spectralFunction(cfCollection,
 				                        vstr,
-				                        gfI,
+				                        lanczosOptions.gf[gfi],
 				                        lanczosOptions.sites[0],
 				        lanczosOptions.sites[1],
 				        lanczosOptions.spins,
@@ -99,14 +99,13 @@ void mainLoop3(const ModelType& model,
 	}
 
 	for (SizeType cicji=0;cicji<lanczosOptions.cicj.size();cicji++) {
-		SizeType cicjI = lanczosOptions.cicj[cicji];
 		SizeType total = geometry.numberOfSites();
 		PsimagLite::Matrix<ComplexOrRealType> cicjMatrix(total,total);
 		SizeType norbitals = maxOrbitals(model);
 		for (SizeType orb1=0;orb1<norbitals;orb1++) {
 			for (SizeType orb2=0;orb2<norbitals;orb2++) {
 				engine.twoPoint(cicjMatrix,
-				                cicjI,
+				                lanczosOptions.cicj[cicji],
 				                lanczosOptions.spins,
 				                std::pair<SizeType,SizeType>(orb1,orb2));
 				std::cout<<cicjMatrix;

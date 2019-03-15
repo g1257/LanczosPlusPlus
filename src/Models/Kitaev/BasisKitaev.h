@@ -23,11 +23,9 @@ public:
 	typedef BasisBase<GeometryType> BaseType;
 	typedef typename BaseType::WordType WordType;
 	typedef typename BaseType::VectorWordType VectorWordType;
+	typedef typename BaseType::LabeledOperatorType LabeledOperatorType;
 
 	static VectorWordType bitmask_;
-
-	enum {OPERATOR_NIL=ProgramGlobals::OPERATOR_NIL,
-		  OPERATOR_SZ=ProgramGlobals::OPERATOR_SZ};
 
 	BasisKitaev(const GeometryType& geometry)
 	    : geometry_(geometry), hilbert_(1)
@@ -121,7 +119,7 @@ public:
 
 	PairIntType getBraIndex(WordType ket1,
 	                        WordType ket2,
-	                        SizeType operatorLabel,
+	                        const LabeledOperatorType&,
 	                        SizeType site,
 	                        SizeType spin,
 	                        SizeType orb) const
@@ -167,7 +165,7 @@ private:
 	bool getBra(WordType& bra,
 	            WordType ket,
 	            WordType site1,
-	            SizeType val1,
+	            const LabeledOperatorType& val1,
 	            SizeType site2,
 	            SizeType val2) const
 	{
@@ -180,7 +178,7 @@ private:
 		mask2 <<= (site2*BITS);
 		bra &= (~mask2);
 
-		mask1 = val1;
+		mask1 = val1.toUint();
 		mask1 <<= (site1*BITS);
 		bra |= mask1;
 

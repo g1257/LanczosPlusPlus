@@ -30,8 +30,6 @@ class BasisFeAsSpinOrbit : public BasisBase<GeometryType_> {
 	typedef ProgramGlobals::PairIntType PairIntType;
 
 	static SizeType orbitals_;
-	static const SizeType OPERATOR_C = ProgramGlobals::OPERATOR_C;
-	static const SizeType OPERATOR_CDAGGER = ProgramGlobals::OPERATOR_CDAGGER;
 	static const SizeType SPIN_UP = ProgramGlobals::SPIN_UP;
 
 public:
@@ -43,6 +41,8 @@ public:
 	typedef std::pair<WordType,WordType> PairWordType;
 	typedef typename BaseType::VectorWordType VectorWordType;
 	typedef typename PsimagLite::Vector<PairWordType>::Type VectorPairWordType;
+	typedef BasisOneSpinType::LabeledOperatorType LabeledOperatorType;
+
 	static int const FERMION_SIGN = -1;
 
 	BasisFeAsSpinOrbit(const GeometryType& geometry,
@@ -130,21 +130,26 @@ public:
 
 	PairIntType getBraIndex(WordType ket1,
 	                        WordType ket2,
-	                        SizeType what,
+	                        const LabeledOperatorType& lOperator,
 	                        SizeType site,
 	                        SizeType spin,
 	                        SizeType orb) const
 	{
-		if (what==ProgramGlobals::OPERATOR_C ||
-		        what==ProgramGlobals::OPERATOR_CDAGGER ||
-		        what==ProgramGlobals::OPERATOR_N)
-			return PairIntType(getBraIndexCorCdaggerOrN(ket1,ket2,what,site,spin,orb),1);
-		if (what==ProgramGlobals::OPERATOR_SPLUS || what==ProgramGlobals::OPERATOR_SMINUS)
-			return PairIntType(getBraIndexSplusOrSminus(ket1,ket2,what,site,orb),1);
+		if (lOperator.id() == LabeledOperatorType::Label::OPERATOR_C ||
+		        lOperator.id() == LabeledOperatorType::Label::OPERATOR_CDAGGER ||
+		        lOperator.id() == LabeledOperatorType::Label::OPERATOR_N)
+			return PairIntType(getBraIndexCorCdaggerOrN(ket1, ket2, lOperator, site, spin, orb),
+			                   1);
+
+		if (lOperator.id() == LabeledOperatorType::Label::OPERATOR_SPLUS ||
+		        lOperator.id() == LabeledOperatorType::Label::OPERATOR_SMINUS)
+			return PairIntType(getBraIndexSplusOrSminus(ket1, ket2, lOperator, site, orb),
+			                   1);
+
 		PsimagLite::String str(__FILE__);
 		str += " " + ttos(__LINE__) +  "\n";
 		str += PsimagLite::String("getBraIndex: unsupported operator ");
-		str += ProgramGlobals::id2Operator(what) + "\n";
+		str += lOperator.toString() + "\n";
 		throw std::runtime_error(str.c_str());
 	}
 
@@ -231,18 +236,22 @@ public:
 
 	bool hasNewParts(std::pair<SizeType,SizeType>& newParts,
 	                 const std::pair<SizeType,SizeType>& oldParts,
-	                 SizeType what,
+	                 const LabeledOperatorType& lOperator,
 	                 SizeType spin,
 	                 SizeType orb) const
 	{
-		if (what==ProgramGlobals::OPERATOR_C || what==ProgramGlobals::OPERATOR_CDAGGER)
-			return hasNewPartsCorCdagger(newParts,oldParts,what,spin,orb);
-		if (what==ProgramGlobals::OPERATOR_SPLUS || what==ProgramGlobals::OPERATOR_SMINUS)
-			return hasNewPartsSplusOrSminus(newParts,oldParts,what,orb);
+		if (lOperator.id() == LabeledOperatorType::Label::OPERATOR_C ||
+		        lOperator.id() == LabeledOperatorType::Label::OPERATOR_CDAGGER)
+			return hasNewPartsCorCdagger(newParts, oldParts, lOperator, spin, orb);
+
+		if (lOperator.id() == LabeledOperatorType::Label::OPERATOR_SPLUS ||
+		        lOperator.id() == LabeledOperatorType::Label::OPERATOR_SMINUS)
+			return hasNewPartsSplusOrSminus(newParts, oldParts, lOperator, orb);
+
 		PsimagLite::String str(__FILE__);
 		str += " " + ttos(__LINE__) +  "\n";
 		str += PsimagLite::String("hasNewParts: unsupported operator ");
-		str += ProgramGlobals::id2Operator(what) + "\n";
+		str += lOperator.toString() + "\n";
 		throw std::runtime_error(str.c_str());
 	}
 
@@ -272,7 +281,7 @@ public:
 	virtual bool getBra(WordType&,
 	                    WordType,
 	                    WordType,
-	                    SizeType,
+	                    const LabeledOperator&,
 	                    SizeType,
 	                    SizeType) const
 	{
@@ -283,13 +292,13 @@ private:
 
 	int getBraIndexCorCdaggerOrN(WordType ket1,
 	                             WordType ket2,
-	                             SizeType what,
+	                             const LabeledOperatorType& lOperator,
 	                             SizeType site,
 	                             SizeType spin,
 	                             SizeType orb) const
 	{
 		WordType bra  =0;
-		bool b = getBraCorCdaggerOrN(bra,ket1,ket2,what,site,spin,orb);
+		bool b = getBraCorCdaggerOrN(bra, ket1, ket2, lOperator, site, spin, orb);
 		if (!b) return -1;
 		return (spin==SPIN_UP) ? perfectIndex(bra,ket2) :
 		                         perfectIndex(ket1,bra);
@@ -297,21 +306,21 @@ private:
 
 	int getBraIndexSplusOrSminus(WordType ket1,
 	                             WordType ket2,
-	                             SizeType what,
+	                             const LabeledOperatorType& lOperator,
 	                             SizeType site,
 	                             SizeType orb) const
 	{
 
 		WordType bra1  =0;
 		WordType bra2  =0;
-		bool b = getBraSplusOrSminus(bra1,bra2,ket1,ket2,what,site,orb);
+		bool b = getBraSplusOrSminus(bra1,bra2,ket1,ket2,lOperator,site,orb);
 		if (!b) return -1;
 		return perfectIndex(bra1,bra2);
 	}
 
 	bool hasNewPartsCorCdagger(std::pair<SizeType,SizeType>& newParts,
 	                           const std::pair<SizeType,SizeType>& oldParts,
-	                           SizeType what,
+	                           const LabeledOperatorType&,
 	                           SizeType spin,
 	                           SizeType orb) const
 	{
@@ -320,7 +329,7 @@ private:
 
 	bool hasNewPartsSplusOrSminus(std::pair<SizeType,SizeType>& newParts,
 	                              const std::pair<SizeType,SizeType>& oldParts,
-	                              SizeType what,
+	                              const LabeledOperatorType& lOperator,
 	                              SizeType orb) const
 	{
 		throw PsimagLite::RuntimeError("UNIMPLEMENTED: hasNewPartsSplusOrSminus\n");
@@ -329,7 +338,7 @@ private:
 	bool getBraCorCdaggerOrN(WordType& bra,
 	                         const WordType& ket1,
 	                         const WordType& ket2,
-	                         SizeType what,
+	                         const LabeledOperatorType&,
 	                         SizeType site,
 	                         SizeType spin,
 	                         SizeType orb) const
@@ -341,7 +350,7 @@ private:
 	                         WordType& bra2,
 	                         const WordType& ket1,
 	                         const WordType& ket2,
-	                         SizeType what,
+	                         const LabeledOperatorType&,
 	                         SizeType site,
 	                         SizeType orb) const
 	{

@@ -1,6 +1,7 @@
 #ifndef LANCZOSOPTIONS_H
 #define LANCZOSOPTIONS_H
 #include "Vector.h"
+#include "LabeledOperator.h"
 
 namespace  LanczosPlusPlus {
 
@@ -13,8 +14,8 @@ struct LanczosOptions {
 	{}
 
 	int split;
-	PsimagLite::Vector<SizeType>::Type cicj;
-	PsimagLite::Vector<SizeType>::Type gf;
+	PsimagLite::Vector<LabeledOperator>::Type cicj;
+	PsimagLite::Vector<LabeledOperator>::Type gf;
 	PsimagLite::Vector<SizeType>::Type sites;
 	PsimagLite::Vector<PairSizeType>::Type spins;
 	PsimagLite::String extendedStatic;

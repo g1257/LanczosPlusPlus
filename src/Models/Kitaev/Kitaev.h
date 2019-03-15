@@ -29,6 +29,7 @@ public:
 
 	typedef ParametersKitaev<RealType,InputType> ParametersModelType;
 	typedef BasisKitaev<GeometryType> BasisType;
+	typedef typename BasisType::LabeledOperatorType LabeledOperatorType;
 	typedef typename BasisType::BaseType BasisBaseType;
 	typedef typename BasisType::WordType WordType;
 	typedef typename BaseType::SparseMatrixType SparseMatrixType;
@@ -125,7 +126,7 @@ public:
 
 	bool hasNewParts(std::pair<SizeType,SizeType>& newParts,
 	                 const std::pair<SizeType,SizeType>& oldParts,
-	                 SizeType what,
+	                 const LabeledOperatorType& lOperator,
 	                 SizeType spin,
 	                 SizeType orb) const
 	{
@@ -140,7 +141,7 @@ public:
 		PsimagLite::String str(__FILE__);
 		str += " " + ttos(__LINE__) +  "\n";
 		str += PsimagLite::String("hasNewParts: unsupported operator ");
-		str += ProgramGlobals::id2Operator(what) + "\n";
+		str += lOperator.toString() + "\n";
 		throw PsimagLite::RuntimeError(str.c_str());
 	}
 
@@ -218,7 +219,7 @@ private:
 
 	bool hasNewPartsSplusOrMinus(std::pair<SizeType,SizeType>& newParts,
 	                             const std::pair<SizeType,SizeType>& oldParts,
-	                             SizeType what,
+	                             const LabeledOperatorType& lOperator,
 	                             SizeType) const
 	{
 		if (TWICE_THE_SPIN != 1)
@@ -226,11 +227,11 @@ private:
 
 		newParts.first = oldParts.first;
 		bool flag = false;
-		if (what == ProgramGlobals::OPERATOR_SPLUS) {
+		if (lOperator.id() == LabeledOperatorType::Label::OPERATOR_SPLUS) {
 			newParts.second = oldParts.second + 1;
 			if (newParts.second > geometry_.numberOfSites())
 				flag = true;
-		} else if (what == ProgramGlobals::OPERATOR_SMINUS) {
+		} else if (lOperator.id() == LabeledOperatorType::Label::OPERATOR_SMINUS) {
 			if (basis_.szPlusConst() == 0) flag =true;
 			newParts.second = oldParts.second - 1;
 		}
@@ -294,7 +295,7 @@ private:
 			RealType m1 = val2 - spin;
 			WordType bra;
 
-			basis.getBra(bra,ket,i,val1,j,val2);
+			basis.getBra(bra,ket,i,LabeledOperatorType(val1),j,val2);
 			SizeType temp = basis.perfectIndex(bra,dummy);
 			RealType tmp = sqrt(spin*(spin+1.0) - m1*(m1+1.0));
 			tmp *= sqrt(spin*(spin+1.0) - m2*(m2-1.0));

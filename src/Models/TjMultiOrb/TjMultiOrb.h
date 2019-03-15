@@ -139,21 +139,22 @@ public:
 
 	bool hasNewParts(std::pair<SizeType,SizeType>& newParts,
 	                 const std::pair<SizeType,SizeType>& oldParts,
-	                 SizeType what,
+	                 const LabeledOperator& lOperator,
 	                 SizeType spin,
-	                 SizeType orb) const
+	                 SizeType) const
 	{
-		if (what==ProgramGlobals::OPERATOR_C || what==ProgramGlobals::OPERATOR_CDAGGER)
-			return hasNewPartsCorCdagger(newParts,oldParts,what,spin);
+		if (lOperator.id() == LabeledOperator::Label::OPERATOR_C ||
+		        lOperator.id() == LabeledOperator::Label::OPERATOR_CDAGGER)
+			return hasNewPartsCorCdagger(newParts, oldParts, lOperator, spin);
 
-		if (what == ProgramGlobals::OPERATOR_SPLUS ||
-		        what == ProgramGlobals::OPERATOR_SMINUS)
-			return hasNewPartsSplusOrMinus(newParts,oldParts,what,spin);
+		if (lOperator.id() == LabeledOperator::Label::OPERATOR_SPLUS ||
+		        lOperator.id() == LabeledOperator::Label::OPERATOR_SMINUS)
+			return hasNewPartsSplusOrMinus(newParts, oldParts, lOperator, spin);
 
 		PsimagLite::String str(__FILE__);
 		str += " " + ttos(__LINE__) +  "\n";
 		str += PsimagLite::String("hasNewParts: unsupported operator ");
-		str += ProgramGlobals::id2Operator(what) + "\n";
+		str += lOperator.toString() + "\n";
 		throw std::runtime_error(str.c_str());
 	}
 
@@ -492,10 +493,8 @@ private:
 		SizeType hilbertDest = basis.size();
 		SizeType hilbertSrc = basis_.size();
 		SizeType nsite = geometry_.numberOfSites();
-		SizeType id = 0;
-		if (operatorName == "c") {
-			id = ProgramGlobals::OPERATOR_C;
-		} else {
+		LabeledOperator lOperator(operatorName);
+		if (operatorName != "c") {
 			PsimagLite::String str(__FILE__);
 			str += " " + ttos(__LINE__) + "\n";
 			str += "operator " + operatorName + " is unimplemented for this model\n";
@@ -528,22 +527,22 @@ private:
 			WordType ket2 = basis_(ispace,SPIN_DOWN);
 			WordType bra = ket1;
 			// assumes OPERATOR_C
-			bool b = basis.getBra(bra,ket1,ket2,id,site,spin);
+			bool b = basis.getBra(bra, ket1, ket2, lOperator, site, spin);
 			if (!b) continue;
-			SizeType index = basis.perfectIndex(bra,ket2);
+			SizeType index = basis.perfectIndex(bra, ket2);
 
-			matrix(ispace,index) = basis.doSignGf(bra,ket2,site,spin,orb);
+			matrix(ispace,index) = basis.doSignGf(bra, ket2, site, spin, orb);
 		}
 	}
 
 	bool hasNewPartsCorCdagger(std::pair<SizeType,SizeType>& newParts,
 	                           const std::pair<SizeType,SizeType>& oldParts,
-	                           SizeType what,
+	                           const LabeledOperator& lOperator,
 	                           SizeType spin) const
 	{
 		int newPart1 = oldParts.first;
 		int newPart2 = oldParts.second;
-		int c = (what==ProgramGlobals::OPERATOR_CDAGGER) ? 1 : -1;
+		int c = (lOperator.id() == LabeledOperator::Label::OPERATOR_CDAGGER) ? 1 : -1;
 		if (spin==SPIN_UP) newPart1 += c;
 		else newPart2 += c;
 
@@ -559,12 +558,12 @@ private:
 
 	bool hasNewPartsSplusOrMinus(std::pair<SizeType,SizeType>& newParts,
 	                             const std::pair<SizeType,SizeType>& oldParts,
-	                             SizeType what,
+	                             const LabeledOperator& lOperator,
 	                             SizeType spin) const
 	{
 		int newPart1 = oldParts.first;
 		int newPart2 = oldParts.second;
-		int c = (what==ProgramGlobals::OPERATOR_SPLUS) ? 1 : -1;
+		int c = (lOperator.id() == LabeledOperator::Label::OPERATOR_SPLUS) ? 1 : -1;
 		if (spin==SPIN_UP) {
 			newPart1 += c;
 			newPart2 -= c;

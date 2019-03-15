@@ -24,6 +24,7 @@ Please see full open source license included in file LICENSE.
 #include "BitManip.h"
 #include "../../Engine/Partitions.h"
 #include "../../Engine/ProgramGlobals.h"
+#include "LabeledOperator.h"
 
 namespace LanczosPlusPlus {
 
@@ -31,14 +32,10 @@ class BasisOneSpinFeAs {
 
 	typedef Partitions PartitionsType;
 
-	 enum {OPERATOR_NIL=ProgramGlobals::OPERATOR_NIL,
-	      OPERATOR_C=ProgramGlobals::OPERATOR_C,
-	      OPERATOR_SZ=ProgramGlobals::OPERATOR_SZ,
-	      OPERATOR_CDAGGER=ProgramGlobals::OPERATOR_CDAGGER};
-
 public:
 
 	typedef ProgramGlobals::WordType WordType;
+	typedef LabeledOperator LabeledOperatorType;
 
 	static SizeType orbitals_;
 	static int const FERMION_SIGN  = -1;
@@ -130,7 +127,7 @@ public:
 
 	bool getBra(WordType& bra,
 	            const WordType& myword,
-	            SizeType what,
+	            const LabeledOperatorType& lOperator,
 	            SizeType site,
 	            SizeType orb) const
 	{
@@ -138,7 +135,8 @@ public:
 		uncollateKet(kets,myword);
 
 		WordType braA = kets[orb];
-		if (!getBraCorCdagger(braA,kets[orb],what,site)) return false;
+		if (!getBraCorCdagger(braA, kets[orb], lOperator, site))
+			return false;
 
 		kets[orb] = braA;
 		bra = getCollatedKet(kets);
@@ -206,9 +204,9 @@ public:
 		return npart_;
 	}
 
-	int newPartCorCdagger(SizeType newPart1, SizeType what) const
+	int newPartCorCdagger(SizeType newPart1, const LabeledOperatorType& lOperator) const
 	{
-		int c = (what==ProgramGlobals::OPERATOR_C) ? -1 : 1;
+		int c = (lOperator.id() == LabeledOperatorType::Label::OPERATOR_C) ? -1 : 1;
 		newPart1 += c;
 
 		if (SizeType(newPart1)>orbitals_*nsite_) return -1;
@@ -408,30 +406,34 @@ private:
 		}
 	}
 
-	bool getBraCorCdagger(WordType& bra, const WordType& ket,SizeType what,SizeType i) const
+	bool getBraCorCdagger(WordType& bra,
+	                      const WordType& ket,
+	                      const LabeledOperatorType& lOperator,
+	                      SizeType i) const
 	{
 
 		WordType si=(ket & bitmask_[i]);
-		if (what==OPERATOR_C) {
+		if (lOperator.id() == LabeledOperatorType::Label::OPERATOR_C) {
 			if (si>0) {
 				bra = (ket ^ bitmask_[i]);
 				return true;
 			} else {
 				return false; // cannot destroy, there's nothing
 			}
-		} else if (what==OPERATOR_CDAGGER) {
+		} else if (lOperator.id() == LabeledOperatorType::Label::OPERATOR_CDAGGER) {
 			if (si==0) {
 				bra = (ket ^ bitmask_[i]);
 				return true;
 			} else {
 				return false; // cannot construct, there's already one
 			}
-		} else if (what==ProgramGlobals::OPERATOR_N) {
+		} else if (lOperator.id() == LabeledOperatorType::Label::OPERATOR_N) {
 			if (si==0) return false;
 			bra = ket;
 			return true;
 		}
-		PsimagLite::String str = ProgramGlobals::unknownOperator(what);
+
+		PsimagLite::String str = lOperator.unknownOperator();
 		throw std::runtime_error(str.c_str());
 	}
 

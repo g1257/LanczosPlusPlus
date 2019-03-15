@@ -40,6 +40,7 @@ public:
 	typedef BasisOneSpinImmm BasisType;
 	typedef PsimagLite::KTwoNiFFour<typename GeometryType::ComplexOrRealType,
 	typename GeometryType::InputType> KTwoNiFFourType;
+	typedef typename BaseType::LabeledOperatorType LabeledOperatorType;
 
 	class OrbsPerSite : public PsimagLite::Vector<SizeType>::Type {
 
@@ -133,13 +134,13 @@ public:
 
 	PairIntType getBraIndex(WordType ket1,
 	                        WordType ket2,
-	                        SizeType what,
+	                        const LabeledOperator& lOperator,
 	                        SizeType site,
 	                        SizeType spin,
 	                        SizeType orb) const
 	{
 		WordType bra = 0;
-		bool b = getBra(bra,ket1,ket2,what,site,spin,orb);
+		bool b = getBra(bra, ket1, ket2, lOperator, site, spin, orb);
 		if (!b) return PairIntType(-1,1);
 		int tmp = (spin==SPIN_UP) ? perfectIndex(bra,ket2) : perfectIndex(ket1,bra);
 		return PairIntType(tmp,1);
@@ -211,16 +212,18 @@ public:
 
 	bool hasNewParts(std::pair<SizeType,SizeType>& newParts,
 	                 const std::pair<SizeType,SizeType>& oldParts,
-	                 SizeType what,
+	                 const LabeledOperator& lOperator,
 	                 SizeType spin,
 	                 SizeType orb) const
 	{
-		if (what==ProgramGlobals::OPERATOR_C || what==ProgramGlobals::OPERATOR_CDAGGER)
-			return hasNewPartsCorCdagger(newParts,oldParts,what,spin);
+		if (lOperator.id() == LabeledOperator::Label::OPERATOR_C ||
+		        lOperator.id() == LabeledOperator::Label::OPERATOR_CDAGGER)
+			return hasNewPartsCorCdagger(newParts, oldParts, lOperator, spin);
+
 		PsimagLite::String str(__FILE__);
 		str += " " + ttos(__LINE__) +  "\n";
 		str += PsimagLite::String("hasNewParts: unsupported operator ");
-		str += ProgramGlobals::id2Operator(what) + "\n";
+		str += lOperator.toString() + "\n";
 		throw std::runtime_error(str.c_str());
 	}
 
@@ -236,7 +239,7 @@ public:
 	virtual bool getBra(WordType&,
 	                    WordType,
 	                    WordType,
-	                    SizeType,
+	                    const LabeledOperator&,
 	                    SizeType,
 	                    SizeType) const
 	{
@@ -247,16 +250,16 @@ private:
 
 	bool hasNewPartsCorCdagger(std::pair<SizeType,SizeType>& newParts,
 	                           const std::pair<SizeType,SizeType>& oldParts,
-	                           SizeType what,
+	                           const LabeledOperator& lOperator,
 	                           SizeType spin) const
 	{
 		int newPart1 = oldParts.first;
 		int newPart2 = oldParts.second;
 
 		if (spin==SPIN_UP)
-			newPart1 = basis1_.newPartCorCdagger(newPart1,what);
+			newPart1 = basis1_.newPartCorCdagger(newPart1, lOperator);
 		else
-			newPart2 = basis2_.newPartCorCdagger(newPart2,what);
+			newPart2 = basis2_.newPartCorCdagger(newPart2, lOperator);
 
 		if (newPart1<0 || newPart2<0) return false;
 
@@ -269,13 +272,13 @@ private:
 	bool getBra(WordType& bra,
 	            const WordType& ket1,
 	            const WordType& ket2,
-	            SizeType what,
+	            const LabeledOperatorType& lOperator,
 	            SizeType site,
 	            SizeType spin,
 	            SizeType orb) const
 	{
-		return (spin==SPIN_UP) ? basis1_.getBra(bra,ket1,what,site,orb) :
-		                         basis2_.getBra(bra,ket2,what,site,orb);
+		return (spin==SPIN_UP) ? basis1_.getBra(bra,ket1,lOperator,site,orb) :
+		                         basis2_.getBra(bra,ket2,lOperator,site,orb);
 	}
 
 	SizeType nup_;

@@ -20,7 +20,7 @@ public:
 	typedef BasisBase<GeometryType> BaseType;
 	typedef typename BaseType::WordType WordType;
 	typedef typename BaseType::VectorWordType VectorWordType;
-
+	typedef typename BaseType::LabeledOperatorType LabeledOperatorType;
 	static int const FERMION_SIGN = BasisType::FERMION_SIGN;
 
 	BasisHubbardLanczos(const GeometryType& geometry, SizeType nup,SizeType ndown)
@@ -161,23 +161,23 @@ public:
 
 	PairIntType getBraIndex(WordType ket1,
 	                        WordType ket2,
-	                        SizeType what,
+	                        const LabeledOperatorType& lOperator,
 	                        SizeType site,
 	                        SizeType spin,
 	                        SizeType) const
 	{
-		if (what == ProgramGlobals::OPERATOR_SPLUS ||
-		        what == ProgramGlobals::OPERATOR_SMINUS)
-			return getBraIndexSplusSminus(ket1,ket2,what,site);
+		if (lOperator.id() == LabeledOperatorType::Label::OPERATOR_SPLUS ||
+		        lOperator.id() == LabeledOperatorType::Label::OPERATOR_SMINUS)
+			return getBraIndexSplusSminus(ket1, ket2, lOperator, site);
 
-		if (what == ProgramGlobals::OPERATOR_SZ)
+		if (lOperator.id() == LabeledOperatorType::Label::OPERATOR_SZ)
 			return getBraIndexSz(ket1,ket2,site);
 
 		WordType bra = 0;
-		bool b = getBra(bra,ket1,ket2,what,site,spin);
-		if (!b) return PairIntType(-1,1);
-		int tmp = (spin==SPIN_UP) ? perfectIndex(bra,ket2) :
-		                            perfectIndex(ket1,bra);
+		bool b = getBra(bra, ket1, ket2, lOperator, site, spin);
+		if (!b) return PairIntType(-1, 1);
+		int tmp = (spin==SPIN_UP) ? perfectIndex(bra, ket2) :
+		                            perfectIndex(ket1, bra);
 		return PairIntType(tmp,1);
 	}
 
@@ -199,47 +199,50 @@ private:
 	bool getBra(WordType& bra,
 	            WordType ket1,
 	            WordType ket2,
-	            SizeType what,
+	            const LabeledOperatorType& lOperator,
 	            SizeType site,
 	            SizeType spin) const
 	{
-		return (spin==SPIN_UP) ? basis1_.getBra(bra,ket1,what,site) :
-		                         basis2_.getBra(bra,ket2,what,site);
+		return (spin==SPIN_UP) ? basis1_.getBra(bra, ket1, lOperator, site) :
+		                         basis2_.getBra(bra, ket2, lOperator, site);
 	}
 
 	PairIntType getBraIndexSz(WordType ket1,
 	                          WordType ket2,
 	                          SizeType site) const
 	{
+		LabeledOperatorType opN(LabeledOperatorType::Label::OPERATOR_N);
 		WordType bra = 0;
-		bool b1 = basis1_.getBra(bra,ket1,ProgramGlobals::OPERATOR_N,site);
-		bool b2 = basis2_.getBra(bra,ket2,ProgramGlobals::OPERATOR_N,site);
-		if (!b1 && !b2) return PairIntType(-1,1);
-		if (b1 && b2) return PairIntType(-1,1);
+		bool b1 = basis1_.getBra(bra, ket1, opN, site);
+		bool b2 = basis2_.getBra(bra, ket2, opN, site);
+		if (!b1 && !b2) return PairIntType(-1, 1);
+		if (b1 && b2) return PairIntType(-1, 1);
 		int tmp = (b1) ? 1 : -1;
-		SizeType index = perfectIndex(ket1,ket2);
+		SizeType index = perfectIndex(ket1, ket2);
 		return PairIntType(index,tmp);
 	}
 
 	PairIntType getBraIndexSplusSminus(WordType ket1,
 	                                   WordType ket2,
-	                                   SizeType what,
+	                                   const LabeledOperatorType& lOperator,
 	                                   SizeType site) const
 	{
-		SizeType spin = (what == ProgramGlobals::OPERATOR_SPLUS) ? SPIN_UP : SPIN_DOWN;
+		SizeType spin = (lOperator.id() == LabeledOperatorType::Label::OPERATOR_SPLUS) ? SPIN_UP
+		                                                                               : SPIN_DOWN;
 
+		LabeledOperatorType opC(LabeledOperatorType::Label::OPERATOR_C);
 		WordType brar1 = 0;
-		bool b = getBra(brar1,ket1,ket2,ProgramGlobals::OPERATOR_CDAGGER,site,spin);
-		if (!b) return PairIntType(-1,1);
+		bool b = getBra(brar1, ket1, ket2, opC.transposeConjugate(), site, spin);
+		if (!b) return PairIntType(-1, 1);
 
 		WordType brar2 = 0;
-		b = getBra(brar2,ket1,ket2,ProgramGlobals::OPERATOR_C,site,1 - spin);
-		if (!b) return PairIntType(-1,1);
+		b = getBra(brar2, ket1, ket2, opC, site, 1 - spin);
+		if (!b) return PairIntType(-1, 1);
 
-		int tmp = (spin==SPIN_UP) ? perfectIndex(brar1,brar2) :
-		                            perfectIndex(brar2,brar1);
+		int tmp = (spin==SPIN_UP) ? perfectIndex(brar1, brar2) :
+		                            perfectIndex(brar2, brar1);
 
-		return PairIntType(tmp,1);
+		return PairIntType(tmp, 1);
 	}
 
 	SizeType nup_;

@@ -17,8 +17,11 @@ my @data;
 
 for (my $i = 0; $i < $total; ++$i) {
 	my $input = createInput($i);
-	system("./lanczos -f $input -g $obs -s $spins &> $rootInput$i.comb");
-	print STDERR "$0: Created $rootInput$i.comb\n";
+	if ($obs ne "0") {
+		system("./lanczos -f $input -g $obs -s $spins &> $rootInput$i.comb");
+		print STDERR "$0: Created $rootInput$i.comb\n";
+	}
+
 	system("perl ../scripts/extractOrbitals.pl $orb1 $orb2 $orbitals < $rootInput$i.comb > $rootInput$i.comb2");
 	print STDERR "$0: Created $rootInput$i.comb2\n";
 	system("echo \"#SITES $centralSite $i\" > $rootInput$i.cf");

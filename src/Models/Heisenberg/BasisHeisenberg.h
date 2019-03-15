@@ -20,10 +20,9 @@ public:
 	typedef BasisBase<GeometryType> BaseType;
 	typedef typename BaseType::WordType WordType;
 	typedef typename BaseType::VectorWordType VectorWordType;
-	static VectorWordType bitmask_;
+	typedef typename BaseType::LabeledOperatorType LabeledOperatorType;
 
-	enum {OPERATOR_NIL=ProgramGlobals::OPERATOR_NIL,
-		  OPERATOR_SZ=ProgramGlobals::OPERATOR_SZ};
+	static VectorWordType bitmask_;
 
 	BasisHeisenberg(const GeometryType& geometry,
 	                SizeType twiceS,
@@ -127,7 +126,7 @@ public:
 
 	PairIntType getBraIndex(WordType ket1,
 	                        WordType ket2,
-	                        SizeType operatorLabel,
+	                        const LabeledOperatorType& lOperator,
 	                        SizeType site,
 	                        SizeType spin,
 	                        SizeType orb) const
@@ -135,12 +134,12 @@ public:
 		if (twiceS_ != 1)
 			throw PsimagLite::RuntimeError("BasisHeisenberg::getBraIndex_ \n");
 
-		if (operatorLabel == ProgramGlobals::OPERATOR_SPLUS ||
-		        operatorLabel == ProgramGlobals::OPERATOR_SMINUS) {
-			return getBraIndexSplusSminus(ket1,ket2,operatorLabel,site,spin,orb);
+		if (lOperator.id() == LabeledOperatorType::Label::OPERATOR_SPLUS ||
+		        lOperator.id() == LabeledOperatorType::Label::OPERATOR_SMINUS) {
+			return getBraIndexSplusSminus(ket1, ket2, lOperator, site, spin, orb);
 		}
 
-		return getBraIndex_(ket1,ket2,operatorLabel,site,spin,orb);
+		return getBraIndex_(ket1, ket2, lOperator, site, spin, orb);
 	}
 
 	SizeType orbsPerSite(SizeType) const { return 1; }
@@ -174,7 +173,7 @@ private:
 	bool getBra(WordType& bra,
 	            WordType ket,
 	            WordType site1,
-	            SizeType val1,
+	            const LabeledOperatorType& val1,
 	            SizeType site2,
 	            SizeType val2) const
 	{
@@ -187,7 +186,7 @@ private:
 		mask2 <<= (site2*bits_);
 		bra &= (~mask2);
 
-		mask1 = val1;
+		mask1 = val1.toUint();
 		mask1 <<= (site1*bits_);
 		bra |= mask1;
 
@@ -234,43 +233,43 @@ private:
 
 	PairIntType getBraIndexSplusSminus(WordType ket1,
 	                                   WordType ket2,
-	                                   SizeType operatorLabel,
+	                                   const LabeledOperatorType& lOperator,
 	                                   SizeType site,
 	                                   SizeType,
 	                                   SizeType) const
 	{
-		assert(operatorLabel == ProgramGlobals::OPERATOR_SPLUS ||
-		       operatorLabel == ProgramGlobals::OPERATOR_SMINUS);
+		assert(lOperator.id() == LabeledOperatorType::Label::OPERATOR_SPLUS ||
+		       lOperator.id() == LabeledOperatorType::Label::OPERATOR_SMINUS);
 
 		WordType mask1 = getMask();
 		mask1 <<= (site*bits_);
 
 		if (ket1 & mask1) {
-			if (operatorLabel == ProgramGlobals::OPERATOR_SPLUS)
+			if (lOperator.id() == LabeledOperatorType::Label::OPERATOR_SPLUS)
 				return PairIntType(-1,0);
 		} else {
-			if (operatorLabel == ProgramGlobals::OPERATOR_SMINUS)
+			if (lOperator.id() == LabeledOperatorType::Label::OPERATOR_SMINUS)
 				return PairIntType(-1,0);
 		}
 
 		WordType bra = ket1 ^ mask1;
 
-		return PairIntType(perfectIndex(bra,ket2),1);
+		return PairIntType(perfectIndex(bra, ket2), 1);
 	}
 
 	PairIntType getBraIndex_(WordType ket1,
 	                         WordType ket2,
-	                         SizeType operatorLabel,
+	                         const LabeledOperatorType& lOperator,
 	                         SizeType site,
 	                         SizeType spin,
 	                         SizeType orb) const
 	{
-		if (operatorLabel != ProgramGlobals::OPERATOR_N || twiceS_ != 1)
-			throw PsimagLite::RuntimeError("BasisHeisenberg::getBraIndex_ \n");
+		if (lOperator.id() != LabeledOperatorType::Label::OPERATOR_N || twiceS_ != 1)
+			err("BasisHeisenberg::getBraIndex_ \n");
 
-		SizeType nup = getN(ket1,ket2,site,0,orb);
+		SizeType nup = getN(ket1, ket2, site, 0, orb);
 		assert(nup < 2);
-		return PairIntType(perfectIndex(ket1,ket2),
+		return PairIntType(perfectIndex(ket1, ket2),
 		                   (spin == ProgramGlobals::SPIN_UP) ? nup : 1 - nup);
 	}
 

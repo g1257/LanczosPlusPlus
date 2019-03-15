@@ -7,6 +7,7 @@
 #include "Matrix.h"
 #include "BitManip.h"
 #include "ProgramGlobals.h"
+#include "LabeledOperator.h"
 
 namespace LanczosPlusPlus {
 
@@ -14,16 +15,13 @@ namespace LanczosPlusPlus {
 
 	public:
 
-		static int const FERMION_SIGN  = -1;
 		typedef ProgramGlobals::WordType WordType;
+		typedef LabeledOperator LabeledOperatorType;
+
+		static int const FERMION_SIGN  = -1;
 		static SizeType nsite_;
 		static PsimagLite::Matrix<SizeType> comb_;
 		static PsimagLite::Vector<WordType>::Type bitmask_;
-
-		enum {OPERATOR_NIL=ProgramGlobals::OPERATOR_NIL,
-		      OPERATOR_C=ProgramGlobals::OPERATOR_C,
-		      OPERATOR_SZ=ProgramGlobals::OPERATOR_SZ,
-		      OPERATOR_CDAGGER=ProgramGlobals::OPERATOR_CDAGGER};
 
 		BasisOneSpin(SizeType nsite, SizeType npart)
 		: npart_(npart)
@@ -131,29 +129,33 @@ namespace LanczosPlusPlus {
 			return (sum & 1) ? FERMION_SIGN : 1;
 		}
 
-		bool getBra(WordType& bra, const WordType& ket,SizeType what,SizeType site) const
+		bool getBra(WordType& bra,
+		            const WordType& ket,
+		            const LabeledOperatorType& lOperator,
+		            SizeType site) const
 		{
 			WordType si=(ket & bitmask_[site]);
-			if (what==OPERATOR_C) {
+			if (lOperator.id() == LabeledOperatorType::Label::OPERATOR_C) {
 				if (si>0) {
 					bra = (ket ^ bitmask_[site]);
 					return true;
 				} else {
 					return false; // cannot destroy, there's nothing
 				}
-			} else if (what==OPERATOR_CDAGGER) {
+			} else if (lOperator.id() == LabeledOperatorType::Label::OPERATOR_CDAGGER) {
 				if (si==0) {
 					bra = (ket ^ bitmask_[site]);
 					return true;
 				} else {
 					return false; // cannot construct, there's already one
 				}
-			} else if (what==ProgramGlobals::OPERATOR_N) {
+			} else if (lOperator.id() == LabeledOperatorType::Label::OPERATOR_N) {
 				if (si==0) return false;
 				bra = ket;
 				return true;
 			}
-			PsimagLite::String str = ProgramGlobals::unknownOperator(what);
+
+			PsimagLite::String str = lOperator.unknownOperator();
 			throw std::runtime_error(str.c_str());
 		}
 

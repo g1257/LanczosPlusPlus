@@ -31,8 +31,6 @@ class BasisFeAsBasedSc : public BasisBase<GeometryType_> {
 	typedef ProgramGlobals::PairIntType PairIntType;
 
 	static SizeType orbitals_;
-	static const SizeType OPERATOR_C = ProgramGlobals::OPERATOR_C;
-	static const SizeType OPERATOR_CDAGGER = ProgramGlobals::OPERATOR_CDAGGER;
 	static const SizeType SPIN_UP = ProgramGlobals::SPIN_UP;
 
 public:
@@ -42,6 +40,8 @@ public:
 	typedef typename BaseType::WordType WordType;
 	typedef typename BaseType::VectorWordType VectorWordType;
 	typedef BasisOneSpinFeAs BasisType;
+	typedef BasisType::LabeledOperatorType LabeledOperatorType;
+
 	static int const FERMION_SIGN = BasisType::FERMION_SIGN;
 
 	BasisFeAsBasedSc(const GeometryType& geometry,
@@ -120,21 +120,26 @@ public:
 
 	PairIntType getBraIndex(WordType ket1,
 	                        WordType ket2,
-	                        SizeType what,
+	                        const LabeledOperatorType& lOperator,
 	                        SizeType site,
 	                        SizeType spin,
 	                        SizeType orb) const
 	{
-		if (what==ProgramGlobals::OPERATOR_C ||
-		    what==ProgramGlobals::OPERATOR_CDAGGER ||
-		    what==ProgramGlobals::OPERATOR_N)
-		  return PairIntType(getBraIndexCorCdaggerOrN(ket1,ket2,what,site,spin,orb),1);
-		if (what==ProgramGlobals::OPERATOR_SPLUS || what==ProgramGlobals::OPERATOR_SMINUS)
-			return PairIntType(getBraIndexSplusOrSminus(ket1,ket2,what,site,orb),1);
+		if (lOperator.id() == LabeledOperatorType::Label::OPERATOR_C ||
+		    lOperator.id() == LabeledOperatorType::Label::OPERATOR_CDAGGER ||
+		    lOperator.id() == LabeledOperatorType::Label::OPERATOR_N)
+		  return PairIntType(getBraIndexCorCdaggerOrN(ket1, ket2, lOperator, site, spin, orb),
+		                     1);
+
+		if (lOperator.id() == LabeledOperatorType::Label::OPERATOR_SPLUS ||
+		        lOperator.id() == LabeledOperatorType::Label::OPERATOR_SMINUS)
+			return PairIntType(getBraIndexSplusOrSminus(ket1, ket2, lOperator, site, orb),
+			                   1);
+
 		PsimagLite::String str(__FILE__);
 		str += " " + ttos(__LINE__) +  "\n";
 		str += PsimagLite::String("getBraIndex: unsupported operator ");
-		str += ProgramGlobals::id2Operator(what) + "\n";
+		str += lOperator.toString() + "\n";
 		throw std::runtime_error(str.c_str());
 	}
 
@@ -214,18 +219,22 @@ public:
 
 	bool hasNewParts(std::pair<SizeType,SizeType>& newParts,
 	                 const std::pair<SizeType,SizeType>& oldParts,
-	                 SizeType what,
+	                 const LabeledOperatorType& lOperator,
 	                 SizeType spin,
 	                 SizeType orb) const
 	{
-		if (what==ProgramGlobals::OPERATOR_C || what==ProgramGlobals::OPERATOR_CDAGGER)
-			return hasNewPartsCorCdagger(newParts,oldParts,what,spin);
-		if (what==ProgramGlobals::OPERATOR_SPLUS || what==ProgramGlobals::OPERATOR_SMINUS)
-			return hasNewPartsSplusOrSminus(newParts,oldParts,what);
+		if (lOperator.id() == LabeledOperatorType::Label::OPERATOR_C ||
+		        lOperator.id() == LabeledOperatorType::Label::OPERATOR_CDAGGER)
+			return hasNewPartsCorCdagger(newParts, oldParts, lOperator, spin);
+
+		if (lOperator.id() == LabeledOperatorType::Label::OPERATOR_SPLUS ||
+		        lOperator.id() == LabeledOperatorType::Label::OPERATOR_SMINUS)
+			return hasNewPartsSplusOrSminus(newParts, oldParts, lOperator);
+
 		PsimagLite::String str(__FILE__);
 		str += " " + ttos(__LINE__) +  "\n";
 		str += PsimagLite::String("hasNewParts: unsupported operator ");
-		str += ProgramGlobals::id2Operator(what) + "\n";
+		str += lOperator.toString() + "\n";
 		throw std::runtime_error(str.c_str());
 	}
 
@@ -251,7 +260,7 @@ public:
 	virtual bool getBra(WordType&,
 	                    WordType,
 	                    WordType,
-	                    SizeType,
+	                    const LabeledOperatorType&,
 	                    SizeType,
 	                    SizeType) const
 	{
@@ -262,14 +271,14 @@ private:
 
 	int getBraIndexCorCdaggerOrN(WordType ket1,
 	                             WordType ket2,
-	                             SizeType what,
+	                             const LabeledOperatorType& lOperator,
 	                             SizeType site,
 	                             SizeType spin,
 	                             SizeType orb) const
 	{
 
 		WordType bra  =0;
-		bool b = getBraCorCdaggerOrN(bra,ket1,ket2,what,site,spin,orb);
+		bool b = getBraCorCdaggerOrN(bra,ket1,ket2,lOperator,site,spin,orb);
 		if (!b) return -1;
 		return (spin==SPIN_UP) ? perfectIndex(bra,ket2) :
 		       perfectIndex(ket1,bra);
@@ -277,28 +286,30 @@ private:
 
 	int getBraIndexSplusOrSminus(WordType ket1,
 	                             WordType ket2,
-	                             SizeType what,
+	                             const LabeledOperatorType& lOperator,
 	                             SizeType site,
 	                             SizeType orb) const
 	{
 
 		WordType bra1  =0;
 		WordType bra2  =0;
-		bool b = getBraSplusOrSminus(bra1,bra2,ket1,ket2,what,site,orb);
+		bool b = getBraSplusOrSminus(bra1,bra2,ket1,ket2,lOperator,site,orb);
 		if (!b) return -1;
 		return perfectIndex(bra1,bra2);
 	}
 
 	bool hasNewPartsCorCdagger(std::pair<SizeType,SizeType>& newParts,
 	                           const std::pair<SizeType,SizeType>& oldParts,
-	                           SizeType what,
+	                           const LabeledOperatorType& lOperator,
 	                           SizeType spin) const
 	{
 		int newPart1 = oldParts.first;
 		int newPart2 = oldParts.second;
 
-		if (spin==SPIN_UP) newPart1 = basis1_.newPartCorCdagger(newPart1, what);
-		else newPart2 = basis2_.newPartCorCdagger(newPart2, what);
+		if (spin == SPIN_UP)
+			newPart1 = basis1_.newPartCorCdagger(newPart1, lOperator);
+		else
+			newPart2 = basis2_.newPartCorCdagger(newPart2, lOperator);
 
 		if (newPart1<0 || newPart2<0) return false;
 
@@ -310,10 +321,10 @@ private:
 
 	bool hasNewPartsSplusOrSminus(std::pair<SizeType,SizeType>& newParts,
 	                              const std::pair<SizeType,SizeType>& oldParts,
-	                              SizeType what) const
+	                              const LabeledOperatorType& lOperator) const
 	{
-		int c1 = (what==ProgramGlobals::OPERATOR_SPLUS) ? 1 : -1;
-		int c2 = (what==ProgramGlobals::OPERATOR_SPLUS) ? -1 : 1;
+		int c1 = (lOperator.id() == LabeledOperatorType::Label::OPERATOR_SPLUS) ? 1 : -1;
+		int c2 = (lOperator.id() == LabeledOperatorType::Label::OPERATOR_SPLUS) ? -1 : 1;
 
 		int newPart1 = basis1_.hasNewPartsSplusOrSminus(oldParts.first, c1);
 		int newPart2 = basis2_.hasNewPartsSplusOrSminus(oldParts.second, c2);
@@ -329,27 +340,37 @@ private:
 	bool getBraCorCdaggerOrN(WordType& bra,
 	                         const WordType& ket1,
 	                         const WordType& ket2,
-	                         SizeType what,
+	                         const LabeledOperatorType& lOperator,
 	                         SizeType site,
 	                         SizeType spin,
 	                         SizeType orb) const
 	{
-		return (spin==SPIN_UP) ? basis1_.getBra(bra,ket1,what,site,orb) :
-		       basis2_.getBra(bra,ket2,what,site,orb);
+		return (spin==SPIN_UP) ? basis1_.getBra(bra,ket1,lOperator,site,orb) :
+		       basis2_.getBra(bra,ket2,lOperator,site,orb);
 	}
 
 	bool getBraSplusOrSminus(WordType& bra1,
 	                         WordType& bra2,
 	                         const WordType& ket1,
 	                         const WordType& ket2,
-	                         SizeType what,
+	                         const LabeledOperatorType& lOperator,
 	                         SizeType site,
 	                         SizeType orb) const
 	{
-		SizeType what1 = (what==ProgramGlobals::OPERATOR_SPLUS) ? OPERATOR_CDAGGER : OPERATOR_C;
-		SizeType what2 = (what==ProgramGlobals::OPERATOR_SPLUS) ? OPERATOR_C : OPERATOR_CDAGGER;
-		bool b1 = basis1_.getBra(bra1,ket1,what1,site,orb);
-		bool b2 = basis2_.getBra(bra2,ket2,what2,site,orb);
+		const LabeledOperatorType::Label what1 =
+		        (lOperator.id() == LabeledOperatorType::Label::OPERATOR_SPLUS) ?
+		            LabeledOperatorType::Label::OPERATOR_CDAGGER :
+		            LabeledOperatorType::Label::OPERATOR_C;
+
+		const LabeledOperatorType::Label what2 =
+		        (lOperator.id() == LabeledOperatorType::Label::OPERATOR_SPLUS) ?
+		            LabeledOperatorType::Label::OPERATOR_C :
+		            LabeledOperatorType::Label::OPERATOR_CDAGGER;
+
+		bool b1 = basis1_.getBra(bra1,ket1,LabeledOperatorType(what1),site,orb);
+
+		bool b2 = basis2_.getBra(bra2,ket2,LabeledOperatorType(what2),site,orb);
+
 		return (b1 & b2);
 	}
 

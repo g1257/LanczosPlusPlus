@@ -51,7 +51,7 @@ public:
 
 	virtual bool hasNewParts(std::pair<SizeType,SizeType>& newParts,
 	                         const std::pair<SizeType,SizeType>& oldParts,
-	                         SizeType what,
+	                         const LabeledOperator& what,
 	                         SizeType spin,
 	                         SizeType orb) const = 0;
 

@@ -24,6 +24,7 @@ Please see full open source license included in file LICENSE.
 #include "BitManip.h"
 #include <cassert>
 #include "ProgramGlobals.h"
+#include "LabeledOperator.h"
 
 namespace LanczosPlusPlus {
 
@@ -32,11 +33,7 @@ namespace LanczosPlusPlus {
 	public:
 
 		typedef ProgramGlobals::WordType WordType;
-
-		enum {OPERATOR_NIL=ProgramGlobals::OPERATOR_NIL,
-		      OPERATOR_C=ProgramGlobals::OPERATOR_C,
-		      OPERATOR_SZ=ProgramGlobals::OPERATOR_SZ,
-		      OPERATOR_CDAGGER=ProgramGlobals::OPERATOR_CDAGGER};
+		typedef LabeledOperator LabeledOperatorType;
 
 		static int const FERMION_SIGN  = -1;
 		static SizeType nsite_;
@@ -239,7 +236,11 @@ namespace LanczosPlusPlus {
 
 		SizeType electrons() const { return npart_; }
 
-		bool getBra(WordType& bra,const WordType& myword,SizeType what,SizeType site,SizeType orb) const
+		bool getBra(WordType& bra,
+		            const WordType& myword,
+		            const LabeledOperatorType& lOperator,
+		            SizeType site,
+		            SizeType orb) const
 		{
 			WordType ketA=0,ketB=0;
 			uncollateKet(ketA,ketB,myword);
@@ -247,17 +248,19 @@ namespace LanczosPlusPlus {
 			WordType braB = ketB;
 
 			if (orb==0) {
-				if (!getBra(braA,ketA,what,site)) return false;
+				if (!getBra(braA, ketA, lOperator, site)) return false;
 			} else {
-				if (!getBra(braB,ketB,what,site)) return false;
+				if (!getBra(braB, ketB, lOperator, site)) return false;
 			}
-			bra = getCollatedKet(braA,braB);
+
+			bra = getCollatedKet(braA, braB);
 			return true;
 		}
 
-		int newPartCorCdagger(SizeType newPart1, SizeType what) const
+		int newPartCorCdagger(SizeType newPart1,
+		                      const LabeledOperatorType& lOperator) const
 		{
-			int c = (what==ProgramGlobals::OPERATOR_CDAGGER) ? 1 : -1;
+			int c = (lOperator.id() == LabeledOperatorType::Label::OPERATOR_CDAGGER) ? 1 : -1;
 			newPart1 += c;
 
 			if (SizeType(newPart1)>maxElectrons()) return -1;
@@ -267,30 +270,34 @@ namespace LanczosPlusPlus {
 
 	private:
 
-		bool getBra(WordType& bra, const WordType& ket,SizeType what,SizeType i) const
+		bool getBra(WordType& bra,
+		            const WordType& ket,
+		            const LabeledOperatorType& lOperator,
+		            SizeType i) const
 		{
 
 			WordType si=(ket & bitmask_[i]);
-			if (what==OPERATOR_C) {
+			if (lOperator.id() == LabeledOperatorType::Label::OPERATOR_C) {
 				if (si>0) {
 					bra = (ket ^ bitmask_[i]);
 					return true;
 				} else {
 					return false; // cannot destroy, there's nothing
 				}
-			} else if (what==OPERATOR_CDAGGER) {
+			} else if (lOperator.id() == LabeledOperatorType::Label::OPERATOR_CDAGGER) {
 				if (si==0) {
 					bra = (ket ^ bitmask_[i]);
 					return true;
 				} else {
 					return false; // cannot construct, there's already one
 				}
-			} else if (what==ProgramGlobals::OPERATOR_N) {
+			} else if (lOperator.id() == LabeledOperatorType::Label::OPERATOR_N) {
 				if (si==0) return false;
 				bra = ket;
 				return true;
 			}
-			PsimagLite::String str = ProgramGlobals::unknownOperator(what);
+
+			PsimagLite::String str = lOperator.unknownOperator();
 			throw std::runtime_error(str.c_str());
 
 		}

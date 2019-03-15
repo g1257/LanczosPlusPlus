@@ -21,6 +21,7 @@ Please see full open source license included in file LICENSE.
 #ifndef LANCZOS_BASIS_BASE_H
 #define LANCZOS_BASIS_BASE_H
 #include "Vector.h"
+#include "LabeledOperator.h"
 
 namespace LanczosPlusPlus {
 
@@ -34,6 +35,7 @@ public:
 	typedef ProgramGlobals::PairIntType PairIntType;
 	typedef ProgramGlobals::WordType WordType;
 	typedef typename PsimagLite::Vector<WordType>::Type VectorWordType;
+	typedef LabeledOperator LabeledOperatorType;
 
 	virtual ~BasisBase() {}
 
@@ -57,7 +59,7 @@ public:
 
 	virtual PairIntType getBraIndex(WordType ket1,
 	                                WordType ket2,
-	                                SizeType what,
+	                                const LabeledOperatorType&,
 	                                SizeType site,
 	                                SizeType spin,
 	                                SizeType orb) const = 0;
@@ -104,7 +106,7 @@ public:
 	virtual bool getBra(WordType&,
 	                    WordType,
 	                    WordType,
-	                    SizeType,
+	                    const LabeledOperatorType&,
 	                    SizeType,
 	                    SizeType) const = 0;
 

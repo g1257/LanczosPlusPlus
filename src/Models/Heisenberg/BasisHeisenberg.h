@@ -264,13 +264,23 @@ private:
 	                         SizeType spin,
 	                         SizeType orb) const
 	{
-		if (lOperator.id() != LabeledOperatorType::Label::OPERATOR_N || twiceS_ != 1)
-			err("BasisHeisenberg::getBraIndex_ \n");
+		if (twiceS_ != 1)
+			err("getBraIndex_: S=1/2 supported only\n");
 
-		SizeType nup = getN(ket1, ket2, site, 0, orb);
-		assert(nup < 2);
-		return PairIntType(perfectIndex(ket1, ket2),
-		                   (spin == ProgramGlobals::SPIN_UP) ? nup : 1 - nup);
+		if (lOperator.id() == LabeledOperatorType::Label::OPERATOR_N) {
+
+
+			SizeType nup = getN(ket1, ket2, site, 0, orb);
+			assert(nup < 2);
+			return PairIntType(perfectIndex(ket1, ket2),
+			                   (spin == ProgramGlobals::SPIN_UP) ? nup : 1 - nup);
+		} else if (lOperator.id() == LabeledOperatorType::Label::OPERATOR_SZ) {
+			int nup = getN(ket1, ket2, site, 0, orb);
+			return PairIntType(perfectIndex(ket1, ket2),
+			                   1 - 2*nup);
+		}
+
+		throw PsimagLite::RuntimeError(lOperator.unknownOperator());
 	}
 
 	void doBitmask()

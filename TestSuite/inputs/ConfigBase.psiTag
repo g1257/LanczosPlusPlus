@@ -49,6 +49,10 @@ CPPFLAGS +=-DUSE_GSL
 LDFLAGS += -lgsl -lgslcblas
 )
 
+dependency HDF5 = (
+CPPFLAGS += -I/usr/include/hdf5/serial
+)
+
 # This enables the custom allocator (use only for debugging)
 option USE_CUSTOM_ALLOCATOR = CPPFLAGS += -DUSE_CUSTOM_ALLOCATOR
 
@@ -100,6 +104,7 @@ group basics = (
 < compilerCPPOptions ansi
 < dependency LAPACK
 < dependency BLAS
+< dependency HDF5
 STRIP_COMMAND = strip
 )
 

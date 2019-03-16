@@ -76,8 +76,7 @@ public:
 
 	SizeType numberOfTypes() const
 	{
-		Label t = transposeConjugate();
-		return (what_ == t) ? 2 : 4;
+		return 4;
 	}
 
 	bool needsNewBasis() const

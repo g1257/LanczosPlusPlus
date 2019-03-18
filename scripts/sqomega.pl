@@ -15,13 +15,10 @@ my $total = readLabel($template,"TotalNumberOfSites");
 my $centralSite = int($total/2) - 1;
 my @data;
 
-for (my $i = 0; $i < $total; ++$i) {
-	my $input = createInput($i);
-	if ($obs ne "0") {
-		system("./lanczos -f $input -g $obs -s $spins &> $rootInput$i.comb");
-		print STDERR "$0: Created $rootInput$i.comb\n";
-	}
+my $input = createInput($total);
+system("./lanczos -f $input -g $obs -s $spins") if ($obs ne "0");
 
+for (my $i = 0; $i < $total; ++$i) {
 	system("perl ../scripts/extractOrbitals.pl $orb1 $orb2 $orbitals < $rootInput$i.comb > $rootInput$i.comb2");
 	print STDERR "$0: Created $rootInput$i.comb2\n";
 	system("echo \"#SITES $centralSite $i\" > $rootInput$i.cf");
@@ -91,10 +88,8 @@ sub readData
 
 sub createInput
 {
-	my ($ind) = @_;
-	my $input = "$rootInput$ind.inp";
-	my $site1 = $centralSite;
-	my $site2 = $ind;
+	my ($total) = @_;
+	my $input = "$rootInput.inp";
 
 	open(FILE, "<", $template) or die "$0: Cannot open $template : $!\n";
 	open(FOUT, ">", "$input") or die "$0: Cannot write to $input : $!\n";
@@ -112,6 +107,12 @@ sub createInput
 	}
 
 	close(FILE);
+
+	my $c = int($total/2) - 1;
+	for (my $i = 0; $i < $total; ++$i) {
+		print FOUT "TSPSites 2   $c $i\n";
+	}
+
 	close(FOUT);
 
 	print STDERR "$0: Created $input\n";

@@ -61,41 +61,51 @@ void mainLoop3(const ModelType& model,
 	RealType Eg = engine.gsEnergy();
 	std::cout.precision(8);
 	std::cout<<"Energy="<<Eg<<"\n";
+	PsimagLite::String filename = PsimagLite::basenameOf(io.filename());
+
 	for (SizeType gfi=0;gfi<lanczosOptions.gf.size();gfi++) {
-		io.read(lanczosOptions.sites,"TSPSites");
-		if (lanczosOptions.sites.size()==0)
-			throw std::runtime_error("No sites in input file!\n");
-		if (lanczosOptions.sites.size()==1)
-			lanczosOptions.sites.push_back(lanczosOptions.sites[0]);
-
-		std::cout<<"#gf(i="<<lanczosOptions.sites[0]<<",j=";
-		std::cout<<lanczosOptions.sites[1]<<")\n";
-		typedef PsimagLite::ContinuedFraction<TridiagonalMatrixType>
-		        ContinuedFractionType;
-		typedef PsimagLite::ContinuedFractionCollection<ContinuedFractionType>
-		        ContinuedFractionCollectionType;
-
-		typename EngineType::VectorStringType vstr;
-		PsimagLite::IoSimple::Out ioOut(std::cout);
-		ContinuedFractionCollectionType cfCollection(PsimagLite::FREQ_REAL);
-		SizeType norbitals = maxOrbitals(model);
-		for (SizeType orb1=0;orb1<norbitals;orb1++) {
-			for (SizeType orb2=orb1;orb2<norbitals;orb2++) {
-				engine.spectralFunction(cfCollection,
-				                        vstr,
-				                        lanczosOptions.gf[gfi],
-				                        lanczosOptions.sites[0],
-				        lanczosOptions.sites[1],
-				        lanczosOptions.spins,
-				        std::pair<SizeType,SizeType>(orb1,orb2));
+		SizeType counter = 0;
+		while (true) {
+			try {
+				io.read(lanczosOptions.sites,"TSPSites");
+			} catch (std::exception&) {
+				break;
 			}
-		}
+			if (lanczosOptions.sites.size()==0)
+				throw std::runtime_error("No sites in input file!\n");
+			if (lanczosOptions.sites.size()==1)
+				lanczosOptions.sites.push_back(lanczosOptions.sites[0]);
 
-		ioOut<<"#INDEXTOCF ";
-		for (SizeType i = 0; i < vstr.size(); ++i)
-			ioOut<<vstr[i]<<" ";
-		ioOut<<"\n";
-		cfCollection.write(ioOut);
+			std::cout<<"#gf(i="<<lanczosOptions.sites[0]<<",j=";
+			std::cout<<lanczosOptions.sites[1]<<")\n";
+			typedef PsimagLite::ContinuedFraction<TridiagonalMatrixType>
+			        ContinuedFractionType;
+			typedef PsimagLite::ContinuedFractionCollection<ContinuedFractionType>
+			        ContinuedFractionCollectionType;
+
+			typename EngineType::VectorStringType vstr;
+			PsimagLite::IoSimple::Out ioOut(filename + ttos(counter) + ".comb");
+			ContinuedFractionCollectionType cfCollection(PsimagLite::FREQ_REAL);
+			SizeType norbitals = maxOrbitals(model);
+			for (SizeType orb1=0;orb1<norbitals;orb1++) {
+				for (SizeType orb2=orb1;orb2<norbitals;orb2++) {
+					engine.spectralFunction(cfCollection,
+					                        vstr,
+					                        lanczosOptions.gf[gfi],
+					                        lanczosOptions.sites[0],
+					        lanczosOptions.sites[1],
+					        lanczosOptions.spins,
+					        std::pair<SizeType,SizeType>(orb1,orb2));
+				}
+			}
+
+			ioOut<<"#INDEXTOCF ";
+			for (SizeType i = 0; i < vstr.size(); ++i)
+				ioOut<<vstr[i]<<" ";
+			ioOut<<"\n";
+			cfCollection.write(ioOut);
+			++counter;
+		}
 	}
 
 	for (SizeType cicji=0;cicji<lanczosOptions.cicj.size();cicji++) {

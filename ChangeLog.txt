@@ -1,3 +1,15 @@
+2019-04-02 Version 1.66
+
+* build includes hdf5
+
+* LabeledOperator class
+
+* sqomega.pl can write pgfplots file
+
+* Heisenberg supports -g sz
+
+* spectral functions: multiple TSPSites supported
+
 2019-01-31 Version 1.64
 
 * Needs C++11

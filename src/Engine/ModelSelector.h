@@ -62,7 +62,7 @@ public:
 		}
 
 		if (model == "HubbardOneBandRashbaSOC")
-			io.readline(szPlusConst,"TargetElectrons=");
+			io.readline(szPlusConst,"TargetElectronsTotal=");
 
 		PsimagLite::Matrix<ComplexOrRealType> spinOrbit;
 		try {

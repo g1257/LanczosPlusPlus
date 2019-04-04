@@ -42,6 +42,7 @@ public:
 			const SizeType sizeDown = basisDown.size();
 			for (SizeType i = 0; i < sizeUp; ++i) {
 				for (SizeType j = 0; j < sizeDown; ++j) {
+					assert(k < data_.size());
 					data_[k++] = PairWordType(basisUp[i], basisDown[j]);
 				}
 			}

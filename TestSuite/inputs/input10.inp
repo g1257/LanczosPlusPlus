@@ -23,7 +23,7 @@ potentialV 8
 SolverOptions=MatrixVectorStored,dumpmatrix,printmatrix
 Version=version
 OutputFile=data10
-TargetElectrons=1
+TargetElectronsTotal=1
 IsPeriodicX=0
 
 

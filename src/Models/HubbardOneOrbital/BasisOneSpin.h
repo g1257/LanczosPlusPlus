@@ -88,27 +88,27 @@ namespace LanczosPlusPlus {
 
 		SizeType electrons() const { return npart_; }
 
-		SizeType isThereAnElectronAt(WordType ket,SizeType site) const
+		static SizeType isThereAnElectronAt(WordType ket,SizeType site)
 		{
 			return (ket & bitmask_[site]) ? 1 : 0;
 		}
 
-		SizeType getN(WordType ket,SizeType site) const
+		static SizeType getN(WordType ket,SizeType site)
 		{
 			return isThereAnElectronAt(ket,site);
 		}
 
-		int doSign(WordType a, SizeType i) const
+		static int doSign(WordType a, SizeType i)
 		{
-			if (i==nsite_-1) return 1;
+			if (i == nsite_ - 1) return 1;
 
 			a &= ((1 << (i+1)) - 1) ^ ((1 << nsite_) - 1);
 			// Parity of single occupied between i and nsite-1
-			int s=(PsimagLite::BitManip::count(a) & 1) ? FERMION_SIGN : 1;
+			int s = (PsimagLite::BitManip::count(a) & 1) ? FERMION_SIGN : 1;
 			return s;
 		}
 
-		int doSign(WordType ket,SizeType i,SizeType j) const
+		static int doSign(WordType ket,SizeType i,SizeType j)
 		{
 			assert(i <= j);
 			SizeType x0 = (i+1); // i+1 cannot be the last site, 'cause i<j
@@ -170,9 +170,11 @@ namespace LanczosPlusPlus {
 			}
 		}
 
+		static SizeType comb(SizeType n, SizeType m) { return comb_(n, m); }
+
 	private:
 
-		SizeType getNbyKet(SizeType ket,SizeType from,SizeType upto) const
+		static SizeType getNbyKet(SizeType ket,SizeType from,SizeType upto)
 		{
 			SizeType sum = 0;
 			SizeType counter = from;
@@ -180,13 +182,14 @@ namespace LanczosPlusPlus {
 				if (ket & bitmask_[counter]) sum++;
 				counter++;
 			}
+
 			return sum;
 		}
 
-		void doCombinatorial()
+		static void doCombinatorial()
 		{
 			/* look-up table for binomial coefficients */
-			comb_.resize(2*nsite_, 2*nsite_, 0);
+			comb_.resize(2*nsite_ + 2, 2*nsite_ + 2, 0);
 
 			for (SizeType n=0;n<comb_.n_row();n++) {
 				SizeType m = 0;

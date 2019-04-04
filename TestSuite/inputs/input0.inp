@@ -1,0 +1,25 @@
+TotalNumberOfSites=4
+NumberOfTerms=1
+
+DegreesOfFreedom=1
+GeometryKind=chain
+GeometryOptions=ConstantValues
+Connectors 1 -1.0
+
+Model=HubbardOneBand
+
+hubbardU 4
+0 0 0 0
+
+potentialV 8
+0 0 0 0
+0 0 0 0
+
+SolverOptions=none
+Version=version
+OutputFile=data0
+TargetElectronsUp=2
+TargetElectronsDown=2
+IsPeriodicX=0
+
+

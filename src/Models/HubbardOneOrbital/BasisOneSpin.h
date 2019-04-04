@@ -183,17 +183,6 @@ namespace LanczosPlusPlus {
 			return sum;
 		}
 
-// 		SizeType getNbyKet(SizeType ket) const
-// 		{
-// 			SizeType sum = 0;
-// 			WordType ketCopy = ket;
-// 			while(ketCopy) {
-// 				if (ketCopy & 1) sum++;
-// 				ketCopy <<= 1;
-// 			}
-// 			return sum;
-// 		}
-
 		void doCombinatorial()
 		{
 			/* look-up table for binomial coefficients */
@@ -216,7 +205,6 @@ namespace LanczosPlusPlus {
 			for (SizeType i=1;i<nsite_;i++)
 				bitmask_[i] = bitmask_[i-1]<<1;
 		}
-
 
 		SizeType size_;
 		SizeType npart_;

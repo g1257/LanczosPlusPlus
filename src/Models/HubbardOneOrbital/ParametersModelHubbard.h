@@ -99,6 +99,10 @@ struct ParametersModelHubbard {
 		} catch (std::exception& e) {}
 	}
 
+	ParametersModelHubbard(const ParametersModelHubbard&) = delete;
+
+	ParametersModelHubbard& operator=(const ParametersModelHubbard &) = delete;
+
 	PsimagLite::String model;
 	// Do not include here connection parameters
 	// those are handled by the Geometry

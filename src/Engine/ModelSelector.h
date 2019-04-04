@@ -90,6 +90,7 @@ public:
 	~ModelSelector()
 	{
 		delete modelPtr_;
+		modelPtr_ = 0;
 	}
 
 	const ModelBaseType& operator()() const { return *modelPtr_; }

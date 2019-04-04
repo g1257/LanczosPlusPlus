@@ -44,47 +44,8 @@ public:
 	    : mp_(io),
 	      geometry_(geometry),
 	      basis_(geometry,nup,ndown),
-	      hoppings_(geometry_.numberOfSites(),geometry_.numberOfSites()),
-	      hasJcoupling_(false),
-	      hasCoulombCoupling_(false),
-	      helper_(geometry, mp_, hoppings_, hasJcoupling_, hasCoulombCoupling_)
-	{
-		if (mp_.model == "HubbardOneBandExtended" ||
-		        mp_.model == "SuperHubbardExtended") hasCoulombCoupling_ = true;
-
-		if (mp_.model == "SuperHubbardExtended") hasJcoupling_ = true;
-
-		bool hasSpinOrbitKaneMele = (mp_.model == "KaneMeleHubbard");
-
-		if (hasCoulombCoupling_ && geometry_.terms()<2) {
-			throw PsimagLite::RuntimeError("HubbardOneOrbital::ctor(): ColoumbCoupling\n");
-		}
-
-		if (hasJcoupling_ && geometry_.terms()<3) {
-			throw PsimagLite::RuntimeError("HubbardOneOrbital::ctor(): jCoupling\n");
-		}
-
-		if (hasSpinOrbitKaneMele && geometry_.terms() != 2) {
-			throw PsimagLite::RuntimeError("HubbardOneOrbital::ctor(): KaneMeleHubbard");
-		}
-
-		SizeType n = geometry_.numberOfSites();
-		for (SizeType j=0;j<n;j++) {
-			for (SizeType i=0;i<j;i++) {
-
-				hoppings_(i,j) = geometry_(i, 0, j, 0, HubbardHelperType::TermEnum::HOPPING);
-
-				if (hasSpinOrbitKaneMele)
-					hoppings_(i,j) += geometry_(i, 0, j, 0, 1);
-			}
-		}
-
-		for (SizeType j=0;j<n;j++) {
-			for (SizeType i=j+1;i<n;i++) {
-				hoppings_(i,j) = PsimagLite::conj(hoppings_(i,j));
-			}
-		}
-	}
+	      helper_(geometry, mp_)
+	{}
 
 	~HubbardOneOrbital()
 	{
@@ -293,9 +254,6 @@ private:
 	const ParametersModelType mp_;
 	const GeometryType& geometry_;
 	BasisType basis_;
-	PsimagLite::Matrix<ComplexOrRealType> hoppings_;
-	bool hasJcoupling_;
-	bool hasCoulombCoupling_;
 	mutable typename PsimagLite::Vector<BasisType*>::Type garbage_;
 	HubbardHelperType helper_;
 }; // class HubbardOneOrbital

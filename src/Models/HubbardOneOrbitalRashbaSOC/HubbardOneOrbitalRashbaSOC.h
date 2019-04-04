@@ -45,18 +45,8 @@ public:
 	    : mp_(io),
 	      geometry_(geometry),
 	      basis_(geometry, ne),
-	      hoppings_(geometry_.numberOfSites(),geometry_.numberOfSites()),
-	      helper_(geometry, mp_, hoppings_, false, false)
-	{
-		SizeType n = geometry_.numberOfSites();
-		for (SizeType j=0;j<n;j++)
-			for (SizeType i=0;i<j;i++)
-				hoppings_(i,j) = geometry_(i, 0, j, 0, HubbardHelperType::TermEnum::HOPPING);
-
-		for (SizeType j=0;j<n;j++)
-			for (SizeType i=j+1;i<n;i++)
-				hoppings_(i,j) = PsimagLite::conj(hoppings_(i,j));
-	}
+	      helper_(geometry, mp_)
+	{}
 
 	~HubbardOneOrbitalRashbaSOC()
 	{
@@ -128,7 +118,6 @@ private:
 	const ParametersModelType mp_;
 	const GeometryType& geometry_;
 	BasisType basis_;
-	MatrixType hoppings_;
 	HubbardHelperType helper_;
 	mutable typename PsimagLite::Vector<BasisType*>::Type garbage_;
 }; // class HubbardOneOrbitalRashbaSOC

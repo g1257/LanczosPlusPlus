@@ -28,16 +28,42 @@ public:
 	static const int FERMION_SIGN = -1;
 
 	HubbardHelper(const GeometryType& geometry,
-	              const ModelParamsType& mp,
-	              const MatrixType& hoppings,
-	              const bool& hasJcoupling,
-	              const bool& hasCoulombCoupling)
+	              const ModelParamsType& mp)
 	    : geometry_(geometry),
 	      mp_(mp),
-	      hoppings_(hoppings),
-	      hasJcoupling_(hasJcoupling),
-	      hasCoulombCoupling_(hasCoulombCoupling)
-	{}
+	      hoppings_(geometry.numberOfSites(), geometry.numberOfSites()),
+		  hasJcoupling_(mp_.model == "SuperHubbardExtended"),
+	      hasCoulombCoupling_(mp_.model == "HubbardOneBandExtended" ||
+	                          mp_.model == "SuperHubbardExtended")
+	{
+		const bool hasSpinOrbitKaneMele = (mp_.model == "KaneMeleHubbard");
+
+		if (hasCoulombCoupling_ && geometry_.terms() < 2)
+			err("HubbardOneOrbital::ctor(): ColoumbCoupling\n");
+
+		if (hasJcoupling_ && geometry_.terms()<3)
+			err("HubbardOneOrbital::ctor(): jCoupling\n");
+
+		if (hasSpinOrbitKaneMele && geometry_.terms() != 2)
+			err("HubbardOneOrbital::ctor(): KaneMeleHubbard");
+
+		const SizeType n = geometry_.numberOfSites();
+		for (SizeType j=0;j<n;j++) {
+			for (SizeType i=0;i<j;i++) {
+
+				hoppings_(i, j) = geometry_(i, 0, j, 0, 0);
+
+				if (hasSpinOrbitKaneMele)
+					hoppings_(i, j) += geometry_(i, 0, j, 0, 1);
+			}
+		}
+
+		for (SizeType j=0;j<n;j++) {
+			for (SizeType i=j+1;i<n;i++) {
+				hoppings_(i,j) = PsimagLite::conj(hoppings_(i,j));
+			}
+		}
+	}
 
 	//! Gf. related functions below:
 	void setupHamiltonian(SparseMatrixType& matrix,
@@ -292,9 +318,9 @@ private:
 
 	const GeometryType& geometry_;
 	const ModelParamsType& mp_;
-	const MatrixType& hoppings_;
-	const bool& hasJcoupling_;
-    const bool& hasCoulombCoupling_;
+	MatrixType hoppings_;
+	bool hasJcoupling_;
+    bool hasCoulombCoupling_;
 };
 
 }

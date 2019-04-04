@@ -21,9 +21,9 @@ public:
 	typedef typename ModelBaseType::GeometryType GeometryType;
 	typedef typename PsimagLite::Matrix<ComplexOrRealType> MatrixType;
 
-	enum {TERM_HOPPING=0,TERM_NINJ=1,TERM_SUPER=2};
+	enum {SPIN_UP = ProgramGlobals::SPIN_UP, SPIN_DOWN = ProgramGlobals::SPIN_DOWN};
 
-	enum {SPIN_UP, SPIN_DOWN};
+	enum TermEnum {HOPPING = 0, NINJ = 1, SUPER = 2};
 
 	static const int FERMION_SIGN = -1;
 
@@ -275,13 +275,13 @@ private:
 	ComplexOrRealType jCoupling(SizeType i,SizeType j) const
 	{
 		if (!hasJcoupling_) return 0;
-		return geometry_(i,0,j,0,TERM_SUPER);
+		return geometry_(i, 0, j, 0, TermEnum::SUPER);
 	}
 
 	ComplexOrRealType coulombCoupling(SizeType i,SizeType j) const
 	{
 		if (!hasCoulombCoupling_) return 0;
-		return geometry_(i,0,j,0,TERM_NINJ);
+		return geometry_(i, 0, j, 0, TermEnum::NINJ);
 	}
 
 	HubbardHelper(const HubbardHelper&) = delete;

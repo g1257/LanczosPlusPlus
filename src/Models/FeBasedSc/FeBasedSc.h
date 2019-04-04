@@ -118,7 +118,7 @@ public:
 
 	typedef PsimagLite::SparseRow<SparseMatrixType> SparseRowType;
 
-	enum {TERM_HOPPINGS = 0,TERM_J_PM = 1, TERM_J_ZZ = 2};
+	enum TermEnum {HOPPING, J_PM, J_ZZ};
 
 	static int const FERMION_SIGN = BasisType::FERMION_SIGN;
 
@@ -317,7 +317,7 @@ private:
 
 	ComplexOrRealType hoppings(SizeType i,SizeType orb1,SizeType j,SizeType orb2) const
 	{
-		return -geometry_(i,orb1,j,orb2,TERM_HOPPINGS);
+		return -geometry_(i, orb1, j, orb2, TermEnum::HOPPING);
 	}
 
 	void setHoppingTerm(SparseRowType &sparseRow,
@@ -489,7 +489,7 @@ private:
 		const RealType zeroPointFive = 0.5;
 
 		for (SizeType j=0;j<geometry_.numberOfSites();j++) {
-			ComplexOrRealType value = jCoupling(i,j,TERM_J_PM)*zeroPointFive;
+			ComplexOrRealType value = jCoupling(i, j, TermEnum::J_PM)*zeroPointFive;
 			if (PsimagLite::real(value) == 0 && PsimagLite::imag(value) == 0) continue;
 			value *= 0.5; // double counting i,j
 			assert(i!=j);
@@ -593,7 +593,7 @@ private:
 		// JNN and JNNN diagonal part
 		for (SizeType j=0;j<nsite;j++) {
 			for (SizeType orb2=0;orb2<mp_.orbitals;orb2++) {
-				ComplexOrRealType value = jCoupling(i,j,TERM_J_ZZ);
+				ComplexOrRealType value = jCoupling(i, j, TermEnum::J_ZZ);
 				if (PsimagLite::real(value) == 0 && PsimagLite::imag(value) == 0) continue;
 				s += value*zeroPointFive* // RealType counting i,j
 				        szTerm(ket1,ket2,i,orb,basis)*

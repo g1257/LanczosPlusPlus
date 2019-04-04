@@ -17,10 +17,6 @@ namespace LanczosPlusPlus {
 template<typename ComplexOrRealType,typename GeometryType,typename InputType>
 class HubbardOneOrbital : public ModelBase<ComplexOrRealType,GeometryType,InputType> {
 
-	enum {TERM_HOPPING=0,TERM_NINJ=1,TERM_SUPER=2};
-
-	enum {SO_HOPPING_TERM = 1};
-
 	enum {SPIN_UP = ProgramGlobals::SPIN_UP, SPIN_DOWN = ProgramGlobals::SPIN_DOWN};
 
 public:
@@ -76,10 +72,10 @@ public:
 		for (SizeType j=0;j<n;j++) {
 			for (SizeType i=0;i<j;i++) {
 
-				hoppings_(i,j) = geometry_(i,0,j,0,TERM_HOPPING);
+				hoppings_(i,j) = geometry_(i, 0, j, 0, HubbardHelperType::TermEnum::HOPPING);
 
 				if (hasSpinOrbitKaneMele)
-					hoppings_(i,j) += geometry_(i,0,j,0,SO_HOPPING_TERM);
+					hoppings_(i,j) += geometry_(i, 0, j, 0, 1);
 			}
 		}
 

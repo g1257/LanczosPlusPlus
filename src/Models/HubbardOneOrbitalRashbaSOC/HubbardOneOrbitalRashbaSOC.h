@@ -110,7 +110,7 @@ public:
 
 	void printOperators(std::ostream& os) const
 	{
-		throw std::runtime_error("printOperators unimplemented\n");
+		os<<"WARNING: printOperators unimplemented\n";
 	}
 
 private:

@@ -34,20 +34,25 @@ public:
 	      hoppings_(geometry.numberOfSites(), geometry.numberOfSites()),
 		  hasJcoupling_(mp_.model == "SuperHubbardExtended"),
 	      hasCoulombCoupling_(mp_.model == "HubbardOneBandExtended" ||
-	                          mp_.model == "SuperHubbardExtended")
+	                          mp_.model == "SuperHubbardExtended"),
+	      hasRashba_(mp_.model == "HubbardOneBandRashbaSOC")
 	{
 		const bool hasSpinOrbitKaneMele = (mp_.model == "KaneMeleHubbard");
 
 		if (hasCoulombCoupling_ && geometry_.terms() < 2)
-			err("HubbardOneOrbital::ctor(): ColoumbCoupling\n");
+			err("HubbardHelper::ctor(): ColoumbCoupling\n");
 
 		if (hasJcoupling_ && geometry_.terms()<3)
-			err("HubbardOneOrbital::ctor(): jCoupling\n");
+			err("HubbardHelper::ctor(): jCoupling\n");
 
 		if (hasSpinOrbitKaneMele && geometry_.terms() != 2)
-			err("HubbardOneOrbital::ctor(): KaneMeleHubbard");
+			err("HubbardHelper::ctor(): KaneMeleHubbard\n");
+
+		if (hasRashba_ && geometry_.terms() != 2)
+			err("HubbardHelper::ctor(): Rashba needs two Hamiltonian terms\n");
 
 		const SizeType n = geometry_.numberOfSites();
+		if (hasRashba_) rashbaHoppings_.resize(n, n);
 		for (SizeType j=0;j<n;j++) {
 			for (SizeType i=0;i<j;i++) {
 
@@ -55,12 +60,9 @@ public:
 
 				if (hasSpinOrbitKaneMele)
 					hoppings_(i, j) += geometry_(i, 0, j, 0, 1);
-			}
-		}
 
-		for (SizeType j=0;j<n;j++) {
-			for (SizeType i=j+1;i<n;i++) {
-				hoppings_(i,j) = PsimagLite::conj(hoppings_(i,j));
+				if (hasRashba_)
+					rashbaHoppings_(i, j) = geometry_(i, 0, j, 0, 1);
 			}
 		}
 	}
@@ -187,20 +189,20 @@ private:
 		WordType s2i=(ket2 & BasisType::bitmask(i));
 		if (s2i>0) s2i=1;
 
-		SizeType nsite = geometry_.numberOfSites();
-		SizeType orb = 0;
+		const SizeType nsite = geometry_.numberOfSites();
+		const SizeType orb = 0;
 
 		// Hopping term
 		for (SizeType j=0;j<nsite;j++) {
-			if (j<i) continue;
-			ComplexOrRealType h = hoppings_(i,j);
-			if (PsimagLite::real(h) == 0 && PsimagLite::imag(h) == 0) continue;
+			if (j < i) continue;
+			const ComplexOrRealType& h = hoppings_(i,j);
+			const bool hasHop = (PsimagLite::real(h) != 0 || PsimagLite::imag(h) != 0);
 			WordType s1j= (ket1 & BasisType::bitmask(j));
 			if (s1j>0) s1j=1;
 			WordType s2j= (ket2 & BasisType::bitmask(j));
 			if (s2j>0) s2j=1;
 
-			if (s1i+s1j==1) {
+			if (hasHop && s1i + s1j == 1) {
 				WordType bra1= ket1 ^(BasisType::bitmask(i)|BasisType::bitmask(j));
 				SizeType temp = basis.perfectIndex(bra1,ket2);
 				RealType extraSign = (s1i==1) ? FERMION_SIGN : 1;
@@ -211,13 +213,48 @@ private:
 				sparseRow.add(temp,cTemp);
 			}
 
-			if (s2i+s2j==1) {
+			if (hasHop && s2i + s2j == 1) {
 				WordType bra2= ket2 ^(BasisType::bitmask(i)|BasisType::bitmask(j));
 				SizeType temp = basis.perfectIndex(ket1,bra2);
 				RealType extraSign = (s2i==1) ? FERMION_SIGN : 1;
 				RealType tmp2 = basis.doSign(ket1,ket2,i,orb,j,orb,SPIN_DOWN);
 				ComplexOrRealType cTemp = h*extraSign*tmp2;
 				if (s2j == 0) cTemp = PsimagLite::conj(cTemp);
+				assert(temp<basis.size());
+				sparseRow.add(temp,cTemp);
+			}
+
+			if (!hasRashba_) continue;
+
+			const ComplexOrRealType& hr = rashbaHoppings_(i, j);
+			if (PsimagLite::real(hr) == 0 && PsimagLite::imag(hr) == 0) continue;
+
+			if (s1i + s2j == 1) {
+				WordType bra1= ket1 ^ (BasisType::bitmask(i));
+				WordType bra2= ket2 ^ (BasisType::bitmask(j));
+				SizeType temp = basis.perfectIndex(bra1, bra2);
+				RealType extraSign = 1; //(s2j == 0) ? FERMION_SIGN : 1;
+				RealType tmp2 = BasisType::BasisType::doSign(ket1, i) *
+				        BasisType::BasisType::doSign(ket2, j);
+				const SizeType count1 = PsimagLite::BitManip::count(ket1) + s1i;
+				if (count1 & 1) tmp2 *= FERMION_SIGN;
+				ComplexOrRealType cTemp = hr*extraSign*tmp2;
+				if (s1i == 0) cTemp = PsimagLite::conj(cTemp);
+				assert(temp<basis.size());
+				sparseRow.add(temp,cTemp);
+			}
+
+			if (s2i + s1j == 1) {
+				WordType bra1= ket1 ^ (BasisType::bitmask(j));
+				WordType bra2= ket2 ^(BasisType::bitmask(i));
+				SizeType temp = basis.perfectIndex(bra1, bra2);
+				RealType extraSign = 1; //(s2i == 1) ? FERMION_SIGN : 1;
+				RealType tmp2 = BasisType::BasisType::doSign(ket1, j) *
+				        BasisType::BasisType::doSign(ket2, i);
+				const SizeType count1 = PsimagLite::BitManip::count(ket1) + s1j;
+				if (count1 & 1) tmp2 *= FERMION_SIGN;
+				ComplexOrRealType cTemp = hr*extraSign*tmp2;
+				if (s2i == 0) cTemp = PsimagLite::conj(cTemp);
 				assert(temp<basis.size());
 				sparseRow.add(temp,cTemp);
 			}
@@ -319,8 +356,10 @@ private:
 	const GeometryType& geometry_;
 	const ModelParamsType& mp_;
 	MatrixType hoppings_;
+	MatrixType rashbaHoppings_;
 	bool hasJcoupling_;
     bool hasCoulombCoupling_;
+	bool hasRashba_;
 };
 
 }

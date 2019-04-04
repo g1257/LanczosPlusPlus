@@ -174,9 +174,11 @@ public:
 		throw PsimagLite::RuntimeError("getBra()\n");
 	}
 
-	void print(std::ostream&, typename BaseType::PrintEnum) const
+	void print(std::ostream& os, typename BaseType::PrintEnum binaryOrDecimal) const
 	{
-		throw PsimagLite::RuntimeError("print()\n");
+		const SizeType n = data_.size();
+		for (SizeType i = 0; i < n; ++i)
+			os<<data_[i].first<<" "<<data_[i].second<<"\n";
 	}
 
 private:

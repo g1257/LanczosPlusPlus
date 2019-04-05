@@ -233,13 +233,13 @@ private:
 				WordType bra1= ket1 ^ (BasisType::bitmask(i));
 				WordType bra2= ket2 ^ (BasisType::bitmask(j));
 				SizeType temp = basis.perfectIndex(bra1, bra2);
-				RealType extraSign = 1; //(s2j == 0) ? FERMION_SIGN : 1;
+				RealType extraSign = (s2j == 0) ? FERMION_SIGN : 1;
 				RealType tmp2 = BasisType::BasisType::doSign(ket1, i) *
 				        BasisType::BasisType::doSign(ket2, j);
-				const SizeType count1 = PsimagLite::BitManip::count(ket1) + s1i;
+				const SizeType count1 = PsimagLite::BitManip::count(ket1); // + s1i;
 				if (count1 & 1) tmp2 *= FERMION_SIGN;
 				ComplexOrRealType cTemp = hr*extraSign*tmp2;
-				if (s1i == 0) cTemp = PsimagLite::conj(cTemp);
+				if (s2j == 0) cTemp = PsimagLite::conj(cTemp);
 				assert(temp<basis.size());
 				sparseRow.add(temp,cTemp);
 			}
@@ -248,10 +248,10 @@ private:
 				WordType bra1= ket1 ^ (BasisType::bitmask(j));
 				WordType bra2= ket2 ^(BasisType::bitmask(i));
 				SizeType temp = basis.perfectIndex(bra1, bra2);
-				RealType extraSign = 1; //(s2i == 1) ? FERMION_SIGN : 1;
+				RealType extraSign = (s2i == 0) ? FERMION_SIGN : 1;
 				RealType tmp2 = BasisType::BasisType::doSign(ket1, j) *
 				        BasisType::BasisType::doSign(ket2, i);
-				const SizeType count1 = PsimagLite::BitManip::count(ket1) + s1j;
+				const SizeType count1 = PsimagLite::BitManip::count(ket1); // + s1j;
 				if (count1 & 1) tmp2 *= FERMION_SIGN;
 				ComplexOrRealType cTemp = hr*extraSign*tmp2;
 				if (s2i == 0) cTemp = PsimagLite::conj(cTemp);

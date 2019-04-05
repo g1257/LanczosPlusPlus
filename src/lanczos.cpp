@@ -127,7 +127,7 @@ int main(int argc,char **argv)
 	\item[-V] prints version and exits.
 	\end{itemize}
 	*/
-	while ((opt = getopt(argc, argv, "g:c:f:s:r:p:S:V")) != -1) {
+	while ((opt = getopt(argc, argv, "g:c:m:f:s:r:p:S:V")) != -1) {
 		switch (opt) {
 		case 'g':
 			lanczosOptions.gf.push_back(LabeledOperator(optarg));
@@ -137,6 +137,9 @@ int main(int argc,char **argv)
 			break;
 		case 'c':
 			lanczosOptions.cicj.push_back(LabeledOperator(optarg));
+			break;
+		case 'm':
+			lanczosOptions.measure.push_back(optarg);
 			break;
 		case 's':
 			lanczosOptions.spins.clear();

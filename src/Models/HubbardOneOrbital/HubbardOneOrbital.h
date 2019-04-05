@@ -34,6 +34,7 @@ public:
 	typedef typename BaseType::VectorType VectorType;
 	typedef typename BasisType::LabeledOperatorType LabeledOperatorType;
 	typedef HubbardHelper<BaseType, BasisType, ParametersModelType> HubbardHelperType;
+	typedef typename HubbardHelperType::VectorRahulOperatorType VectorRahulOperatorType;
 
 	static int const FERMION_SIGN = BasisType::FERMION_SIGN;
 
@@ -87,7 +88,7 @@ public:
 	                 const std::pair<SizeType,SizeType>& oldParts,
 	                 const LabeledOperator& lOperator,
 	                 SizeType spin,
-	                 SizeType orb) const
+	                 SizeType) const
 	{
 		if (lOperator.id() == LabeledOperator::Label::OPERATOR_C ||
 		        lOperator.id() == LabeledOperator::Label::OPERATOR_CDAGGER)
@@ -130,6 +131,14 @@ public:
 		SizeType spin = SPIN_UP;
 		for (SizeType site = 0; site < geometry_.numberOfSites(); ++site)
 			printOperatorC(site,spin,os);
+	}
+
+	void rahulMethod(VectorType& psiNew,
+	                 const VectorRahulOperatorType& vops,
+	                 const VectorSizeType& vsites,
+	                 const VectorType& psi) const
+	{
+		return helper_.rahulMethod(psiNew, vops, vsites, psi, basis_);
 	}
 
 private:

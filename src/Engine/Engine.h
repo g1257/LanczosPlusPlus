@@ -30,6 +30,7 @@ Please see full open source license included in file LICENSE.
 #include "DefaultSymmetry.h"
 #include "TypeToString.h"
 #include "LabeledOperator.h"
+#include "OneOperatorSpec.h"
 
 namespace LanczosPlusPlus {
 template<typename ModelType_,
@@ -68,6 +69,9 @@ public:
 	typedef typename PsimagLite::Vector<RealType>::Type VectorRealType;
 	typedef typename PsimagLite::Vector<PsimagLite::String>::Type VectorStringType;
 	typedef LabeledOperator LabeledOperatorType;
+	typedef PsimagLite::OneOperatorSpec OneOperatorSpecType;
+	typedef typename ModelType::RahulOperatorType RahulOperatorType;
+	typedef typename ModelType::VectorRahulOperatorType VectorRahulOperatorType;
 
 	// ContF needs to support concurrency FIXME
 	static const SizeType parallelRank_ = 0;
@@ -184,6 +188,31 @@ public:
 			vstr.push_back(str);
 			cfCollection.push(cf);
 		}
+	}
+
+	void measure(PsimagLite::String meas) const
+	{
+		VectorStringType tokens;
+		PsimagLite::split(tokens, meas, ";");
+		const SizeType n = tokens.size();
+		VectorRahulOperatorType vops;
+		VectorType psiNew(gsVector_.size());
+		VectorSizeType vsites(n);
+		for (SizeType i = 0; i < n; ++i) {
+			int site = OneOperatorSpecType::extractSiteIfAny(tokens[i]);
+			if (site < 0)
+				err("Operator " + tokens[i] + " needs a site in brackets\n");
+			assert(i < vsites.size());
+			vsites[i] = site;
+
+			OneOperatorSpecType opspec(tokens[i]);
+
+			vops.push_back(RahulOperatorType(opspec.label, opspec.dof, opspec.transpose));
+		}
+
+		model_.rahulMethod(psiNew, vops, vsites, gsVector_);
+		const ComplexOrRealType result = gsVector_*psiNew;
+		std::cout<<"<gs|"<<meas<<"|gs> = "<<result<<"\n";
 	}
 
 	void twoPoint(PsimagLite::Matrix<typename VectorType::value_type>& result,

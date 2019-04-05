@@ -20,6 +20,9 @@ public:
 	typedef typename ModelBaseType::ComplexOrRealType ComplexOrRealType;
 	typedef typename ModelBaseType::GeometryType GeometryType;
 	typedef typename PsimagLite::Matrix<ComplexOrRealType> MatrixType;
+	typedef PsimagLite::Vector<SizeType>::Type VectorSizeType;
+	typedef typename ModelBaseType::RahulOperatorType RahulOperatorType;
+	typedef typename ModelBaseType::VectorRahulOperatorType VectorRahulOperatorType;
 
 	enum {SPIN_UP = ProgramGlobals::SPIN_UP, SPIN_DOWN = ProgramGlobals::SPIN_DOWN};
 
@@ -32,7 +35,7 @@ public:
 	    : geometry_(geometry),
 	      mp_(mp),
 	      hoppings_(geometry.numberOfSites(), geometry.numberOfSites()),
-		  hasJcoupling_(mp_.model == "SuperHubbardExtended"),
+	      hasJcoupling_(mp_.model == "SuperHubbardExtended"),
 	      hasCoulombCoupling_(mp_.model == "HubbardOneBandExtended" ||
 	                          mp_.model == "SuperHubbardExtended"),
 	      hasRashba_(mp_.model == "HubbardOneBandRashbaSOC")
@@ -123,7 +126,60 @@ public:
 		}
 	}
 
+	void rahulMethod(VectorType& psiNew,
+	                 const VectorRahulOperatorType& vops,
+	                 const VectorSizeType& vsites,
+	                 const VectorType& psi,
+	                 const BasisBaseType& basis) const
+	{
+		std::fill(psiNew.begin(), psiNew.end(), 0.0);
+		const SizeType hilbert = basis.size();
+		const SizeType nops = vops.size();
+		for (SizeType ispace = 0; ispace < hilbert; ++ispace) {
+			WordType ket1 = basis(ispace, SPIN_UP);
+			WordType ket2 = basis(ispace, SPIN_DOWN);
+			assert(ispace < psi.size());
+			ComplexOrRealType value = psi[ispace];
+			WordType ketp1 = ket1;
+			WordType ketp2 = ket2;
+			bool nonZero = false;
+			for (SizeType j = 0; j < nops; ++j) {
+				const RahulOperatorType& op = vops[j];
+				assert(j < vsites.size());
+				const SizeType site = vsites[j];
+
+				ComplexOrRealType result = 0;
+				nonZero = (op.dof() == SPIN_UP)
+				        ? applyOperator(ketp1, result, op, site)
+				        : applyOperator(ketp2, result, op, site);
+				if (!nonZero) break;
+				value *= result;
+			}
+
+			if (!nonZero) continue;
+			SizeType newI = basis.perfectIndex(ketp1, ketp2);
+			assert(newI < psiNew.size());
+			psiNew[newI] += value;
+		}
+	}
+
 private:
+
+	bool applyOperator(WordType& ketp,
+	                   ComplexOrRealType& result,
+	                   const RahulOperatorType& op,
+	                   SizeType site) const
+	{
+		const WordType ket = ketp;
+		const WordType mask = BasisType::bitmask(site);
+		WordType s = (ket & mask);
+		bool sbit = (s > 0);
+		bool sbitSaved = sbit;
+		bool nonZero = op.actOn(sbit, result);
+		if (!nonZero) return false;
+		if (sbitSaved != sbit) ketp ^= mask;
+		return true;
+	}
 
 	void calcDiagonalElements(typename PsimagLite::Vector<RealType>::Type& diag,
 	                          const BasisBaseType& basis) const
@@ -358,7 +414,7 @@ private:
 	MatrixType hoppings_;
 	MatrixType rashbaHoppings_;
 	bool hasJcoupling_;
-    bool hasCoulombCoupling_;
+	bool hasCoulombCoupling_;
 	bool hasRashba_;
 };
 

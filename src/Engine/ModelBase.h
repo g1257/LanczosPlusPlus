@@ -23,6 +23,7 @@ Please see full open source license included in file LICENSE.
 #include "CrsMatrix.h"
 #include "BasisBase.h"
 #include "Vector.h"
+#include "RahulOperator.h"
 
 namespace LanczosPlusPlus {
 
@@ -40,6 +41,8 @@ public:
 	typedef PsimagLite::CrsMatrix<ComplexOrRealType> SparseMatrixType;
 	typedef typename PsimagLite::Vector<ComplexOrRealType>::Type VectorType;
 	typedef typename PsimagLite::Vector<SizeType>::Type VectorSizeType;
+	typedef RahulOperator<ComplexOrRealType> RahulOperatorType;
+	typedef typename PsimagLite::Vector<RahulOperatorType>::Type VectorRahulOperatorType;
 
 	virtual ~ModelBase() {}
 
@@ -81,6 +84,14 @@ public:
 	virtual BasisBaseType* createBasis(SizeType nup, SizeType ndown) const = 0;
 
 	virtual void print(std::ostream& os) const = 0;
+
+	virtual void rahulMethod(VectorType&,
+	                         const VectorRahulOperatorType&,
+	                         const VectorSizeType&,
+	                         const VectorType&) const
+	{
+		throw PsimagLite::RuntimeError("ModelBase::rahulMethod() not impl. for this model\n");
+	}
 
 	virtual void printOperators(std::ostream&) const
 	{

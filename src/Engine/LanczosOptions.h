@@ -19,6 +19,7 @@ struct LanczosOptions {
 	PsimagLite::Vector<SizeType>::Type sites;
 	PsimagLite::Vector<PairSizeType>::Type spins;
 	PsimagLite::String extendedStatic;
+	PsimagLite::Vector<PsimagLite::String>::Type measure;
 
 }; // struct LanczosOptions
 }

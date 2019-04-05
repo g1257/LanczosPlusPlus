@@ -34,6 +34,7 @@ public:
 	typedef typename BasisType::LabeledOperatorType LabeledOperatorType;
 	typedef PsimagLite::SparseRow<SparseMatrixType> SparseRowType;
 	typedef HubbardHelper<BaseType, BasisType, ParametersModelType> HubbardHelperType;
+	typedef typename HubbardHelperType::VectorRahulOperatorType VectorRahulOperatorType;
 
 	static int const FERMION_SIGN = BasisType::FERMION_SIGN;
 
@@ -84,13 +85,13 @@ public:
 		helper_.matrixVectorProduct(x, y, basis);
 	}
 
-	bool hasNewParts(std::pair<SizeType,SizeType>& newParts,
-	                 const std::pair<SizeType,SizeType>& oldParts,
-	                 const LabeledOperator& lOperator,
-	                 SizeType spin,
-	                 SizeType orb) const
+	bool hasNewParts(std::pair<SizeType,SizeType>&,
+	                 const std::pair<SizeType,SizeType>&,
+	                 const LabeledOperator&,
+	                 SizeType,
+	                 SizeType) const
 	{
-		throw std::runtime_error("hasNewParts unimplemented\n");
+		return false;
 	}
 
 	const GeometryType& geometry() const { return geometry_; }
@@ -111,6 +112,14 @@ public:
 	void printOperators(std::ostream& os) const
 	{
 		os<<"WARNING: printOperators unimplemented\n";
+	}
+
+	void rahulMethod(VectorType& psiNew,
+	                 const VectorRahulOperatorType& vops,
+	                 const VectorSizeType& vsites,
+	                 const VectorType& psi) const
+	{
+		return helper_.rahulMethod(psiNew, vops, vsites, psi, basis_);
 	}
 
 private:

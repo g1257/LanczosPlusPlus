@@ -53,7 +53,7 @@ public:
 
 	PairIntType parts() const
 	{
-		throw PsimagLite::RuntimeError("parts() unimplemented\n");
+		return PairIntType(0, 0); // dummy, we don't care
 	}
 
 	static const WordType& bitmask(SizeType i)

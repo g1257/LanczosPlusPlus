@@ -63,6 +63,10 @@ void mainLoop3(const ModelType& model,
 	std::cout<<"Energy="<<Eg<<"\n";
 	PsimagLite::String filename = PsimagLite::basenameOf(io.filename());
 
+	const SizeType nmeas = lanczosOptions.measure.size();
+	for (SizeType i = 0; i < nmeas; ++i)
+		engine.measure(lanczosOptions.measure[i]);
+
 	for (SizeType gfi=0;gfi<lanczosOptions.gf.size();gfi++) {
 		SizeType counter = 0;
 		while (true) {

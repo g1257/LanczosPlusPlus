@@ -83,6 +83,7 @@ DISCLOSED WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
 #include <bitset>
 #include <climits>
 #include "Vector.h"
+#include "BitManip.h"
 
 namespace LanczosPlusPlus {
 
@@ -103,6 +104,13 @@ struct ProgramGlobals {
 	enum {SPIN_UP,SPIN_DOWN};
 
 	enum ConnectionEnum { NONE };
+
+	static int doSign(WordType a, SizeType i)
+	{
+		WordType mask = (1 << i) - 1;
+		// Parity of single occupied between i and nsite-1
+		return (PsimagLite::BitManip::count(a & mask) & 1) ? -1 : 1;
+	}
 
 	template<typename T>
 	static void binRep(std::ostream& os,

@@ -98,16 +98,6 @@ namespace LanczosPlusPlus {
 			return isThereAnElectronAt(ket,site);
 		}
 
-		static int doSign(WordType a, SizeType i)
-		{
-			if (i == nsite_ - 1) return 1;
-
-			a &= ((1 << (i+1)) - 1) ^ ((1 << nsite_) - 1);
-			// Parity of single occupied between i and nsite-1
-			int s = (PsimagLite::BitManip::count(a) & 1) ? FERMION_SIGN : 1;
-			return s;
-		}
-
 		static int doSign(WordType ket,SizeType i,SizeType j)
 		{
 			assert(i <= j);

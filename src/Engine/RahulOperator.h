@@ -47,6 +47,8 @@ public:
 		}
 	}
 
+	bool isFermionic() const { return (label_ == Label::C); }
+
 private:
 
 	static Label fromString(PsimagLite::String l)

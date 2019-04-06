@@ -152,11 +152,11 @@ public:
 	{
 		if (spin==SPIN_UP) { // spin here means S^\dagger
 			// FIXME: Count over a (up)
-			return basis1_.doSign(a,ind)*basis2_.doSign(b,ind);
+			return ProgramGlobals::doSign(a,ind)*ProgramGlobals::doSign(b,ind);
 		}
 
 		// FIXME: Count over a + 1
-		return basis1_.doSign(a,ind)*basis2_.doSign(b,ind);
+		return ProgramGlobals::doSign(a,ind)*ProgramGlobals::doSign(b,ind);
 	}
 
 	PairIntType getBraIndex(WordType ket1,

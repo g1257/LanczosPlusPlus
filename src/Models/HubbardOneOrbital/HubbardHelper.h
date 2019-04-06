@@ -143,7 +143,8 @@ public:
 			WordType ketp1 = ket1;
 			WordType ketp2 = ket2;
 			bool nonZero = false;
-			for (SizeType j = 0; j < nops; ++j) {
+			for (SizeType jj = 0; jj < nops; ++jj) {
+				const SizeType j = nops - jj - 1; // start from the end
 				const RahulOperatorType& op = vops[j];
 				assert(j < vsites.size());
 				const SizeType site = vsites[j];
@@ -153,6 +154,19 @@ public:
 				        ? applyOperator(ketp1, result, op, site)
 				        : applyOperator(ketp2, result, op, site);
 				if (!nonZero) break;
+
+				if (op.isFermionic()) {
+					const SizeType overUp = (op.dof() == SPIN_UP)
+					        ? 0
+					        : PsimagLite::BitManip::count(ket1);
+
+					if (overUp & 1) result *= FERMION_SIGN;
+
+					const WordType ket1or2 = (op.dof() == SPIN_UP) ? ketp1 : ketp2;
+					const ComplexOrRealType fsign = ProgramGlobals::doSign(ket1or2, site);
+					result *= fsign;
+				}
+
 				value *= result;
 			}
 
@@ -290,8 +304,7 @@ private:
 				WordType bra2= ket2 ^ (BasisType::bitmask(j));
 				SizeType temp = basis.perfectIndex(bra1, bra2);
 				RealType extraSign = (s2j == 0) ? FERMION_SIGN : 1;
-				RealType tmp2 = BasisType::BasisType::doSign(ket1, i) *
-				        BasisType::BasisType::doSign(ket2, j);
+				RealType tmp2 = ProgramGlobals::doSign(ket1, i)*ProgramGlobals::doSign(ket2, j);
 				const SizeType count1 = PsimagLite::BitManip::count(ket1); // + s1i;
 				if (count1 & 1) tmp2 *= FERMION_SIGN;
 				ComplexOrRealType cTemp = hr*extraSign*tmp2;
@@ -305,8 +318,7 @@ private:
 				WordType bra2= ket2 ^(BasisType::bitmask(i));
 				SizeType temp = basis.perfectIndex(bra1, bra2);
 				RealType extraSign = (s2i == 0) ? FERMION_SIGN : 1;
-				RealType tmp2 = BasisType::BasisType::doSign(ket1, j) *
-				        BasisType::BasisType::doSign(ket2, i);
+				RealType tmp2 = ProgramGlobals::doSign(ket1, j)*ProgramGlobals::doSign(ket2, i);
 				const SizeType count1 = PsimagLite::BitManip::count(ket1); // + s1j;
 				if (count1 & 1) tmp2 *= FERMION_SIGN;
 				ComplexOrRealType cTemp = hr*extraSign*tmp2;

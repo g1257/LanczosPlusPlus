@@ -55,6 +55,8 @@ private:
 	{
 		if (l == "c") return Label::C;
 		if (l == "identity") return Label::IDENTITY;
+		if (l == "sz") return Label::SZ;
+		if (l == "n") return Label::N;
 		throw PsimagLite::RuntimeError("RahulOperator: Unknow label " + l + "\n");
 	}
 

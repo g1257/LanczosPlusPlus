@@ -33,14 +33,16 @@ public:
 			return true;
 			break;
 		case Label::N:
-			result = (bitSaved) ? 0 : 1;
-			return true;
+			return (bitSaved);
+			break;
 		case Label::SZ:
 			result = (bitSaved) ? -zeroPointFive : zeroPointFive;
 			return true;
+			break;
 		case Label::C:
 			bit = !bit;
 			return ((bitSaved && !transpose_) || (!bitSaved && transpose_));
+			break;
 		default:
 			throw PsimagLite::RuntimeError("RahulOperator::actOn internal error\n");
 			break;

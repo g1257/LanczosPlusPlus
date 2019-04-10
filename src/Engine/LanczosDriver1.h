@@ -53,6 +53,7 @@ void mainLoop3(const ModelType& model,
 	typedef typename GeometryType::ComplexOrRealType ComplexOrRealType;
 	typedef LanczosPlusPlus::Engine<ModelType,InternalProductTemplate,SpecialSymmetryType> EngineType;
 	typedef typename EngineType::TridiagonalMatrixType TridiagonalMatrixType;
+	typedef PsimagLite::Vector<PsimagLite::String>::Type VectorStringType;
 
 	const GeometryType& geometry = model.geometry();
 	EngineType engine(model,geometry.numberOfSites(),io);
@@ -64,8 +65,19 @@ void mainLoop3(const ModelType& model,
 	PsimagLite::String filename = PsimagLite::basenameOf(io.filename());
 
 	const SizeType nmeas = lanczosOptions.measure.size();
-	for (SizeType i = 0; i < nmeas; ++i)
-		engine.measure(lanczosOptions.measure[i]);
+	for (SizeType i = 0; i < nmeas; ++i) {
+		VectorStringType tokens;
+		PsimagLite::split(tokens, lanczosOptions.measure[i], ",");
+		const SizeType ntokens = tokens.size();
+		for (SizeType j = 0; j < ntokens; ++j) {
+			VectorStringType braOpKet;
+			PsimagLite::split(braOpKet, tokens[j], "|");
+			const SizeType ind = (braOpKet.size() == 3) ? 1 : 0;
+			if (braOpKet.size() != 1 && ind == 0)
+				err("Wrong braket\n");
+			engine.measure(braOpKet[ind]);
+		}
+	}
 
 	for (SizeType gfi=0;gfi<lanczosOptions.gf.size();gfi++) {
 		SizeType counter = 0;

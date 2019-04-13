@@ -158,7 +158,7 @@ public:
 				if (op.isFermionic()) {
 					const SizeType overUp = (op.dof() == SPIN_UP)
 					        ? 0
-					        : PsimagLite::BitManip::count(ket1);
+					        : PsimagLite::BitManip::count(ketp1);
 
 					if (overUp & 1) result *= FERMION_SIGN;
 

@@ -56,8 +56,8 @@ public:
 
 		const SizeType n = geometry_.numberOfSites();
 		if (hasRashba_) rashbaHoppings_.resize(n, n);
-		for (SizeType j=0;j<n;j++) {
-			for (SizeType i=0;i<j;i++) {
+		for (SizeType j = 0; j < n; ++j) {
+			for (SizeType i = 0; i < n; ++i) {
 
 				hoppings_(i, j) = geometry_(i, 0, j, 0, 0);
 
@@ -118,10 +118,11 @@ public:
 			SparseRowType sparseRow;
 			WordType ket1 = basis(ispace,SPIN_UP);
 			WordType ket2 = basis(ispace,SPIN_DOWN);
-			for (SizeType i=0;i<nsite;i++) {
+			for (SizeType i = 0; i < nsite; ++i) {
 				setHoppingTerm(sparseRow,ket1,ket2,i,basis);
 				setJTermOffDiagonal(sparseRow,ket1,ket2,i,basis);
 			}
+
 			x[ispace] += sparseRow.finalize(y);
 		}
 	}
@@ -260,11 +261,9 @@ private:
 		if (s2i>0) s2i=1;
 
 		const SizeType nsite = geometry_.numberOfSites();
-		const SizeType orb = 0;
 
 		// Hopping term
-		for (SizeType j=0;j<nsite;j++) {
-			if (j < i) continue;
+		for (SizeType j = 0; j < nsite; ++j) {
 			const ComplexOrRealType& h = hoppings_(i,j);
 			const bool hasHop = (PsimagLite::real(h) != 0 || PsimagLite::imag(h) != 0);
 			WordType s1j= (ket1 & BasisType::bitmask(j));
@@ -272,26 +271,36 @@ private:
 			WordType s2j= (ket2 & BasisType::bitmask(j));
 			if (s2j>0) s2j=1;
 
-			if (hasHop && s1i + s1j == 1) {
-				WordType bra1= ket1 ^(BasisType::bitmask(i)|BasisType::bitmask(j));
-				SizeType temp = basis.perfectIndex(bra1,ket2);
-				RealType extraSign = (s1i==1) ? FERMION_SIGN : 1;
-				RealType tmp2 = basis.doSign(ket1,ket2,i,orb,j,orb,SPIN_UP);
-				ComplexOrRealType cTemp = h*extraSign*tmp2;
-				if (s1i == 0) cTemp = PsimagLite::conj(cTemp);
+			// Apply c^\dagger_j c_i
+			if (hasHop && s1i == 1 && s1j == 0) {
+				// apply i
+				WordType bra1 = ket1 ^ BasisType::bitmask(i);
+				RealType tmp2 = ProgramGlobals::doSign(ket1, i)*ProgramGlobals::doSign(bra1, j);
+
+				// apply j
+				bra1 = bra1 ^ BasisType::bitmask(j);
+
+				SizeType temp = basis.perfectIndex(bra1, ket2);
+				//RealType extraSign = (s1j == 1) ? FERMION_SIGN : 1;
+				ComplexOrRealType cTemp = h*tmp2; //*extraSign;
+				//if (s1j == 1) cTemp = PsimagLite::conj(cTemp);
 				assert(temp<basis.size());
-				sparseRow.add(temp,cTemp);
+				sparseRow.add(temp, cTemp);
 			}
 
-			if (hasHop && s2i + s2j == 1) {
-				WordType bra2= ket2 ^(BasisType::bitmask(i)|BasisType::bitmask(j));
-				SizeType temp = basis.perfectIndex(ket1,bra2);
-				RealType extraSign = (s2i==1) ? FERMION_SIGN : 1;
-				RealType tmp2 = basis.doSign(ket1,ket2,i,orb,j,orb,SPIN_DOWN);
-				ComplexOrRealType cTemp = h*extraSign*tmp2;
-				if (s2j == 0) cTemp = PsimagLite::conj(cTemp);
+			// Apply c^\dagger_j c_i DOWN
+			if (hasHop && s2i == 1 && s2j == 0) {
+				WordType bra2 = ket2 ^ BasisType::bitmask(i);
+				RealType tmp2 = ProgramGlobals::doSign(ket2, i)*ProgramGlobals::doSign(bra2, j);
+
+				bra2 = bra2 ^ BasisType::bitmask(j);
+
+				SizeType temp = basis.perfectIndex(ket1, bra2);
+				//RealType extraSign = (s2j == 1) ? FERMION_SIGN : 1;
+				ComplexOrRealType cTemp = h*tmp2; //*extraSign;
+				//if (s2j == 1) cTemp = PsimagLite::conj(cTemp);
 				assert(temp<basis.size());
-				sparseRow.add(temp,cTemp);
+				sparseRow.add(temp, cTemp);
 			}
 
 			if (!hasRashba_) continue;
@@ -299,32 +308,34 @@ private:
 			const ComplexOrRealType& hr = rashbaHoppings_(i, j);
 			if (PsimagLite::real(hr) == 0 && PsimagLite::imag(hr) == 0) continue;
 
-			if (s1i + s2j == 1) {
-				WordType bra1= ket1 ^ (BasisType::bitmask(i));
-				WordType bra2= ket2 ^ (BasisType::bitmask(j));
+			// c^\dagger_j UP c_i DOWN
+			if (s1j == 0 &&  s2i == 1) {
+				WordType bra1 = ket1 ^ (BasisType::bitmask(j));
+				WordType bra2 = ket2 ^ (BasisType::bitmask(i));
 				SizeType temp = basis.perfectIndex(bra1, bra2);
-				RealType extraSign = (s2j == 0) ? FERMION_SIGN : 1;
-				RealType tmp2 = ProgramGlobals::doSign(ket1, i)*ProgramGlobals::doSign(ket2, j);
+				//RealType extraSign = (s2j == 0) ? FERMION_SIGN : 1;
+				RealType tmp2 = ProgramGlobals::doSign(ket1, j)*ProgramGlobals::doSign(ket2, i);
 				const SizeType count1 = PsimagLite::BitManip::count(ket1); // + s1i;
 				if (count1 & 1) tmp2 *= FERMION_SIGN;
-				ComplexOrRealType cTemp = hr*extraSign*tmp2;
-				if (s2j == 0) cTemp = PsimagLite::conj(cTemp);
+				ComplexOrRealType cTemp = hr*tmp2; //*extraSign;
+				//if (s1i == 1) cTemp = PsimagLite::conj(rashbaHoppings_(j, i));
 				assert(temp<basis.size());
-				sparseRow.add(temp,cTemp);
+				sparseRow.add(temp, cTemp);
 			}
 
-			if (s2i + s1j == 1) {
-				WordType bra1= ket1 ^ (BasisType::bitmask(j));
-				WordType bra2= ket2 ^(BasisType::bitmask(i));
+			// c^\dagger_j DOWN c_i UP
+			if (s1i == 1 &&  s2j == 0) {
+				WordType bra1 = ket1 ^ (BasisType::bitmask(i));
+				WordType bra2 = ket2 ^(BasisType::bitmask(j));
 				SizeType temp = basis.perfectIndex(bra1, bra2);
-				RealType extraSign = (s2i == 0) ? FERMION_SIGN : 1;
-				RealType tmp2 = ProgramGlobals::doSign(ket1, j)*ProgramGlobals::doSign(ket2, i);
+				//RealType extraSign = (s2i == 0) ? FERMION_SIGN : 1;
+				RealType tmp2 = ProgramGlobals::doSign(ket1, i)*ProgramGlobals::doSign(ket2, j);
 				const SizeType count1 = PsimagLite::BitManip::count(ket1); // + s1j;
 				if (count1 & 1) tmp2 *= FERMION_SIGN;
-				ComplexOrRealType cTemp = hr*extraSign*tmp2;
-				if (s2i == 0) cTemp = PsimagLite::conj(cTemp);
+				ComplexOrRealType cTemp = PsimagLite::conj(hr)*tmp2; //*extraSign;
+				//if (s1j == 1) cTemp = PsimagLite::conj(rashbaHoppings_(j, i));
 				assert(temp<basis.size());
-				sparseRow.add(temp,cTemp);
+				sparseRow.add(temp, cTemp);
 			}
 		}
 	}

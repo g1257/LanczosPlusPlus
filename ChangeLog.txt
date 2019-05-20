@@ -1,3 +1,11 @@
+2019-05-20 Version 1.68
+
+* HubbardHelper added
+
+* HubbardOneOrbitalRashbaSOC added
+
+* Rahul method for static observables via -m option
+
 2019-04-02 Version 1.66
 
 * build includes hdf5

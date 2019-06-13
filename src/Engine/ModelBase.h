@@ -43,6 +43,7 @@ public:
 	typedef typename PsimagLite::Vector<SizeType>::Type VectorSizeType;
 	typedef RahulOperator<ComplexOrRealType> RahulOperatorType;
 	typedef typename PsimagLite::Vector<RahulOperatorType>::Type VectorRahulOperatorType;
+	typedef typename BasisBaseType::WordType WordType;
 
 	virtual ~ModelBase() {}
 
@@ -85,12 +86,58 @@ public:
 
 	virtual void print(std::ostream& os) const = 0;
 
-	virtual void rahulMethod(VectorType&,
-	                         const VectorRahulOperatorType&,
-	                         const VectorSizeType&,
-	                         const VectorType&) const
+	void rahulMethod(VectorType& psiNew,
+	                 const VectorRahulOperatorType& vops,
+	                 const VectorSizeType& vsites,
+	                 const VectorType& psi,
+	                 const BasisBaseType& basis) const
 	{
-		throw PsimagLite::RuntimeError("ModelBase::rahulMethod() not impl. for this model\n");
+		static const int FERMION_SIGN = -1;
+
+		std::fill(psiNew.begin(), psiNew.end(), 0.0);
+		const SizeType hilbert = basis.size();
+		const SizeType nops = vops.size();
+		for (SizeType ispace = 0; ispace < hilbert; ++ispace) {
+			WordType ket1 = basis(ispace, ProgramGlobals::SPIN_UP);
+			WordType ket2 = basis(ispace, ProgramGlobals::SPIN_DOWN);
+			assert(ispace < psi.size());
+			ComplexOrRealType value = psi[ispace];
+			WordType ketp1 = ket1;
+			WordType ketp2 = ket2;
+			bool nonZero = false;
+			for (SizeType jj = 0; jj < nops; ++jj) {
+				const SizeType j = nops - jj - 1; // start from the end
+				const RahulOperatorType& op = vops[j];
+				assert(j < vsites.size());
+				const SizeType site = vsites[j];
+
+				ComplexOrRealType result = 0;
+				nonZero = (op.dof() == ProgramGlobals::SPIN_UP)
+				        ? applyOperator(ketp1, result, op, site)
+				        : applyOperator(ketp2, result, op, site);
+				if (!nonZero) break;
+
+				if (op.isFermionic()) {
+					const SizeType overUp = (op.dof() == ProgramGlobals::SPIN_UP)
+					        ? 0
+					        : PsimagLite::BitManip::count(ketp1);
+
+					if (overUp & 1) result *= FERMION_SIGN;
+
+					const WordType ket1or2 = (op.dof() == ProgramGlobals::SPIN_UP) ? ketp1
+					                                                               : ketp2;
+					const ComplexOrRealType fsign = ProgramGlobals::doSign(ket1or2, site);
+					result *= fsign;
+				}
+
+				value *= result;
+			}
+
+			if (!nonZero) continue;
+			SizeType newI = basis.perfectIndex(ketp1, ketp2);
+			assert(newI < psiNew.size());
+			psiNew[newI] += value;
+		}
 	}
 
 	virtual void printOperators(std::ostream&) const
@@ -111,6 +158,24 @@ protected:
 			delete garbage[i];
 			garbage[i] = 0;
 		}
+	}
+
+private:
+
+	static bool applyOperator(WordType& ketp,
+	                          ComplexOrRealType& result,
+	                          const RahulOperatorType& op,
+	                          SizeType site)
+	{
+		const WordType ket = ketp;
+		const WordType mask = BasisType::bitmask(site);
+		WordType s = (ket & mask);
+		bool sbit = (s > 0);
+		bool sbitSaved = sbit;
+		bool nonZero = op.actOn(sbit, result);
+		if (!nonZero) return false;
+		if (sbitSaved != sbit) ketp ^= mask;
+		return true;
 	}
 
 }; // class ModelBase

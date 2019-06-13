@@ -22,6 +22,7 @@ Please see full open source license included in file LICENSE.
 #define LANCZOS_BASIS_BASE_H
 #include "Vector.h"
 #include "LabeledOperator.h"
+#include "ProgramGlobals.h"
 
 namespace LanczosPlusPlus {
 

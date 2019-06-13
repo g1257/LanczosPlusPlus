@@ -133,14 +133,6 @@ public:
 			printOperatorC(site,spin,os);
 	}
 
-	void rahulMethod(VectorType& psiNew,
-	                 const VectorRahulOperatorType& vops,
-	                 const VectorSizeType& vsites,
-	                 const VectorType& psi) const
-	{
-		return helper_.rahulMethod(psiNew, vops, vsites, psi, basis_);
-	}
-
 private:
 
 	void printOperatorC(SizeType site, SizeType spin, std::ostream& os) const

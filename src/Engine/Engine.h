@@ -228,7 +228,7 @@ public:
 		const VectorType& ketVector = vectors_[ketIndex];
 		VectorType psiNew(ketVector.size());
 
-		model_.rahulMethod(psiNew, vops, vsites, ketVector);
+		model_.rahulMethod(psiNew, vops, vsites, ketVector, model_.basis());
 
 		SizeType braIndex = 0; // use braOpKet[0] to derive this one FIXME TODO
 		checkBraOrKet(braOpKet[0], braIndex);

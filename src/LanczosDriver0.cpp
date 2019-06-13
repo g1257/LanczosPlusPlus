@@ -49,16 +49,10 @@ std::ostream& operator<<(std::ostream& os,
 
 SizeType LanczosPlusPlus::BasisOneSpinImmm::nsite_=0;
 PsimagLite::Matrix<SizeType> LanczosPlusPlus::BasisOneSpinImmm::comb_;
-PsimagLite::Vector<LanczosPlusPlus::BasisOneSpinImmm::WordType>::Type
-LanczosPlusPlus::BasisOneSpinImmm::bitmask_;
 
 SizeType LanczosPlusPlus::BasisOneSpin::nsite_=0;
 PsimagLite::Matrix<SizeType> LanczosPlusPlus::BasisOneSpin::comb_;
-PsimagLite::Vector<LanczosPlusPlus::BasisOneSpin::WordType>::Type
-LanczosPlusPlus::BasisOneSpin::bitmask_;
 
 SizeType LanczosPlusPlus::BasisOneSpinFeAs::orbitals_=2;
 SizeType LanczosPlusPlus::BasisOneSpinFeAs::nsite_=0;
 PsimagLite::Matrix<SizeType> LanczosPlusPlus::BasisOneSpinFeAs::comb_;
-PsimagLite::Vector<LanczosPlusPlus::BasisOneSpinFeAs::WordType>::Type
-LanczosPlusPlus::BasisOneSpinFeAs::bitmask_;

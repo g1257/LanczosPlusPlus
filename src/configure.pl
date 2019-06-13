@@ -52,8 +52,9 @@ my %ld2 = (name => "LanczosDriver2", aux => 1);
 my %ld3 = (name => "LanczosDriver3", aux => 1);
 my %ld4 = (name => "LanczosDriver4", aux => 1);
 my %ld5 = (name => "LanczosDriver5", aux => 1);
+my %progGlob = (name => "ProgramGlobals", aux => 1);
 my $dotos = "lanczos.o LanczosDriver0.o LanczosDriver1.o LanczosDriver2.o";
-$dotos .= " LanczosDriver3.o LanczosDriver4.o LanczosDriver5.o";
+$dotos .= " LanczosDriver3.o LanczosDriver4.o LanczosDriver5.o ProgramGlobals.o";
 my %lanczosD = (name => "lanczos", dotos => $dotos);
 
 my @drivers = (\%thermalD,
@@ -64,6 +65,7 @@ my @drivers = (\%thermalD,
 	\%ld3,
 	\%ld4,
 	\%ld5,
+	\%progGlob,
 	\%lanczosD);
 
 my %args;

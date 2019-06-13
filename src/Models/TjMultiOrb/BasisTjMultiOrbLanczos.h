@@ -14,16 +14,14 @@ namespace LanczosPlusPlus {
 template<typename GeometryType>
 class BasisTjMultiOrbLanczos : public BasisBase<GeometryType> {
 
-	typedef ProgramGlobals::PairIntType PairIntType;
-
 	enum {SPIN_UP = ProgramGlobals::SPIN_UP, SPIN_DOWN = ProgramGlobals::SPIN_DOWN};
 
 public:
 
+	typedef ProgramGlobals::PairIntType PairIntType;
 	typedef BasisBase<GeometryType> BaseType;
 	typedef typename BaseType::WordType WordType;
 	typedef typename BaseType::VectorWordType VectorWordType;
-	static VectorWordType bitmask_;
 	typedef LabeledOperator LabeledOperatorType;
 
 	static int const FERMION_SIGN = -1;
@@ -34,9 +32,7 @@ public:
 	                       SizeType orbitals)
 	    : geometry_(geometry),nup_(nup),ndown_(ndown),orbitals_(orbitals)
 	{
-		assert(bitmask_.size()==0 ||
-		       bitmask_.size()==geometry_.numberOfSites()*orbitals);
-		if (bitmask_.size()==0) doBitmask();
+		ProgramGlobals::doBitmask(geometry_.numberOfSites()*orbitals_);
 		VectorWordType data1;
 		fillOneSector(data1,nup);
 		VectorWordType data2;
@@ -52,7 +48,7 @@ public:
 
 	static const WordType& bitmask(SizeType i)
 	{
-		return bitmask_[i];
+		return ProgramGlobals::bitmask(i);
 	}
 
 	SizeType size() const { return data_.size(); }
@@ -177,7 +173,7 @@ public:
 			mask &= ((1 << (i+1)) - 1) ^ ((1 << j) - 1);
 			int s=(PsimagLite::BitManip::count(mask) & 1) ? -1 : 1;
 			// Is there an up at i?
-			if (bitmask_[i] & a) s = -s;
+			if (ProgramGlobals::bitmask(i) & a) s = -s;
 			return s;
 		}
 
@@ -191,7 +187,7 @@ public:
 		mask &= ((1 << (i+1)) - 1) ^ ((1 << j) - 1);
 		s *= (PsimagLite::BitManip::count(mask) & 1) ? -1 : 1;
 		// Is there a down at i?
-		if (bitmask_[i] & b) s = -s;
+		if (ProgramGlobals::bitmask(i) & b) s = -s;
 		return s;
 	}
 
@@ -374,21 +370,12 @@ private:
 
 	SizeType isThereAnElectronAt(WordType ket,SizeType site) const
 	{
-		return (ket & bitmask_[site]) ? 1 : 0;
+		return (ket & ProgramGlobals::bitmask(site)) ? 1 : 0;
 	}
 
 	SizeType getN(WordType ket,SizeType site) const
 	{
 		return isThereAnElectronAt(ket,site);
-	}
-
-	void doBitmask()
-	{
-		SizeType n = geometry_.numberOfSites()*orbitals_;
-		bitmask_.resize(n);
-		bitmask_[0]=1ul;
-		for (SizeType i=1;i<n;i++)
-			bitmask_[i] = bitmask_[i-1]<<1;
 	}
 
 	int doSign(WordType ket,SizeType i,SizeType j) const
@@ -417,7 +404,7 @@ private:
 		SizeType sum = 0;
 		SizeType counter = from;
 		while (counter<upto) {
-			if (ket & bitmask_[counter]) sum++;
+			if (ket & ProgramGlobals::bitmask(counter)) sum++;
 			counter++;
 		}
 
@@ -449,16 +436,16 @@ private:
 	            SizeType site) const
 	{
 		assert(orbitals_ == 1);
-		WordType si=(ket & bitmask_[site]);
+		WordType si=(ket & ProgramGlobals::bitmask(site));
 		if (lOperator.id() == LabeledOperatorType::Label::OPERATOR_C) {
 			if (si>0) {
-				bra = (ket ^ bitmask_[site]);
+				bra = (ket ^ ProgramGlobals::bitmask(site));
 			} else {
 				return 0; // cannot destroy, there's nothing
 			}
 		} else {
 			if (si==0) {
-				bra = (ket ^ bitmask_[site]);
+				bra = (ket ^ ProgramGlobals::bitmask(site));
 			} else {
 				return 0; // cannot construct, there's already one
 			}
@@ -476,7 +463,7 @@ private:
 		assert(orbitals_ == 1);
 		bra = (spin==SPIN_UP) ? ket1 : ket2;
 
-		WordType si= (bra & bitmask_[site]);
+		WordType si= (bra & ProgramGlobals::bitmask(site));
 
 		return (si == 0) ? 0 : 1;
 	}
@@ -495,10 +482,6 @@ std::ostream& operator<<(std::ostream& os,const BasisTjMultiOrbLanczos<GeometryT
 		os<<i<<" "<<basis.data_[i]<<"\n";
 	return os;
 }
-
-template<typename GeometryType>
-typename BasisTjMultiOrbLanczos<GeometryType>::VectorWordType
-BasisTjMultiOrbLanczos<GeometryType>::bitmask_;
 
 } // namespace LanczosPlusPlus
 #endif

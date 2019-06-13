@@ -21,7 +21,6 @@ namespace LanczosPlusPlus {
 		static int const FERMION_SIGN  = -1;
 		static SizeType nsite_;
 		static PsimagLite::Matrix<SizeType> comb_;
-		static PsimagLite::Vector<WordType>::Type bitmask_;
 
 		BasisOneSpin(SizeType nsite, SizeType npart)
 		: npart_(npart)
@@ -30,7 +29,7 @@ namespace LanczosPlusPlus {
 				throw std::runtime_error("BasisOneSpin: All basis must have same number of sites\n");
 			nsite_ = nsite;
 			doCombinatorial();
-			doBitmask();
+			ProgramGlobals::doBitmask(nsite_);
 
 			/* compute size of basis */
 			SizeType hilbert=1;
@@ -83,14 +82,14 @@ namespace LanczosPlusPlus {
 
 		static const WordType& bitmask(SizeType i)
 		{
-			return bitmask_[i];
+			return ProgramGlobals::bitmask(i);
 		}
 
 		SizeType electrons() const { return npart_; }
 
 		static SizeType isThereAnElectronAt(WordType ket,SizeType site)
 		{
-			return (ket & bitmask_[site]) ? 1 : 0;
+			return (ket & ProgramGlobals::bitmask(site)) ? 1 : 0;
 		}
 
 		static SizeType getN(WordType ket,SizeType site)
@@ -124,17 +123,17 @@ namespace LanczosPlusPlus {
 		            const LabeledOperatorType& lOperator,
 		            SizeType site) const
 		{
-			WordType si=(ket & bitmask_[site]);
+			WordType si=(ket & ProgramGlobals::bitmask(site));
 			if (lOperator.id() == LabeledOperatorType::Label::OPERATOR_C) {
 				if (si>0) {
-					bra = (ket ^ bitmask_[site]);
+					bra = (ket ^ ProgramGlobals::bitmask(site));
 					return true;
 				} else {
 					return false; // cannot destroy, there's nothing
 				}
 			} else if (lOperator.id() == LabeledOperatorType::Label::OPERATOR_CDAGGER) {
 				if (si==0) {
-					bra = (ket ^ bitmask_[site]);
+					bra = (ket ^ ProgramGlobals::bitmask(site));
 					return true;
 				} else {
 					return false; // cannot construct, there's already one
@@ -169,7 +168,7 @@ namespace LanczosPlusPlus {
 			SizeType sum = 0;
 			SizeType counter = from;
 			while(counter<upto) {
-				if (ket & bitmask_[counter]) sum++;
+				if (ket & ProgramGlobals::bitmask(counter)) sum++;
 				counter++;
 			}
 
@@ -189,14 +188,6 @@ namespace LanczosPlusPlus {
 				for (;m<=n/2;m++,cnm=cnm*j/i,i++,j--)
 					comb_(n,m) = comb_(n,n-m) = cnm;
 			}
-		}
-
-		void doBitmask()
-		{
-			bitmask_.resize(nsite_);
-			bitmask_[0]=1ul;
-			for (SizeType i=1;i<nsite_;i++)
-				bitmask_[i] = bitmask_[i-1]<<1;
 		}
 
 		SizeType size_;

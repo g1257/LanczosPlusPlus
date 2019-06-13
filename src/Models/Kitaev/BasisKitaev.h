@@ -13,27 +13,24 @@ namespace LanczosPlusPlus {
 template<typename GeometryType>
 class BasisKitaev : public BasisBase<GeometryType> {
 
-	typedef ProgramGlobals::PairIntType PairIntType;
 
 public:
 
 	static const SizeType TWICE_THE_SPIN = 1;
 	static const SizeType BITS = 1;
 
+	typedef ProgramGlobals::PairIntType PairIntType;
 	typedef BasisBase<GeometryType> BaseType;
 	typedef typename BaseType::WordType WordType;
 	typedef typename BaseType::VectorWordType VectorWordType;
 	typedef typename BaseType::LabeledOperatorType LabeledOperatorType;
-
-	static VectorWordType bitmask_;
 
 	BasisKitaev(const GeometryType& geometry)
 	    : geometry_(geometry), hilbert_(1)
 	{
 		SizeType sites = geometry_.numberOfSites();
 		hilbert_ <<= sites;
-		assert(bitmask_.size() == 0 || bitmask_.size() == sites);
-		if (bitmask_.size()==0) doBitmask(sites);
+		ProgramGlobals::doBitmask(sites);
 	}
 
 	PairIntType parts() const
@@ -43,7 +40,7 @@ public:
 
 	static const WordType& bitmask(SizeType i)
 	{
-		return bitmask_[i];
+		return ProgramGlobals::bitmask(i);
 	}
 
 	SizeType size() const { return hilbert_; }
@@ -193,25 +190,13 @@ private:
 	{
 		SizeType mask = 1;
 		for (SizeType i = 0; i < BITS; ++i)
-			mask |= bitmask_[i];
+			mask |= ProgramGlobals::bitmask(i);
 		return mask;
-	}
-
-	static void doBitmask(SizeType n)
-	{
-		bitmask_.resize(n);
-		bitmask_[0] = 1ul;
-		for (SizeType i = 1; i < n; ++i)
-			bitmask_[i] = bitmask_[i-1]<<1;
 	}
 
 	const GeometryType& geometry_;
 	SizeType hilbert_;
 }; // class BasisKitaev
-
-template<typename GeometryType>
-typename BasisKitaev<GeometryType>::VectorWordType
-BasisKitaev<GeometryType>::bitmask_;
 
 } // namespace LanczosPlusPlus
 #endif

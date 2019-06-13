@@ -38,7 +38,6 @@ namespace LanczosPlusPlus {
 		static int const FERMION_SIGN  = -1;
 		static SizeType nsite_;
 		static PsimagLite::Matrix<SizeType> comb_;
-		static PsimagLite::Vector<WordType>::Type bitmask_;
 
 		BasisOneSpinImmm(const PsimagLite::Vector<SizeType>::Type& orbsPerSite, SizeType npart)
 		: orbsPerSite_(orbsPerSite),npart_(npart)
@@ -51,7 +50,7 @@ namespace LanczosPlusPlus {
 
 			nsite_ = orbsPerSite.size();
 			doCombinatorial();
-			doBitmask();
+			ProgramGlobals::doBitmask(nsite_*4 + 1);
 
 			/* compute size of basis */
 			if (npart==0) {
@@ -132,10 +131,10 @@ namespace LanczosPlusPlus {
 			WordType ketA=0,ketB=0;
 			uncollateKet(ketA,ketB,ket);
 			if (orb==0) {
-				   WordType res = (ketA & bitmask_[site]);
+				   WordType res = (ketA & ProgramGlobals::bitmask(site));
 				   return (res>0) ? 1 : 0;
 			}
-			WordType res2 = ketB & bitmask_[site];
+			WordType res2 = ketB & ProgramGlobals::bitmask(site);
 			return (res2>0) ? 1 : 0;
 		}
 
@@ -158,7 +157,7 @@ namespace LanczosPlusPlus {
 
 		static const WordType& bitmask(SizeType i)
 		{
-			return bitmask_[i];
+			return ProgramGlobals::bitmask(i);
 		}
 
 		int doSign(SizeType i,SizeType site,SizeType orb) const
@@ -231,7 +230,7 @@ namespace LanczosPlusPlus {
 		SizeType isThereAnElectronAt(SizeType ket,SizeType site,SizeType orb) const
 		{
 			SizeType x = site*orbs() + orb;
-			return (ket & bitmask_[x]) ? 1 : 0;
+			return (ket & ProgramGlobals::bitmask(x)) ? 1 : 0;
 		}
 
 		SizeType electrons() const { return npart_; }
@@ -276,17 +275,17 @@ namespace LanczosPlusPlus {
 		            SizeType i) const
 		{
 
-			WordType si=(ket & bitmask_[i]);
+			WordType si=(ket & ProgramGlobals::bitmask(i));
 			if (lOperator.id() == LabeledOperatorType::Label::OPERATOR_C) {
 				if (si>0) {
-					bra = (ket ^ bitmask_[i]);
+					bra = (ket ^ ProgramGlobals::bitmask(i));
 					return true;
 				} else {
 					return false; // cannot destroy, there's nothing
 				}
 			} else if (lOperator.id() == LabeledOperatorType::Label::OPERATOR_CDAGGER) {
 				if (si==0) {
-					bra = (ket ^ bitmask_[i]);
+					bra = (ket ^ ProgramGlobals::bitmask(i));
 					return true;
 				} else {
 					return false; // cannot construct, there's already one
@@ -313,7 +312,7 @@ namespace LanczosPlusPlus {
 			mask &= ((1 << (i+1)) - 1) ^ ((1 << j) - 1);
 			int s=(PsimagLite::BitManip::count(mask) & 1) ? -1 : 1; // Parity of up between i and j
 			// Is there a down at i?
-			if (bitmask_[i] & b) s = -s;
+			if (ProgramGlobals::bitmask(i) & b) s = -s;
 			return s;
 		}
 
@@ -398,14 +397,6 @@ namespace LanczosPlusPlus {
 			}
 		}
 
-		void doBitmask()
-		{
-			bitmask_.resize(nsite_*4+1);
-			bitmask_[0]=1ul;
-			for (SizeType i=1;i<bitmask_.size();i++)
-				bitmask_[i] = bitmask_[i-1]<<1;
-		}
-
 		SizeType perfectIndexPartial(WordType state) const
 		{
 			SizeType n=0;
@@ -425,8 +416,8 @@ namespace LanczosPlusPlus {
 			while(remA || remB) {
 				SizeType bitA = (remA & 1);
 				SizeType bitB = (remB & 1);
-				if (bitA) ket |=bitmask_[counter];
-				if (bitB)  ket |=bitmask_[counter+1];
+				if (bitA) ket |= ProgramGlobals::bitmask(counter);
+				if (bitB)  ket |= ProgramGlobals::bitmask(counter + 1);
 				counter += 2;
 				if (remA) remA >>= 1;
 				if (remB) remB >>= 1;
@@ -441,8 +432,8 @@ namespace LanczosPlusPlus {
 			while(ket) {
 				SizeType bitA = (ket & 1);
 				SizeType bitB = (ket & 2);
-				if (bitA) ketA |= bitmask_[counter];
-				if (bitB) ketB |= bitmask_[counter];
+				if (bitA) ketA |= ProgramGlobals::bitmask(counter);
+				if (bitB) ketB |= ProgramGlobals::bitmask(counter);
 				counter++;
 				ket >>= 2;
 			}
@@ -463,7 +454,7 @@ namespace LanczosPlusPlus {
 			SizeType sum = 0;
 			SizeType counter = from;
 			while(counter<upto) {
-				if (ket & bitmask_[counter]) sum++;
+				if (ket & ProgramGlobals::bitmask(counter)) sum++;
 				counter++;
 			}
 			return sum;

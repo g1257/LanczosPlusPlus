@@ -13,16 +13,13 @@ namespace LanczosPlusPlus {
 template<typename GeometryType>
 class BasisHeisenberg : public BasisBase<GeometryType> {
 
-	typedef ProgramGlobals::PairIntType PairIntType;
-
 public:
 
+	typedef ProgramGlobals::PairIntType PairIntType;
 	typedef BasisBase<GeometryType> BaseType;
 	typedef typename BaseType::WordType WordType;
 	typedef typename BaseType::VectorWordType VectorWordType;
 	typedef typename BaseType::LabeledOperatorType LabeledOperatorType;
-
-	static VectorWordType bitmask_;
 
 	BasisHeisenberg(const GeometryType& geometry,
 	                SizeType twiceS,
@@ -33,8 +30,7 @@ public:
 	      bits_(0)
 	{
 		SizeType sites = geometry_.numberOfSites();
-		assert(bitmask_.size()==0 || bitmask_.size()== sites);
-		if (bitmask_.size()==0) doBitmask();
+		ProgramGlobals::doBitmask(sites);
 		WordType searchTotal = 1;
 		assert(twiceS > 0);
 		bits_ = 1 + static_cast<SizeType>(logBase2(twiceS + 1));
@@ -57,7 +53,7 @@ public:
 
 	static const WordType& bitmask(SizeType i)
 	{
-		return bitmask_[i];
+		return ProgramGlobals::bitmask(i);
 	}
 
 	SizeType size() const { return data_.size(); }
@@ -202,7 +198,7 @@ private:
 	{
 		SizeType mask = 1;
 		for (SizeType i = 0; i < bits_; ++i)
-			mask |= bitmask_[i];
+			mask |= ProgramGlobals::bitmask(i);
 		return mask;
 	}
 
@@ -283,15 +279,6 @@ private:
 		throw PsimagLite::RuntimeError(lOperator.unknownOperator());
 	}
 
-	void doBitmask()
-	{
-		SizeType n = geometry_.numberOfSites();
-		bitmask_.resize(n);
-		bitmask_[0]=1ul;
-		for (SizeType i=1;i<n;i++)
-			bitmask_[i] = bitmask_[i-1]<<1;
-	}
-
 	SizeType logBase2(SizeType x) const
 	{
 		int ret = 0;
@@ -313,10 +300,6 @@ std::ostream& operator<<(std::ostream& os,const BasisHeisenberg<GeometryType>& b
 		os<<i<<" "<<basis.data_[i]<<"\n";
 	return os;
 }
-
-template<typename GeometryType>
-typename BasisHeisenberg<GeometryType>::VectorWordType
-BasisHeisenberg<GeometryType>::bitmask_;
 
 } // namespace LanczosPlusPlus
 #endif

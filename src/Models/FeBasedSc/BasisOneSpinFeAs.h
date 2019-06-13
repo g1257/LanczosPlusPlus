@@ -41,17 +41,16 @@ public:
 	static int const FERMION_SIGN  = -1;
 	static SizeType nsite_;
 	static PsimagLite::Matrix<SizeType> comb_;
-	static PsimagLite::Vector<WordType>::Type bitmask_;
 
 	BasisOneSpinFeAs(SizeType nsite, SizeType npart,SizeType orbitals)
-	: npart_(npart)
+	    : npart_(npart)
 	{
 		if (nsite_>0 && nsite!=nsite_)
 			throw std::runtime_error("All basis must have same number of sites\n");
 		orbitals_=orbitals;
 		nsite_ = nsite;
 		doCombinatorial();
-		doBitmask();
+		ProgramGlobals::doBitmask(nsite_*orbitals_*orbitals_+1);
 
 		/* compute size of basis */
 		if (npart==0) {
@@ -106,7 +105,7 @@ public:
 		PsimagLite::Vector<WordType>::Type kets(orbitals_,0);
 		uncollateKet(kets,ket);
 
-		WordType res = (kets[orb] & bitmask_[site]);
+		WordType res = (kets[orb] & ProgramGlobals::bitmask(site));
 		return (res>0) ? 1 : 0;
 	}
 
@@ -145,7 +144,7 @@ public:
 
 	static const WordType& bitmask(SizeType i)
 	{
-		return bitmask_[i];
+		return ProgramGlobals::bitmask(i);
 	}
 
 	int doSign(WordType ket,
@@ -196,7 +195,7 @@ public:
 	SizeType isThereAnElectronAt(SizeType ket,SizeType site,SizeType orb) const
 	{
 		SizeType x = site*orbitals_ + orb;
-		return (ket & bitmask_[x]) ? 1 : 0;
+		return (ket & ProgramGlobals::bitmask(x)) ? 1 : 0;
 	}
 
 	SizeType electrons() const
@@ -346,14 +345,6 @@ private:
 		}
 	}
 
-	void doBitmask()
-	{
-		bitmask_.resize(nsite_*orbitals_*orbitals_+1);
-		bitmask_[0]=1ul;
-		for (SizeType i=1; i<bitmask_.size(); i++)
-			bitmask_[i] = bitmask_[i-1]<<1;
-	}
-
 	SizeType perfectIndexPartial(WordType state) const
 	{
 		SizeType n=0;
@@ -373,7 +364,7 @@ private:
 		while (orAll(remA)) {
 			for (SizeType orb=0; orb<kets.size(); orb++) {
 				SizeType bitA = (remA[orb] & 1);
-				if (bitA) ket |=bitmask_[counter];
+				if (bitA) ket |=ProgramGlobals::bitmask(counter);
 				counter++;
 				if (remA[orb]) remA[orb] >>= 1;
 			}
@@ -399,7 +390,7 @@ private:
 				SizeType mask = (1<<orb);
 				SizeType bitA = (ket & mask);
 
-				if (bitA) kets[orb] |= bitmask_[counter];
+				if (bitA) kets[orb] |= ProgramGlobals::bitmask(counter);
 			}
 			counter++;
 			ket >>= orbitals_;
@@ -412,17 +403,17 @@ private:
 	                      SizeType i) const
 	{
 
-		WordType si=(ket & bitmask_[i]);
+		WordType si=(ket & ProgramGlobals::bitmask(i));
 		if (lOperator.id() == LabeledOperatorType::Label::OPERATOR_C) {
 			if (si>0) {
-				bra = (ket ^ bitmask_[i]);
+				bra = (ket ^ ProgramGlobals::bitmask(i));
 				return true;
 			} else {
 				return false; // cannot destroy, there's nothing
 			}
 		} else if (lOperator.id() == LabeledOperatorType::Label::OPERATOR_CDAGGER) {
 			if (si==0) {
-				bra = (ket ^ bitmask_[i]);
+				bra = (ket ^ ProgramGlobals::bitmask(i));
 				return true;
 			} else {
 				return false; // cannot construct, there's already one
@@ -442,7 +433,7 @@ private:
 		SizeType sum = 0;
 		SizeType counter = from;
 		while (counter<upto) {
-			if (ket & bitmask_[counter]) sum++;
+			if (ket & ProgramGlobals::bitmask(counter)) sum++;
 			counter++;
 		}
 
@@ -452,7 +443,6 @@ private:
 	SizeType size_;
 	SizeType npart_;
 	PsimagLite::Vector<WordType>::Type data_;
-
 }; // class BasisOneSpinFeAs
 
 std::ostream& operator<<(std::ostream& os,const BasisOneSpinFeAs& b);

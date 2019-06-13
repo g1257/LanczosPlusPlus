@@ -206,6 +206,26 @@ struct ProgramGlobals {
 		multiply(gs,rT,gstmp);
 	}
 
+	static void doBitmask(SizeType total)
+	{
+		if (total == bitmask_.size())
+			return;
+
+		bitmask_.resize(total);
+		bitmask_[0]=1ul;
+		for (SizeType i=1; i<bitmask_.size(); i++)
+			bitmask_[i] = bitmask_[i-1]<<1;
+	}
+
+	static const WordType& bitmask(SizeType i)
+	{
+		assert(i < bitmask_.size());
+		return bitmask_[i];
+	}
+
+private:
+
+	static PsimagLite::Vector<WordType>::Type bitmask_;
 }; // ProgramGlobals
 
 } // namespace LanczosPlusPlus

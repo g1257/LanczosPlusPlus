@@ -168,7 +168,7 @@ private:
 	                          SizeType site)
 	{
 		const WordType ket = ketp;
-		const WordType mask = BasisType::bitmask(site);
+		const WordType mask = ProgramGlobals::bitmask(site);
 		WordType s = (ket & mask);
 		bool sbit = (s > 0);
 		bool sbitSaved = sbit;

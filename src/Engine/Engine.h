@@ -559,6 +559,9 @@ private:
 	void computeAllStatesBelow(SizeType excited)
 	{
 		const SizeType excitedPlusOne = excited + 1;
+		energies_.resize(excitedPlusOne);
+		vectors_.resize(excitedPlusOne);
+
 		SpecialSymmetryType rs(model_.basis(),model_.geometry(),options_);
 		InternalProductType hamiltonian(model_,rs);
 		ParametersForSolverType params(io_,"Lanczos");

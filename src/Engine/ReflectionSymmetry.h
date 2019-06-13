@@ -22,6 +22,7 @@ Please see full open source license included in file LICENSE.
 #include "ProgressIndicator.h"
 #include "CrsMatrix.h"
 #include "Vector.h"
+#include "ProgramGlobals.h"
 
 namespace LanczosPlusPlus {
 
@@ -60,6 +61,7 @@ public:
 	typedef PsimagLite::CrsMatrix<ComplexOrRealType> SparseMatrixType;
 	typedef typename PsimagLite::Vector<ComplexOrRealType>::Type VectorType;
 	typedef typename PsimagLite::Vector<RealType>::Type VectorRealType;
+	typedef typename PsimagLite::Vector<VectorType>::Type VectorVectorType;
 
 	ReflectionSymmetry(const BasisType& basis,
 	                   const GeometryType& geometry,
@@ -150,19 +152,14 @@ public:
 		split(matrix1[0],matrix1[1],matrix2);
 	}
 
-	void transformGs(VectorType& gs,SizeType offset)
+	void transform(VectorVectorType& zs,SizeType offset)
 	{
-		VectorType gstmp(transform_.rows(),0);
+		VectorType gstmp(transform_.rows());
 
-		for (SizeType i=0;i<gs.size();i++) {
-			assert(i+offset<gstmp.size());
-			gstmp[i+offset]=gs[i];
-		}
-		SparseMatrixType rT;
-		transposeConjugate(rT,transform_);
-		gs.clear();
-		gs.resize(transform_.rows());
-		multiply(gs,rT,gstmp);
+		const SizeType excitedPlusOne = zs.size();
+
+		for (SizeType i = 0; i < excitedPlusOne; ++i)
+			ProgramGlobals::transform(zs[i], offset, gstmp, transform_);
 	}
 
 	SizeType sectors() const { return 2; }

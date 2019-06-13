@@ -55,6 +55,7 @@ public:
 	typedef PsimagLite::Random48<RealType> RandomType;
 	typedef PsimagLite::ParametersForSolver<RealType> ParametersForSolverType;
 	typedef typename PsimagLite::Vector<ComplexOrRealType>::Type VectorType;
+	typedef typename PsimagLite::Vector<VectorType>::Type VectorVectorType;
 	typedef PsimagLite::LanczosSolver<ParametersForSolverType,
 	InternalProductType,
 	VectorType> LanczosSolverType;
@@ -79,26 +80,32 @@ public:
 
 	enum {PLUS,MINUS};
 
-	Engine(const ModelType& model,
-	       SizeType,
-	       InputType& io)
+	Engine(const ModelType& model, InputType& io)
 	    : model_(model),
 	      progress_("Engine"),
 	      io_(io),
 	      options_("")
 	{
 		io_.readline(options_,"SolverOptions=");
-		computeGroundState();
+		SizeType excited = 0;
+
+		try {
+			io_.readline(excited, "Excited=");
+		} catch (std::exception&) {}
+
+		computeAllStatesBelow(excited);
 	}
 
-	RealType gsEnergy() const
+	RealType energies(SizeType ind) const
 	{
-		return gsEnergy_;
+		assert(ind < energies_.size());
+		return energies_[ind];
 	}
 
-	const VectorType& eigenvector() const
+	const VectorType& eigenvector(SizeType ind) const
 	{
-		return gsVector_;
+		assert(ind < vectors_.size());
+		return vectors_[ind];
 	}
 
 	//! Calc Green function G(isite,jsite)  (still diagonal in spin)
@@ -138,6 +145,9 @@ public:
 			throw std::runtime_error(str.c_str());
 		}
 
+		assert(0 < vectors_.size());
+		const VectorType& gsVector = vectors_[0];
+
 		typedef typename ContinuedFractionCollectionType::ContinuedFractionType
 		        ContinuedFractionType;
 
@@ -164,7 +174,7 @@ public:
 			VectorType modifVector;
 			getModifiedState(modifVector,
 			                 lOperator,
-			                 gsVector_,
+			                 gsVector,
 			                 *basisNew,
 			                 type,
 			                 isite,
@@ -190,13 +200,16 @@ public:
 		}
 	}
 
-	void measure(PsimagLite::String meas) const
+	void measure(const VectorStringType& braOpKet) const
 	{
+		if (braOpKet.size() != 3)
+			err("LanczosDriver1: Only dressed brakets allowed (FATAL ERROR)\n");
+
+		const PsimagLite::String meas = braOpKet[1];
 		VectorStringType tokens;
 		PsimagLite::split(tokens, meas, ";");
 		const SizeType n = tokens.size();
 		VectorRahulOperatorType vops;
-		VectorType psiNew(gsVector_.size());
 		VectorSizeType vsites(n);
 		for (SizeType i = 0; i < n; ++i) {
 			int site = OneOperatorSpecType::extractSiteIfAny(tokens[i]);
@@ -210,21 +223,31 @@ public:
 			vops.push_back(RahulOperatorType(opspec.label, opspec.dof, opspec.transpose));
 		}
 
-		model_.rahulMethod(psiNew, vops, vsites, gsVector_);
-		const ComplexOrRealType result = gsVector_*psiNew;
+		SizeType ketIndex = 0; // use braOpKet[2] to derive this one FIXME TODO
+		checkBraOrKet(braOpKet[2], ketIndex);
+		const VectorType& ketVector = vectors_[ketIndex];
+		VectorType psiNew(ketVector.size());
+
+		model_.rahulMethod(psiNew, vops, vsites, ketVector);
+
+		SizeType braIndex = 0; // use braOpKet[0] to derive this one FIXME TODO
+		checkBraOrKet(braOpKet[0], braIndex);
+		const VectorType& braVector = vectors_[braIndex];
+
+		const ComplexOrRealType result = braVector*psiNew;
 		std::cout<<"<gs|"<<meas<<"|gs> = "<<result<<"\n";
 	}
 
 	void twoPoint(PsimagLite::Matrix<typename VectorType::value_type>& result,
 	              const LabeledOperatorType& lOperator,
 	              const PsimagLite::Vector<PairType>::Type& spins,
-	              const PairType& orbs) const
+	              const PairType& orbs,
+	              const PairType& braAndKet) const
 	{
 		for (SizeType i=0;i<spins.size();i++) {
 			std::cout<<"spins="<<spins[i].first<<" "<<spins[i].second<<"\n";
-			twoPoint(result,lOperator,spins[i],orbs);
+			twoPoint(result, lOperator, spins[i], orbs, braAndKet);
 		}
-
 	}
 
 	/* PSIDOC TwoPointCorrelations
@@ -233,7 +256,8 @@ public:
 	void twoPoint(PsimagLite::Matrix<typename VectorType::value_type>& result,
 	              const LabeledOperatorType& lOperator,
 	              const PairType& spins,
-	              const PairType& orbs) const
+	              const PairType& orbs,
+	              const PairType& braAndKet) const
 	{
 		const BasisType* basisNew = 0;
 		PairType oldParts = model_.basis().parts();
@@ -260,6 +284,10 @@ public:
 			basisNew = &model_.basis();
 		}
 
+		checkBraOrKet("bra", braAndKet.first);
+		checkBraOrKet("ket", braAndKet.second);
+		const VectorType& braVector = vectors_[braAndKet.first];
+		const VectorType& ketVector = vectors_[braAndKet.second];
 		SizeType total =result.n_row();
 
 		for (SizeType isite=0;isite<total;isite++)
@@ -276,7 +304,7 @@ public:
 			accModifiedState(modifVector1,
 			                 lOperator,
 			                 *basisNew,
-			                 gsVector_,
+			                 ketVector,
 			                 isite,
 			                 spins.first,
 			                 orbs.first,
@@ -287,7 +315,7 @@ public:
 				accModifiedState(modifVector2,
 				                 lOperator,
 				                 *basisNew,
-				                 gsVector_,
+				                 braVector,
 				                 jsite,
 				                 spins.second,
 				                 orbs.second,
@@ -303,9 +331,11 @@ public:
 	ComplexOrRealType manyPoint(const VectorSizeType& sites,
 	                            const PsimagLite::Vector<LabeledOperatorType>::Type& what,
 	                            const VectorSizeType& spins,
-	                            const VectorSizeType& orbs) const
+	                            const VectorSizeType& orbs,
+	                            const PairType& braAndKet) const
 	{
-		VectorType tmpVector = gsVector_;
+		checkBraOrKet("ket", braAndKet.second);
+		VectorType tmpVector = vectors_[braAndKet.second];
 		const BasisType* basisOld = &(model_.basis());
 		RealType isign = 1.0;
 		PairType oldParts = model_.basis().parts();
@@ -342,7 +372,10 @@ public:
 		oldParts = model_.basis().parts();
 		if (oldParts != newParts) return 0.0;
 
-		return gsVector_*tmpVector;
+		checkBraOrKet("bra", braAndKet.first);
+		const VectorType& braVector = vectors_[braAndKet.first];
+
+		return braVector*tmpVector;
 	}
 
 private:
@@ -523,50 +556,57 @@ private:
 		                  isign);
 	}
 
-	void computeGroundState()
+	void computeAllStatesBelow(SizeType excited)
 	{
+		const SizeType excitedPlusOne = excited + 1;
 		SpecialSymmetryType rs(model_.basis(),model_.geometry(),options_);
 		InternalProductType hamiltonian(model_,rs);
 		ParametersForSolverType params(io_,"Lanczos");
 		LanczosSolverType lanczosSolver(hamiltonian,params);
 
-		gsEnergy_ = 1e10;
 		SizeType offset = model_.size();
 		SizeType currentOffset = 0;
 
-		for (SizeType i=0;i<rs.sectors();i++) {
+		for (SizeType i = 0; i < rs.sectors(); ++i) {
 			hamiltonian.specialSymmetrySector(i);
 			SizeType n = hamiltonian.rows();
 			if (n == 0) continue;
 			VectorType initial(n);
 			PsimagLite::fillRandom(initial);
-			VectorType gsVector1(n);
-			RealType gsEnergy1 = 0;
+			VectorVectorType zs(excitedPlusOne, VectorType(n));
+			VectorRealType eigs(excitedPlusOne);
 
 			try {
-				lanczosSolver.computeOneState(gsEnergy1, gsVector1, initial, 0);
+				lanczosSolver.computeAllStatesBelow(eigs, zs, initial, excitedPlusOne);
 			} catch (std::exception&) {
 
 				std::cerr<<"Engine: Lanczos Solver failed ";
 				std::cerr<<" trying exact diagonalization...\n";
-				VectorRealType eigs(hamiltonian.rows());
+				VectorRealType eigs2(n);
 				MatrixType fm;
-				hamiltonian.fullDiag(eigs,fm);
-				for (SizeType j = 0; j < eigs.size(); ++j)
-					gsVector1[j] = fm(j,0);
-				gsEnergy1 = eigs[0];
-				std::cout<<"Found lowest eigenvalue= "<<gsEnergy1<<"\n";
+				hamiltonian.fullDiag(eigs2, fm);
+				for (SizeType k = 0; k < excitedPlusOne; ++k) {
+					for (SizeType j = 0; j < n; ++j)
+						zs[k][j] = fm(j, k);
+					eigs[k] = eigs2[k];
+				}
 			}
 
-			if (gsEnergy1<gsEnergy_) {
-				gsVector_=gsVector1;
-				gsEnergy_=gsEnergy1;
+			if (eigs[0] < energies_[0]) {
+				for (SizeType j = 0; j < excitedPlusOne; ++j) {
+					vectors_[j] = zs[j];
+					energies_[j] = eigs[j];
+				}
+
 				offset = currentOffset;
 			}
-			currentOffset +=  gsVector1.size();
+
+			currentOffset +=  zs[0].size();
 		}
-		rs.transformGs(gsVector_,offset);
-		std::cout<<"#GSNorm="<<PsimagLite::real(gsVector_*gsVector_)<<"\n";
+
+		rs.transform(vectors_, offset);
+
+		printEnergiesAndNorms();
 	}
 
 	template<typename ContinuedFractionType>
@@ -596,15 +636,34 @@ private:
 		RealType diagonalFactor = (isDiagonal) ? 1 : 0.5;
 		s2 *= diagonalFactor;
 
-		cf.set(ab, gsEnergy_, PsimagLite::real(weight*s2), s);
+		assert(0 < energies_.size());
+		const RealType gsEnergy = energies_[0];
+		cf.set(ab, gsEnergy, PsimagLite::real(weight*s2), s);
+	}
+
+	void checkBraOrKet(PsimagLite::String name, SizeType ind) const
+	{
+		if (ind < vectors_.size()) return;
+
+		err("Wrong " + name + " FATAL ERROR\n");
+	}
+
+	void printEnergiesAndNorms() const
+	{
+		const SizeType excited = energies_.size();
+		assert(excited == vectors_.size());
+		for (SizeType i = 0; i < excited; ++i) {
+			const RealType val = PsimagLite::real(vectors_[i]*vectors_[i]);
+			std::cout<<"E["<<i<<"]="<<energies_[i]<<" norm="<<val<<"\n";
+		}
 	}
 
 	const ModelType& model_;
 	PsimagLite::ProgressIndicator progress_;
 	InputType& io_;
 	PsimagLite::String options_;
-	RealType gsEnergy_;
-	VectorType gsVector_;
+	VectorRealType energies_;
+	VectorVectorType vectors_;
 }; // class ContinuedFraction
 } // namespace Dmrg
 

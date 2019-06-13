@@ -39,7 +39,9 @@ template<typename ModelType>
 SizeType maxOrbitals(const ModelType& model);
 
 template<typename EngineType>
-void extendedStatic(PsimagLite::String manypoint, const EngineType& engine);
+void extendedStatic(PsimagLite::String manypoint,
+                    const EngineType& engine,
+                    const typename EngineType::PairType& braAndKet);
 
 template<typename ModelType,
          typename SpecialSymmetryType,

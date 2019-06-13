@@ -84,6 +84,7 @@ DISCLOSED WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
 #include <climits>
 #include "Vector.h"
 #include "BitManip.h"
+#include "CrsMatrix.h"
 
 namespace LanczosPlusPlus {
 
@@ -183,6 +184,26 @@ struct ProgramGlobals {
 		}
 
 		os<<"\n--------------\n";
+	}
+
+	template<typename SomeVectorType>
+	static typename PsimagLite::EnableIf<PsimagLite::IsVectorLike<SomeVectorType>::True,
+	void>::Type
+	transform(SomeVectorType& gs,
+	          SizeType offset,
+	          SomeVectorType& gstmp,
+	          const PsimagLite::CrsMatrix<typename SomeVectorType::value_type>& tr)
+	{
+		for (SizeType i=0;i<gs.size();i++) {
+			assert(i+offset<gstmp.size());
+			gstmp[i+offset]=gs[i];
+		}
+
+		PsimagLite::CrsMatrix<typename SomeVectorType::value_type> rT;
+		transposeConjugate(rT, tr);
+		gs.clear();
+		gs.resize(tr.rows());
+		multiply(gs,rT,gstmp);
 	}
 
 }; // ProgramGlobals

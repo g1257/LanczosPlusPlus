@@ -15,7 +15,9 @@ SizeType maxOrbitals(const ModelType& model)
 }
 
 template<typename EngineType>
-void extendedStatic(PsimagLite::String manypoint, const EngineType& engine)
+void extendedStatic(PsimagLite::String manypoint,
+                    const EngineType& engine,
+                    const typename EngineType::PairType& braAndKet)
 {
 	typedef typename EngineType::VectorSizeType VectorSizeType;
 	PsimagLite::Vector<PsimagLite::String>::Type str;
@@ -38,7 +40,7 @@ void extendedStatic(PsimagLite::String manypoint, const EngineType& engine)
 	}
 
 	std::cout<<"<gs|"<<manypoint<<"|gs>=";
-	std::cout<<engine.manyPoint(sites,whats,spins,orbs);
+	std::cout<<engine.manyPoint(sites, whats, spins, orbs, braAndKet);
 	std::cout<<"\n";
 }
 
@@ -56,10 +58,10 @@ void mainLoop3(const ModelType& model,
 	typedef PsimagLite::Vector<PsimagLite::String>::Type VectorStringType;
 
 	const GeometryType& geometry = model.geometry();
-	EngineType engine(model,geometry.numberOfSites(),io);
+	EngineType engine(model, io);
 
 	//! get the g.s.:
-	RealType Eg = engine.gsEnergy();
+	RealType Eg = engine.energies(0);
 	std::cout.precision(8);
 	std::cout<<"Energy="<<Eg<<"\n";
 	PsimagLite::String filename = PsimagLite::basenameOf(io.filename());
@@ -72,10 +74,7 @@ void mainLoop3(const ModelType& model,
 		for (SizeType j = 0; j < ntokens; ++j) {
 			VectorStringType braOpKet;
 			PsimagLite::split(braOpKet, tokens[j], "|");
-			const SizeType ind = (braOpKet.size() == 3) ? 1 : 0;
-			if (braOpKet.size() != 1 && ind == 0)
-				err("Wrong braket\n");
-			engine.measure(braOpKet[ind]);
+			engine.measure(braOpKet);
 		}
 	}
 
@@ -133,7 +132,8 @@ void mainLoop3(const ModelType& model,
 				engine.twoPoint(cicjMatrix,
 				                lanczosOptions.cicj[cicji],
 				                lanczosOptions.spins,
-				                std::pair<SizeType,SizeType>(orb1,orb2));
+				                std::pair<SizeType,SizeType>(orb1,orb2),
+				                std::pair<SizeType,SizeType>(0, 0));
 				std::cout<<cicjMatrix;
 			}
 		}
@@ -141,7 +141,7 @@ void mainLoop3(const ModelType& model,
 
 	if (lanczosOptions.split >= 0) {
 		LanczosPlusPlus::ReducedDensityMatrix<ModelType> reducedDensityMatrix(model,
-		                                                                      engine.eigenvector(),
+		                                                                      engine.eigenvector(0),
 		                                                                      lanczosOptions.split);
 		reducedDensityMatrix.printAll(std::cout);
 	}
@@ -150,7 +150,7 @@ void mainLoop3(const ModelType& model,
 		PsimagLite::Vector<PsimagLite::String>::Type str;
 		PsimagLite::split(str, lanczosOptions.extendedStatic, ",");
 		for (SizeType i = 0; i < str.size(); ++i)
-			extendedStatic(str[i],engine);
+			extendedStatic(str[i], engine, typename EngineType::PairType(0, 0));
 	}
 }
 

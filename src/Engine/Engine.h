@@ -569,6 +569,7 @@ private:
 
 		SizeType offset = model_.size();
 		SizeType currentOffset = 0;
+		bool firstNonZeroSectorSeen = false;
 
 		for (SizeType i = 0; i < rs.sectors(); ++i) {
 			hamiltonian.specialSymmetrySector(i);
@@ -595,13 +596,14 @@ private:
 				}
 			}
 
-			if (eigs[0] < energies_[0]) {
+			if (eigs[0] < energies_[0] || !firstNonZeroSectorSeen) {
 				for (SizeType j = 0; j < excitedPlusOne; ++j) {
 					vectors_[j] = zs[j];
 					energies_[j] = eigs[j];
 				}
 
 				offset = currentOffset;
+				firstNonZeroSectorSeen = true;
 			}
 
 			currentOffset +=  zs[0].size();

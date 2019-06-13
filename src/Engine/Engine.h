@@ -31,6 +31,7 @@ Please see full open source license included in file LICENSE.
 #include "TypeToString.h"
 #include "LabeledOperator.h"
 #include "OneOperatorSpec.h"
+#include "GetBraOrKet.h"
 
 namespace LanczosPlusPlus {
 template<typename ModelType_,
@@ -223,19 +224,21 @@ public:
 			vops.push_back(RahulOperatorType(opspec.label, opspec.dof, opspec.transpose));
 		}
 
-		SizeType ketIndex = 0; // use braOpKet[2] to derive this one FIXME TODO
+		PsimagLite::GetBraOrKet myket("|" + braOpKet[2]);
+		SizeType ketIndex = myket();
 		checkBraOrKet(braOpKet[2], ketIndex);
 		const VectorType& ketVector = vectors_[ketIndex];
 		VectorType psiNew(ketVector.size());
 
 		model_.rahulMethod(psiNew, vops, vsites, ketVector, model_.basis());
 
-		SizeType braIndex = 0; // use braOpKet[0] to derive this one FIXME TODO
+		PsimagLite::GetBraOrKet mybra(braOpKet[0] + "|");
+		SizeType braIndex = mybra();
 		checkBraOrKet(braOpKet[0], braIndex);
 		const VectorType& braVector = vectors_[braIndex];
 
 		const ComplexOrRealType result = braVector*psiNew;
-		std::cout<<"<gs|"<<meas<<"|gs> = "<<result<<"\n";
+		std::cout<<braOpKet[0]<<"|"<<meas<<"|"<<braOpKet[2]<<" = "<<result<<"\n";
 	}
 
 	void twoPoint(PsimagLite::Matrix<typename VectorType::value_type>& result,

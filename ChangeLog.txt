@@ -1,3 +1,12 @@
+2019-06-25 Version 1.70
+
+* Exicted states now supported in Engine,
+and available as P0, P1, ...
+
+* Rahul method available for all models
+
+* Rahul method accepts P0, P1, ...
+
 2019-05-20 Version 1.68
 
 * HubbardHelper added

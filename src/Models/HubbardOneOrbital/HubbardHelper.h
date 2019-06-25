@@ -163,7 +163,7 @@ private:
 				               basis.getN(ket1,ket2,i,SPIN_DOWN,orb));
 
 				for (SizeType j=0;j<nsite;j++) {
-					ComplexOrRealType value = 0.5*coulombCoupling(i,j);
+					ComplexOrRealType value = zeroPointFive*coulombCoupling(i,j);
 					if (PsimagLite::real(value) == 0 && PsimagLite::imag(value) == 0) continue;
 					RealType tmp2 = basis.getN(ket1,ket2,j,SPIN_UP,orb) +
 					        basis.getN(ket1,ket2,j,SPIN_DOWN,orb);

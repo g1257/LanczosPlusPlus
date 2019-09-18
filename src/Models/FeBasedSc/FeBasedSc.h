@@ -238,7 +238,7 @@ public:
 		                  *this);
 
 		std::cout<<"Using "<<threadObject.name();
-		std::cout<<" with "<<threadObject.threads()<<" threads.\n";
+		std::cout<<" with "<<PsimagLite::Concurrency::codeSectionParams.npthreads<<" threads.\n";
 		threadObject.loopCreate(helper);
 	}
 

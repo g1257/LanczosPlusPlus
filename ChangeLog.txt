@@ -1,3 +1,7 @@
+2019-09-23 Version 1.72
+
+threads() no longer available
+
 2019-06-25 Version 1.70
 
 * Exicted states now supported in Engine,

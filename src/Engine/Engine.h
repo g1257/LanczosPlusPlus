@@ -225,7 +225,7 @@ public:
 		}
 
 		PsimagLite::GetBraOrKet myket("|" + braOpKet[2]);
-		SizeType ketIndex = myket();
+		SizeType ketIndex = myket.levelIndex();
 		checkBraOrKet(braOpKet[2], ketIndex);
 		const VectorType& ketVector = vectors_[ketIndex];
 		VectorType psiNew(ketVector.size());
@@ -233,7 +233,7 @@ public:
 		model_.rahulMethod(psiNew, vops, vsites, ketVector, model_.basis());
 
 		PsimagLite::GetBraOrKet mybra(braOpKet[0] + "|");
-		SizeType braIndex = mybra();
+		SizeType braIndex = mybra.levelIndex();
 		checkBraOrKet(braOpKet[0], braIndex);
 		const VectorType& braVector = vectors_[braIndex];
 

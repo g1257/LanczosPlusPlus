@@ -1,3 +1,7 @@
+2019-11-08 Version 1.74
+
+Changes due to changes to GetBraOrKet
+
 2019-09-23 Version 1.72
 
 threads() no longer available

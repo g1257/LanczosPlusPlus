@@ -212,12 +212,14 @@ public:
 		const SizeType n = tokens.size();
 		VectorRahulOperatorType vops;
 		VectorSizeType vsites(n);
+		typedef typename OneOperatorSpecType::SiteSplit SiteSplitType;
+
 		for (SizeType i = 0; i < n; ++i) {
-			int site = OneOperatorSpecType::extractSiteIfAny(tokens[i]);
-			if (site < 0)
+			SiteSplitType siteSplit = OneOperatorSpecType::extractSiteIfAny(tokens[i]);
+			if (!siteSplit.hasSiteString)
 				err("Operator " + tokens[i] + " needs a site in brackets\n");
 			assert(i < vsites.size());
-			vsites[i] = site;
+			vsites[i] = OneOperatorSpecType::strToNumberOfFail(siteSplit.siteString);
 
 			OneOperatorSpecType opspec(tokens[i]);
 

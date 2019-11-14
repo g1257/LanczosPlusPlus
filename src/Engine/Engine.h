@@ -218,6 +218,7 @@ public:
 			SiteSplitType siteSplit = OneOperatorSpecType::extractSiteIfAny(tokens[i]);
 			if (!siteSplit.hasSiteString)
 				err("Operator " + tokens[i] + " needs a site in brackets\n");
+			tokens[i] = siteSplit.root;
 			assert(i < vsites.size());
 			vsites[i] = OneOperatorSpecType::strToNumberOfFail(siteSplit.siteString);
 

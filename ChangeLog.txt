@@ -1,3 +1,7 @@
+2019-12-09 Version 1.76
+
+* changes due to changes to OneOperatorSpec
+
 2019-11-08 Version 1.74
 
 Changes due to changes to GetBraOrKet

@@ -257,9 +257,9 @@ private:
 
 			dest.push_back(item);
 		}
-		PsimagLite::OstringStream msg;
-		msg<<pluses<<" +, "<<minuses<<" -, "<<zeros<<" zeros.";
-		progress_.printline(msg,std::cout);
+		PsimagLite::OstringStream msg(std::cout.precision());
+		msg()<<pluses<<" +, "<<minuses<<" -, "<<zeros<<" zeros.";
+		progress_.printline(msg, std::cout);
 		plusSector_ = zeros + pluses;
 	}
 

@@ -1,3 +1,7 @@
+2020-01-14 Version 1.78
+
+* changes due to changes to PsimagLite::OstringStream
+
 2019-12-09 Version 1.76
 
 * changes due to changes to OneOperatorSpec

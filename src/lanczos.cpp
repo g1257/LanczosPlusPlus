@@ -206,7 +206,7 @@ int main(int argc,char **argv)
 		io.readline(npthreads,"Threads=");
 	} catch (std::exception&) {}
 
-	PsimagLite::CodeSectionParams codeSectionParams(npthreads, setAffinities);
+	PsimagLite::CodeSectionParams codeSectionParams(npthreads, 1, setAffinities, 0);
 	ConcurrencyType::setOptions(codeSectionParams);
 
 	typedef std::complex<RealType> ComplexType;

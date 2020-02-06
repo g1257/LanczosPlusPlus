@@ -82,6 +82,7 @@ DISCLOSED WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
 #define InternalProductStored_HEADER_H
 
 #include <vector>
+#include "Vector.h"
 
 namespace LanczosPlusPlus {
 template<typename ModelType,typename SpecialSymmetryType_>
@@ -111,7 +112,7 @@ public:
 	                      SpecialSymmetryType& rs)
 	    : rs_(rs)
 	{
-		rs_.init(model,model.basis());
+		rs_.init(model, model.basis());
 	}
 
 	SizeType rows() const { return rs_.rows(); }

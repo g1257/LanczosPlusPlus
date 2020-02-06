@@ -81,6 +81,7 @@ DISCLOSED WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
 
 #include <vector>
 #include <cassert>
+#include "Vector.h"
 
 namespace LanczosPlusPlus {
 template<typename ModelType,typename SpecialSymmetryType_>
@@ -101,23 +102,22 @@ public:
 	InternalProductOnTheFly(const ModelType& model,
 	                        const BasisType& basis,
 	                        SpecialSymmetryType&)
-	    : model_(model),basis_(&basis)
+	    : model_(model),basis_(basis)
 	{}
 
 	InternalProductOnTheFly(const ModelType& model,
 	                        SpecialSymmetryType&)
-	    : model_(model),basis_(0)
+	    : model_(model),basis_(model.basis())
 	{}
 
-	SizeType rows() const { return model_.size(); }
+	SizeType rows() const
+	{
+		return basis_.size();
+	}
 
 	void matrixVectorProduct(VectorType &x, const VectorType& y) const
 	{
-		if (basis_==0) {
-			model_.matrixVectorProduct(x,y);
-		} else {
-			model_.matrixVectorProduct(x,y,*basis_);
-		}
+		model_.matrixVectorProduct(x, y, basis_);
 	}
 
 	SizeType reflectionSector() const { return 0; }
@@ -127,13 +127,13 @@ public:
 	void fullDiag(VectorRealType&,
 	              MatrixType&)
 	{
-		throw PsimagLite::RuntimeError("no fullDiag possible when on the fly\n");
+		err("no fullDiag possible when on the fly\n");
 	}
 
 private:
 
 	const ModelType& model_;
-	const BasisType* basis_;
+	const BasisType& basis_;
 }; // class InternalProductOnTheFly
 } // namespace LanczosPlusPlus
 

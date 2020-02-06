@@ -3,6 +3,7 @@
 #include "CrsMatrix.h"
 #include "SparseRow.h"
 #include "ProgramGlobals.h"
+#include "Parallelizer2.h"
 
 namespace LanczosPlusPlus {
 
@@ -113,8 +114,9 @@ public:
 		diag.clear();
 
 		SizeType nsite = geometry_.numberOfSites();
+
 		// Calculate off-diagonal elements AND store matrix
-		for (SizeType ispace=0;ispace<hilbert;ispace++) {
+		auto lambda = [&basis, nsite, &x, &y, this](SizeType ispace, SizeType) {
 			SparseRowType sparseRow;
 			WordType ket1 = basis(ispace,SPIN_UP);
 			WordType ket2 = basis(ispace,SPIN_DOWN);
@@ -124,7 +126,11 @@ public:
 			}
 
 			x[ispace] += sparseRow.finalize(y);
-		}
+		};
+
+		PsimagLite::Parallelizer2<> parallelizer2(PsimagLite::Concurrency::codeSectionParams);
+
+		parallelizer2.parallelFor(0, hilbert, lambda);
 	}
 
 private:

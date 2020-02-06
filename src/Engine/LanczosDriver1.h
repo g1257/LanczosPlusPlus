@@ -78,21 +78,44 @@ void mainLoop3(const ModelType& model,
 		}
 	}
 
-	for (SizeType gfi=0;gfi<lanczosOptions.gf.size();gfi++) {
-		SizeType counter = 0;
-		while (true) {
-			try {
-				io.read(lanczosOptions.sites,"TSPSites");
-			} catch (std::exception&) {
-				break;
-			}
-			if (lanczosOptions.sites.size()==0)
-				throw std::runtime_error("No sites in input file!\n");
-			if (lanczosOptions.sites.size()==1)
-				lanczosOptions.sites.push_back(lanczosOptions.sites[0]);
+	bool needsDos = false;
+	try {
+		int tmp = 0;
+		io.readline(tmp, "ComputeDensityOfStates=");
+		needsDos = (tmp > 0);
+	} catch (std::exception&) {}
 
-			std::cout<<"#gf(i="<<lanczosOptions.sites[0]<<",j=";
-			std::cout<<lanczosOptions.sites[1]<<")\n";
+	typedef std::pair<SizeType, SizeType> PairSizeType;
+	PsimagLite::Vector<PairSizeType>::Type pairOfSites;
+	if (needsDos) {
+		lanczosOptions.gf.push_back(LanczosPlusPlus::LabeledOperator("c"));
+		const SizeType n = geometry.numberOfSites();
+		for (SizeType i = 0; i < n; ++i)
+			pairOfSites.push_back(PairSizeType(i, i));
+	}
+
+	try {
+		io.read(lanczosOptions.sites, "TSPSites");
+
+		if (lanczosOptions.sites.size() == 0)
+			err("TSPSites must have at least one site\n");
+
+		if (lanczosOptions.sites.size() == 1)
+			lanczosOptions.sites.push_back(lanczosOptions.sites[0]);
+
+		pairOfSites.push_back(PairSizeType(lanczosOptions.sites[0], lanczosOptions.sites[1]));
+	} catch (std::exception&) {}
+
+
+	for (SizeType gfi = 0; gfi < lanczosOptions.gf.size(); ++gfi) {
+		SizeType counter = 0;
+		const SizeType nIndices = pairOfSites.size();
+		for (SizeType sIndex = 0; sIndex < nIndices; ++sIndex) {
+			const SizeType site0 = pairOfSites[sIndex].first;
+			const SizeType site1 = pairOfSites[sIndex].second;
+
+
+			std::cout<<"#gf(i="<<site0<<", j="<<site1<<")\n";
 			typedef PsimagLite::ContinuedFraction<TridiagonalMatrixType>
 			        ContinuedFractionType;
 			typedef PsimagLite::ContinuedFractionCollection<ContinuedFractionType>
@@ -107,10 +130,10 @@ void mainLoop3(const ModelType& model,
 					engine.spectralFunction(cfCollection,
 					                        vstr,
 					                        lanczosOptions.gf[gfi],
-					                        lanczosOptions.sites[0],
-					        lanczosOptions.sites[1],
-					        lanczosOptions.spins,
-					        std::pair<SizeType,SizeType>(orb1,orb2));
+					                        site0,
+					                        site1,
+					                        lanczosOptions.spins,
+					                        std::pair<SizeType,SizeType>(orb1,orb2));
 				}
 			}
 

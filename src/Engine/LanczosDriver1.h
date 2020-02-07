@@ -31,7 +31,7 @@ void extendedStatic(PsimagLite::String manypoint,
 		PsimagLite::Vector<PsimagLite::String>::Type str2;
 		PsimagLite::split(str2, str[i], "?");
 		if (str2.size() < 3)
-			throw PsimagLite::RuntimeError("-S option malformed\n");
+			throw PsimagLite::RuntimeError("-M option malformed\n");
 		whats.push_back(LanczosPlusPlus::LabeledOperator(str2[0]));
 		sites.push_back(atoi(str2[1].c_str()));
 		spins.push_back(atoi(str2[2].c_str()));

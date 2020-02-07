@@ -111,7 +111,7 @@ int main(int argc,char **argv)
 	\begin{itemize}
 	\item[-f file] Input file to use. DMRG++ inputs can be used.
 	\item[-c label] Computes the two-point correlation for label.
-	\item[-S string] Computes many-point static correlations.
+	\item[-M string] Computes many-point static correlations.
 	string = opsec0;opesec1;... is a semicolon-separated list of operator specifications.
 	An opsec ( equal to id?site?spin?orb ) is a question-mark separated list of
 	operator properties.
@@ -127,7 +127,7 @@ int main(int argc,char **argv)
 	\item[-V] prints version and exits.
 	\end{itemize}
 	*/
-	while ((opt = getopt(argc, argv, "g:c:m:f:s:r:p:S:V")) != -1) {
+	while ((opt = getopt(argc, argv, "g:c:m:f:s:r:p:M:V")) != -1) {
 		switch (opt) {
 		case 'g':
 			lanczosOptions.gf.push_back(LabeledOperator(optarg));
@@ -155,7 +155,7 @@ int main(int argc,char **argv)
 			std::cout.precision(precision);
 			std::cerr.precision(precision);
 			break;
-		case 'S':
+		case 'M':
 			lanczosOptions.extendedStatic = optarg;
 			break;
 		case 'V':

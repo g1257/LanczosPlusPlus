@@ -106,6 +106,7 @@ int main(int argc,char **argv)
 	InputCheck inputCheck;
 	int precision = 6;
 	bool versionOnly = false;
+	SizeType threadsInCmdLine = 0;
 
 	/* PSIDOC LanczosDriver
 	\begin{itemize}
@@ -118,6 +119,8 @@ int main(int argc,char **argv)
 	Id is the id of the operator; see operator ids in Lanczos++ below in this manual;
 	site, spin, and orbital are 0-based specifications with their respective meanings.
 	Orbital is optional, so that opsec = id?site?spin is also valid.
+	\item[-S number] Override Threads= in input line if preset, and set threads
+	to number given here.
 	\item[-g label] Computes the spectral function (continued fraction) for label.
 	\item[-s ``s1,s2''] computes correlations or spectral functions for spin s1,s2.
 	Only s1==s2 is supported for now.
@@ -127,7 +130,7 @@ int main(int argc,char **argv)
 	\item[-V] prints version and exits.
 	\end{itemize}
 	*/
-	while ((opt = getopt(argc, argv, "g:c:m:f:s:r:p:M:V")) != -1) {
+	while ((opt = getopt(argc, argv, "g:c:m:f:s:r:p:M:S:V")) != -1) {
 		switch (opt) {
 		case 'g':
 			lanczosOptions.gf.push_back(LabeledOperator(optarg));
@@ -157,6 +160,9 @@ int main(int argc,char **argv)
 			break;
 		case 'M':
 			lanczosOptions.extendedStatic = optarg;
+			break;
+		case 'S':
+			threadsInCmdLine = atoi(optarg);
 			break;
 		case 'V':
 			versionOnly = true;
@@ -205,6 +211,9 @@ int main(int argc,char **argv)
 	try {
 		io.readline(npthreads,"Threads=");
 	} catch (std::exception&) {}
+
+	if (threadsInCmdLine > 0)
+		npthreads = threadsInCmdLine;
 
 	PsimagLite::CodeSectionParams codeSectionParams(npthreads, 1, setAffinities, 0);
 	ConcurrencyType::setOptions(codeSectionParams);

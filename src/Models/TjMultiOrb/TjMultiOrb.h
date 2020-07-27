@@ -233,7 +233,7 @@ private:
 			ii++;
 		}
 
-		assert(ii = nTrunc);
+		assert(ii == nTrunc);
 		SizeType counter = 0;
 		for (SizeType i = 0; i < nFull; ++i) {
 			if (std::find(targets.begin(),targets.end(),i) != targets.end()) continue;

@@ -81,119 +81,170 @@ DISCLOSED WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
 #define LANCZOS_PARAMS_MODELFEAS_H
 
 namespace LanczosPlusPlus {
-	//! FeAs Model Parameters
-	template<typename ComplexOrRealType>
-	struct ParametersModelFeAs {
-		typedef typename PsimagLite::Real<ComplexOrRealType>::Type RealType;
-		// no connections here please!!
-		// connections are handled by the geometry
+//! FeAs Model Parameters
+template<typename ComplexOrRealType>
+struct ParametersModelFeAs {
+	typedef typename PsimagLite::Real<ComplexOrRealType>::Type RealType;
+	// no connections here please!!
+	// connections are handled by the geometry
 
-		template<typename IoInputType>
-		ParametersModelFeAs(IoInputType& io)
-		    : feAsMode(0),coulombV(0)
-		{
-			io.readline(orbitals,"Orbitals=");
-			io.read(hubbardU,"hubbardU");
-			io.read(potentialV,"potentialV");
+	enum class IntEnum {INT_PAPER33,
+		                INT_V,
+		                INT_CODE2,
+		                INT_IMPURITY,
+		                INT_KSPACE,
+		                INT_ORBITAL0};
 
-			bool decayInInputFile = false;
-			try {
-				io.readline(feAsMode,"Decay=");
-				decayInInputFile = true;
-			} catch (std::exception& e) {}
+	template<typename IoInputType>
+	ParametersModelFeAs(IoInputType& io)
+	    : feAsMode(IntEnum::INT_PAPER33),coulombV(0)
+	{
+		io.readline(orbitals,"Orbitals=");
+		io.read(hubbardU,"hubbardU");
+		io.read(potentialV,"potentialV");
 
-			if (decayInInputFile) {
-				PsimagLite::String str("Please use FeAsMode= instead of Decay=");
-				str += " in input file\n";
+		bool decayInInputFile = false;
+		try {
+			PsimagLite::String tmp;
+			io.readline(tmp, "Decay=");
+			decayInInputFile = true;
+		} catch (std::exception& e) {}
+
+		if (decayInInputFile) {
+			PsimagLite::String str("Please use FeAsMode= instead of Decay=");
+			str += " in input file\n";
+			throw PsimagLite::RuntimeError(str);
+		}
+
+		PsimagLite::String tmp;
+		io.readline(tmp, "FeAsMode=");
+		feAsMode = convertToEnum(tmp);
+
+		if (feAsMode == IntEnum::INT_V || feAsMode == IntEnum::INT_CODE2) {
+			SizeType tmp = orbitals * orbitals;
+			if (feAsMode == IntEnum::INT_CODE2) tmp *= 2;
+			if (hubbardU.size() != tmp) {
+				PsimagLite::String str("FeAsMode: expecting ");
+				str += ttos(tmp) + " U values\n";
 				throw PsimagLite::RuntimeError(str);
-			}
-
-			io.readline(feAsMode,"FeAsMode=");
-
-			if (feAsMode > 4)
-				throw PsimagLite::RuntimeError("FeAsMode: expecting 0 to 4\n");
-
-			if (feAsMode == 1 || feAsMode == 2) {
-				SizeType tmp = orbitals * orbitals;
-				if (feAsMode == 2) tmp *= 2;
-				if (hubbardU.size() != tmp) {
-					PsimagLite::String str("FeAsMode: expecting ");
-					str += ttos(tmp) + " U values\n";
-					throw PsimagLite::RuntimeError(str);
-				}
-			}
-
-			if (feAsMode == 1) {
-				if (orbitals != 3)
-					throw PsimagLite::RuntimeError("FeAsMode: expecting 3 orbitals\n");
-				io.readline(coulombV,"CoulombV=");
-			}
-
-			if (feAsMode == 0 || feAsMode == 3) {
-				if (hubbardU.size() < 4 || hubbardU.size() > 6) {
-					PsimagLite::String str("FeAsMode: expecting");
-					str +=  " 4 or 5 or 6 U values\n";
-					throw PsimagLite::RuntimeError(str);
-				}
-
-				if (hubbardU.size() == 4 || hubbardU.size() == 5) {
-					hubbardU.resize(6);
-					hubbardU[4] = hubbardU[2];
-					hubbardU[5] = 0.0;
-				}
-
-				try {
-					io.read(spinOrbit, "SpinOrbit");
-				} catch (std::exception&) {}
-
-				std::cout<<"U[0]="<<hubbardU[0]<<" =U\n";
-				std::cout<<"U[1]="<<hubbardU[1]<<" =U'-J/2\n";
-				std::cout<<"U[2]="<<hubbardU[2];
-				std::cout<<" = factor for 1/2(S+_aS-_b + S-_aS+_b) term\n";
-				std::cout<<"U[3]="<<hubbardU[3]<<" =-J\n";
-				std::cout<<"U[4]="<<hubbardU[4]<<" = factor for Sz_aSz_b term\n";
-				std::cout<<"U[5]="<<hubbardU[5]<<" = factor for \\sum_\\sigma ";
-				std::cout<<"n_{a\\sigma}*n_{b\\sigma} term\n";
-			}
-
-			if (feAsMode == 4) {
-				if (hubbardU.size() != 1) {
-					PsimagLite::String str("FeAsMode: expecting");
-					str +=  " just 1 U values\n";
-					throw PsimagLite::RuntimeError(str);
-				}
 			}
 		}
 
-		SizeType orbitals;
-		// Hubbard U values (one for each site)
-		typename PsimagLite::Vector<RealType>::Type hubbardU;
-		// Onsite potential values, one for each site
-		typename PsimagLite::Vector<RealType>::Type potentialV;
-		SizeType feAsMode;
-		RealType coulombV;
-		PsimagLite::Matrix<ComplexOrRealType> spinOrbit;
-		// target number of electrons  in the system
-		int nOfElectrons;
-	}; //struct ParametersModelFeAs
+		if (feAsMode == IntEnum::INT_V) {
+			if (orbitals != 3)
+				throw PsimagLite::RuntimeError("FeAsMode: expecting 3 orbitals\n");
+			io.readline(coulombV,"CoulombV=");
+		}
 
-	//! Function that prints model parameters to stream os
-	template<typename RealTypeType>
-	std::ostream& operator<<(std::ostream &os,const ParametersModelFeAs<RealTypeType>& parameters)
-	{
-		os<<"orbitals="<<parameters.orbitals<<"\n";
-		os<<"hubbardU\n";
-		os<<parameters.hubbardU;
-		os<<"potentialV\n";
-		os<<parameters.potentialV;
-		os<<"SpinOrbit\n";
-		os<<parameters.spinOrbit;
-		os<<"FeAsMode="<<parameters.feAsMode<<"\n";
-		if (parameters.feAsMode)
-			os<<"CoulombV="<<parameters.coulombV<<"\n";
+		if (feAsMode == IntEnum::INT_PAPER33 || feAsMode == IntEnum::INT_IMPURITY) {
+			if (hubbardU.size() < 4 || hubbardU.size() > 6) {
+				PsimagLite::String str("FeAsMode: expecting");
+				str +=  " 4 or 5 or 6 U values\n";
+				throw PsimagLite::RuntimeError(str);
+			}
 
-		return os;
+			if (hubbardU.size() == 4 || hubbardU.size() == 5) {
+				hubbardU.resize(6);
+				hubbardU[4] = hubbardU[2];
+				hubbardU[5] = 0.0;
+			}
+
+			try {
+				io.read(spinOrbit, "SpinOrbit");
+			} catch (std::exception&) {}
+
+			std::cout<<"U[0]="<<hubbardU[0]<<" =U\n";
+			std::cout<<"U[1]="<<hubbardU[1]<<" =U'-J/2\n";
+			std::cout<<"U[2]="<<hubbardU[2];
+			std::cout<<" = factor for 1/2(S+_aS-_b + S-_aS+_b) term\n";
+			std::cout<<"U[3]="<<hubbardU[3]<<" =-J\n";
+			std::cout<<"U[4]="<<hubbardU[4]<<" = factor for Sz_aSz_b term\n";
+			std::cout<<"U[5]="<<hubbardU[5]<<" = factor for \\sum_\\sigma ";
+			std::cout<<"n_{a\\sigma}*n_{b\\sigma} term\n";
+		}
+
+		if (feAsMode == IntEnum::INT_KSPACE) {
+			if (hubbardU.size() != 1) {
+				PsimagLite::String str("FeAsMode: expecting");
+				str +=  " just 1 U values\n";
+				throw PsimagLite::RuntimeError(str);
+			}
+		}
 	}
+
+	static IntEnum convertToEnum(PsimagLite::String x)
+	{
+		if (x == "INT_PAPER33")
+			return IntEnum::INT_PAPER33;
+
+		if (x == "INT_V")
+			return IntEnum::INT_V;
+
+		if (x == "INT_CODE2")
+			return IntEnum::INT_CODE2;
+
+		if (x == "INT_IMPURITY")
+			return IntEnum::INT_IMPURITY;
+
+		if (x == "INT_KSPACE")
+			return IntEnum::INT_KSPACE;
+
+		//if (x == "INT_ORBITAL0")
+		//	return IntEnum::INT_ORBITAL0;
+
+		PsimagLite::String all = "INT_PAPER33 INT_V INT_CODE2 INT_IMPURITY";
+		all += PsimagLite::String(" INT_KSPACE") + " INT_ORBITAL0";
+		throw PsimagLite::RuntimeError("FeAsMode= can only be one of " + all + "\n");
+	}
+
+	static PsimagLite::String modeString(IntEnum x)
+	{
+		switch (x) {
+		case IntEnum::INT_PAPER33:
+			return "INT_PAPER33";
+		case IntEnum::INT_V:
+			return "INT_V";
+		case IntEnum::INT_CODE2:
+			return "INT_CODE2";
+		case IntEnum::INT_IMPURITY:
+			return "INT_IMPURITY";
+		case IntEnum::INT_KSPACE:
+			return "INT_KSPACE";
+		case IntEnum::INT_ORBITAL0:
+			return "INT_ORBITAL0";
+		}
+
+		return "UNKNOWN";
+	}
+
+	SizeType orbitals;
+	// Hubbard U values (one for each site)
+	typename PsimagLite::Vector<RealType>::Type hubbardU;
+	// Onsite potential values, one for each site
+	typename PsimagLite::Vector<RealType>::Type potentialV;
+	IntEnum feAsMode;
+	RealType coulombV;
+	PsimagLite::Matrix<ComplexOrRealType> spinOrbit;
+	// target number of electrons  in the system
+	int nOfElectrons;
+}; //struct ParametersModelFeAs
+
+//! Function that prints model parameters to stream os
+template<typename RealTypeType>
+std::ostream& operator<<(std::ostream &os,const ParametersModelFeAs<RealTypeType>& parameters)
+{
+	os<<"orbitals="<<parameters.orbitals<<"\n";
+	os<<"hubbardU\n";
+	os<<parameters.hubbardU;
+	os<<"potentialV\n";
+	os<<parameters.potentialV;
+	os<<"SpinOrbit\n";
+	os<<parameters.spinOrbit;
+	os<<"FeAsMode="<<parameters.modeString(parameters.feAsMode)<<"\n";
+	os<<"CoulombV="<<parameters.coulombV<<"\n";
+
+	return os;
+}
 } // namespace Dmrg
 
 /*@}*/

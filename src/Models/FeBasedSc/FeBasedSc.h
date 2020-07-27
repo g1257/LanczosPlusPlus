@@ -78,7 +78,7 @@ class FeBasedSc : public ModelBase<ComplexOrRealType,
 					myself_.setHoppingTerm(sparseRow,ket1,ket2,
 					                       i,orb,basis_);
 
-					if (myself_.mp_.feAsMode == 0) {
+					if (myself_.mp_.feAsMode == ParametersModelType::IntEnum::INT_PAPER33) {
 						myself_.setU2OffDiagonalTerm(sparseRow,ket1,ket2,
 						                             i,orb,basis_);
 
@@ -89,12 +89,13 @@ class FeBasedSc : public ModelBase<ComplexOrRealType,
 
 						myself_.setJTermOffDiagonal(sparseRow,ket1,ket2,
 						                            i,orb,basis_);
-					} else if (myself_.mp_.feAsMode == 1 || myself_.mp_.feAsMode == 2) {
+					} else if (myself_.mp_.feAsMode == ParametersModelType::IntEnum::INT_V ||
+					           myself_.mp_.feAsMode == ParametersModelType::IntEnum::INT_CODE2) {
 						myself_.setOffDiagonalDecay(sparseRow,ket1,ket2,
 						                            i,orb,basis_);
-					} else if (myself_.mp_.feAsMode == 3) {
+					} else if (myself_.mp_.feAsMode == ParametersModelType::IntEnum::INT_IMPURITY) {
 						myself_.setOffDiagonalJimpurity(sparseRow,ket1,ket2,i,orb,basis_);
-					} else if (myself_.mp_.feAsMode == 4) {
+					} else if (myself_.mp_.feAsMode == ParametersModelType::IntEnum::INT_KSPACE) {
 						myself_.setOffDiagonalKspace(sparseRow,ket1,ket2,i,orb,basis_);
 					}
 				}
@@ -185,7 +186,7 @@ public:
 				for (SizeType orb=0;orb<mp_.orbitals;orb++) {
 					setHoppingTerm(sparseRow,ket1,ket2,i,orb,basis);
 
-					if (mp_.feAsMode == 0) {
+					if (mp_.feAsMode == ParametersModelType::IntEnum::INT_PAPER33) {
 						setU2OffDiagonalTerm(sparseRow,ket1,ket2,
 						                     i,orb,basis);
 						for (SizeType orb2=0;orb2<mp_.orbitals;orb2++) {
@@ -201,12 +202,13 @@ public:
 						setSpinOrbitOffDiagonal(sparseRow,ket1,ket2,
 						                        i,orb,basis);
 
-					} else if (mp_.feAsMode == 1 || mp_.feAsMode == 2) {
+					} else if (mp_.feAsMode == ParametersModelType::IntEnum::INT_V ||
+					           mp_.feAsMode == ParametersModelType::IntEnum::INT_CODE2) {
 						setOffDiagonalDecay(sparseRow,ket1,ket2,
 						                    i,orb,basis);
-					} else if (mp_.feAsMode == 3) {
+					} else if (mp_.feAsMode == ParametersModelType::IntEnum::INT_IMPURITY) {
 						setOffDiagonalJimpurity(sparseRow,ket1,ket2,i,orb,basis);
-					} else if (mp_.feAsMode == 4) {
+					} else if (mp_.feAsMode == ParametersModelType::IntEnum::INT_KSPACE) {
 						setOffDiagonalKspace(sparseRow,ket1,ket2,i,orb,basis);
 					}
 				}
@@ -539,13 +541,14 @@ private:
 		for (SizeType i=0;i<nsite;i++) {
 			for (SizeType orb=0;orb<mp_.orbitals;orb++) {
 
-				if (mp_.feAsMode == 0) {
+				if (mp_.feAsMode == ParametersModelType::IntEnum::INT_PAPER33) {
 					s += findSnoDecay(nsite,ket1,ket2,i,orb,basis);
-				} else if (mp_.feAsMode == 1 || mp_.feAsMode == 2){
+				} else if (mp_.feAsMode == ParametersModelType::IntEnum::INT_V ||
+				           mp_.feAsMode == ParametersModelType::IntEnum::INT_CODE2){
 					s += findSdecay(nsite,ket1,ket2,i,orb,basis);
-				} else if (mp_.feAsMode == 3) {
+				} else if (mp_.feAsMode == ParametersModelType::IntEnum::INT_IMPURITY) {
 					s += findSImpurity(nsite,ket1,ket2,i,orb,basis);
-				} else if (mp_.feAsMode == 4) {
+				} else if (mp_.feAsMode == ParametersModelType::IntEnum::INT_KSPACE) {
 					s += findSkspace(nsite,ket1,ket2,i,orb,basis);
 				}
 

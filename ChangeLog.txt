@@ -1,3 +1,21 @@
+2020-07-31  Version 1.80
+
+* HubbardHelper::matrixVectorProduct(x,y,basis) now
+parallel over states
+
+* InternalProductOnTheFly: basis no longer a pointer
+
+* ComputeDensityOfStates= now read from input
+
+* Command line option -S renamed to -M
+
+* Command Line option -S number to set Threads=
+from command line
+
+* FeBasedSc: feasMode reads a string now instead
+of a number
+
+
 2020-01-14 Version 1.78
 
 * changes due to changes to PsimagLite::OstringStream

@@ -25,11 +25,11 @@ void mainLoop(InputNgType::Readable& io, const ModelType& model)
 	typedef typename ModelType::GeometryType GeometryType;
 	typedef typename ModelType::BasisBaseType BasisBaseType;
 	typedef LanczosPlusPlus::DefaultSymmetry<GeometryType,BasisBaseType> DefaultSymmetryType;
-	typedef InternalProductOnTheFly<ModelType, DefaultSymmetryType> InternalProductOnTheFlyType;
-	typedef ExactDiag<InternalProductOnTheFlyType> ExactDiagType;
+	typedef InternalProductStored<ModelType, DefaultSymmetryType> InternalProductType;
+	typedef ExactDiag<InternalProductType> ExactDiagType;
 
 	DefaultSymmetryType rs(model.basis(), model.geometry(), "");
-	InternalProductOnTheFlyType hamiltonian(model, rs);
+	InternalProductType hamiltonian(model, rs);
 	ExactDiagType exactDiag(io, model, hamiltonian);
 
 	exactDiag.printEnergiesVsTemperature(std::cout);

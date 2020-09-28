@@ -82,13 +82,15 @@ DISCLOSED WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
 #include <vector>
 #include <cassert>
 #include "Vector.h"
+#include "Matrix.h"
 
 namespace LanczosPlusPlus {
-template<typename ModelType,typename SpecialSymmetryType_>
+template<typename ModelType_, typename SpecialSymmetryType_>
 class InternalProductOnTheFly {
 
 public:
 
+	typedef ModelType_ ModelType;
 	typedef SpecialSymmetryType_ SpecialSymmetryType;
 	typedef typename ModelType::BasisBaseType BasisType;
 	typedef typename SpecialSymmetryType::SparseMatrixType SparseMatrixType;

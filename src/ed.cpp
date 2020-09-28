@@ -1,4 +1,5 @@
 #include "LanczosDriver.h"
+#include "ExactDiag.h"
 
 PsimagLite::String license = "Copyright (c) 2009-2020, UT-Battelle, LLC\n"
                              "All rights reserved\n"
@@ -24,10 +25,14 @@ void mainLoop(InputNgType::Readable& io, const ModelType& model)
 	typedef typename ModelType::GeometryType GeometryType;
 	typedef typename ModelType::BasisBaseType BasisBaseType;
 	typedef LanczosPlusPlus::DefaultSymmetry<GeometryType,BasisBaseType> DefaultSymmetryType;
+	typedef InternalProductOnTheFly<ModelType, DefaultSymmetryType> InternalProductOnTheFlyType;
+	typedef ExactDiag<InternalProductOnTheFlyType> ExactDiagType;
 
 	DefaultSymmetryType rs(model.basis(), model.geometry(), "");
-	LanczosPlusPlus::InternalProductOnTheFly<ModelType, DefaultSymmetryType> hamiltonian(model, rs);
+	InternalProductOnTheFlyType hamiltonian(model, rs);
+	ExactDiagType exactDiag(io, model, hamiltonian);
 
+	exactDiag.printEnergiesVsTemperature(std::cout);
 }
 
 template<typename ComplexOrRealType>

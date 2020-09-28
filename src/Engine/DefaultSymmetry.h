@@ -23,6 +23,7 @@ Please see full open source license included in file LICENSE.
 #include "CrsMatrix.h"
 #include "Vector.h"
 #include "Matrix.h"
+#include "ProgramGlobals.h"
 
 namespace LanczosPlusPlus {
 

@@ -46,6 +46,7 @@ push @configFiles, $config if (defined($config));
 
 my %thermalD = (name => "thermal", dotos => "thermal.o");
 my %lorentzianD = (name => "lorentzian", dotos => "lorentzian.o");
+my %edD = (name => "ed", dotos => "ed.o");
 my %ld0 = (name => "LanczosDriver0", aux => 1);
 my %ld1 = (name => "LanczosDriver1", aux => 1);
 my %ld2 = (name => "LanczosDriver2", aux => 1);
@@ -59,6 +60,7 @@ my %lanczosD = (name => "lanczos", dotos => $dotos);
 
 my @drivers = (\%thermalD,
 	\%lorentzianD,
+	\%edD,
 	\%ld0,
 	\%ld1,
 	\%ld2,

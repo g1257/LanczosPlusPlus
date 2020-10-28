@@ -1,3 +1,7 @@
+2020-10-27  Version 1.84 
+
+* Exact diag driver added
+
 2020-07-31  Version 1.80
 
 * HubbardHelper::matrixVectorProduct(x,y,basis) now

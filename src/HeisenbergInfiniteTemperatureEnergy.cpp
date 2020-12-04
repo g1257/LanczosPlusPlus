@@ -21,20 +21,25 @@ int findSzPlusConst(int x, int n, int oneSiteSizeInBits, unsigned int twiceS)
 	return sum;
 }
 
-double energy(int x, int n, int oneSiteSizeInBits, unsigned int twiceS)
+double energy(int x, int n, int oneSiteSizeInBits, unsigned int twiceS, bool isPeriodic)
 {
 	unsigned int mask = (1 << oneSiteSizeInBits) - 1;
 	double sum = 0;
 	double s = 0.5*twiceS;
 	double prev = 0;
+	double val = 0;
+	double firstVal = 0;
 	for (int i = 0; i < n; ++i) {
 		double tmp = (x & mask);
 		assert(isValid(tmp, twiceS));
-		double val = tmp - s;
+		val = tmp - s;
+		if (i == 0) firstVal = val;
 		sum += prev*val;
 		prev = val;
 		x >>= oneSiteSizeInBits;
 	}
+
+	if (isPeriodic) sum += firstVal*val;
 
 	assert(x == 0);
 	return sum;
@@ -50,7 +55,7 @@ int findOneSiteSizeInBits(unsigned int twiceS)
 	throw std::runtime_error("N or S too big\n");
 }
 
-void f(int n, unsigned int twiceS, int targetSzPlusConst)
+void f(int n, unsigned int twiceS, int targetSzPlusConst, bool isPeriodic)
 {
 	int oneSiteSizeInBits = findOneSiteSizeInBits(twiceS);
 	int total = (1 << (n*oneSiteSizeInBits));
@@ -61,7 +66,7 @@ void f(int n, unsigned int twiceS, int targetSzPlusConst)
 	for (int i = 0; i < total; ++i) {
 		int szPlusConst = findSzPlusConst(i, n, oneSiteSizeInBits, twiceS);
 		if (szPlusConst != targetSzPlusConst) continue;
-		double e = energy(i, n, oneSiteSizeInBits, twiceS);
+		double e = energy(i, n, oneSiteSizeInBits, twiceS, isPeriodic);
 		sum += e;
 	//	std::cout<<i<<" "<<e<<" "<<sum<<"\n";
 		++count;
@@ -76,7 +81,8 @@ int main(int argc, char* argv[])
 
 	int n = atoi(argv[1]);
 	int twiceS = (argc == 3) ? atof(argv[2]) : 1;
+	int isPeriodic = (argc == 4) ? atof(argv[3]) : false;
 	// \sum_i (m_i + s) = Sz + s*N
-	f(n, twiceS, twiceS*n/2);
+	f(n, twiceS, twiceS*n/2, isPeriodic > 0);
 }
 

@@ -80,8 +80,8 @@ int main(int argc, char* argv[])
 	if (argc == 1) return 1;
 
 	int n = atoi(argv[1]);
-	int twiceS = (argc == 3) ? atof(argv[2]) : 1;
-	int isPeriodic = (argc == 4) ? atof(argv[3]) : false;
+	int twiceS = (argc >= 3) ? atof(argv[2]) : 1;
+	int isPeriodic = (argc >= 4) ? atof(argv[3]) : false;
 	// \sum_i (m_i + s) = Sz + s*N
 	f(n, twiceS, twiceS*n/2, isPeriodic > 0);
 }

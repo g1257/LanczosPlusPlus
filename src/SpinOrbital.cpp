@@ -1,16 +1,21 @@
 #include <iostream>
 #include <cmath>
-#include "../../PsimagLite/src/Matrix.h"
+#include "Matrix.h"
 #include <cassert>
 #include <vector>
+#include "CrsMatrix.h"
+#include "LanczosSolver.h"
 
 template<typename ComplexOrRealType>
 class Hamiltonian {
 
 public:
 
+	static const int twiceJ = 2;
+	
 	typedef std::vector<ComplexOrRealType> VectorType;
-
+	typedef PsimagLite::CrsMatrix<ComplexOrRealType> SparseMatrixType;
+	
 	Hamiltonian(int statesS, int statesL, int nsites)
 		: statesS_(statesS), 
 		statesL_(statesL), 
@@ -19,19 +24,36 @@ public:
 		lPerSite_(nsites)
 	{}
 
-	void fill()
+	void fill(SparseMatrixType& sparse)
 	{
-		VectorType rowVector(statesS_*statesL_);
+		const int total = statesS_*statesL_;
+		VectorType rowVector(total);
+		sparse.resize(total, total);
+
+		int counter = 0;
 		for (int idS = 0; idS < statesS_; ++idS) {
 			for (int idL = 0; idL < statesL_; ++idL) {
+				int row = packSandL(idS, idL);
 				fillMatrixRow(rowVector, idS, idL);
+				for (int col = 0; col < total; ++col) {
+					ComplexOrRealType value = rowVector[col];
+					if (value == 0) continue;
+					sparse.pushCol(col);
+					sparse.pushValue(value);
+					rowVector[col] = 0;
+					++counter;
+				}
+				
+				sparse.setRow(row, counter);
 			}
 		}
+		
+		sparse.setRow(total, counter);
 	}
 
 private:
 
-	int fillMatrixRow(VectorType& rowVector, int idS, int idL)
+	void fillMatrixRow(VectorType& rowVector, int idS, int idL)
 	{
 		indexToVector(sPerSite_, idS);
 		indexToVector(lPerSite_, idL);
@@ -57,8 +79,6 @@ private:
 	int createOneTerm(ComplexOrRealType& value, int id, int i, int j, int which, int what)
 	{
 		std::vector<int>& v = (what == 0) ? sPerSite_ : lPerSite_;
-		int mi = v[i];
-		int mj = v[j];
 		switch (which) {
 		case 0:
 			value = 1; // = 0.5*sqrt(2)^2
@@ -83,7 +103,7 @@ private:
 		return createOneState(i, mi + 1, j, mj - 1);
 	}
 
-	int createSmSp(int id, int i, int mi, int j, int mj)
+	int createSmSp(int i, int mi, int j, int mj)
 	{
 		if (mj == 2) return -1;
 		if (mi == 0) return -1;
@@ -107,6 +127,33 @@ private:
 		assert(idS < statesS_);
 		return idS + idL*statesS_;
 	}
+	
+	void indexToVector(std::vector<int>& v, int ind) const
+	{
+		static const int three = twiceJ + 1;
+		int n = v.size();
+		int tmp = ind;
+		for (int i = 0; i < n; ++i) {
+			v[i] = tmp % three;
+			tmp -= v[i];
+			tmp /= three;
+		}
+	}
+	
+	int vectorToIndex(const std::vector<int>& v) const
+	{
+		static const int three = twiceJ + 1;
+		int n = v.size();
+		int tmp = 0;
+		int factor = 1;
+		for (int i = 0; i < n; ++i) {
+			assert(v[i] < three);
+			tmp += v[i]*factor;
+			factor *= three;
+		}
+		
+		return tmp;
+	}
 
 	int statesS_;
 	int statesL_;
@@ -114,6 +161,29 @@ private:
 	std::vector<int> sPerSite_;
 	std::vector<int> lPerSite_;
 };
+
+template<typename ComplexOrRealType>
+void solveMatrix(const PsimagLite::CrsMatrix<ComplexOrRealType>& sparse)
+{
+	typedef PsimagLite::ParametersForSolver<ComplexOrRealType> SolverParametersType;
+	typedef typename PsimagLite::Vector<ComplexOrRealType>::Type VectorType;
+	
+	SolverParametersType params;
+	params.lotaMemory = true;
+	
+	PsimagLite::LanczosSolver<SolverParametersType,
+            PsimagLite::CrsMatrix<ComplexOrRealType>,
+            VectorType> lanczosSolver(sparse, params);
+
+	const int n = sparse.rows();            
+	double e = 0;
+	VectorType z(n, 0.0);
+	VectorType initial(n);
+	PsimagLite::fillRandom(initial);
+	lanczosSolver.computeOneState(e, z, initial, 0);
+
+	std::cout<<"energy="<<e<<"\n";
+}
 
 int main(int argc, char* argv[])
 {
@@ -125,11 +195,15 @@ int main(int argc, char* argv[])
 	int nsites = atoi(argv[1]);
 	int statesS = pow(3, nsites);
 	int statesL = pow(3, nsites);
-	int states = statesS*statesL;
-	PsimagLite::Matrix<double> matrix(states, states);
 
-	Hamiltonian<double> h(statesS, statesL, nsites);
-
-	h.fill();
+	typedef Hamiltonian<double> HamiltonianType;
+	typedef HamiltonianType::SparseMatrixType SparseMatrixType;
+	
+	HamiltonianType h(statesS, statesL, nsites);
+	SparseMatrixType sparse;
+	
+	h.fill(sparse);
+	
+	solveMatrix(sparse);
 }
 

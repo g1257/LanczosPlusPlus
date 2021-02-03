@@ -31,8 +31,8 @@ public:
 		sparse.resize(total, total);
 
 		int counter = 0;
-		for (int idS = 0; idS < statesS_; ++idS) {
-			for (int idL = 0; idL < statesL_; ++idL) {
+		for (int idL = 0; idL < statesL_; ++idL) {
+			for (int idS = 0; idS < statesS_; ++idS) {
 				int row = packSandL(idS, idL);
 				fillMatrixRow(rowVector, idS, idL);
 				for (int col = 0; col < total; ++col) {
@@ -49,6 +49,10 @@ public:
 		}
 		
 		sparse.setRow(total, counter);
+		sparse.checkValidity();
+		if (!isHermitian(sparse)) {
+			throw std::runtime_error("H is not Hermitian\n");
+		}
 	}
 
 private:

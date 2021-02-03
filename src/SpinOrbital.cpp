@@ -15,6 +15,7 @@ public:
 	
 	typedef std::vector<ComplexOrRealType> VectorType;
 	typedef PsimagLite::CrsMatrix<ComplexOrRealType> SparseMatrixType;
+	typedef PsimagLite::Matrix<ComplexOrRealType> MatrixType;
 	
 	Hamiltonian(int statesS, int statesL, int nsites)
 		: statesS_(statesS), 
@@ -24,14 +25,16 @@ public:
 		lPerSite_(nsites)
 	{}
 
-	void fill(SparseMatrixType& sparse)
+	void fill(SparseMatrixType& sparse, MatrixType* dense = nullptr)
 	{
 		const int total = statesS_*statesL_;
 		VectorType rowVector(total);
 		sparse.resize(total, total);
 
 		int counter = 0;
-		//PsimagLite::Matrix<ComplexOrRealType> dense(total, total);
+		if (dense) 
+			dense->resize(total, total);
+		
 		for (int idL = 0; idL < statesL_; ++idL) {
 			for (int idS = 0; idS < statesS_; ++idS) {
 				int row = packSandL(idS, idL);
@@ -43,7 +46,8 @@ public:
 
 					sparse.pushCol(col);
 					sparse.pushValue(value);
-					//dense(row, col) = value;
+					if (dense) 
+						dense->operator()(row, col) = value;
 					rowVector[col] = 0;
 					++counter;
 				}
@@ -52,9 +56,9 @@ public:
 		
 		sparse.setRow(total, counter);
 		sparse.checkValidity();
-		/*if (!isHermitian(dense, true)) {
+		if (dense && !isHermitian(*dense, true)) {
 			throw std::runtime_error("Dense is not Hermitian\n");
-		}*/
+		}
 			
 		if (!isHermitian(sparse, true)) {
 			throw std::runtime_error("H is not Hermitian\n");
@@ -175,6 +179,15 @@ private:
 };
 
 template<typename ComplexOrRealType>
+void solveMatrix(PsimagLite::Matrix<ComplexOrRealType>& dense)
+{
+	const int n = dense.rows();
+	std::vector<double> e(n);
+	diag(dense, e, 'N');
+	std::cout<<"LAPACK energy="<<e[0]<<"\n";
+}
+
+template<typename ComplexOrRealType>
 void solveMatrix(const PsimagLite::CrsMatrix<ComplexOrRealType>& sparse)
 {
 	typedef PsimagLite::ParametersForSolver<ComplexOrRealType> SolverParametersType;
@@ -194,7 +207,7 @@ void solveMatrix(const PsimagLite::CrsMatrix<ComplexOrRealType>& sparse)
 	PsimagLite::fillRandom(initial);
 	lanczosSolver.computeOneState(e, z, initial, 0);
 
-	std::cout<<"energy="<<e<<"\n";
+	std::cout<<"Lanczos energy="<<e<<"\n";
 }
 
 int main(int argc, char* argv[])
@@ -210,12 +223,16 @@ int main(int argc, char* argv[])
 
 	typedef Hamiltonian<double> HamiltonianType;
 	typedef HamiltonianType::SparseMatrixType SparseMatrixType;
+	typedef HamiltonianType::MatrixType MatrixType;
 	
 	HamiltonianType h(statesS, statesL, nsites);
 	SparseMatrixType sparse;
+	MatrixType dense;
 	
-	h.fill(sparse);
+	h.fill(sparse, &dense);
 	
 	solveMatrix(sparse);
+	
+	solveMatrix(dense);
 }
 

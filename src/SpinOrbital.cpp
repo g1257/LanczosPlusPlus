@@ -94,34 +94,48 @@ private:
 
 	int createOneTerm(ComplexOrRealType& value, int id, int i, int j, int which, int what)
 	{
+		static const double jValue = twiceJ*0.5;
 		std::vector<int>& v = (what == 0) ? sPerSite_ : lPerSite_;
+		int ret = -1;
 		switch (which) {
 		case 0:
-			value = 1; // = 0.5*sqrt(2)^2
-			return createSpSm(i, v[i], j, v[j], v);
+			value = 0.5*factorSpSm(jValue, v[i] - jValue);
+			ret = createSpSm(i, v[i], j, v[j], v);
+			assert(ret < 0 || value == 1);
 			break;
 		case 1:
-			value = 1; // = 0.5*sqrt(2)^2
-			return createSmSp(i, v[i], j, v[j], v);
+			value = 0.5*factorSpSm(jValue, v[j] - jValue);
+			ret = createSmSp(i, v[i], j, v[j], v);
+			assert(ret < 0 || value == 1);
+			
 			break;
 		case 2:
-			value = (v[i] - 1)*(v[j] - 1);
-			return id;
+			value = (v[i] - jValue)*(v[j] - jValue);
+			ret = id;
+			break;
 		default:
 			throw std::runtime_error("createOneTerm\n");
 		}
+		
+		return ret;
+	}
+	
+	double factorSpSm(double j, double m) const
+	{
+		const double value = j*(j+1) - m*(m+1);
+		return value;
 	}
 
 	int createSpSm(int i, int mi, int j, int mj, std::vector<int>& v) const
 	{
-		if (mi == 2) return -1;
+		if (mi == twiceJ) return -1;
 		if (mj == 0) return -1;
 		return createOneState(i, mi + 1, j, mj - 1, v);
 	}
 
 	int createSmSp(int i, int mi, int j, int mj, std::vector<int>& v) const
 	{
-		if (mj == 2) return -1;
+		if (mj == twiceJ) return -1;
 		if (mi == 0) return -1;
 		return createOneState(i, mi - 1, j, mj + 1, v);
 	}
@@ -212,14 +226,15 @@ void solveMatrix(const PsimagLite::CrsMatrix<ComplexOrRealType>& sparse)
 
 int main(int argc, char* argv[])
 {
-	if (argc != 2) {
-		std::cerr<<"USAGE: "<<argv[0]<<" nsites\n";
+	if (argc < 2) {
+		std::cerr<<"USAGE: "<<argv[0]<<" nsites [twiceJ]\n";
 		return 1;
 	}
 
 	int nsites = atoi(argv[1]);
-	int statesS = pow(3, nsites);
-	int statesL = pow(3, nsites);
+	const int twiceJ = (argc > 2) ? atoi(argv[2]) : 2;
+	int statesS = pow(twiceJ + 1, nsites);
+	int statesL = pow(twiceJ + 1, nsites);
 
 	typedef Hamiltonian<double> HamiltonianType;
 	typedef HamiltonianType::SparseMatrixType SparseMatrixType;

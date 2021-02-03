@@ -31,36 +31,43 @@ public:
 		sparse.resize(total, total);
 
 		int counter = 0;
+		//PsimagLite::Matrix<ComplexOrRealType> dense(total, total);
 		for (int idL = 0; idL < statesL_; ++idL) {
 			for (int idS = 0; idS < statesS_; ++idS) {
 				int row = packSandL(idS, idL);
+				sparse.setRow(row, counter);
 				fillMatrixRow(rowVector, idS, idL);
 				for (int col = 0; col < total; ++col) {
-					ComplexOrRealType value = rowVector[col];
+					const ComplexOrRealType value = rowVector[col];
 					if (value == 0) continue;
+
 					sparse.pushCol(col);
 					sparse.pushValue(value);
+					//dense(row, col) = value;
 					rowVector[col] = 0;
 					++counter;
 				}
-				
-				sparse.setRow(row, counter);
 			}
 		}
 		
 		sparse.setRow(total, counter);
 		sparse.checkValidity();
-		if (!isHermitian(sparse)) {
+		/*if (!isHermitian(dense, true)) {
+			throw std::runtime_error("Dense is not Hermitian\n");
+		}*/
+			
+		if (!isHermitian(sparse, true)) {
 			throw std::runtime_error("H is not Hermitian\n");
 		}
 	}
 
 private:
 
-	void fillMatrixRow(VectorType& rowVector, int idS, int idL)
+	void fillMatrixRow(VectorType& rowVector, const int idS, const int idL)
 	{
 		indexToVector(sPerSite_, idS);
 		indexToVector(lPerSite_, idL);
+
 		for (int i = 0; i < nsites_; ++i) {
 			for (int j = i + 1; j < nsites_; ++j) {
 				for (int which0 = 0; which0 < 3; ++which0) { // +- -+ or zz
@@ -73,6 +80,7 @@ private:
 						int braL = createOneTerm(valueL, idL, i, j, which1, 1);
 						if (braL < 0) continue;
 						int col = packSandL(braS, braL);
+						
 						rowVector[col] += valueS*valueL;
 					}
 				}
@@ -86,11 +94,11 @@ private:
 		switch (which) {
 		case 0:
 			value = 1; // = 0.5*sqrt(2)^2
-			return createSpSm(i, v[i], j, v[j]);
+			return createSpSm(i, v[i], j, v[j], v);
 			break;
 		case 1:
 			value = 1; // = 0.5*sqrt(2)^2
-			return createSmSp(i, v[i], j, v[j]);
+			return createSmSp(i, v[i], j, v[j], v);
 			break;
 		case 2:
 			value = (v[i] - 1)*(v[j] - 1);
@@ -100,29 +108,29 @@ private:
 		}
 	}
 
-	int createSpSm(int i, int mi, int j, int mj)
+	int createSpSm(int i, int mi, int j, int mj, std::vector<int>& v) const
 	{
 		if (mi == 2) return -1;
 		if (mj == 0) return -1;
-		return createOneState(i, mi + 1, j, mj - 1);
+		return createOneState(i, mi + 1, j, mj - 1, v);
 	}
 
-	int createSmSp(int i, int mi, int j, int mj)
+	int createSmSp(int i, int mi, int j, int mj, std::vector<int>& v) const
 	{
 		if (mj == 2) return -1;
 		if (mi == 0) return -1;
-		return createOneState(i, mi - 1, j, mj + 1);
+		return createOneState(i, mi - 1, j, mj + 1, v);
 	}
 
-	int createOneState(int ind, int mind, int jnd, int mjnd)
+	int createOneState(int ind, int mind, int jnd, int mjnd, std::vector<int>& v) const
 	{
-		int savedInd = sPerSite_[ind];
-		sPerSite_[ind] = mind;
-		int savedJnd = sPerSite_[jnd];
-		sPerSite_[jnd] = mjnd;
-		int braIndex = vectorToIndex(sPerSite_);
-		sPerSite_[ind] = savedInd;
-		sPerSite_[jnd] = savedJnd;
+		int savedInd = v[ind];
+		v[ind] = mind;
+		int savedJnd = v[jnd];
+		v[jnd] = mjnd;
+		int braIndex = vectorToIndex(v);
+		v[ind] = savedInd;
+		v[jnd] = savedJnd;
 		return braIndex;
 	}
 	

@@ -11,19 +11,19 @@ class Hamiltonian {
 
 public:
 
-	static const int twiceJ = 2;
-
 	typedef std::vector<ComplexOrRealType> VectorType;
 	typedef PsimagLite::CrsMatrix<ComplexOrRealType> SparseMatrixType;
 	typedef PsimagLite::Matrix<ComplexOrRealType> MatrixType;
 
-	Hamiltonian(int statesS, int statesL, int nsites)
-		: statesS_(statesS),
-		statesL_(statesL),
+	Hamiltonian(int twiceJ, int nsites)
+		: twiceJ_(twiceJ),
 		nsites_(nsites),
 		sPerSite_(nsites),
 		lPerSite_(nsites)
-	{}
+	{
+		statesS_ = pow(twiceJ + 1, nsites);
+		statesL_ = statesS_;
+	}
 
 	void fill(SparseMatrixType& sparse, MatrixType* dense = nullptr)
 	{
@@ -73,7 +73,9 @@ private:
 		indexToVector(lPerSite_, idL);
 
 		for (int i = 0; i < nsites_; ++i) {
-			for (int j = i + 1; j < nsites_; ++j) {
+			for (int x = 0; x < 1; ++x) {
+				const int j = (x == 0) ? i + 1 : i - 1;
+				if (j < 0 || j >= nsites_) continue;
 				for (int which0 = 0; which0 < 3; ++which0) { // +- -+ or zz
 					for (int which1 = 0; which1 < 3; ++which1) { // +- -+ or zz
 						ComplexOrRealType valueS = 0;
@@ -94,20 +96,19 @@ private:
 
 	int createOneTerm(ComplexOrRealType& value, int id, int i, int j, int which, int what)
 	{
-		static const double jValue = twiceJ*0.5;
+		const double jValue = twiceJ_*0.5;
 		std::vector<int>& v = (what == 0) ? sPerSite_ : lPerSite_;
 		int ret = -1;
 		switch (which) {
 		case 0:
 			value = 0.5*factorSpSm(jValue, v[i] - jValue);
 			ret = createSpSm(i, v[i], j, v[j], v);
-			assert(ret < 0 || value == 1);
+			// assert(tret < 0 || value == 1);
 			break;
 		case 1:
 			value = 0.5*factorSpSm(jValue, v[j] - jValue);
 			ret = createSmSp(i, v[i], j, v[j], v);
-			assert(ret < 0 || value == 1);
-
+			// assert(ret < 0 || value == 1);
 			break;
 		case 2:
 			value = (v[i] - jValue)*(v[j] - jValue);
@@ -128,25 +129,25 @@ private:
 
 	int createSpSm(int i, int mi, int j, int mj, std::vector<int>& v) const
 	{
-		if (mi == twiceJ) return -1;
+		if (mi == twiceJ_) return -1;
 		if (mj == 0) return -1;
 		return createOneState(i, mi + 1, j, mj - 1, v);
 	}
 
 	int createSmSp(int i, int mi, int j, int mj, std::vector<int>& v) const
 	{
-		if (mj == twiceJ) return -1;
+		if (mj == twiceJ_) return -1;
 		if (mi == 0) return -1;
 		return createOneState(i, mi - 1, j, mj + 1, v);
 	}
 
 	int createOneState(int ind, int mind, int jnd, int mjnd, std::vector<int>& v) const
 	{
-		int savedInd = v[ind];
+		const int savedInd = v[ind];
 		v[ind] = mind;
-		int savedJnd = v[jnd];
+		const int savedJnd = v[jnd];
 		v[jnd] = mjnd;
-		int braIndex = vectorToIndex(v);
+		const int braIndex = vectorToIndex(v);
 		v[ind] = savedInd;
 		v[jnd] = savedJnd;
 		return braIndex;
@@ -160,7 +161,8 @@ private:
 
 	void indexToVector(std::vector<int>& v, int ind) const
 	{
-		static const int three = twiceJ + 1;
+		assert(ind < statesS_);
+		const int three = twiceJ_ + 1;
 		int n = v.size();
 		int tmp = ind;
 		for (int i = 0; i < n; ++i) {
@@ -172,7 +174,7 @@ private:
 
 	int vectorToIndex(const std::vector<int>& v) const
 	{
-		static const int three = twiceJ + 1;
+		const int three = twiceJ_ + 1;
 		int n = v.size();
 		int tmp = 0;
 		int factor = 1;
@@ -185,6 +187,7 @@ private:
 		return tmp;
 	}
 
+	int twiceJ_;
 	int statesS_;
 	int statesL_;
 	int nsites_;
@@ -198,7 +201,7 @@ void solveMatrix(PsimagLite::Matrix<ComplexOrRealType>& dense)
 	const int n = dense.rows();
 	std::vector<double> e(n);
 	diag(dense, e, 'N');
-	std::cout<<"LAPACK energy="<<e[0]<<"\n";
+	std::cout<<"LAPACK energy="<<e[0]<<" "<<e[n-1]<<"\n";
 }
 
 template<typename ComplexOrRealType>
@@ -233,14 +236,12 @@ int main(int argc, char* argv[])
 
 	int nsites = atoi(argv[1]);
 	const int twiceJ = (argc > 2) ? atoi(argv[2]) : 2;
-	int statesS = pow(twiceJ + 1, nsites);
-	int statesL = pow(twiceJ + 1, nsites);
 
 	typedef Hamiltonian<double> HamiltonianType;
 	typedef HamiltonianType::SparseMatrixType SparseMatrixType;
 	typedef HamiltonianType::MatrixType MatrixType;
 
-	HamiltonianType h(statesS, statesL, nsites);
+	HamiltonianType h(twiceJ, nsites);
 	SparseMatrixType sparse;
 	MatrixType dense;
 

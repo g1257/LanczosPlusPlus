@@ -201,7 +201,7 @@ void solveMatrix(PsimagLite::Matrix<ComplexOrRealType>& dense)
 	const int n = dense.rows();
 	std::vector<double> e(n);
 	diag(dense, e, 'N');
-	std::cout<<"LAPACK energy="<<e[0]<<" "<<e[n-1]<<"\n";
+	std::cout<<"LAPACK energy="<<e[0]<<"\n";
 }
 
 template<typename ComplexOrRealType>
@@ -212,7 +212,9 @@ void solveMatrix(const PsimagLite::CrsMatrix<ComplexOrRealType>& sparse)
 
 	SolverParametersType params;
 	params.lotaMemory = true;
-
+	params.options = "reortho";
+	params.tolerance = -1;
+	
 	PsimagLite::LanczosSolver<SolverParametersType,
             PsimagLite::CrsMatrix<ComplexOrRealType>,
             VectorType> lanczosSolver(sparse, params);

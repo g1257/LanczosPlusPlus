@@ -12,14 +12,14 @@ class Hamiltonian {
 public:
 
 	static const int twiceJ = 2;
-	
+
 	typedef std::vector<ComplexOrRealType> VectorType;
 	typedef PsimagLite::CrsMatrix<ComplexOrRealType> SparseMatrixType;
 	typedef PsimagLite::Matrix<ComplexOrRealType> MatrixType;
-	
+
 	Hamiltonian(int statesS, int statesL, int nsites)
-		: statesS_(statesS), 
-		statesL_(statesL), 
+		: statesS_(statesS),
+		statesL_(statesL),
 		nsites_(nsites),
 		sPerSite_(nsites),
 		lPerSite_(nsites)
@@ -32,9 +32,9 @@ public:
 		sparse.resize(total, total);
 
 		int counter = 0;
-		if (dense) 
+		if (dense)
 			dense->resize(total, total);
-		
+
 		for (int idL = 0; idL < statesL_; ++idL) {
 			for (int idS = 0; idS < statesS_; ++idS) {
 				int row = packSandL(idS, idL);
@@ -46,20 +46,20 @@ public:
 
 					sparse.pushCol(col);
 					sparse.pushValue(value);
-					if (dense) 
+					if (dense)
 						dense->operator()(row, col) = value;
 					rowVector[col] = 0;
 					++counter;
 				}
 			}
 		}
-		
+
 		sparse.setRow(total, counter);
 		sparse.checkValidity();
 		if (dense && !isHermitian(*dense, true)) {
 			throw std::runtime_error("Dense is not Hermitian\n");
 		}
-			
+
 		if (!isHermitian(sparse, true)) {
 			throw std::runtime_error("H is not Hermitian\n");
 		}
@@ -79,12 +79,12 @@ private:
 						ComplexOrRealType valueS = 0;
 						int braS = createOneTerm(valueS, idS, i, j, which0, 0);
 						if (braS < 0) continue;
-						
+
 						ComplexOrRealType valueL = 0;
 						int braL = createOneTerm(valueL, idL, i, j, which1, 1);
 						if (braL < 0) continue;
 						int col = packSandL(braS, braL);
-						
+
 						rowVector[col] += valueS*valueL;
 					}
 				}
@@ -107,7 +107,7 @@ private:
 			value = 0.5*factorSpSm(jValue, v[j] - jValue);
 			ret = createSmSp(i, v[i], j, v[j], v);
 			assert(ret < 0 || value == 1);
-			
+
 			break;
 		case 2:
 			value = (v[i] - jValue)*(v[j] - jValue);
@@ -116,10 +116,10 @@ private:
 		default:
 			throw std::runtime_error("createOneTerm\n");
 		}
-		
+
 		return ret;
 	}
-	
+
 	double factorSpSm(double j, double m) const
 	{
 		const double value = j*(j+1) - m*(m+1);
@@ -151,13 +151,13 @@ private:
 		v[jnd] = savedJnd;
 		return braIndex;
 	}
-	
+
 	int packSandL(int idS, int idL) const
 	{
 		assert(idS < statesS_);
 		return idS + idL*statesS_;
 	}
-	
+
 	void indexToVector(std::vector<int>& v, int ind) const
 	{
 		static const int three = twiceJ + 1;
@@ -169,7 +169,7 @@ private:
 			tmp /= three;
 		}
 	}
-	
+
 	int vectorToIndex(const std::vector<int>& v) const
 	{
 		static const int three = twiceJ + 1;
@@ -181,7 +181,7 @@ private:
 			tmp += v[i]*factor;
 			factor *= three;
 		}
-		
+
 		return tmp;
 	}
 
@@ -206,15 +206,15 @@ void solveMatrix(const PsimagLite::CrsMatrix<ComplexOrRealType>& sparse)
 {
 	typedef PsimagLite::ParametersForSolver<ComplexOrRealType> SolverParametersType;
 	typedef typename PsimagLite::Vector<ComplexOrRealType>::Type VectorType;
-	
+
 	SolverParametersType params;
 	params.lotaMemory = true;
-	
+
 	PsimagLite::LanczosSolver<SolverParametersType,
             PsimagLite::CrsMatrix<ComplexOrRealType>,
             VectorType> lanczosSolver(sparse, params);
 
-	const int n = sparse.rows();            
+	const int n = sparse.rows();
 	double e = 0;
 	VectorType z(n, 0.0);
 	VectorType initial(n);
@@ -239,15 +239,15 @@ int main(int argc, char* argv[])
 	typedef Hamiltonian<double> HamiltonianType;
 	typedef HamiltonianType::SparseMatrixType SparseMatrixType;
 	typedef HamiltonianType::MatrixType MatrixType;
-	
+
 	HamiltonianType h(statesS, statesL, nsites);
 	SparseMatrixType sparse;
 	MatrixType dense;
-	
+
 	h.fill(sparse, &dense);
-	
+
 	solveMatrix(sparse);
-	
+
 	solveMatrix(dense);
 }
 

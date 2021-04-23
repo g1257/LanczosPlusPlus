@@ -1,3 +1,9 @@
+2021-04-22 Version 2.00
+
+* HeisenbergInfiniteTemperature driver added
+
+* SpinOrbital driver added
+
 2020-10-27  Version 1.84 
 
 * Exact diag driver added

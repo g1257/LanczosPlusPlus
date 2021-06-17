@@ -48,10 +48,10 @@ public:
 	                 SizeType nup,
 	                 SizeType ndown,
 	                 SizeType orbitals)
-	: nup_(nup),
-	  ndown_(ndown),
-	  basis1_(geometry.numberOfSites(),nup,orbitals),
-	  basis2_(geometry.numberOfSites(),ndown,orbitals)
+	    : nup_(nup),
+	      ndown_(ndown),
+	      basis1_(geometry.numberOfSites(),nup,orbitals),
+	      basis2_(geometry.numberOfSites(),ndown,orbitals)
 	{
 		orbitals_ = orbitals;
 	}
@@ -126,14 +126,18 @@ public:
 	                        SizeType orb) const
 	{
 		if (lOperator.id() == LabeledOperatorType::Label::OPERATOR_C ||
-		    lOperator.id() == LabeledOperatorType::Label::OPERATOR_CDAGGER ||
-		    lOperator.id() == LabeledOperatorType::Label::OPERATOR_N)
-		  return PairIntType(getBraIndexCorCdaggerOrN(ket1, ket2, lOperator, site, spin, orb),
-		                     1);
+		        lOperator.id() == LabeledOperatorType::Label::OPERATOR_CDAGGER ||
+		        lOperator.id() == LabeledOperatorType::Label::OPERATOR_N)
+			return PairIntType(getBraIndexCorCdaggerOrN(ket1, ket2, lOperator, site, spin, orb),
+			                   1);
 
 		if (lOperator.id() == LabeledOperatorType::Label::OPERATOR_SPLUS ||
 		        lOperator.id() == LabeledOperatorType::Label::OPERATOR_SMINUS)
 			return PairIntType(getBraIndexSplusOrSminus(ket1, ket2, lOperator, site, orb),
+			                   1);
+
+		if (lOperator.id() == LabeledOperatorType::Label::OPERATOR_CDAGGER_A_UP_C_B_UP)
+			return PairIntType(getBraIndexCdaggerC(ket1, ket2, site, 0, 0, 1),
 			                   1);
 
 		PsimagLite::String str(__FILE__);
@@ -281,7 +285,7 @@ private:
 		bool b = getBraCorCdaggerOrN(bra,ket1,ket2,lOperator,site,spin,orb);
 		if (!b) return -1;
 		return (spin==SPIN_UP) ? perfectIndex(bra,ket2) :
-		       perfectIndex(ket1,bra);
+		                         perfectIndex(ket1,bra);
 	}
 
 	int getBraIndexSplusOrSminus(WordType ket1,
@@ -346,7 +350,7 @@ private:
 	                         SizeType orb) const
 	{
 		return (spin==SPIN_UP) ? basis1_.getBra(bra,ket1,lOperator,site,orb) :
-		       basis2_.getBra(bra,ket2,lOperator,site,orb);
+		                         basis2_.getBra(bra,ket2,lOperator,site,orb);
 	}
 
 	bool getBraSplusOrSminus(WordType& bra1,
@@ -372,6 +376,36 @@ private:
 		bool b2 = basis2_.getBra(bra2,ket2,LabeledOperatorType(what2),site,orb);
 
 		return (b1 & b2);
+	}
+
+	int getBraIndexCdaggerC(WordType ket1,
+	                        WordType ket2,
+	                        SizeType site,
+	                        SizeType spin,
+	                        SizeType orb1,
+	                        SizeType orb2) const
+	{
+		assert(spin == 0 || spin == 1);
+		const BasisType& mybasis = (spin == 0) ? basis1_ : basis2_;
+		WordType ket = (spin == 0) ? ket1 : ket2;
+		WordType bra = 0;
+		bool b1 = mybasis.getBra(bra,
+		                         ket,
+		                         LabeledOperatorType::Label::OPERATOR_CDAGGER,
+		                         site,
+		                         orb1);
+
+		if (!b1) return -1;
+
+		WordType newbra = 0;
+		bool b2 = mybasis.getBra(newbra,
+		                         bra,
+		                         LabeledOperatorType::Label::OPERATOR_C,
+		                         site,
+		                         orb2);
+		if (!b2) return -1;
+
+		return (spin == 0) ? perfectIndex(newbra, ket2) : perfectIndex(ket1, newbra);
 	}
 
 	SizeType nup_;

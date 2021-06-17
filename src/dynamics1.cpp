@@ -63,6 +63,8 @@ void mainLoop3(const ModelType& model,
 	const SizeType type = 0;
 	const SizeType spin = 0;
 	engine.calcSpectral(cf, isFermionic, tTogs, matrix, type, spin, isDiagonal);
+	PsimagLite::IoSimple::Out ioOut(std::cout);
+	cf.write(ioOut, "SPECTRAL");
 }
 
 template<typename ModelType,typename SpecialSymmetryType>

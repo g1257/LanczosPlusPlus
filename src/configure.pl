@@ -46,7 +46,7 @@ push @configFiles, $config if (defined($config));
 
 my %thermalD = (name => "thermal", dotos => "thermal.o");
 my %lorentzianD = (name => "lorentzian", dotos => "lorentzian.o");
-my %dynamics1 = (name => "dynamics1", dotos => "dynamics1.o");
+my %dynamics1 = (name => "dynamics1", dotos => "dynamics1.o ProgramGlobals.o LanczosDriver0.o");
 my %edD = (name => "ed", dotos => "ed.o ProgramGlobals.o LanczosDriver0.o");
 my %ld0 = (name => "LanczosDriver0", aux => 1);
 my %ld1 = (name => "LanczosDriver1", aux => 1);

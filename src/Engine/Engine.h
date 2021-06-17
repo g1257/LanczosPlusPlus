@@ -421,7 +421,7 @@ public:
 	                       SizeType site,
 	                       SizeType spin,
 	                       SizeType orb,
-	                       RealType isign) const
+	                       ComplexOrRealType factor) const
 	{
 		for (SizeType ispace=0;ispace<srcBasis.size();ispace++) {
 			ProgramGlobals::WordType ket1 = srcBasis(ispace,SPIN_UP);
@@ -433,7 +433,7 @@ public:
 			                                                             spin,
 			                                                             orb);
 			int temp = tempValue.first;
-			int value = tempValue.second;
+			RealType value = tempValue.second;
 			if (temp>=0 && SizeType(temp)>=z.size()) {
 				PsimagLite::String s = "old basis=" + ttos(srcBasis.size());
 				s += " newbasis=" + ttos(newBasis.size());
@@ -447,13 +447,13 @@ public:
 				throw std::runtime_error(s.c_str());
 			}
 			if (temp<0) continue;
-			int mysign = (lOperator.isFermionic()) ? srcBasis.doSignGf(ket1,ket2,site,spin,orb) :
-			                                         1;
+			RealType mysign = (lOperator.isFermionic()) ? srcBasis.doSignGf(ket1,ket2,site,spin,orb)
+			                                            : 1;
 			if (lOperator.id() == LabeledOperatorType::Label::OPERATOR_SPLUS ||
 			        lOperator.id() == LabeledOperatorType::Label::OPERATOR_SMINUS)
 				mysign *= srcBasis.doSignSpSm(ket1,ket2,site,spin,orb);
 
-			z[temp] += isign*mysign*value*srcVector[ispace];
+			z[temp] += factor*mysign*value*srcVector[ispace];
 		}
 	}
 

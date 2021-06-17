@@ -1,37 +1,66 @@
 #include "lanczos.cpp"
 #include "LabeledOperator.h"
 
-template<typename EngineType, typename ComplexOrRealType, typename ModelType>
-void findVectorTtoGs(std::vector<ComplexOrRealType>& zvector,
-                     const EngineType& engine,
-                     const ModelType& model)
-{
-	const SizeType sites = model.geometry().numberOfSites();
-	const std::vector<ComplexOrRealType>& gsVector = engine.eigenvector(0);
-	const SizeType n = gsVector.size();
-	const SizeType spin = 0; // bogus
-	const SizeType orb = 0; // bogus
-	const RealType isign = 1;
-	zvector.resize(n);
-	for (SizeType site = 0; site < sites; ++site) {
-		engine.accModifiedState_(zvector,
-		                         LabeledOperator::Label::OPERATOR_CDAGGER_A_UP_C_B_UP,
-		                         model.basis(),
-		                         gsVector,
-		                         model.basis(),
-		                         site,
-		                         spin,
-		                         orb,
-		                         isign);
+
+template<typename EngineType, bool b>
+class FindVectorTtoGs {
+
+public:
+
+	typedef typename EngineType::ComplexOrRealType ComplexOrRealType;
+	typedef typename EngineType::ModelType ModelType;
+
+	void findVectorTtoGs(std::vector<ComplexOrRealType>& zvector,
+	                     const EngineType& engine,
+	                     const ModelType& model,
+	                     SizeType mForK)
+	{
+		throw PsimagLite::RuntimeError("Only works with useComplex\n");
 	}
-}
+};
+
+template<typename EngineType>
+class FindVectorTtoGs<EngineType, true> {
+
+public:
+
+	typedef typename EngineType::ComplexOrRealType ComplexOrRealType;
+	typedef typename EngineType::ModelType ModelType;
+
+
+	void findVectorTtoGs(std::vector<ComplexOrRealType>& zvector,
+	                     const EngineType& engine,
+	                     const ModelType& model,
+	                     SizeType mForK)
+	{
+		const SizeType sites = model.geometry().numberOfSites();
+		const std::vector<ComplexOrRealType>& gsVector = engine.eigenvector(0);
+		const SizeType n = gsVector.size();
+		const SizeType spin = 0; // bogus
+		const SizeType orb = 0; // bogus
+		zvector.resize(n);
+		for (SizeType site = 0; site < sites; ++site) {
+			RealType arg = 2.0*M_PI*mForK/sites;
+			ComplexOrRealType factor(cos(arg), sin(arg));
+			engine.accModifiedState_(zvector,
+			                         LabeledOperator::Label::OPERATOR_CDAGGER_A_UP_C_B_UP,
+			                         model.basis(),
+			                         gsVector,
+			                         model.basis(),
+			                         site,
+			                         spin,
+			                         orb,
+			                         factor);
+		}
+	}
+};
 
 template<typename ModelType,
          typename SpecialSymmetryType,
          template<typename,typename> class InternalProductTemplate>
 void mainLoop3(const ModelType& model,
                InputNgType::Readable& io,
-               LanczosPlusPlus::LanczosOptions&)
+               LanczosPlusPlus::LanczosOptions& lanczosOptions)
 {
 	typedef typename ModelType::GeometryType GeometryType;
 	typedef typename GeometryType::ComplexOrRealType ComplexOrRealType;
@@ -47,7 +76,8 @@ void mainLoop3(const ModelType& model,
 	std::cout<<"Energy="<<Eg<<"\n";
 
 	std::vector<ComplexOrRealType> tTogs;
-	findVectorTtoGs(tTogs, engine, model);
+	FindVectorTtoGs<EngineType, PsimagLite::IsComplexNumber<ComplexOrRealType>::True> fv;
+	fv.findVectorTtoGs(tTogs, engine, model, lanczosOptions.split);
 
 	SpecialSymmetryType symm(model.basis(), model.geometry(), "");
 	InternalProductTemplate<ModelType, SpecialSymmetryType> matrix(model,

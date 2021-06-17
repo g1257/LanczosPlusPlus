@@ -384,8 +384,6 @@ public:
 		return braVector*tmpVector;
 	}
 
-private:
-
 	const BasisType* getNeededBasis(PairType& newParts,
 	                                const PairType& oldParts,
 	                                const LabeledOperatorType& lOperator,
@@ -454,6 +452,8 @@ private:
 			z[temp] += isign*mysign*value*srcVector[ispace];
 		}
 	}
+
+private:
 
 	void getModifiedState(VectorType& modifVector,
 	                      const LabeledOperatorType& lOperator,

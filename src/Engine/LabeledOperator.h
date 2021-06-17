@@ -13,7 +13,8 @@ public:
 		              OPERATOR_CDAGGER,
 		              OPERATOR_N,
 		              OPERATOR_SPLUS,
-		              OPERATOR_SMINUS};
+		              OPERATOR_SMINUS,
+		              OPERATOR_CDAGGER_A_UP_C_B_UP};
 
 	LabeledOperator(const Label& l) : what_(l), x_(0) {}
 

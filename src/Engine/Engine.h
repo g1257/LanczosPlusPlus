@@ -486,7 +486,7 @@ public:
 
 		assert(0 < energies_.size());
 		const RealType gsEnergy = energies_[0];
-		cf.set(ab, gsEnergy, PsimagLite::real(weight*s2), s);
+		cf.set(ab, gsEnergy, PsimagLite::real(weight*s2), -s);
 	}
 
 private:

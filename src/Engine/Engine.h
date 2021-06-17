@@ -183,17 +183,21 @@ public:
 			                 spins.first,
 			                 orbs);
 
-			DefaultSymmetryType symm(*basisNew,model_.geometry(),"");
-			InternalProductTemplate<ModelType,DefaultSymmetryType> matrix(model_,
-			                                                              *basisNew,
-			                                                              symm);
+			SpecialSymmetryType symm(*basisNew,model_.geometry(),"");
+			InternalProductType matrix(model_, *basisNew, symm);
 			ContinuedFractionType cf(cfCollection.freqType());
 
 			if (PsimagLite::norm(modifVector)<1e-10) {
 				std::cerr<<"spectralFunction: modifVector==0, type="<<type<<"\n";
 			}
 
-			calcSpectral(cf, lOperator, modifVector, matrix, type, spins.first, isDiagonal);
+			calcSpectral(cf,
+			             lOperator.isFermionic(),
+			             modifVector,
+			             matrix,
+			             type,
+			             spins.first,
+			             isDiagonal);
 			PsimagLite::String str = ttos(spins.first) + "," + ttos(type) + ",";
 			str += ttos(orbs.first) + "," + ttos(orbs.second);
 			vstr.push_back(str);
@@ -453,6 +457,38 @@ public:
 		}
 	}
 
+	template<typename ContinuedFractionType>
+	void calcSpectral(ContinuedFractionType& cf,
+	                  const bool isFermionic,
+	                  const VectorType& modifVector,
+	                  const InternalProductType& matrix,
+	                  SizeType type,
+	                  SizeType,
+	                  bool isDiagonal) const
+	{
+		typedef typename ContinuedFractionType::TridiagonalMatrixType
+		        TridiagonalMatrixType;
+
+		ParametersForSolverType params(io_,"Spectral");
+
+		LanczosSolverType lanczosSolver(matrix,params);
+
+		TridiagonalMatrixType ab;
+
+		lanczosSolver.decomposition(modifVector,ab);
+		typename VectorType::value_type weight = modifVector*modifVector;
+
+		int s = (type&1) ? -1 : 1;
+		RealType s2 = (type>1) ? -1 : 1;
+		if (!isFermionic) s2 *= s;
+		RealType diagonalFactor = (isDiagonal) ? 1 : 0.5;
+		s2 *= diagonalFactor;
+
+		assert(0 < energies_.size());
+		const RealType gsEnergy = energies_[0];
+		cf.set(ab, gsEnergy, PsimagLite::real(weight*s2), s);
+	}
+
 private:
 
 	void getModifiedState(VectorType& modifVector,
@@ -618,38 +654,6 @@ private:
 		rs.transform(vectors_, offset);
 
 		printEnergiesAndNorms();
-	}
-
-	template<typename ContinuedFractionType>
-	void calcSpectral(ContinuedFractionType& cf,
-	                  const LabeledOperatorType& lOperator,
-	                  const VectorType& modifVector,
-	                  const InternalProductDefaultType& matrix,
-	                  SizeType type,
-	                  SizeType,
-	                  bool isDiagonal) const
-	{
-		typedef typename ContinuedFractionType::TridiagonalMatrixType
-		        TridiagonalMatrixType;
-
-		ParametersForSolverType params(io_,"Spectral");
-
-		LanczosSolverDefaultType lanczosSolver(matrix,params);
-
-		TridiagonalMatrixType ab;
-
-		lanczosSolver.decomposition(modifVector,ab);
-		typename VectorType::value_type weight = modifVector*modifVector;
-
-		int s = (type&1) ? -1 : 1;
-		RealType s2 = (type>1) ? -1 : 1;
-		if (!lOperator.isFermionic()) s2 *= s;
-		RealType diagonalFactor = (isDiagonal) ? 1 : 0.5;
-		s2 *= diagonalFactor;
-
-		assert(0 < energies_.size());
-		const RealType gsEnergy = energies_[0];
-		cf.set(ab, gsEnergy, PsimagLite::real(weight*s2), s);
 	}
 
 	void checkBraOrKet(PsimagLite::String name, SizeType ind) const

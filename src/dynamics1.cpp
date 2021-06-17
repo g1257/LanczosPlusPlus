@@ -31,13 +31,13 @@ template<typename ModelType,
          template<typename,typename> class InternalProductTemplate>
 void mainLoop3(const ModelType& model,
                InputNgType::Readable& io,
-               LanczosPlusPlus::LanczosOptions& lanczosOptions)
+               LanczosPlusPlus::LanczosOptions&)
 {
 	typedef typename ModelType::GeometryType GeometryType;
 	typedef typename GeometryType::ComplexOrRealType ComplexOrRealType;
 	typedef LanczosPlusPlus::Engine<ModelType,InternalProductTemplate,SpecialSymmetryType> EngineType;
-	//typedef typename EngineType::TridiagonalMatrixType TridiagonalMatrixType;
-	//typedef PsimagLite::Vector<PsimagLite::String>::Type VectorStringType;
+	typedef typename EngineType::TridiagonalMatrixType TridiagonalMatrixType;
+	typedef PsimagLite::ContinuedFraction<TridiagonalMatrixType> ContinuedFractionType;
 
 	EngineType engine(model, io);
 
@@ -48,6 +48,21 @@ void mainLoop3(const ModelType& model,
 
 	std::vector<ComplexOrRealType> tTogs;
 	findVectorTtoGs(tTogs, engine, model);
+
+	SpecialSymmetryType symm(model.basis(), model.geometry(), "");
+	InternalProductTemplate<ModelType, SpecialSymmetryType> matrix(model,
+	                                                               model.basis(),
+	                                                               symm);
+	ContinuedFractionType cf;
+
+	if (PsimagLite::norm(tTogs)<1e-10)
+		std::cerr<<"spectralFunction: modifVector==0\n";
+
+	static const bool isFermionic = false;
+	static const bool isDiagonal = true;
+	const SizeType type = 0;
+	const SizeType spin = 0;
+	engine.calcSpectral(cf, isFermionic, tTogs, matrix, type, spin, isDiagonal);
 }
 
 template<typename ModelType,typename SpecialSymmetryType>

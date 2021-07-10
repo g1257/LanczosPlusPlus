@@ -28,8 +28,7 @@ FiniteLoops 2
 2 200 0
 -4 200 0
 
-
 TargetElectronsUp=3
 TargetElectronsDown=3
-
+AnisotropyD=7
 TruncationTolerance=1e-10

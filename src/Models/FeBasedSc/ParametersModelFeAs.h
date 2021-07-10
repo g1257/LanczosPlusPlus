@@ -79,6 +79,7 @@ DISCLOSED WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
  */
 #ifndef LANCZOS_PARAMS_MODELFEAS_H
 #define LANCZOS_PARAMS_MODELFEAS_H
+#include "PsimagLite.h"
 
 namespace LanczosPlusPlus {
 //! FeAs Model Parameters
@@ -97,7 +98,7 @@ struct ParametersModelFeAs {
 
 	template<typename IoInputType>
 	ParametersModelFeAs(IoInputType& io)
-	    : feAsMode(IntEnum::INT_PAPER33),coulombV(0)
+	    : feAsMode(IntEnum::INT_PAPER33), coulombV(0), anisotropyD(0)
 	{
 		io.readline(orbitals,"Orbitals=");
 		io.read(hubbardU,"hubbardU");
@@ -170,6 +171,10 @@ struct ParametersModelFeAs {
 				throw PsimagLite::RuntimeError(str);
 			}
 		}
+
+		try {
+			io.readline(anisotropyD, "AnisotropyD=");
+		} catch (std::exception&) {}
 	}
 
 	static IntEnum convertToEnum(PsimagLite::String x)
@@ -224,6 +229,7 @@ struct ParametersModelFeAs {
 	typename PsimagLite::Vector<RealType>::Type potentialV;
 	IntEnum feAsMode;
 	RealType coulombV;
+	RealType anisotropyD;
 	PsimagLite::Matrix<ComplexOrRealType> spinOrbit;
 	// target number of electrons  in the system
 	int nOfElectrons;
@@ -242,7 +248,7 @@ std::ostream& operator<<(std::ostream &os,const ParametersModelFeAs<RealTypeType
 	os<<parameters.spinOrbit;
 	os<<"FeAsMode="<<parameters.modeString(parameters.feAsMode)<<"\n";
 	os<<"CoulombV="<<parameters.coulombV<<"\n";
-
+	os<<"AnisotropyD="<<parameters.anisotropyD<<"\n";
 	return os;
 }
 } // namespace Dmrg

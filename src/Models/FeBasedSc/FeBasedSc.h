@@ -539,6 +539,8 @@ private:
 	{
 		RealType s = 0;
 		for (SizeType i=0;i<nsite;i++) {
+			RealType szOrb = 0;
+
 			for (SizeType orb=0;orb<mp_.orbitals;orb++) {
 
 				if (mp_.feAsMode == ParametersModelType::IntEnum::INT_PAPER33) {
@@ -558,8 +560,13 @@ private:
 				        mp_.potentialV[i+(orb+mp_.orbitals*1)*nsite]*
 				        basis.getN(ket2,ket2,i,SPIN_DOWN,orb);
 
+				szOrb += szTerm(ket1, ket2, i, orb, basis);
+
 			}
+
+			s += mp_.anisotropyD*szOrb*szOrb;
 		}
+
 		return s;
 	}
 
@@ -609,7 +616,7 @@ private:
 			for (SizeType spin = 0; spin < 2; ++spin)
 				s += PsimagLite::real(mp_.spinOrbit(spin+spin*2,orb+orb*mp_.orbitals))*
 				        basis.getN(ket1,ket2,i,spin,orb);
-		}
+		}		
 
 		assert(fabs(PsimagLite::imag(s))<1e-12);
 		return PsimagLite::real(s);

@@ -37,14 +37,15 @@ public:
 	{
 		const SizeType sites = model.geometry().numberOfSites();
 		const std::vector<ComplexOrRealType>& gsVector = engine.eigenvector(0);
-		const SizeType n = gsVector.size();
 		const SizeType spin = 0; // bogus
 		const SizeType orb = 0; // bogus
 		const PairSizeType spins(spin, spin);
-		zvector.resize(n);
 		static const LabeledOperator::Label label = LabeledOperator::Label::OPERATOR_CDAGGER;
 
 		createBasisIfNeeded(label, model, spins, orb);
+
+		const SizeType n = (basisNew_) ? basisNew_->size() : gsVector.size();
+		zvector.resize(n);
 
 		for (SizeType site = 0; site < sites; ++site) {
 			RealType arg = 2.0*M_PI*mForK/sites;

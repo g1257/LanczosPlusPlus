@@ -108,13 +108,15 @@ void mainLoop3(const ModelType& model,
 	} catch (std::exception&) {}
 
 
+	bool hasCenter = false;
+	SizeType centerSite = 0;
 	try {
-		SizeType centerSite = 0;
 		io.readline(centerSite, "TSPCenter=");
 		std::cout<<"TSPCenter="<<centerSite<<"\n";
 
 		for (SizeType i = 0; i < n; ++i)
 			pairOfSites.push_back(PairSizeType(centerSite, i));
+		hasCenter = true;
 	} catch (std::exception&) {}
 
 	for (SizeType gfi = 0; gfi < lanczosOptions.gf.size(); ++gfi) {
@@ -133,6 +135,10 @@ void mainLoop3(const ModelType& model,
 
 			typename EngineType::VectorStringType vstr;
 			PsimagLite::IoSimple::Out ioOut(filename + ttos(counter) + ".comb");
+
+			if (hasCenter)
+				ioOut.write(centerSite, "TSPCenter");
+
 			ContinuedFractionCollectionType cfCollection(PsimagLite::FREQ_REAL);
 			SizeType norbitals = maxOrbitals(model);
 			for (SizeType orb1=0;orb1<norbitals;orb1++) {
@@ -152,6 +158,7 @@ void mainLoop3(const ModelType& model,
 				ioOut<<vstr[i]<<" ";
 			ioOut<<"\n";
 			cfCollection.write(ioOut);
+			std::cerr<<"LanczosDriver1.h: Written to "<<ioOut.filename()<<"\n";
 			++counter;
 		}
 	}

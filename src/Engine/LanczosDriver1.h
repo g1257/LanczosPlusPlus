@@ -87,9 +87,10 @@ void mainLoop3(const ModelType& model,
 
 	typedef std::pair<SizeType, SizeType> PairSizeType;
 	PsimagLite::Vector<PairSizeType>::Type pairOfSites;
+	const SizeType n = geometry.numberOfSites();
+
 	if (needsDos) {
 		lanczosOptions.gf.push_back(LanczosPlusPlus::LabeledOperator("c"));
-		const SizeType n = geometry.numberOfSites();
 		for (SizeType i = 0; i < n; ++i)
 			pairOfSites.push_back(PairSizeType(i, i));
 	}
@@ -106,6 +107,15 @@ void mainLoop3(const ModelType& model,
 		pairOfSites.push_back(PairSizeType(lanczosOptions.sites[0], lanczosOptions.sites[1]));
 	} catch (std::exception&) {}
 
+
+	try {
+		SizeType centerSite = 0;
+		io.readline(centerSite, "TSPCenter=");
+		std::cout<<"TSPCenter="<<centerSite<<"\n";
+
+		for (SizeType i = 0; i < n; ++i)
+			pairOfSites.push_back(PairSizeType(centerSite, i));
+	} catch (std::exception&) {}
 
 	for (SizeType gfi = 0; gfi < lanczosOptions.gf.size(); ++gfi) {
 		SizeType counter = 0;

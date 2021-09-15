@@ -37,19 +37,23 @@ public:
 	{
 		const SizeType sites = model.geometry().numberOfSites();
 		const std::vector<ComplexOrRealType>& gsVector = engine.eigenvector(0);
-		const SizeType spin = 0; // bogus
-		const SizeType orb = 0; // bogus
+		const SizeType spin = 0;
+		const SizeType orb = 0;
 		const PairSizeType spins(spin, spin);
 		static const LabeledOperator::Label label = LabeledOperator::Label::OPERATOR_CDAGGER;
 
 		createBasisIfNeeded(label, model, spins, orb);
 
 		const SizeType n = (basisNew_) ? basisNew_->size() : gsVector.size();
-		zvector.resize(n);
-
+		if (zvector.size() != n) zvector.resize(n);
+		std::fill(zvector.begin(), zvector.end(), 0);
+		
+		// p = 2*pi*mForK/sites
+		//  zvector = \sum_site exp(i*p*site) label * |gsVector>
 		for (SizeType site = 0; site < sites; ++site) {
-			RealType arg = 2.0*M_PI*mForK/sites;
+			RealType arg = 2.0*M_PI*mForK*site/sites;
 			ComplexOrRealType factor(cos(arg), sin(arg));
+			// zvector += factor*label*|gsVector>
 			engine.accModifiedState_(zvector,
 			                         label,
 			                         (basisNew_) ? *basisNew_ : model.basis(),
@@ -153,14 +157,7 @@ void mainLoop3(const ModelType& model,
 	RealType Eg = engine.energies(0);
 	std::cout.precision(8);
 	std::cout<<"Energy="<<Eg<<"\n";
-
-	std::vector<ComplexOrRealType> tTogs;
-	FindVectorTtoGs<EngineType, PsimagLite::IsComplexNumber<ComplexOrRealType>::True> fv;
-	fv.findVectorTtoGs(tTogs, engine, model, lanczosOptions.split);
-
-	ComplexOrRealType den = scalarProduct(tTogs, tTogs);
-	std::cout<<"Denominator="<<den<<"\n";
-
+	
 	PairSizeType oldParts = model.basis().parts();
 
 	InputCheck inputCheck;
@@ -178,9 +175,25 @@ void mainLoop3(const ModelType& model,
 	RealType EgOneHole = engine2.energies(0);
 	std::cout.precision(8);
 	std::cout<<"EnergyOneHole="<<EgOneHole<<"\n";
-	ComplexOrRealType num = scalarProduct(engine2.eigenvector(0), tTogs);
-	std::cout<<"Numerator="<<num<<"\n";
-	std::cout<<"QuasiparticleWeightZ="<<num/den<<"\n";
+	// engine2.eigenvector(0) = g.s with (Nup -1, Ndown)
+	
+	// tTogs = c^\dagger_p |gs (Nup, Ndown0>
+	// p = 2*m*pi/L
+	// m = lanczosOptions.split
+	const SizeType sites = model.geometry().numberOfSites();
+	std::vector<ComplexOrRealType> tTogs;
+	
+	for (SizeType mForK = 0; mForK < sites; ++mForK) {
+		FindVectorTtoGs<EngineType, PsimagLite::IsComplexNumber<ComplexOrRealType>::True> fv;
+		fv.findVectorTtoGs(tTogs, engine, model, mForK);
+
+		ComplexOrRealType den = sqrt(scalarProduct(tTogs, tTogs));
+		std::cerr<<"Denominator="<<den<<"\n";
+
+		ComplexOrRealType num = scalarProduct(engine2.eigenvector(0), tTogs);
+		std::cerr<<"Numerator="<<num<<"\n";
+		std::cout<<mForK<<" "<<num/den<<"\n";
+	}
 }
 
 template<typename ModelType,typename SpecialSymmetryType>

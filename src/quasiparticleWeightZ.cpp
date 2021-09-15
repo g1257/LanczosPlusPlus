@@ -40,7 +40,7 @@ public:
 		const SizeType spin = 0;
 		const SizeType orb = 0;
 		const PairSizeType spins(spin, spin);
-		static const LabeledOperator::Label label = LabeledOperator::Label::OPERATOR_CDAGGER;
+		static const LabeledOperator::Label label = LabeledOperator::Label::OPERATOR_C;
 
 		createBasisIfNeeded(label, model, spins, orb);
 

@@ -182,15 +182,22 @@ void mainLoop3(const ModelType& model,
 	// m = lanczosOptions.split
 	const SizeType sites = model.geometry().numberOfSites();
 	std::vector<ComplexOrRealType> tTogs;
-	
+	bool eq4Formula = (lanczosOptions.split < 0);
+	if (eq4Formula) std::cout<<"#Using Eq.(4) formula\n";
 	for (SizeType mForK = 0; mForK < sites; ++mForK) {
 		FindVectorTtoGs<EngineType, PsimagLite::IsComplexNumber<ComplexOrRealType>::True> fv;
 		fv.findVectorTtoGs(tTogs, engine, model, mForK);
+		ComplexOrRealType num = scalarProduct(engine2.eigenvector(0), tTogs);
+
+		if (eq4Formula) {
+			RealType x = PsimagLite::norm(num);
+			std::cout<<mForK<<" "<<(x*x)<<"\n";
+			continue;
+		}
 
 		ComplexOrRealType den = sqrt(scalarProduct(tTogs, tTogs));
 		std::cerr<<"Denominator="<<den<<"\n";
 
-		ComplexOrRealType num = scalarProduct(engine2.eigenvector(0), tTogs);
 		std::cerr<<"Numerator="<<num<<"\n";
 		std::cout<<mForK<<" "<<num/den<<"\n";
 	}

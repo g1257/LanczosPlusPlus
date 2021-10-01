@@ -6,14 +6,16 @@ use utf8;
 use Math::Trig;
 use Getopt::Long qw(:config no_ignore_case);
 
-my $usage = "USAGE: $0 -r rootInputName  -n totalFiles -b begin -e end -s step -d delta\n";
-my ($root, $total, $begin, $end, $delta, $step); 
+my $usage = "USAGE: $0 -r rootInputName  -n totalFiles -b begin -e end -s step -d delta [-A]\n";
+my ($root, $total, $begin, $end, $delta, $step);
+my $allPairs = 0; 
 GetOptions('r=s' => \$root,
            'n=i' => \$total,
            'b=f' => \$begin,
            'e=f' => \$end,
            'd=f' => \$delta,
-           's=f' => \$step) or die "$usage\n";
+           's=f' => \$step,
+           'A' => \$allPairs) or die "$usage\n";
 my $myboolean = defined($root) && defined($total) && defined($begin) &&
 defined($end) && defined($step) && defined($delta);
 
@@ -21,7 +23,7 @@ defined($end) && defined($step) && defined($delta);
 
 my @data;
 for (my $m = 0; $m < $total; ++$m) {
-	my $outName = doOneKmomentum($m, $root, $total);
+	my $outName = doOneKmomentum($m, $root, $total, $allPairs);
 	my $plotName = $root.$m.".dat";
 	system("../../PsimagLite/drivers/continuedFractionCollection -d $delta -s $step -b $begin -e $end -f $outName > $plotName");
 	print STDERR "$0: Written $plotName\n";
@@ -75,10 +77,12 @@ sub loadPlot
 
 sub doOneKmomentum
 {
-	my ($m, $root, $total) = @_;
+	my ($m, $root, $total, $allPairs) = @_;
+	die "$0: All pairs option not implemented yet\n" if ($allPairs);
 	my $sum = 0;
 	my $text = "";
-	for (my $i = 0; $i < $total; ++$i) {
+	my $total2 = ($allPairs) ? $total*$total : $total;
+	for (my $i = 0; $i < $total2; ++$i) {
 		my $finName = "$root$i.comb";
 		my $n = procFile(\$text, $finName, $m, $i, $total);
 		$sum += $n;

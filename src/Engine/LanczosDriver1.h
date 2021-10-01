@@ -119,6 +119,22 @@ void mainLoop3(const ModelType& model,
 		hasCenter = true;
 	} catch (std::exception&) {}
 
+	bool doAllPairs = false;
+	try {
+		int tmp = 0;
+		io.readline(tmp, "DoAllPairs=");
+		doAllPairs = (tmp > 0);
+	} catch (std::exception&) {}
+
+	if (doAllPairs && hasCenter)
+		err("You cannot have both TSPCenter and DoAllPairs\n");
+
+	if (doAllPairs) {
+		for (SizeType i = 0; i < n; ++i)
+			for (SizeType j = 0; j < n; ++j)
+				pairOfSites.push_back(PairSizeType(i, j));
+	}
+
 	for (SizeType gfi = 0; gfi < lanczosOptions.gf.size(); ++gfi) {
 		SizeType counter = 0;
 		const SizeType nIndices = pairOfSites.size();
@@ -135,6 +151,9 @@ void mainLoop3(const ModelType& model,
 
 			typename EngineType::VectorStringType vstr;
 			PsimagLite::IoSimple::Out ioOut(filename + ttos(counter) + ".comb");
+
+			ioOut.write(site0, "Site0");
+			ioOut.write(site1, "Site1");
 
 			if (hasCenter)
 				ioOut.write(centerSite, "TSPCenter");

@@ -1,3 +1,19 @@
+2021-11-19 Version 2.02
+
+* dynamics1 driver added
+
+* calcSpectral: corrected sign of omega
+
+* FeBasedSc: anistropy supported now
+
+* dynamicsFt.pl script added
+to do a Fourier transform
+
+* quasiParticleWeightZ driver added
+
+* dynamics support for all pairs in C++,
+but still needs script
+
 2021-04-22 Version 2.00
 
 * HeisenbergInfiniteTemperature driver added

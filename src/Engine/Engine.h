@@ -224,7 +224,7 @@ public:
 				err("Operator " + tokens[i] + " needs a site in brackets\n");
 			tokens[i] = siteSplit.root;
 			assert(i < vsites.size());
-			vsites[i] = OneOperatorSpecType::strToNumberOfFail(siteSplit.siteString);
+			vsites[i] = OneOperatorSpecType::strToNumberOrFail(siteSplit.siteString);
 
 			OneOperatorSpecType opspec(tokens[i]);
 

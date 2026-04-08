@@ -1,3 +1,7 @@
+
+# LanczosPlusPlus is now included in DMRG++ and this repo is therefore archived and read only.
+# Please use https://github.com/g1257/dmrgpp instead
+
 # Quick Start
 ## Licensing
 
